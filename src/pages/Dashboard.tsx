@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../lib/auth';
-import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 
 interface Transcription {
@@ -14,17 +13,10 @@ interface Transcription {
   created_at: string;
 }
 
-interface Profile {
-  energy_points: number;
-  subscription_plan: string;
-  full_name: string | null;
-}
-
 export default function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [transcriptions, setTranscriptions] = useState<Transcription[]>([]);
-  const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedTranscription, setSelectedTranscription] = useState<Transcription | null>(null);
 
@@ -39,28 +31,17 @@ export default function Dashboard() {
   const fetchData = async () => {
     if (!user) return;
 
-    const [profileData, transcriptionsData] = await Promise.all([
-      supabase
-        .from('profiles')
-        .select('energy_points, subscription_plan, full_name')
-        .eq('id', user.id)
-        .maybeSingle(),
-      supabase
-        .from('transcriptions')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(50),
-    ]);
+    // TODO: Integrate with transcription API when available
+    // For now, transcriptions will be empty
+    // When transcription API is integrated, fetch transcriptions here
+    // Example:
+    // const response = await fetch(`${API_BASE_URL}/api/transcriptions`, {
+    //   headers: { 'Authorization': `Bearer ${getAuthToken()}` }
+    // });
+    // const data = await response.json();
+    // setTranscriptions(data.transcriptions || []);
 
-    if (profileData.data) {
-      setProfile(profileData.data);
-    }
-
-    if (transcriptionsData.data) {
-      setTranscriptions(transcriptionsData.data);
-    }
-
+    setTranscriptions([]);
     setLoading(false);
   };
 
@@ -121,16 +102,16 @@ export default function Dashboard() {
       <div style={styles.header}>
         <div>
           <h1 style={styles.title}>Dashboard</h1>
-          <p style={styles.subtitle}>Welcome back, {profile?.full_name || user?.email}</p>
+          <p style={styles.subtitle}>Welcome back, {user?.name || user?.email}</p>
         </div>
       </div>
 
       <div style={styles.statsGrid}>
         <div style={styles.statCard}>
-          <div style={styles.statIcon}>⚡</div>
+          <div style={styles.statIcon}>📧</div>
           <div style={styles.statContent}>
-            <div style={styles.statValue}>{profile?.energy_points || 0}</div>
-            <div style={styles.statLabel}>Energy Points</div>
+            <div style={styles.statValue}>{user?.email || 'N/A'}</div>
+            <div style={styles.statLabel}>Email</div>
           </div>
         </div>
 
@@ -143,10 +124,10 @@ export default function Dashboard() {
         </div>
 
         <div style={styles.statCard}>
-          <div style={styles.statIcon}>⭐</div>
+          <div style={styles.statIcon}>👤</div>
           <div style={styles.statContent}>
-            <div style={styles.statValue}>{profile?.subscription_plan || 'Free'}</div>
-            <div style={styles.statLabel}>Current Plan</div>
+            <div style={styles.statValue}>{user?.name || 'User'}</div>
+            <div style={styles.statLabel}>Name</div>
           </div>
         </div>
 

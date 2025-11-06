@@ -28,6 +28,51 @@ export default function Pricing() {
   }, []);
 
   const fetchPlans = async () => {
+    if (!supabase) {
+      // If Supabase is not configured, use default plans
+      setPlans([
+        {
+          id: '1',
+          name: 'Basic',
+          price: 9.99,
+          energy_points: 500,
+          features: {
+            maxDuration: 30,
+            formats: ['mp3', 'wav'],
+            priority: 'standard',
+            history: 30,
+          },
+        },
+        {
+          id: '2',
+          name: 'Pro',
+          price: 19.99,
+          energy_points: 1500,
+          features: {
+            maxDuration: 120,
+            formats: ['mp3', 'wav', 'm4a', 'flac'],
+            priority: 'high',
+            history: 90,
+          },
+        },
+        {
+          id: '3',
+          name: 'Enterprise',
+          price: 49.99,
+          energy_points: 5000,
+          features: {
+            maxDuration: 300,
+            formats: ['all'],
+            priority: 'highest',
+            history: 365,
+            api: true,
+          },
+        },
+      ]);
+      setLoading(false);
+      return;
+    }
+
     const { data } = await supabase
       .from('subscription_plans')
       .select('*')

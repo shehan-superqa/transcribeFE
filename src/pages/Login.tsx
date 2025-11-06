@@ -6,7 +6,7 @@ export default function Login() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
+  const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -20,13 +20,13 @@ export default function Login() {
 
     try {
       if (isSignUp) {
-        const { error } = await signUp(email, password, fullName);
+        const { error } = await signUp(email, password, name || undefined);
         if (error) throw error;
       } else {
         const { error } = await signIn(email, password);
         if (error) throw error;
       }
-      navigate('/');
+      navigate('/dashboard');
     } catch (err: any) {
       setError(err.message || 'An error occurred');
     } finally {
@@ -49,14 +49,13 @@ export default function Login() {
         <form onSubmit={handleSubmit} style={styles.form}>
           {isSignUp && (
             <div style={styles.inputGroup}>
-              <label style={styles.label}>Full Name</label>
+              <label style={styles.label}>Name (Optional)</label>
               <input
                 type="text"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 placeholder="John Doe"
                 style={styles.input}
-                required={isSignUp}
               />
             </div>
           )}
