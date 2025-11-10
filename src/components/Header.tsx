@@ -1,25 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-// Ensure this path is correct for your project
+
 import { useAuth } from '../lib/auth'; 
 import { FiMenu, FiX, FiChevronDown, FiChevronRight } from 'react-icons/fi'; 
 
-// --- NavLink Component (Main Header Links: Background Hover) ---
+
 const NavLink = ({ to, children, onClick }: { to?: string; children: React.ReactNode; onClick?: () => void }) => {
   const [hover, setHover] = React.useState(false);
   const commonStyles = {
     fontFamily: "'Inter', sans-serif",
     fontWeight: 400,
-    fontSize: '0.8rem', // Reduced font size
+    fontSize: '0.8rem', 
     textDecoration: 'none',
     color: '#ffffff', 
     backgroundColor: hover ? '#1a1a1a' : 'transparent', 
-    padding: '0.4rem 0.6rem', // Adjusted padding
+    padding: '0.4rem 0.6rem', 
     borderRadius: '4px', 
     transition: 'all 0.2s ease-in-out',
     whiteSpace: 'nowrap' as const,
     display: 'flex', 
     alignItems: 'center',
+    
+    margin: '0', 
   };
 
   if (to) {
@@ -55,11 +57,11 @@ const DropdownItem = ({ to, children }: { to: string; children: React.ReactNode 
       style={{
         fontFamily: "'Inter', sans-serif",
         fontWeight: 400,
-        fontSize: '0.8rem', // Reduced font size
+        fontSize: '0.8rem', 
         textDecoration: 'none',
         color: '#ffffff',
         backgroundColor: hover ? '#1a1a1a' : 'transparent', 
-        padding: '0.4rem 1rem', // Adjusted padding
+        padding: '0.4rem 1rem', 
         transition: 'background-color 0.2s ease-in-out',
         display: 'flex',
         justifyContent: 'space-between',
@@ -83,8 +85,8 @@ const PrimaryButton = ({ onClick, children }: { onClick?: () => void; children: 
       style={{
         fontFamily: "'Inter', sans-serif",
         fontWeight: 500,
-        fontSize: '0.85rem', // Slightly reduced font size
-        padding: '0.5rem 1.1rem', // Adjusted padding
+        fontSize: '0.85rem', 
+        padding: '0.5rem 1.1rem', 
         backgroundColor: hover ? '#e0e0e0' : '#ffffff', 
         color: '#000000',
         border: 'none',
@@ -110,10 +112,10 @@ export default function Header() {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [productDropdownOpen, setProductDropdownOpen] = useState(false); 
-  // State for responsiveness check
+
   const [isDesktop, setIsDesktop] = useState(typeof window !== 'undefined' && window.innerWidth > 1024);
 
-  // Effect to handle window resize for basic responsiveness
+  
   useEffect(() => {
     const handleResize = () => {
       setIsDesktop(window.innerWidth > 1024);
@@ -156,7 +158,7 @@ export default function Header() {
     },
     logo: {
       display: 'flex',
-      alignItems: 'center',
+      alignItems: 'center', 
       textDecoration: 'none',
     },
     logoSvgContainer: {
@@ -165,13 +167,13 @@ export default function Header() {
     logoText: {
       fontFamily: "'Inter', sans-serif",
       fontWeight: 700,
-      fontSize: '1.2rem', // RETAINED LARGE FONT SIZE
+      fontSize: '1.2rem', 
       color: '#ffffff',
       letterSpacing: '0.5px',
     },
     desktopNavLinks: {
       display: 'flex',
-      alignItems: 'center',
+      alignItems: 'baseline' as const, 
       gap: '1.25rem', 
     },
     productDropdownContainer: {
@@ -193,7 +195,7 @@ export default function Header() {
     },
     rightAuthSection: {
       display: 'flex',
-      alignItems: 'center',
+      alignItems: 'center', 
       gap: '0.75rem', 
     },
     mobileMenuIcon: {
@@ -230,7 +232,7 @@ export default function Header() {
           {/* Logo */}
           <Link to="/" style={styles.logo}>
             <div style={styles.logoSvgContainer}>
-              {/* MODERN ABSTRACT LOGO (Requested version) */}
+              {/* MODERN ABSTRACT LOGO */}
               <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                 {/* Abstract shape representing content or data stream */}
                 <path d="M7 16C7 11.5817 10.5817 8 15 8H17C21.4183 8 25 11.5817 25 16V24" stroke="url(#logoGradient)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
