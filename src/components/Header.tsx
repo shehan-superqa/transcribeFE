@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
+// Assuming 'useAuth' and icon imports are available
 import { useAuth } from '../lib/auth'; 
-import { FiMenu, FiX, FiChevronDown, FiChevronRight } from 'react-icons/fi'; 
+// UPDATED: Imported FiChevronUp
+import { FiMenu, FiX, FiChevronDown, FiChevronUp } from 'react-icons/fi'; 
 
-
+// --- 1. NavLink Component (Unchanged) ---
 const NavLink = ({ to, children, onClick }: { to?: string; children: React.ReactNode; onClick?: () => void }) => {
   const [hover, setHover] = React.useState(false);
   const commonStyles = {
@@ -20,7 +22,6 @@ const NavLink = ({ to, children, onClick }: { to?: string; children: React.React
     whiteSpace: 'nowrap' as const,
     display: 'flex', 
     alignItems: 'center',
-    
     margin: '0', 
   };
 
@@ -48,35 +49,7 @@ const NavLink = ({ to, children, onClick }: { to?: string; children: React.React
   );
 };
 
-// --- DropdownItem Component ---
-const DropdownItem = ({ to, children }: { to: string; children: React.ReactNode }) => {
-  const [hover, setHover] = React.useState(false);
-  return (
-    <Link
-      to={to}
-      style={{
-        fontFamily: "'Inter', sans-serif",
-        fontWeight: 400,
-        fontSize: '0.8rem', 
-        textDecoration: 'none',
-        color: '#ffffff',
-        backgroundColor: hover ? '#1a1a1a' : 'transparent', 
-        padding: '0.4rem 1rem', 
-        transition: 'background-color 0.2s ease-in-out',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-      }}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-    >
-      {children}
-      <FiChevronRight size={14} color="#ffffff" style={{ opacity: hover ? 1 : 0.6 }} /> 
-    </Link>
-  );
-};
-
-// --- PrimaryButton Component ---
+// --- 2. PrimaryButton Component (Unchanged) ---
 const PrimaryButton = ({ onClick, children }: { onClick?: () => void; children: React.ReactNode }) => {
   const [hover, setHover] = React.useState(false);
   return (
@@ -106,6 +79,176 @@ const PrimaryButton = ({ onClick, children }: { onClick?: () => void; children: 
   );
 };
 
+// =============================================================
+// --- Dropdown Components (Content and Structure Unchanged) ---
+// =============================================================
+
+// Item for the right-hand sections
+const SectionItem = ({ to, title, description }: { to: string; title: string; description: string }) => {
+  const [hover, setHover] = React.useState(false);
+  return (
+    <Link
+      to={to}
+      style={{
+        textDecoration: 'none',
+        padding: '0.6rem 1rem',
+        backgroundColor: hover ? '#1a1a1a' : 'transparent', 
+        transition: 'background-color 0.2s ease-in-out',
+        display: 'block',
+      }}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+    >
+      <h4 style={{
+        fontFamily: "'Inter', sans-serif",
+        fontWeight: 500,
+        fontSize: '0.85rem', 
+        color: '#ffffff',
+        margin: 0,
+        lineHeight: 1.2,
+      }}>
+        {title}
+      </h4>
+      <p style={{
+        fontFamily: "'Inter', sans-serif",
+        fontWeight: 400,
+        fontSize: '0.7rem', 
+        color: '#aaaaaa',
+        margin: '0.2rem 0 0 0',
+        lineHeight: 1.4,
+      }}>
+        {description}
+      </p>
+    </Link>
+  );
+};
+
+// Section for the right-hand items
+const DropdownSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
+  <div style={{
+    minWidth: '220px', 
+    borderLeft: '1px solid #1a1a1a', 
+    padding: '0.5rem 0',
+  }}>
+    <h3 style={{
+      fontFamily: "'Inter', sans-serif",
+      fontWeight: 600,
+      fontSize: '0.75rem', 
+      color: '#aaaaaa',
+      textTransform: 'uppercase',
+      padding: '0 1rem 0.5rem 1rem',
+      margin: 0,
+    }}>
+      {title}
+    </h3>
+    {children}
+  </div>
+);
+
+// The Left, Highlighted Item
+const HighlightedItem = ({ to, title, description }: { to: string; title: string; description: string }) => {
+  const [hover, setHover] = React.useState(false);
+  
+  // Modern Gradient
+  const MODERN_GRADIENT = 'linear-gradient(135deg, #0077B6 0%, #00B4D8 40%, #480CA8 100%)';
+  const HOVER_GRADIENT = 'linear-gradient(135deg, #00B4D8 0%, #0077B6 40%, #5F0DFF 100%)';
+
+  return (
+    <Link
+      to={to}
+      style={{
+        textDecoration: 'none',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'flex-end',
+        width: '180px', 
+        minHeight: '180px', 
+        padding: '1.25rem',
+        borderRadius: '8px',
+        background: hover ? HOVER_GRADIENT : MODERN_GRADIENT,
+        boxShadow: hover ? '0 4px 20px rgba(0, 119, 182, 0.7)' : '0 4px 10px rgba(0, 0, 0, 0.5)',
+        transition: 'all 0.3s ease-in-out',
+        flexShrink: 0,
+      }}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+    >
+      <h3 style={{
+        fontFamily: "'Inter', sans-serif",
+        fontWeight: 600,
+        fontSize: '1.1rem', 
+        color: '#ffffff',
+        margin: '0 0 0.5rem 0',
+      }}>
+        {title}
+      </h3>
+      <p style={{
+        fontFamily: "'Inter', sans-serif",
+        fontWeight: 400,
+        fontSize: '0.75rem', 
+        color: '#e0e0e0',
+        margin: 0,
+      }}>
+        {description}
+      </p>
+    </Link>
+  );
+};
+
+
+// Main wrapper for the complex dropdown menu
+const ComplexDropdown = () => {
+  return (
+    <div style={{
+      display: 'flex',
+      backgroundColor: '#0d0d0d', 
+      borderRadius: '8px',
+      boxShadow: '0 8px 20px rgba(0, 0, 0, 0.5)', 
+      overflow: 'hidden', 
+      minWidth: '600px', 
+      padding: '0.5rem', 
+    }}>
+      {/* Left Column (Highlighted) */}
+      <HighlightedItem 
+        to="/product/secure-voice-comm"
+        title="Secure Comm."
+        description="End-to-end encryption for all voice and data streams."
+      />
+
+      {/* Right Column (Sections) */}
+      <div style={{ display: 'flex' }}>
+        <DropdownSection title="Core Features">
+          <SectionItem 
+            to="/product/voice-biometrics"
+            title="Voice Biometrics"
+            description="Verify user identity using unique voice prints (IVR)"
+          />
+          <SectionItem 
+            to="/product/data-tokenization"
+            title="Data Tokenization"
+            description="Anonymize sensitive data in real-time conversations"
+          />
+        </DropdownSection>
+        <DropdownSection title="Use Cases">
+          <SectionItem 
+            to="/solutions/contact-center-security"
+            title="Contact Center Security"
+            description="Protect customer PII and meet compliance standards"
+          />
+          <SectionItem 
+            to="/solutions/remote-work-security"
+            title="Remote Work Security"
+            description="Secure virtual meetings and team collaborations"
+          />
+        </DropdownSection>
+      </div>
+    </div>
+  );
+};
+// =============================================================
+// --- END Dropdown Components ---
+// =============================================================
+
 
 export default function Header() {
   const { user, signOut } = useAuth(); 
@@ -123,6 +266,7 @@ export default function Header() {
 
     if (typeof window !== 'undefined') {
       window.addEventListener('resize', handleResize);
+      // Clean up the event listener
       return () => window.removeEventListener('resize', handleResize);
     }
   }, []); 
@@ -131,7 +275,14 @@ export default function Header() {
     setMobileOpen(!mobileOpen);
     setProductDropdownOpen(false); 
   }
-  const handleToggleProductDropdown = () => setProductDropdownOpen(!productDropdownOpen);
+
+  // Simple functions to set state based on mouse events
+  const handleOpenProductDropdown = () => isDesktop && setProductDropdownOpen(true);
+  const handleCloseProductDropdown = () => isDesktop && setProductDropdownOpen(false);
+  
+  // Use onClick to handle mobile toggle behavior
+  const handleToggleProductDropdown = () => !isDesktop && setProductDropdownOpen(!productDropdownOpen);
+
 
   // --- Styles Object ---
   const styles = {
@@ -176,22 +327,17 @@ export default function Header() {
       alignItems: 'baseline' as const, 
       gap: '1.25rem', 
     },
+    // The hover/leave handlers are on the parent container
     productDropdownContainer: {
       position: 'relative' as const,
+      marginBottom: '-4px', 
     },
     productDropdownMenu: {
       position: 'absolute' as const,
-      top: '120%', 
-      left: 0,
-      backgroundColor: '#0d0d0d', 
-      borderRadius: '8px',
-      padding: '0.5rem 0',
-      minWidth: '180px', 
-      boxShadow: '0 8px 20px rgba(0, 0, 0, 0.5)', 
+      top: '100%', 
+      left: '-200px', 
+      paddingTop: '4px', 
       zIndex: 201, 
-      display: 'flex',
-      flexDirection: 'column' as const,
-      gap: '0', 
     },
     rightAuthSection: {
       display: 'flex',
@@ -222,7 +368,22 @@ export default function Header() {
       flexDirection: 'column' as const,
       gap: '0',
     },
+    // Simple DropdownItem for mobile use only
+    simpleDropdownItem: {
+      fontFamily: "'Inter', sans-serif",
+      fontWeight: 400,
+      fontSize: '0.8rem', 
+      textDecoration: 'none',
+      color: '#ffffff',
+      backgroundColor: 'transparent', 
+      padding: '0.4rem 1rem', 
+      transition: 'background-color 0.2s ease-in-out',
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    }
   };
+
 
   return (
     <header style={styles.header}>
@@ -234,7 +395,6 @@ export default function Header() {
             <div style={styles.logoSvgContainer}>
               {/* MODERN ABSTRACT LOGO */}
               <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                {/* Abstract shape representing content or data stream */}
                 <path d="M7 16C7 11.5817 10.5817 8 15 8H17C21.4183 8 25 11.5817 25 16V24" stroke="url(#logoGradient)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
                 <path d="M15 24L17 24" stroke="url(#logoGradient)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
                 
@@ -256,15 +416,24 @@ export default function Header() {
               display: isDesktop ? 'flex' : 'none' 
             }}
           >
-            <div style={styles.productDropdownContainer}>
-              <NavLink onClick={handleToggleProductDropdown}>
-                Product <FiChevronDown size={14} style={{ marginLeft: '0.25rem' }} />
+            {/* Product Dropdown: Hover/Click logic */}
+            <div 
+                style={styles.productDropdownContainer}
+                onMouseEnter={handleOpenProductDropdown} 
+                onMouseLeave={handleCloseProductDropdown} 
+            >
+              {/* Conditional Icon Rendering */}
+              <NavLink onClick={handleToggleProductDropdown}> 
+                Product 
+                {productDropdownOpen ? (
+                  <FiChevronUp size={14} style={{ marginLeft: '0.25rem' }} />
+                ) : (
+                  <FiChevronDown size={14} style={{ marginLeft: '0.25rem' }} />
+                )}
               </NavLink>
-              {productDropdownOpen && (
+              {productDropdownOpen && isDesktop && ( 
                 <div style={styles.productDropdownMenu}>
-                  <DropdownItem to="/product/features">Features</DropdownItem>
-                  <DropdownItem to="/product/integrations">Integrations</DropdownItem>
-                  <DropdownItem to="/product/solutions">Solutions</DropdownItem>
+                  <ComplexDropdown />
                 </div>
               )}
             </div>
@@ -275,7 +444,7 @@ export default function Header() {
           </nav>
         </div>
 
-        {/* Right Section: Auth and Demo Button */}
+        {/* Right Section: Auth and Demo Button (Desktop Only) */}
         <div 
           style={{ 
             ...styles.rightAuthSection, 
@@ -313,15 +482,25 @@ export default function Header() {
       {/* Mobile Menu (Conditional Rendering) */}
       {!isDesktop && mobileOpen && ( 
         <div style={styles.mobileMenu}>
+          {/* Mobile Product Dropdown (Simple List for Usability) */}
           <div style={styles.mobileDropdownContainer}>
+            {/* Conditional Icon Rendering for Mobile */}
             <NavLink onClick={handleToggleProductDropdown}>
-              Product <FiChevronDown size={14} style={{ marginLeft: '0.25rem' }} />
+              Product 
+              {productDropdownOpen ? (
+                  <FiChevronUp size={14} style={{ marginLeft: '0.25rem' }} />
+                ) : (
+                  <FiChevronDown size={14} style={{ marginLeft: '0.25rem' }} />
+                )}
             </NavLink>
             {productDropdownOpen && (
               <div style={styles.mobileDropdownMenu}>
-                <DropdownItem to="/product/features">Features</DropdownItem>
-                <DropdownItem to="/product/integrations">Integrations</DropdownItem>
-                <DropdownItem to="/product/solutions">Solutions</DropdownItem>
+                {/* Updated simple list items for mobile */}
+                <Link to="/product/secure-voice-comm" style={styles.simpleDropdownItem}>Secure Communication</Link>
+                <Link to="/product/voice-biometrics" style={styles.simpleDropdownItem}>Voice Biometrics</Link>
+                <Link to="/product/data-tokenization" style={styles.simpleDropdownItem}>Data Tokenization</Link>
+                <Link to="/solutions/contact-center-security" style={styles.simpleDropdownItem}>Contact Center Security</Link>
+                <Link to="/solutions/remote-work-security" style={styles.simpleDropdownItem}>Remote Work Security</Link>
               </div>
             )}
           </div>
