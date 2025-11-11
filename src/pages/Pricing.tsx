@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/auth';
 import { useNavigate } from 'react-router-dom';
-import { FiInfo } from 'react-icons/fi'; // For the info icon
+import { FiInfo } from 'react-icons/fi'; 
 
 interface Plan {
   id: string;
@@ -18,16 +18,25 @@ interface Plan {
   };
 }
 
-// --- FAQ Item Component with Hover Effect ---
+// --- UPDATED FAQ Item Component ---
 const FaqItem = ({ question, answer }) => {
     const [hover, setHover] = useState(false);
 
     // Dynamic style based on hover state
     const itemStyle = {
         ...styles.faqItem,
+        // Structural effect (lift/scale) is kept
         transform: hover ? 'translateY(-5px) scale(1.01)' : 'translateY(0) scale(1)',
-        boxShadow: hover ? '0 10px 20px rgba(0, 180, 216, 0.2), 0 0 15px rgba(0, 180, 216, 0.5)' : '0 2px 10px rgba(0, 0, 0, 0.5)',
-        border: hover ? '1px solid #00B4D8' : '1px solid #333333',
+        
+        // --- VISUAL CHANGE ON HOVER ---
+        // Change shadow to a subtle, neutral/white glow
+        boxShadow: hover 
+            ? '0 10px 20px rgba(255, 255, 255, 0.05), 0 0 15px rgba(255, 255, 255, 0.1)' 
+            : '0 2px 10px rgba(0, 0, 0, 0.5)',
+        
+        // Change border to a light grey, removing the cyan color
+        border: hover ? '1px solid #777777' : '1px solid #333333',
+        // ---------------------------------
     };
 
     return (
@@ -623,7 +632,7 @@ const styles = {
     color: '#181818',
   },
     
-  // --- GET IN TOUCH Styles (New) ---
+  // --- GET IN TOUCH Styles ---
   getInTouchContainer: {
     padding: '4rem 1.5rem',
     maxWidth: '1200px',
