@@ -1,0 +1,89 @@
+/* IMAGE + DESCRIPTION SECTION */
+.image-description-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4rem; /* slightly more spacing */
+    padding: 6rem 3rem; /* increased padding for taller card */
+    max-width: 1400px; /* increased max-width */
+    margin: 0 auto;
+    background: var(--background-light); /* Inner card area */
+    color: var(--text-light);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-lg);
+    transition: background var(--transition-normal);
+}
+
+/* SECTION BACKGROUND (light black outer area) */
+.upload-section {
+    background: var(--background-dark); /* Dark gray background */
+    padding: 6rem 0; /* increased section padding */
+}
+
+/* IMAGE STYLING */
+.image-wrapper {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.image {
+    width: 100%;
+    max-width: 500px; /* larger image width */
+    height: auto;
+    border: 8px solid var(--primary-dark);
+    border-radius: var(--border-radius-lg);
+    object-fit: cover;
+    box-shadow: 0 10px 25px rgba(0, 198, 255, 0.2);
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.image:hover {
+    transform: scale(1.05); /* slightly bigger hover scale */
+    box-shadow: 0 20px 50px rgba(0, 198, 255, 0.3);
+}
+
+/* TEXT CONTENT */
+.description-wrapper {
+    flex: 1.3; /* slightly larger text area */
+    padding-right: 1rem;
+}
+
+.title {
+    font-size: 2.4rem; /* bigger title */
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.description {
+    font-size: 1.2rem; /* slightly larger description text */
+    line-height: 1.8;
+    color: var(--text-muted);
+    max-width: 700px;
+}
+
+/* RESPONSIVE DESIGN */
+@media (max-width: 900px) {
+    .image-description-container {
+        flex-direction: column;
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+
+    .description-wrapper {
+        padding: 0;
+    }
+
+    .image {
+        max-width: 100%;
+    }
+}
+
+/* Optional hover glow effect on entire section */
+.image-description-container:hover {
+    background: linear-gradient(135deg, var(--background-dark), var(--background-light));
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+}

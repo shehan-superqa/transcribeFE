@@ -1,305 +1,331 @@
 export const styles = {
   container: {
-    backgroundColor: 'white',
-    borderRadius: 'var(--border-radius-xl)',
-    padding: '2rem',
-    boxShadow: 'var(--shadow-lg)',
-    maxWidth: '600px',
-    margin: '0 auto',
-  },
-  energyBadge: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '0.5rem',
-    padding: '0.75rem 1.5rem',
-    backgroundColor: 'var(--color-gray-100)',
-    borderRadius: 'var(--border-radius-lg)',
-    marginBottom: '1.5rem',
-    fontWeight: 600,
-    color: 'var(--color-gray-700)',
-  },
-  energyIcon: {
-    fontSize: '1.5rem',
-  },
-  energyText: {
-    fontSize: '1rem',
-  },
-  modeSelector: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(3, 1fr)',
-    gap: '0.5rem',
-    marginBottom: '2rem',
-  },
-  modeButton: {
-    padding: '0.75rem 1rem',
-    backgroundColor: 'var(--color-gray-100)',
-    color: 'var(--color-gray-700)',
-    borderRadius: 'var(--border-radius-md)',
-    fontWeight: 600,
-    fontSize: '0.875rem',
-    transition: 'all var(--transition-fast)',
-  },
-  modeButtonActive: {
-    backgroundColor: 'var(--color-primary)',
-    color: 'white',
-  },
-  form: {
     display: 'flex',
     flexDirection: 'column' as const,
     gap: '1.5rem',
+    padding: '2rem',
+    borderRadius: '1.25rem',
+    background: 'linear-gradient(145deg, #0f172a, #1e293b)',
+    color: '#f8fafc',
+    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.25)',
+    maxWidth: '700px',
+    margin: '2rem auto',
+    fontFamily: 'Inter, system-ui, sans-serif',
   },
+
+  energyBadge: {
+    alignSelf: 'center',
+    background: 'linear-gradient(90deg, #22d3ee, #3b82f6)',
+    borderRadius: '9999px',
+    padding: '0.4rem 1rem',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    fontWeight: 600,
+    color: '#0f172a',
+    boxShadow: '0 0 10px rgba(59, 130, 246, 0.4)',
+  },
+
+  energyIcon: {
+    fontSize: '1.2rem',
+  },
+
+  energyText: {
+    fontSize: '0.95rem',
+  },
+
+  modeSelector: {
+    display: 'flex',
+    justifyContent: 'space-around',
+    background: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: '1rem',
+    padding: '0.5rem',
+  },
+
+  modeButton: {
+    flex: 1,
+    background: 'transparent',
+    color: '#f8fafc',
+    border: 'none',
+    borderRadius: '0.75rem',
+    padding: '0.6rem 0.75rem',
+    fontWeight: 500,
+    cursor: 'pointer',
+    transition: 'all 0.25s ease',
+  },
+
+  modeButtonActive: {
+    background: 'linear-gradient(90deg, #6366f1, #3b82f6)',
+    boxShadow: '0 4px 12px rgba(99, 102, 241, 0.4)',
+  },
+
+  form: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '1.25rem',
+  },
+
   inputGroup: {
     display: 'flex',
     flexDirection: 'column' as const,
     gap: '0.5rem',
   },
+
   label: {
-    fontSize: '0.875rem',
     fontWeight: 600,
-    color: 'var(--color-gray-700)',
+    fontSize: '0.95rem',
   },
-  input: {
-    padding: '0.75rem 1rem',
-    border: '2px solid var(--color-gray-200)',
-    borderRadius: 'var(--border-radius-md)',
-    fontSize: '1rem',
-    transition: 'border-color var(--transition-fast)',
-  },
+
   fileInput: {
     display: 'none',
   },
+
   fileUploadBox: {
-    border: '2px dashed var(--color-gray-300)',
-    borderRadius: 'var(--border-radius-lg)',
+    background: 'rgba(255, 255, 255, 0.05)',
+    border: '2px dashed rgba(255, 255, 255, 0.2)',
+    borderRadius: '1rem',
     padding: '2rem',
     textAlign: 'center' as const,
     cursor: 'pointer',
-    transition: 'all var(--transition-fast)',
+    transition: 'border 0.25s ease, background 0.25s ease',
   },
+
   uploadIcon: {
-    color: 'var(--color-gray-400)',
-    margin: '0 auto 1rem',
+    color: '#60a5fa',
+    marginBottom: '0.5rem',
   },
+
   uploadText: {
+    fontWeight: 500,
     fontSize: '1rem',
-    fontWeight: 600,
-    color: 'var(--color-gray-700)',
-    marginBottom: '0.25rem',
   },
+
   uploadSubtext: {
-    fontSize: '0.875rem',
-    color: 'var(--color-gray-500)',
+    fontSize: '0.8rem',
+    color: '#cbd5e1',
   },
+
+  input: {
+    padding: '0.75rem 1rem',
+    borderRadius: '0.75rem',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+    background: 'rgba(255, 255, 255, 0.05)',
+    color: '#f8fafc',
+    outline: 'none',
+  },
+
+  conversionProgress: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '0.5rem',
+    marginTop: '0.75rem',
+  },
+
+  progressBarContainer: {
+    background: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: '1rem',
+    height: '0.5rem',
+    overflow: 'hidden',
+  },
+
+  progressBar: {
+    height: '100%',
+    background: 'linear-gradient(90deg, #22d3ee, #3b82f6)',
+    transition: 'width 0.3s ease',
+  },
+
+  progressText: {
+    fontSize: '0.85rem',
+    color: '#cbd5e1',
+  },
+
+  progressPercent: {
+    color: '#60a5fa',
+  },
+
   recordingSection: {
     display: 'flex',
     flexDirection: 'column' as const,
-    alignItems: 'center',
-    gap: '1.5rem',
-    padding: '2rem',
+    gap: '1rem',
+    background: 'rgba(255, 255, 255, 0.03)',
+    padding: '1rem',
+    borderRadius: '1rem',
   },
+
   recordingDisplay: {
     display: 'flex',
     alignItems: 'center',
-    gap: '1rem',
+    gap: '0.5rem',
   },
+
   recordingIndicator: {
-    width: '1rem',
-    height: '1rem',
+    width: '12px',
+    height: '12px',
     borderRadius: '50%',
-    backgroundColor: 'var(--color-gray-300)',
-    transition: 'all var(--transition-fast)',
+    backgroundColor: '#475569',
+    transition: 'background 0.3s ease',
   },
+
   recordingIndicatorActive: {
-    backgroundColor: 'var(--color-error)',
-    animation: 'pulse 1.5s infinite',
+    backgroundColor: '#ef4444',
+    boxShadow: '0 0 10px #ef4444',
   },
+
   recordingTime: {
-    fontSize: '2rem',
-    fontWeight: 700,
-    color: 'var(--color-gray-700)',
-    fontVariantNumeric: 'tabular-nums',
-  },
-  waveformContainer: {
-    width: '100%',
-    marginBottom: '1rem',
-  },
-  waveformLabel: {
-    fontSize: '0.75rem',
-    color: 'var(--color-gray-600)',
-    marginBottom: '0.5rem',
-    textAlign: 'center' as const,
+    fontSize: '1rem',
     fontWeight: 500,
   },
+
+  waveformContainer: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '0.25rem',
+  },
+
+  waveformLabel: {
+    fontSize: '0.9rem',
+    color: '#94a3b8',
+  },
+
   totalWaveformCanvas: {
     width: '100%',
-    maxWidth: '600px',
-    height: '80px',
+    height: '60px',
     backgroundColor: '#0a0a0a',
-    borderRadius: 'var(--border-radius-md)',
-    border: '1px solid rgba(59, 130, 246, 0.3)',
-    boxShadow: '0 0 15px rgba(59, 130, 246, 0.15)',
+    borderRadius: '0.75rem',
   },
-  recordingsContainer: {
+
+  waveformCanvas: {
     width: '100%',
-    maxWidth: '600px',
-    marginTop: '2rem',
-    padding: '1rem',
-    backgroundColor: 'rgba(10, 10, 10, 0.3)',
-    borderRadius: 'var(--border-radius-md)',
-    border: '1px solid rgba(59, 130, 246, 0.2)',
+    borderRadius: '1rem',
+    background: 'rgba(0,0,0,0.3)',
   },
-  recordingsTitle: {
-    fontSize: '0.875rem',
+
+  recordingButtons: {
+    display: 'flex',
+    gap: '0.75rem',
+  },
+
+  recordButton: {
+    flex: 1,
+    background: 'linear-gradient(90deg, #6366f1, #3b82f6)', // Start Recording - Indigo to Blue
+    border: 'none',
+    borderRadius: '0.75rem',
+    padding: '0.75rem 1rem',
     fontWeight: 600,
-    color: 'var(--color-gray-700)',
-    marginBottom: '1rem',
-    textAlign: 'center' as const,
+    color: '#fff',
+    cursor: 'pointer',
+    transition: 'all 0.25s ease',
+    boxShadow: '0 4px 10px rgba(99, 102, 241, 0.4)',
   },
+  
+  recordButtonActive: {
+    background: 'linear-gradient(90deg, #8b5cf6, #6366f1)', // Stop Recording - Purple to Indigo
+    boxShadow: '0 4px 10px rgba(139, 92, 246, 0.4)',
+  },
+  
+  pauseButton: {
+    flex: 1,
+    background: 'linear-gradient(90deg, #22d3ee, #3b82f6)', // Pause - Cyan to Blue
+    border: 'none',
+    borderRadius: '0.75rem',
+    padding: '0.75rem 1rem',
+    fontWeight: 600,
+    color: '#fff',
+    cursor: 'pointer',
+    transition: 'all 0.25s ease',
+    boxShadow: '0 4px 10px rgba(34, 211, 238, 0.4)',
+  },
+  
+  pauseButtonResume: {
+    background: 'linear-gradient(90deg, #818cf8, #6366f1)', // Resume - Light Indigo to Indigo
+    boxShadow: '0 4px 10px rgba(129, 140, 248, 0.4)',
+  },
+  
+
+  recordingsContainer: {
+    marginTop: '1rem',
+  },
+
+  recordingsTitle: {
+    fontSize: '1rem',
+    fontWeight: 600,
+    marginBottom: '0.5rem',
+  },
+
   recordingsList: {
     display: 'flex',
     flexDirection: 'column' as const,
     gap: '1rem',
   },
+
   recordingItem: {
-    marginBottom: '1rem',
-    padding: '1rem',
-    border: '1px solid rgba(59, 130, 246, 0.3)',
-    borderRadius: 'var(--border-radius-md)',
-    backgroundColor: 'rgba(10, 10, 10, 0.5)',
+    background: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: '1rem',
+    padding: '0.75rem',
   },
+
   recordingControls: {
     display: 'flex',
-    gap: '0.5rem',
-    alignItems: 'center',
+    gap: '0.75rem',
+    justifyContent: 'space-between',
   },
+
   playButton: {
-    padding: '0.5rem 1rem',
-    borderRadius: 'var(--border-radius-md)',
-    backgroundColor: 'var(--color-primary)',
-    color: 'white',
+    background: 'linear-gradient(90deg, #3b82f6, #2563eb)',
     border: 'none',
+    borderRadius: '0.5rem',
+    padding: '0.5rem 1rem',
+    color: '#fff',
     cursor: 'pointer',
+    fontWeight: 600,
   },
+
   transcribeButton: {
-    padding: '0.5rem 1rem',
-    borderRadius: 'var(--border-radius-md)',
-    backgroundColor: 'var(--color-primary)',
-    color: 'white',
+    background: 'linear-gradient(90deg, #a855f7, #7e22ce)',
     border: 'none',
+    borderRadius: '0.5rem',
+    padding: '0.5rem 1rem',
+    color: '#fff',
     cursor: 'pointer',
+    fontWeight: 600,
   },
+
   downloadLink: {
-    padding: '0.5rem 1rem',
-    borderRadius: 'var(--border-radius-md)',
-    backgroundColor: 'var(--color-gray-200)',
-    color: 'var(--color-gray-700)',
+    color: '#60a5fa',
     textDecoration: 'none',
-    display: 'inline-block',
+    fontSize: '0.9rem',
   },
-  waveformCanvas: {
-    width: '100%',
-    maxWidth: '600px',
-    height: '120px',
-    backgroundColor: '#0a0a0a',
-    borderRadius: 'var(--border-radius-md)',
-    border: '1px solid rgba(59, 130, 246, 0.3)',
-    boxShadow: '0 0 20px rgba(59, 130, 246, 0.2)',
-    marginBottom: '1rem',
-  },
-  recordingButtons: {
-    display: 'flex',
-    gap: '1rem',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  recordButton: {
-    padding: '1rem 2rem',
-    backgroundColor: 'var(--color-primary)',
-    color: 'white',
-    borderRadius: 'var(--border-radius-lg)',
-    fontWeight: 600,
-    fontSize: '1rem',
-    transition: 'all var(--transition-fast)',
-    border: 'none',
-    cursor: 'pointer',
-  },
-  recordButtonActive: {
-    backgroundColor: 'var(--color-error)',
-  },
-  pauseButton: {
-    padding: '1rem 2rem',
-    backgroundColor: 'var(--color-gray-600)',
-    color: 'white',
-    borderRadius: 'var(--border-radius-lg)',
-    fontWeight: 600,
-    fontSize: '1rem',
-    transition: 'all var(--transition-fast)',
-    border: 'none',
-    cursor: 'pointer',
-  },
+
   error: {
-    padding: '0.75rem 1rem',
-    backgroundColor: '#fef2f2',
-    color: 'var(--color-error)',
-    borderRadius: 'var(--border-radius-md)',
-    fontSize: '0.875rem',
-    border: '1px solid #fee2e2',
-  },
-  submitButton: {
-    padding: '1rem 2rem',
-    backgroundColor: 'var(--color-primary)',
-    color: 'white',
-    borderRadius: 'var(--border-radius-lg)',
-    fontWeight: 600,
-    fontSize: '1.125rem',
-    transition: 'all var(--transition-fast)',
-    marginTop: '0.5rem',
-  },
-  submitButtonDisabled: {
-    backgroundColor: 'var(--color-gray-300)',
-    cursor: 'not-allowed',
-  },
-  signInPrompt: {
-    textAlign: 'center' as const,
-    color: 'var(--color-gray-600)',
-    fontSize: '0.875rem',
-  },
-  link: {
-    color: 'var(--color-primary)',
-    fontWeight: 600,
-  },
-  conversionProgress: {
-    marginTop: '1rem',
-    padding: '1rem',
-    backgroundColor: 'var(--color-gray-50)',
-    borderRadius: 'var(--border-radius-md)',
-    border: '1px solid var(--color-gray-200)',
-  },
-  progressBarContainer: {
-    width: '100%',
-    height: '8px',
-    backgroundColor: 'var(--color-gray-200)',
-    borderRadius: 'var(--border-radius-sm)',
-    overflow: 'hidden',
-    marginBottom: '0.5rem',
-  },
-  progressBar: {
-    height: '100%',
-    backgroundColor: 'var(--color-primary)',
-    borderRadius: 'var(--border-radius-sm)',
-    transition: 'width 0.3s ease',
-    background: 'linear-gradient(90deg, var(--color-primary), #8b5cf6)',
-  },
-  progressText: {
-    fontSize: '0.875rem',
-    color: 'var(--color-gray-700)',
+    color: '#f87171',
     fontWeight: 500,
     textAlign: 'center' as const,
   },
-  progressPercent: {
-    color: 'var(--color-gray-600)',
+
+  submitButton: {
+    background: 'linear-gradient(90deg, #6366f1, #3b82f6)',
+    color: '#fff',
+    padding: '0.9rem 1.25rem',
+    border: 'none',
+    borderRadius: '0.75rem',
     fontWeight: 600,
+    cursor: 'pointer',
+    transition: 'opacity 0.25s ease, transform 0.2s ease',
+  },
+
+  submitButtonDisabled: {
+    opacity: 0.5,
+    cursor: 'not-allowed',
+  },
+
+  signInPrompt: {
+    textAlign: 'center' as const,
+    fontSize: '0.9rem',
+    color: '#94a3b8',
+  },
+
+  link: {
+    color: '#60a5fa',
+    textDecoration: 'underline',
   },
 };
-
