@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TranscriptionTool from '../components/TranscriptionTool';
 import { useAuth } from '../lib/auth';
-
+import ImageDescription from "../components/ImageDescription"
+import uploadScreenshot from "../assets/upload.png"
 import './HomeHero.css';
 
 export default function Home() {
@@ -47,6 +48,9 @@ export default function Home() {
             Powerful voice-to-text transcription with support for file uploads, YouTube videos, and live recording. 
             <span className="highlight"> Get started with 100 free energy points.</span>
           </p>
+          <a href="/login" className="get-started-button">
+      Get Started Free
+    </a>
         </div>
       </section>
 
@@ -60,6 +64,16 @@ export default function Home() {
     )}
   </div>
 </section>
+{/* IMAGE + DESCRIPTION SECTION */}
+<section className="upload-section">
+  <ImageDescription
+    imageSrc={uploadScreenshot}
+    altText="Upload illustration"
+    title="Upload & Transcribe"
+    description="Upload your video files and get accurate transcriptions in seconds. Supports multiple formats and fast processing."
+  />
+</section>
+
 
       {/* FEATURES SECTION */}
       <section className="features-section">
@@ -112,7 +126,7 @@ export default function Home() {
       <section className="cta-section">
         <h2>Ready to Get Started?</h2>
         <p>Sign up now and get 100 free energy points to try our transcription service</p>
-        <a href="/login">Get Started Free</a>
+        <a href="/login" className="get-started-button">Get Started Free</a>
       </section>
     </div>
   );

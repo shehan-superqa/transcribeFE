@@ -151,46 +151,46 @@
     color: var(--text-muted);
   }
   
- /* CTA */
+ /* CTA SECTION */
 .cta-section {
-    text-align: center;
-    padding: 4rem 2rem;
-    background: linear-gradient(135deg, #0a0a0a, #1a1a1a); /* almost black gradient */
-    color: var(--text-light);
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
-    position: relative;
-    overflow: hidden;
-    border-radius: 0; /* removed border radius */
-  }
-  
-  .cta-section h2 {
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
-    font-weight: 800;
-  }
-  
-  .cta-section p {
-    font-size: 1.25rem;
-    margin-bottom: 2rem;
-    opacity: 0.85;
-  }
-  
-  .cta-section a {
-    padding: 1rem 2.5rem;
-    background-color: #00c6ff;
-    color: #0a0a0a;
-    border-radius: var(--border-radius-lg); /* keep button rounded */
-    font-weight: 700;
-    font-size: 1.125rem;
-    text-decoration: none;
-    transition: all var(--transition-fast);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
-  }
-  
-  .cta-section a:hover {
-    background-color: #0072ff;
-    color: #fff;
-    transform: translateY(-3px);
-    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.45);
-  }
-  
+  text-align: center;
+  padding: 4rem 2rem;
+  background: linear-gradient(135deg, #0a0a0a, #1a1a1a); /* dark gradient background */
+  color: var(--text-light);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+  position: relative;
+  overflow: hidden;
+  border-radius: 0;
+}
+
+.cta-section h2 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  font-weight: 800;
+}
+
+.cta-section p {
+  font-size: 1.25rem;
+  margin-bottom: 2rem;
+  opacity: 0.85;
+}
+
+/* Shared Get Started Button for Hero & CTA */
+.get-started-button {
+  display: inline-block;
+  margin-top: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(90deg, #6366f1, #3b82f6); /* Indigo → Blue gradient */
+  color: #fff;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  text-decoration: none;
+  text-align: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+}
+
+.get-started-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 25px rgba(99, 102, 241, 0.5);
+}
