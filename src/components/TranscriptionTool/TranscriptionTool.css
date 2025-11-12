@@ -9,7 +9,7 @@
     --background-light: #1a1a1a;
     --text-light: #fff;
     --text-muted: rgba(255, 255, 255, 0.7);
-    --shadow-lg: 0 15px 35px rgba(0,0,0,0.25);
+    --shadow-lg: 0 15px 35px rgba(82, 52, 52, 0.25);
     --border-radius-sm: 0.25rem;
     --border-radius-md: 0.5rem;
     --border-radius-lg: 1rem;
@@ -23,10 +23,12 @@
     padding: 2rem;
     border-radius: var(--border-radius-lg);
     box-shadow: var(--shadow-lg);
-    max-width: 900px;
+    max-width: 100%; /* allow full width */
+    width: 100%;
     margin: 0 auto;
     color: var(--text-light);
     font-family: 'Inter', sans-serif;
+    box-sizing: border-box;
   }
   
   /* Energy badge */
