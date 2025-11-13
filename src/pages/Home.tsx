@@ -4,6 +4,8 @@ import TranscriptionTool from '../components/TranscriptionTool';
 import { useAuth } from '../lib/auth';
 import ImageDescription from "../components/ImageDescription"
 import uploadScreenshot from "../assets/upload.png"
+import youtubeScreenshot from "../assets/youtubelink.png"
+import recordaudioScreenshot from "../assets/recordaudio.png"
 import './HomeHero.css';
 
 export default function Home() {
@@ -71,6 +73,24 @@ export default function Home() {
     altText="Upload illustration"
     title="Upload & Transcribe"
     description="Upload your video files and get accurate transcriptions in seconds. Supports multiple formats and fast processing."
+  />
+</section>
+<section className="upload-section">
+  <ImageDescription
+    imageSrc={youtubeScreenshot}
+    altText="YouTube transcription illustration"
+    title="Transcribe YouTube Videos Instantly"
+    description="Simply paste a YouTube link and let our system automatically fetch, process, and transcribe the audio into accurate, readable text. Perfect for content creators, researchers, and accessibility needs."
+    reverse // 👈 puts image on the right
+  />
+</section>
+{/* Voice Transcription Section */}
+<section className="upload-section">
+  <ImageDescription
+    imageSrc={recordaudioScreenshot}
+    altText="Voice recording illustration"
+    title="Voice Transcription"
+    description="Record your voice directly and get instant, high-accuracy text transcriptions. Perfect for capturing meetings, lectures, ideas, or quick notes with a single click."
   />
 </section>
 

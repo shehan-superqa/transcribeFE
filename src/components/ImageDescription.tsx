@@ -6,6 +6,7 @@ interface ImageDescriptionProps {
   altText: string;
   title: string;
   description: string;
+  reverse?: boolean; // 👈 new prop to flip layout
 }
 
 const ImageDescription: React.FC<ImageDescriptionProps> = ({
@@ -13,9 +14,14 @@ const ImageDescription: React.FC<ImageDescriptionProps> = ({
   altText,
   title,
   description,
+  reverse = false,
 }) => {
   return (
-    <div className="image-description-container">
+    <div
+      className={`image-description-container ${
+        reverse ? "reverse-layout" : ""
+      }`}
+    >
       <div className="image-wrapper">
         <img src={imageSrc} alt={altText} className="image" />
       </div>
