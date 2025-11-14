@@ -10,6 +10,7 @@ export interface User {
   name: string;
   email: string;
   isEmailVerified: boolean;
+  energyPoints?: number;
 }
 
 export interface RegisterRequest {
