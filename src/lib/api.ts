@@ -3,7 +3,7 @@
  * Handles all communication with the MongoDB + JWT backend API
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5003';
+const API_BASE_URL = 'http://localhost:5000';
 
 export interface User {
   user_id: string;
@@ -57,30 +57,32 @@ export interface ApiError {
   error: string;
 }
 
-/**
- * Get stored authentication token
- */
+export interface Transcription {
+  id: string;
+  input_type: 'file' | 'youtube' | 'recording';
+  input_source: string;
+  transcription_text: string | null;
+  duration_seconds: number | null;
+  energy_cost: number;
+  status: 'processing' | 'completed' | 'failed';
+  created_at: string;
+}
+
+/** -------------------------
+ * Auth Token / User Storage
+ * ------------------------ */
 export function getAuthToken(): string | null {
   return localStorage.getItem('authToken');
 }
 
-/**
- * Store authentication token
- */
 export function setAuthToken(token: string): void {
   localStorage.setItem('authToken', token);
 }
 
-/**
- * Remove authentication token
- */
 export function removeAuthToken(): void {
   localStorage.removeItem('authToken');
 }
 
-/**
- * Get stored user data
- */
 export function getStoredUser(): User | null {
   const userStr = localStorage.getItem('user');
   if (!userStr) return null;
@@ -91,32 +93,26 @@ export function getStoredUser(): User | null {
   }
 }
 
-/**
- * Store user data
- */
 export function setStoredUser(user: User): void {
   localStorage.setItem('user', JSON.stringify(user));
 }
 
-/**
- * Remove stored user data
- */
 export function removeStoredUser(): void {
   localStorage.removeItem('user');
 }
 
-/**
- * Make an authenticated API request
- */
+/** -------------------------
+ * Authenticated Fetch Helper
+ * ------------------------ */
 async function authenticatedFetch(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<Response> {
   const token = getAuthToken();
   
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...options.headers,
+    ...(options.headers as Record<string, string>),
   };
 
   if (token) {
@@ -131,16 +127,25 @@ async function authenticatedFetch(
   return response;
 }
 
-/**
- * Handle API response and parse JSON
- */
 async function handleResponse<T>(response: Response): Promise<T> {
-  const data = await response.json();
-
-  if (!response.ok) {
+  let data;
+  
+  try {
+    data = await response.json();
+  } catch (jsonError) {
+    // If response is not JSON (e.g., HTML error page), throw meaningful error
     const error: ApiError = {
       success: false,
-      error: data.error || `HTTP error! status: ${response.status}`,
+      error: `Backend unavailable or returned invalid response (status: ${response.status})`,
+    };
+    throw error;
+  }
+
+  if (!response.ok) {
+    // Backend returns { message: "error" } on error
+    const error: ApiError = {
+      success: false,
+      error: data.message || data.error || `HTTP error! status: ${response.status}`,
     };
     throw error;
   }
@@ -148,103 +153,97 @@ async function handleResponse<T>(response: Response): Promise<T> {
   return data as T;
 }
 
-/**
- * Health check endpoint
- */
+/** -------------------------
+ * Health Check
+ * ------------------------ */
 export async function healthCheck(): Promise<{ status: string; service: string; version: string }> {
   const response = await fetch(`${API_BASE_URL}/health`);
   return handleResponse(response);
 }
 
-/**
- * Register a new user
- */
-export async function registerUser(
-  email: string,
-  password: string,
-  name?: string
-): Promise<RegisterResponse> {
-  const response = await fetch(`${API_BASE_URL}/api/users/register`, {
+/** -------------------------
+ * Auth Endpoints
+ * ------------------------ */
+export async function registerUser(email: string, password: string, name?: string): Promise<RegisterResponse> {
+  const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      email,
-      password,
-      name,
-    }),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password, name }),
   });
 
-  const data = await handleResponse<RegisterResponse>(response);
-  
-  if (data.success) {
-    setAuthToken(data.token);
-    setStoredUser(data.user);
+  const data = await handleResponse<any>(response);
+
+  // Backend returns result directly, so we need to normalize it
+  const normalizedData: RegisterResponse = {
+    success: true,
+    message: data.message || 'Registration successful',
+    user: data.user,
+    token: data.token,
+  };
+
+  if (normalizedData.success && normalizedData.token) {
+    setAuthToken(normalizedData.token);
+    setStoredUser(normalizedData.user);
   }
 
-  return data;
+  return normalizedData;
 }
 
-/**
- * Login user
- */
-export async function loginUser(
-  email: string,
-  password: string
-): Promise<LoginResponse> {
-  const response = await fetch(`${API_BASE_URL}/api/users/login`, {
+export async function loginUser(email: string, password: string): Promise<LoginResponse> {
+  const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      email,
-      password,
-    }),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
   });
 
-  const data = await handleResponse<LoginResponse>(response);
-  
-  if (data.success) {
-    setAuthToken(data.token);
-    setStoredUser(data.user);
+  const data = await handleResponse<any>(response);
+
+  // Backend returns result directly, so we need to normalize it
+  const normalizedData: LoginResponse = {
+    success: true,
+    message: data.message || 'Login successful',
+    user: data.user,
+    token: data.token,
+  };
+
+  if (normalizedData.success && normalizedData.token) {
+    setAuthToken(normalizedData.token);
+    setStoredUser(normalizedData.user);
   }
 
-  return data;
+  return normalizedData;
 }
 
-/**
- * Get current user
- */
 export async function getCurrentUser(): Promise<UserResponse> {
-  const response = await authenticatedFetch('/api/users/me', {
-    method: 'GET',
-  });
-
+  const response = await authenticatedFetch('/api/users/me', { method: 'GET' });
   return handleResponse<UserResponse>(response);
 }
 
-/**
- * Verify token
- */
 export async function verifyToken(token: string): Promise<VerifyTokenResponse> {
   const response = await fetch(`${API_BASE_URL}/api/users/verify-token`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ token }),
   });
 
   return handleResponse<VerifyTokenResponse>(response);
 }
 
-/**
- * Logout user (clears local storage)
- */
 export function logoutUser(): void {
   removeAuthToken();
   removeStoredUser();
 }
 
+/** -------------------------
+ * Transcriptions / Generic Fetch
+ * ------------------------ */
+export async function getTranscriptions(): Promise<{ success: boolean; transcriptions: Transcription[] }> {
+  const response = await authenticatedFetch('/api/transcriptions', { method: 'GET' });
+  return handleResponse<{ success: boolean; transcriptions: Transcription[] }>(response);
+}
+
+// Generic fetch for any endpoint
+export async function fetchDataFromApi<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  const response = await authenticatedFetch(endpoint, options);
+  return handleResponse<T>(response);
+}
