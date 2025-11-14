@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { getTranscriptions } from "../lib/api";
+import { getUserJobs, type JobResult } from "../lib/transcribeApi";
 import type { RootState } from "./index";
 
 export interface Transcription {
@@ -25,20 +25,80 @@ const initialState: TranscriptionsState = {
   error: null,
 };
 
+/**
+ * Map API job status to frontend status
+ */
+function mapJobStatus(status: string): "processing" | "completed" | "failed" {
+  if (status === "completed") {
+    return "completed";
+  }
+  if (status === "error") {
+    return "failed";
+  }
+  // queued, processing -> processing
+  return "processing";
+}
+
+/**
+ * Determine input type from job metadata
+ */
+function determineInputType(job: JobResult): "file" | "youtube" | "recording" {
+  const filename = job.file_info?.filename?.toLowerCase() || "";
+  
+  // Check if it's a YouTube URL (stored in input_source or filename)
+  if (filename.includes("youtube") || filename.includes("youtu.be") || filename.includes("watch?v=")) {
+    return "youtube";
+  }
+  
+  // Check if it's a recording
+  if (filename.includes("recording") || filename.includes("webm") || filename.includes("live_recording")) {
+    return "recording";
+  }
+  
+  // Default to file
+  return "file";
+}
+
+/**
+ * Map API job to frontend Transcription interface
+ */
+function mapJobToTranscription(job: JobResult): Transcription {
+  return {
+    id: job._id,
+    input_type: determineInputType(job),
+    input_source: job.file_info?.filename || "unknown",
+    transcription_text: job.result?.text || null,
+    duration_seconds: null, // Duration may not be available in job result
+    energy_cost: 10, // Default cost, backend may provide this in the future
+    status: mapJobStatus(job.status),
+    created_at: job.created_at,
+  };
+}
+
 // Async thunk to fetch transcriptions
 export const fetchTranscriptions = createAsyncThunk<
   Transcription[],
   void,
   { state: RootState; rejectValue: string }
->("transcriptions/fetch", async (_, { rejectWithValue }) => {
+>("transcriptions/fetch", async (_, { getState, rejectWithValue }) => {
   try {
-    const response = await getTranscriptions();
-    if (response.success) {
-      return response.transcriptions;
+    const state = getState();
+    const user = state.auth.user;
+    
+    if (!user || !user.id) {
+      return rejectWithValue("User not authenticated");
     }
+
+    const response = await getUserJobs(user.id);
+    
+    if (response.success && response.jobs) {
+      // Map API jobs to frontend Transcription format
+      return response.jobs.map(mapJobToTranscription);
+    }
+    
     return rejectWithValue("Failed to fetch transcriptions");
   } catch (error: any) {
-    return rejectWithValue(error.error || "Failed to fetch transcriptions");
+    return rejectWithValue(error.message || "Failed to fetch transcriptions");
   }
 });
 

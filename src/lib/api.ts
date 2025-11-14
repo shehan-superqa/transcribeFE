@@ -146,7 +146,7 @@ export function removeAuthToken(): void {
 let isRefreshing = false;
 let refreshPromise: Promise<string | null> | null = null;
 
-async function refreshAccessToken(): Promise<string | null> {
+export async function refreshAccessToken(): Promise<string | null> {
   if (isRefreshing && refreshPromise) {
     return refreshPromise;
   }
@@ -194,12 +194,14 @@ async function refreshAccessToken(): Promise<string | null> {
 /** -------------------------
  * Authenticated Fetch Helper
  * ------------------------ */
-async function authenticatedFetch(
+export async function authenticatedFetch(
   endpoint: string,
   options: RequestInit = {},
-  retryOn401 = true
+  retryOn401 = true,
+  baseUrl?: string
 ): Promise<Response> {
   const token = getAccessToken();
+  const url = baseUrl || API_BASE_URL;
   
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -210,7 +212,7 @@ async function authenticatedFetch(
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  let response = await fetch(`${API_BASE_URL}${endpoint}`, {
+  let response = await fetch(`${url}${endpoint}`, {
     ...options,
     headers,
   });
@@ -222,7 +224,7 @@ async function authenticatedFetch(
     if (newToken) {
       // Retry the request with new token
       headers['Authorization'] = `Bearer ${newToken}`;
-      response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      response = await fetch(`${url}${endpoint}`, {
         ...options,
         headers,
       });
@@ -235,7 +237,7 @@ async function authenticatedFetch(
   return response;
 }
 
-async function handleResponse<T>(response: Response): Promise<T> {
+export async function handleResponse<T>(response: Response): Promise<T> {
   let data;
   
   try {
@@ -403,6 +405,71 @@ export async function resetPassword(token: string, newPassword: string): Promise
   });
 
   return handleResponse<ApiResponse<{ success: boolean; message: string }>>(response);
+}
+
+/** -------------------------
+ * Token Validation
+ * ------------------------ */
+export interface TokenValidationResponse {
+  success: boolean;
+  data?: {
+    valid: boolean;
+    user?: {
+      id: string;
+      email: string;
+      name: string;
+      isEmailVerified: boolean;
+    };
+    expiresAt?: string;
+  };
+  message?: string;
+}
+
+/**
+ * Validate an access token
+ * This endpoint can be used by other services to validate tokens
+ * @param token - The access token to validate
+ * @returns Token validation response with user info if valid
+ */
+export async function validateToken(token: string): Promise<TokenValidationResponse> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (response.ok) {
+      const userData = await handleResponse<UserResponse>(response);
+      if (userData.success && userData.data) {
+        return {
+          success: true,
+          data: {
+            valid: true,
+            user: userData.data,
+          },
+        };
+      }
+    }
+
+    // If we get here, token is invalid
+    return {
+      success: true,
+      data: {
+        valid: false,
+      },
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.message || 'Token validation failed',
+      data: {
+        valid: false,
+      },
+    };
+  }
 }
 
 /** -------------------------
