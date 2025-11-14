@@ -3,6 +3,8 @@ import { useAuth } from "../lib/auth";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchTranscriptions, Transcription } from "../store/transcriptionsSlice";
 import { RootState, AppDispatch } from "../store";
+import { Link } from "react-router-dom";
+import { FaExclamationTriangle, FaCheckCircle } from "react-icons/fa";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -69,6 +71,58 @@ export default function Dashboard() {
   return (
     <div style={{ padding: "2rem" }}>
       <h1>Welcome, {user?.name || user?.email}</h1>
+      
+      {user && !user.isEmailVerified && (
+        <div style={{ 
+          padding: "1rem", 
+          backgroundColor: "#fff3cd", 
+          color: "#856404", 
+          borderRadius: "4px", 
+          marginBottom: "1.5rem",
+          border: "1px solid #ffc107",
+          display: "flex",
+          alignItems: "center",
+          gap: "0.75rem"
+        }}>
+          <FaExclamationTriangle />
+          <div style={{ flex: 1 }}>
+            <strong>Email Verification Required</strong>
+            <p style={{ margin: "0.5rem 0 0 0", fontSize: "0.875rem" }}>
+              Please verify your email address to access all features. Check your inbox for the verification link.
+            </p>
+            <Link 
+              to="/auth/verify-email" 
+              style={{ 
+                display: "inline-block", 
+                marginTop: "0.5rem", 
+                color: "#856404", 
+                textDecoration: "underline",
+                fontSize: "0.875rem"
+              }}
+            >
+              Go to verification page →
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {user && user.isEmailVerified && (
+        <div style={{ 
+          padding: "0.75rem 1rem", 
+          backgroundColor: "#d4edda", 
+          color: "#155724", 
+          borderRadius: "4px", 
+          marginBottom: "1.5rem",
+          display: "flex",
+          alignItems: "center",
+          gap: "0.5rem",
+          fontSize: "0.875rem"
+        }}>
+          <FaCheckCircle />
+          Email verified
+        </div>
+      )}
+
       <p>Total Transcriptions: {transcriptions.length}</p>
 
       {transcriptions.length === 0 ? (

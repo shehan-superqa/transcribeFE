@@ -4,11 +4,12 @@ import {
   registerUser,
   loginUser,
   getCurrentUser,
-  verifyToken,
   logoutUser,
-  getAuthToken,
+  getAccessToken,
+  getRefreshToken,
   getStoredUser,
   setStoredUser,
+  refreshToken,
   ApiError,
 } from "./api";
 
@@ -29,40 +30,66 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     initializeAuth();
+    
+    // Set up automatic token refresh (refresh every 14 minutes)
+    const refreshInterval = setInterval(async () => {
+      const accessToken = getAccessToken();
+      const refreshTokenValue = getRefreshToken();
+      
+      if (accessToken && refreshTokenValue) {
+        try {
+          await refreshToken();
+          // Refresh user data after token refresh
+          await refreshUserData();
+        } catch (error) {
+          console.error("Auto token refresh failed:", error);
+          // If refresh fails, logout user
+          await signOut();
+        }
+      }
+    }, 14 * 60 * 1000); // 14 minutes
+
+    return () => clearInterval(refreshInterval);
   }, []);
 
   const initializeAuth = async () => {
     try {
-      const token = getAuthToken();
+      const accessToken = getAccessToken();
       const storedUser = getStoredUser();
 
-      if (token && storedUser) {
+      if (accessToken && storedUser) {
         try {
-          const verification = await verifyToken(token);
-
-          if (verification.valid && verification.user_id) {
+          // Try to get fresh user data
+          const userResponse = await getCurrentUser();
+          if (userResponse.success && userResponse.data) {
+            setUser(userResponse.data);
+            setStoredUser(userResponse.data);
+          } else {
+            logoutUser();
+            setUser(null);
+          }
+        } catch (error) {
+          // If backend is not available, try refreshing token
+          const refreshTokenValue = getRefreshToken();
+          if (refreshTokenValue) {
             try {
+              await refreshToken();
               const userResponse = await getCurrentUser();
-              if (userResponse.success) {
-                setUser(userResponse.user);
-                setStoredUser(userResponse.user);
+              if (userResponse.success && userResponse.data) {
+                setUser(userResponse.data);
+                setStoredUser(userResponse.data);
               } else {
                 logoutUser();
                 setUser(null);
               }
-            } catch (error) {
-              // If backend is not available, use stored user
-              console.warn("Backend not available, using stored user");
+            } catch (refreshError) {
+              console.warn("Token refresh failed, using stored user");
               setUser(storedUser);
             }
           } else {
             logoutUser();
             setUser(null);
           }
-        } catch (error) {
-          // If backend is not available during token verification, use stored user
-          console.warn("Backend not available for token verification, using stored user");
-          setUser(storedUser);
         }
       } else {
         setUser(null);
@@ -75,51 +102,63 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const refreshUserData = async () => {
+    try {
+      const userResponse = await getCurrentUser();
+      if (userResponse.success && userResponse.data) {
+        setUser(userResponse.data);
+        setStoredUser(userResponse.data);
+      }
+    } catch (error) {
+      console.error("Error refreshing user data:", error);
+    }
+  };
+
   const signUp = async (email: string, password: string, name?: string): Promise<{ error: any }> => {
     try {
-      const response = await registerUser(email, password, name);
-      if (response.success) {
-        setUser(response.user);
-        setStoredUser(response.user);
+      const response = await registerUser(email, password, name || "");
+      if (response.success && response.data) {
+        setUser(response.data.user);
+        setStoredUser(response.data.user);
         return { error: null };
       }
       return { error: { message: "Registration failed" } };
     } catch (err: any) {
       const apiError = err as ApiError;
-      return { error: { message: apiError.error || "Registration failed" } };
+      return { error: { message: apiError.message || "Registration failed" } };
     }
   };
 
   const signIn = async (email: string, password: string): Promise<{ error: any }> => {
     try {
       const response = await loginUser(email, password);
-      if (response.success) {
-        setUser(response.user);
-        setStoredUser(response.user);
+      if (response.success && response.data) {
+        setUser(response.data.user);
+        setStoredUser(response.data.user);
         return { error: null };
       }
       return { error: { message: "Login failed" } };
     } catch (err: any) {
       const apiError = err as ApiError;
-      return { error: { message: apiError.error || "Login failed" } };
+      return { error: { message: apiError.message || "Login failed" } };
     }
   };
 
   const signOut = async () => {
-    logoutUser();
+    await logoutUser();
     setUser(null);
   };
 
   const refreshUser = async () => {
     try {
       const userResponse = await getCurrentUser();
-      if (userResponse.success) {
-        setUser(userResponse.user);
-        setStoredUser(userResponse.user);
+      if (userResponse.success && userResponse.data) {
+        setUser(userResponse.data);
+        setStoredUser(userResponse.data);
       }
     } catch (error) {
       console.error("Error refreshing user:", error);
-      logoutUser();
+      await logoutUser();
       setUser(null);
     }
   };

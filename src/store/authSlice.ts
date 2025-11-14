@@ -4,9 +4,9 @@ import {
   loginUser as apiLogin,
   registerUser as apiRegister,
   getCurrentUser,
-  verifyToken,
   logoutUser as apiLogout,
-  getAuthToken,
+  getAccessToken,
+  getRefreshToken,
   getStoredUser,
   setStoredUser,
   User,
@@ -31,36 +31,26 @@ export const checkAuth = createAsyncThunk<User | null, void, { rejectValue: stri
   "auth/checkAuth",
   async (_, { rejectWithValue }) => {
     try {
-      const token = getAuthToken();
+      const accessToken = getAccessToken();
+      const refreshToken = getRefreshToken();
       const storedUser = getStoredUser();
 
-      if (!token || !storedUser) return null;
+      if (!accessToken || !storedUser) return null;
 
       try {
-        const verification = await verifyToken(token);
-        if (!verification.valid) {
-          apiLogout();
-          return null;
-        }
-
-        try {
-          const freshUser = await getCurrentUser();
-          if (freshUser.success) {
-            setStoredUser(freshUser.user);
-            return freshUser.user;
-          }
-        } catch {
-          // If backend is not available, use stored user
-          return storedUser;
+        const freshUser = await getCurrentUser();
+        if (freshUser.success && freshUser.data) {
+          setStoredUser(freshUser.data);
+          return freshUser.data;
         }
       } catch {
-        // If backend is not available for token verification, use stored user
+        // If backend is not available, use stored user
         return storedUser;
       }
 
       return null;
     } catch (err: any) {
-      return rejectWithValue(err.error || "Authentication check failed");
+      return rejectWithValue(err.message || "Authentication check failed");
     }
   }
 );
@@ -72,12 +62,14 @@ export const loginUser = createAsyncThunk<
 >("auth/login", async ({ email, password }, { rejectWithValue }) => {
   try {
     const res = await apiLogin(email, password);
-    if (!res.success) return rejectWithValue(res.message || "Login failed");
+    if (!res.success || !res.data) {
+      return rejectWithValue("Login failed");
+    }
 
-    setStoredUser(res.user);
-    return res.user;
+    setStoredUser(res.data.user);
+    return res.data.user;
   } catch (err: any) {
-    return rejectWithValue(err.error || "Login failed");
+    return rejectWithValue(err.message || "Login failed");
   }
 });
 
@@ -87,13 +79,15 @@ export const signupUser = createAsyncThunk<
   { rejectValue: string }
 >("auth/signup", async ({ email, password, name }, { rejectWithValue }) => {
   try {
-    const res = await apiRegister(email, password, name);
-    if (!res.success) return rejectWithValue(res.message || "Signup failed");
+    const res = await apiRegister(email, password, name || "");
+    if (!res.success || !res.data) {
+      return rejectWithValue("Signup failed");
+    }
 
-    setStoredUser(res.user);
-    return res.user;
+    setStoredUser(res.data.user);
+    return res.data.user;
   } catch (err: any) {
-    return rejectWithValue(err.error || "Signup failed");
+    return rejectWithValue(err.message || "Signup failed");
   }
 });
 
@@ -102,13 +96,13 @@ export const refreshUserData = createAsyncThunk<User | null, void, { rejectValue
   async (_, { rejectWithValue }) => {
     try {
       const res = await getCurrentUser();
-      if (res.success) {
-        setStoredUser(res.user);
-        return res.user;
+      if (res.success && res.data) {
+        setStoredUser(res.data);
+        return res.data;
       }
       return null;
     } catch (err: any) {
-      return rejectWithValue(err.error || "Failed to refresh user data");
+      return rejectWithValue(err.message || "Failed to refresh user data");
     }
   }
 );
