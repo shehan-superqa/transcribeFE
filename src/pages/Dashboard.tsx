@@ -5,17 +5,45 @@ import { fetchTranscriptions, Transcription } from "../store/transcriptionsSlice
 import { RootState, AppDispatch } from "../store";
 import { Link } from "react-router-dom";
 import { FaExclamationTriangle, FaCheckCircle } from "react-icons/fa";
-import TranscriptionTool from "../components/TranscriptionTool";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
+import CssBaseline from "@mui/material/CssBaseline";
+import TabNavigation from "../components/transcription/TabNavigation";
+import TranscribeTab from "../components/transcription/TranscribeTab";
+import BatchTab from "../components/transcription/BatchTab";
+import LiveMicTab from "../components/transcription/LiveMicTab";
+import HistoryTab from "../components/transcription/HistoryTab";
+import SettingsTab from "../components/transcription/SettingsTab";
+import TrainerTab from "../components/transcription/TrainerTab";
 import "./Dashboard.css";
 
+// Create Material-UI dark theme matching Dashboard colors
+const darkTheme = createTheme({
+  palette: {
+    mode: 'dark',
+    primary: {
+      main: '#00c6ff',
+    },
+    background: {
+      default: '#121212',
+      paper: '#1e1e1e',
+    },
+    text: {
+      primary: '#e0e0e0',
+      secondary: '#a0a0a0',
+    },
+    divider: '#333333',
+  },
+});
+
 export default function Dashboard() {
-  const { user, refreshUser } = useAuth();
+  const { user } = useAuth();
   const dispatch = useDispatch<AppDispatch>();
   const { items: transcriptions, loading, error } = useSelector(
     (state: RootState) => state.transcriptions
   );
 
   const [selectedTranscription, setSelectedTranscription] = useState<Transcription | null>(null);
+  const [activeTab, setActiveTab] = useState(0);
 
   useEffect(() => {
     if (user) {
@@ -23,15 +51,8 @@ export default function Dashboard() {
     }
   }, [user, dispatch]);
 
-  const handleTranscriptionStart = () => {
-    // Refresh transcriptions and user data (including energy points) after starting a new transcription
-    if (user) {
-      setTimeout(() => {
-        dispatch(fetchTranscriptions());
-        refreshUser(); // Refresh user data to get updated energy points
-      }, 1000);
-    }
-  };
+  // Note: handleTranscriptionStart removed as TranscriptionTool is replaced with tab-based interface
+  // Transcription start handling is now managed within individual tab components
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -113,10 +134,19 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Transcription Tool */}
+        {/* Transcription Tool with Tabs */}
         <div className="tool-wrapper">
           <div className="tool-container">
-            <TranscriptionTool onTranscriptionStart={handleTranscriptionStart} />
+            <ThemeProvider theme={darkTheme}>
+              <CssBaseline />
+              <TabNavigation currentTab={activeTab} onTabChange={setActiveTab} />
+              {activeTab === 0 && <TranscribeTab />}
+              {activeTab === 1 && <BatchTab />}
+              {activeTab === 2 && <LiveMicTab />}
+              {activeTab === 3 && <HistoryTab />}
+              {activeTab === 4 && <SettingsTab />}
+              {activeTab === 5 && <TrainerTab />}
+            </ThemeProvider>
           </div>
         </div>
 

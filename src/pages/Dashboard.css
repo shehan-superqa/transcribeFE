@@ -409,3 +409,140 @@
   }
 }
 
+/* Material-UI Theme Overrides */
+.MuiPaper-root {
+  background-color: #1e1e1e !important;
+  color: #e0e0e0 !important;
+}
+
+.MuiTextField-root .MuiOutlinedInput-root {
+  color: #e0e0e0 !important;
+}
+
+.MuiTextField-root .MuiOutlinedInput-root fieldset {
+  border-color: #333333 !important;
+}
+
+.MuiTextField-root .MuiOutlinedInput-root:hover fieldset {
+  border-color: #00c6ff !important;
+}
+
+.MuiTextField-root .MuiInputLabel-root {
+  color: #a0a0a0 !important;
+}
+
+.MuiSelect-root {
+  color: #e0e0e0 !important;
+}
+
+.MuiSelect-root .MuiOutlinedInput-notchedOutline {
+  border-color: #333333 !important;
+}
+
+.MuiSelect-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: #00c6ff !important;
+}
+
+.MuiMenuItem-root {
+  color: #e0e0e0 !important;
+  background-color: #1e1e1e !important;
+}
+
+.MuiMenuItem-root:hover {
+  background-color: #2a2a2a !important;
+}
+
+.MuiCheckbox-root {
+  color: #00c6ff !important;
+}
+
+.MuiCheckbox-root.Mui-checked {
+  color: #00c6ff !important;
+}
+
+.MuiRadio-root {
+  color: #00c6ff !important;
+}
+
+.MuiRadio-root.Mui-checked {
+  color: #00c6ff !important;
+}
+
+.MuiSlider-root {
+  color: #00c6ff !important;
+}
+
+.MuiSlider-thumb {
+  background-color: #00c6ff !important;
+}
+
+.MuiSlider-track {
+  background-color: #00c6ff !important;
+}
+
+.MuiSlider-rail {
+  background-color: #333333 !important;
+}
+
+.MuiChip-root {
+  background-color: #1e1e1e !important;
+  color: #e0e0e0 !important;
+}
+
+.MuiChip-colorSuccess {
+  background-color: #4caf50 !important;
+  color: #fff !important;
+}
+
+.MuiChip-colorWarning {
+  background-color: #ff9800 !important;
+  color: #fff !important;
+}
+
+.MuiChip-colorError {
+  background-color: #f44336 !important;
+  color: #fff !important;
+}
+
+.MuiAlert-root {
+  background-color: #1e1e1e !important;
+}
+
+.MuiAlert-standardError {
+  background-color: #1e1e1e !important;
+  color: #f44336 !important;
+  border: 1px solid #f44336 !important;
+}
+
+.MuiList-root {
+  background-color: transparent !important;
+}
+
+.MuiListItem-root {
+  background-color: #121212 !important;
+}
+
+.MuiListItem-root:hover {
+  background-color: #1a1a1a !important;
+}
+
+.MuiTabs-root {
+  border-bottom: 1px solid #333333 !important;
+}
+
+.MuiTab-root {
+  color: #a0a0a0 !important;
+}
+
+.MuiTab-root:hover {
+  color: #00c6ff !important;
+}
+
+.MuiTab-root.Mui-selected {
+  color: #00c6ff !important;
+}
+
+.MuiTabs-indicator {
+  background-color: #00c6ff !important;
+}
+
