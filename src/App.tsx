@@ -10,6 +10,10 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Pricing from "./pages/Pricing";
+import VerifyEmail from "./pages/VerifyEmail";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import ValidateToken from "./pages/ValidateToken";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function AppContent() {
@@ -30,6 +34,15 @@ function AppContent() {
               {/* Login/Signup handled in the same page */}
               <Route path="/auth/login" element={<Login />} />
               <Route path="/auth/signup" element={<Login />} />
+              
+              {/* Email verification and password reset */}
+              <Route path="/auth/verify-email" element={<VerifyEmail />} />
+              <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+              <Route path="/auth/reset-password" element={<ResetPassword />} />
+              
+              {/* Token validation endpoint for other services */}
+              <Route path="/api/auth/validate-token" element={<ValidateToken />} />
+              <Route path="/auth/validate-token" element={<ValidateToken />} />
 
               <Route path="/pricing" element={<Pricing />} />
 

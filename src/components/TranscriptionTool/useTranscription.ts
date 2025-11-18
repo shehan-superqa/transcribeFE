@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../lib/auth';
-import { supabase } from '../../lib/supabase';
 import { convertYouTubeToM4A, isValidYouTubeUrl, ConversionProgress } from '../../lib/youtubeConverter';
+import { submitTranscriptionJob, type TranscriptionJobOptions } from '../../lib/transcribeApi';
+import { createSSEConnection, type SSEClient, type ProgressEvent } from '../../lib/sseClient';
 import { InputMode } from './types';
 
 export const useTranscription = (
@@ -18,6 +19,17 @@ export const useTranscription = (
   const [error, setError] = useState('');
   const [converting, setConverting] = useState(false);
   const [conversionProgress, setConversionProgress] = useState<ConversionProgress | null>(null);
+  const sseClientRef = useRef<SSEClient | null>(null);
+
+  // Cleanup SSE connection on unmount
+  useEffect(() => {
+    return () => {
+      if (sseClientRef.current) {
+        sseClientRef.current.close();
+        sseClientRef.current = null;
+      }
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,15 +70,6 @@ export const useTranscription = (
     onTranscriptionStart?.();
 
     try {
-      // Check if Supabase is configured
-      if (!supabase) {
-        setError('Transcription service is not configured. Please configure Supabase or integrate with transcription API.');
-        setLoading(false);
-        return;
-      }
-
-      let inputSource = '';
-      let inputType: InputMode = mode;
       let fileToUpload: File | null = null;
 
       // Handle YouTube conversion
@@ -82,10 +85,6 @@ export const useTranscription = (
           
           setConverting(false);
           setConversionProgress(null);
-          
-          // Use the converted file for transcription
-          inputSource = youtubeUrl;
-          inputType = 'file'; // Treat as file after conversion
         } catch (conversionError: any) {
           setConverting(false);
           setConversionProgress(null);
@@ -95,116 +94,71 @@ export const useTranscription = (
         }
       } else if (mode === 'file' && file) {
         fileToUpload = file;
-        inputSource = file.name;
       } else if (mode === 'recording') {
         // For recording, create file from audio chunks
         if (audioChunksRef.current.length > 0) {
           const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
           fileToUpload = new File([audioBlob], 'recording.webm', { type: 'audio/webm' });
         }
-        inputSource = 'live_recording';
       }
 
-      const energyCost = 10;
-
-      // Note: This Supabase integration expects UUID user_id
-      // JWT auth uses email as user_id, so this may need backend API integration instead
-      if (!supabase) {
-        setError('Transcription service requires Supabase configuration or transcription API integration.');
+      if (!fileToUpload) {
+        setError('No file to upload');
         setLoading(false);
         return;
       }
 
-      // For JWT users, we need to find or create a profile by email
-      // This is a workaround - ideally use transcription API instead
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('email', user.user_id)
-        .maybeSingle();
+      // Submit transcription job to API
+      const jobOptions: TranscriptionJobOptions = {
+        engine: 'whisper', // Default engine, can be made configurable
+        language: 'en', // Default language, can be made configurable
+      };
 
-      let profileId = profile?.id;
-      
-      // If no profile exists, create one (this is a workaround)
-      if (!profileId) {
-        // Generate a UUID for the profile (this is not ideal but works for now)
-        const uuid = crypto.randomUUID();
-        const { data: newProfile, error: createError } = await supabase
-          .from('profiles')
-          .insert({
-            id: uuid,
-            email: user.user_id,
-            full_name: user.name,
-            energy_points: 100,
-          })
-          .select('id')
-          .single();
-        
-        if (createError) {
-          throw new Error(`Failed to create profile: ${createError.message}`);
+      const response = await submitTranscriptionJob(fileToUpload, jobOptions);
+
+      if (response.success && response.accepted) {
+        // Set up SSE connection for progress updates
+        if (response.stream_url) {
+          // Close any existing SSE connection
+          if (sseClientRef.current) {
+            sseClientRef.current.close();
+          }
+
+          // Create new SSE connection
+          sseClientRef.current = createSSEConnection(
+            response.stream_url,
+            response.job_id,
+            (event: ProgressEvent) => {
+              // Handle progress updates
+              console.log('Transcription progress:', event);
+              
+              if (event.status === 'completed') {
+                setLoading(false);
+                // Job completed, refresh transcriptions list
+                onTranscriptionStart?.();
+              } else if (event.status === 'error') {
+                setError(event.error || 'Transcription failed');
+                setLoading(false);
+              }
+            },
+            (error) => {
+              console.error('SSE error:', error);
+              // Don't set error here as EventSource will try to reconnect
+            }
+          );
         }
-        profileId = newProfile.id;
+
+        // Reset form
+        audioChunksRef.current = [];
+        
+        // Note: Energy points deduction is handled by the backend
+        // The frontend will refresh user data to get updated energy points
+      } else {
+        setError('Failed to submit transcription job');
+        setLoading(false);
       }
-
-      const { error: insertError } = await supabase
-        .from('transcriptions')
-        .insert({
-          user_id: profileId,
-          input_type: inputType,
-          input_source: inputSource,
-          energy_cost: energyCost,
-          status: 'processing',
-        });
-
-      if (insertError) throw insertError;
-
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ energy_points: energyPoints - energyCost })
-        .eq('id', profileId);
-
-      if (updateError) throw updateError;
-
-      setEnergyPoints(energyPoints - energyCost);
-
-      // Reset form
-      audioChunksRef.current = [];
-
-      setTimeout(async () => {
-        if (!supabase) return;
-        
-        // Get profile ID first
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('email', user.user_id)
-          .maybeSingle();
-
-        if (!profile) return;
-
-        const { data: transcriptions } = await supabase
-          .from('transcriptions')
-          .select('id')
-          .eq('user_id', profile.id)
-          .eq('status', 'processing')
-          .order('created_at', { ascending: false })
-          .limit(1);
-
-        if (transcriptions && transcriptions.length > 0) {
-          await supabase
-            .from('transcriptions')
-            .update({
-              status: 'completed',
-              transcription_text: 'This is a sample transcription. In production, this would be processed by a transcription service.',
-              duration_seconds: Math.floor(Math.random() * 180) + 30,
-            })
-            .eq('id', transcriptions[0].id);
-        }
-      }, 3000);
-
     } catch (err: any) {
       setError(err.message || 'Failed to start transcription');
-    } finally {
       setLoading(false);
     }
   };
