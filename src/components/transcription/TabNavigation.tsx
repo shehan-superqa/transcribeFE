@@ -9,6 +9,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import SchoolIcon from '@mui/icons-material/School';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import FolderIcon from '@mui/icons-material/Folder';
+import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 
 export interface TabNavigationProps {
   currentTab: number;
@@ -19,6 +20,7 @@ const tabs = [
   { label: 'Transcribe', icon: <UploadFileIcon /> },
   { label: 'Batch Process', icon: <FolderIcon /> },
   { label: 'Live Mic VAD', icon: <MicIcon /> },
+  { label: 'Text-to-Speech', icon: <VolumeUpIcon /> },
   { label: 'History', icon: <HistoryIcon /> },
   { label: 'Settings', icon: <SettingsIcon /> },
   { label: 'Trainer', icon: <SchoolIcon /> },

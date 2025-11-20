@@ -238,6 +238,7 @@ export default function Header() {
               </NavLink>
               {productDropdownOpen && isDesktop && <div style={styles.productDropdownMenu}><ComplexDropdown /></div>}
             </div>
+            <NavLink to="/tools/real-time">Tools</NavLink>
             <NavLink to="/integrations">Integrations</NavLink>
             <NavLink to="/cases">Cases</NavLink>
             <NavLink to="/academy">Academy</NavLink>
@@ -314,6 +315,7 @@ export default function Header() {
               </div>
             )}
           </div>
+          <NavLink to="/tools/real-time">Tools</NavLink>
           <NavLink to="/integrations">Integrations</NavLink>
           <NavLink to="/cases">Cases</NavLink>
           <NavLink to="/academy">Academy</NavLink>
@@ -344,14 +346,15 @@ export default function Header() {
                 )}
               </div>
               <NavLink to="/dashboard">Dashboard</NavLink>
+              <NavLink to="/tools/real-time">Tools</NavLink>
               <NavLink
-  onClick={() => {
-    signOut();
-    navigate('/auth/login');
-  }}
->
-  Sign Out
-</NavLink>
+                onClick={() => {
+                  signOut();
+                  navigate('/auth/login');
+                }}
+              >
+                Sign Out
+              </NavLink>
             </>
           ) : (
             <>

@@ -9,6 +9,7 @@ import TabNavigation from "../components/transcription/TabNavigation";
 import TranscribeTab from "../components/transcription/TranscribeTab";
 import BatchTab from "../components/transcription/BatchTab";
 import LiveMicTab from "../components/transcription/LiveMicTab";
+import TTSTab from "../components/transcription/TTSTab";
 import HistoryTab from "../components/transcription/HistoryTab";
 import SettingsTab from "../components/transcription/SettingsTab";
 import TrainerTab from "../components/transcription/TrainerTab";
@@ -181,9 +182,10 @@ export default function Dashboard() {
                 {activeTab === 0 && <TranscribeTab />}
                 {activeTab === 1 && <BatchTab />}
                 {activeTab === 2 && <LiveMicTab />}
-                {activeTab === 3 && <HistoryTab />}
-                {activeTab === 4 && <SettingsTab />}
-                {activeTab === 5 && <TrainerTab />}
+                {activeTab === 3 && <TTSTab />}
+                {activeTab === 4 && <HistoryTab />}
+                {activeTab === 5 && <SettingsTab />}
+                {activeTab === 6 && <TrainerTab />}
               </ThemeProvider>
             </div>
           </div>

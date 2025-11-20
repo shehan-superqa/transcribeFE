@@ -10,6 +10,7 @@ import Header from "./components/Header";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import ToolsDashboard from "./pages/ToolsDashboard";
 import Pricing from "./pages/Pricing";
 import VerifyEmail from "./pages/VerifyEmail";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -54,6 +55,16 @@ function AppContent() {
                 element={
                   <ProtectedRoute>
                     <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Tools Dashboard with Sidebar Navigation */}
+              <Route
+                path="/tools/*"
+                element={
+                  <ProtectedRoute>
+                    <ToolsDashboard />
                   </ProtectedRoute>
                 }
               />

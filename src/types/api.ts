@@ -138,3 +138,43 @@ export interface AuthResponse {
   message?: string;
 }
 
+/**
+ * TTS (Text-to-Speech) Types
+ */
+export interface TTSVoice {
+  id: string;
+  name: string;
+  language: string;
+  gender?: string;
+  accent?: string;
+  provider?: string;
+  category?: string;
+}
+
+export interface TTSJob {
+  job_id: string;
+  status: 'queued' | 'processing' | 'completed' | 'failed' | 'error';
+  progress?: number;
+  text?: string;
+  voice?: string;
+  audio_url?: string;
+  error?: string;
+  created_at?: string;
+  completed_at?: string;
+  language?: string;
+  emotion?: string;
+  speed?: number;
+  pitch?: number;
+  volume?: number;
+}
+
+export interface TTSConfig {
+  text: string;
+  voice: string;
+  language?: string;
+  emotion?: string;
+  speed?: number;
+  pitch?: number;
+  volume?: number;
+}
+
