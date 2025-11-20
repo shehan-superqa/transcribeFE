@@ -1,11 +1,12 @@
 # VoiceScribe - Frontend
 
-A modern React-based frontend application for voice transcription services. Transform audio and video files into accurate text transcriptions with support for multiple engines, batch processing, live microphone transcription, and custom model training.
+A modern React-based frontend application for voice transcription services. Transform audio and video files into accurate text transcriptions. Supports multiple engines, batch processing of audio/video files, live microphone transcription, and custom model training.
 
 ## Features
 
-- **File Transcription**: Upload audio/video files for transcription with multiple processing modes
-- **Batch Processing**: Process multiple files simultaneously
+- **File Transcription**: Upload audio or video files for transcription with multiple processing modes
+- **Video Support**: Transcribe video files by extracting and processing audio tracks
+- **Batch Processing**: Process multiple audio/video files simultaneously
 - **Live Microphone Transcription**: Real-time transcription with VAD (Voice Activity Detection)
 - **Custom Model Training**: Train custom language models for specialized use cases
 - **Transcription History**: View, search, filter, and download past transcriptions
@@ -127,11 +128,16 @@ The frontend integrates with a transcription API. Required endpoints:
 
 ### Transcription Modes
 
-- **Batch Processing**: Process entire file at once
+- **Batch Processing**: Process entire audio/video file at once
 - **Parallel Streaming**: Process all 5s chunks simultaneously
 - **Real-time Streaming**: Process 5s chunks with 5s delays
 - **Advanced Streaming**: Research-grade with Local Agreement Policy
 - **VAD-Enhanced Streaming**: With Voice Activity Detection
+
+### Supported File Types
+
+- **Audio**: MP3, WAV, M4A, FLAC, OGG, and more
+- **Video**: MP4, AVI, MOV, MKV, and more (audio track extracted automatically)
 
 ### Supported Engines
 

@@ -47,7 +47,7 @@ export default function Home() {
         <div className="hero-content">
           <h1 className="hero-title">AI Driven Voice to Text Instantly</h1>
           <p className="hero-subtitle">
-            Powerful voice-to-text transcription with support for file uploads, YouTube videos, and live recording. 
+            Powerful voice-to-text transcription with support for audio/video file uploads, YouTube videos, and live recording. 
             <span className="highlight"> Get started with 100 free energy points.</span>
           </p>
           <a href="/login" className="get-started-button">
@@ -72,7 +72,7 @@ export default function Home() {
     imageSrc={uploadScreenshot}
     altText="Upload illustration"
     title="Upload & Transcribe"
-    description="Upload your video files and get accurate transcriptions in seconds. Supports multiple formats and fast processing."
+    description="Upload your audio or video files and get accurate transcriptions in seconds. Supports multiple audio and video formats with fast processing."
   />
 </section>
 <section className="upload-section">
@@ -80,7 +80,7 @@ export default function Home() {
     imageSrc={youtubeScreenshot}
     altText="YouTube transcription illustration"
     title="Transcribe YouTube Videos Instantly"
-    description="Simply paste a YouTube link and let our system automatically fetch, process, and transcribe the audio into accurate, readable text. Perfect for content creators, researchers, and accessibility needs."
+    description="Simply paste a YouTube link and let our system automatically fetch, process, and transcribe the video's audio into accurate, readable text. Perfect for content creators, researchers, and accessibility needs."
     reverse // 👈 puts image on the right
   />
 </section>
@@ -107,7 +107,7 @@ export default function Home() {
               </svg>
             </div>
             <h3>Multiple Input Methods</h3>
-            <p>Upload audio files, paste YouTube links, or record directly in your browser</p>
+            <p>Upload audio or video files, paste YouTube links, or record directly in your browser</p>
           </div>
 
           <div className="feature-card">

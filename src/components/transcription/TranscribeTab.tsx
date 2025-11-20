@@ -269,7 +269,7 @@ export default function TranscribeTab() {
             '&:disabled': { backgroundColor: '#333333', color: '#666666' },
           }}
         >
-          Start Transcription
+          Start Audio/Video Transcription
         </Button>
         <Button
           variant="outlined"
