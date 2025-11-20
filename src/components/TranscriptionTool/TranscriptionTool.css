@@ -1,0 +1,100 @@
+/* Responsive styles for TranscriptionTool */
+@media (max-width: 768px) {
+  .transcription-tool-container {
+    padding: 1.5rem 1rem !important;
+    margin: 1rem auto !important;
+    gap: 1.25rem !important;
+  }
+
+  .transcription-tool-container .mode-selector {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .transcription-tool-container .mode-button {
+    min-width: calc(50% - 0.25rem);
+    font-size: 0.85rem;
+    padding: 0.5rem 0.6rem !important;
+  }
+
+  .transcription-tool-container .file-upload-box {
+    padding: 1.5rem 1rem !important;
+  }
+
+  .transcription-tool-container .upload-text {
+    font-size: 0.9rem !important;
+  }
+
+  .transcription-tool-container .upload-subtext {
+    font-size: 0.75rem !important;
+  }
+
+  .transcription-tool-container .recording-buttons {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .transcription-tool-container .recording-controls {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .transcription-tool-container .recording-controls button,
+  .transcription-tool-container .recording-controls a {
+    flex: 1;
+    min-width: calc(50% - 0.25rem);
+    font-size: 0.85rem;
+    padding: 0.45rem 0.75rem !important;
+  }
+
+  .transcription-tool-container .energy-badge {
+    font-size: 0.85rem !important;
+    padding: 0.35rem 0.85rem !important;
+  }
+
+  .transcription-tool-container .energy-text {
+    font-size: 0.85rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .transcription-tool-container {
+    padding: 1.25rem 0.75rem !important;
+    margin: 0.75rem auto !important;
+    gap: 1rem !important;
+    border-radius: 1rem !important;
+  }
+
+  .transcription-tool-container .mode-button {
+    min-width: 100%;
+    font-size: 0.8rem;
+    padding: 0.45rem 0.5rem !important;
+  }
+
+  .transcription-tool-container .file-upload-box {
+    padding: 1.25rem 0.75rem !important;
+  }
+
+  .transcription-tool-container .input {
+    padding: 0.65rem 0.85rem !important;
+    font-size: 0.9rem !important;
+  }
+
+  .transcription-tool-container .submit-button {
+    padding: 0.75rem 1rem !important;
+    font-size: 0.9rem !important;
+  }
+
+  .transcription-tool-container .recording-controls button,
+  .transcription-tool-container .recording-controls a {
+    min-width: 100%;
+    font-size: 0.8rem;
+    padding: 0.4rem 0.7rem !important;
+  }
+
+  .transcription-tool-container .energy-badge {
+    font-size: 0.8rem !important;
+    padding: 0.3rem 0.75rem !important;
+  }
+}
+

@@ -105,7 +105,7 @@ export interface ProgressEvent {
   status: JobStatus;
   progress: number;
   message: string;
-  result?: TranscriptionResult;
+  result?: TranscriptionResult | VideoJobResult;
   error?: string;
 }
 
@@ -176,5 +176,68 @@ export interface TTSConfig {
   speed?: number;
   pitch?: number;
   volume?: number;
+}
+
+/**
+ * Video Generation Types
+ */
+export interface VideoJobRequest {
+  prompt: string;
+  aspect_ratio?: '16:9' | '9:16' | '1:1' | '4:3' | '3:4';
+  duration?: number;
+  image?: string;
+  last_frame?: string;
+  reference_images?: string[];
+  negative_prompt?: string;
+  resolution?: '720p' | '1080p' | '1440p' | '4K';
+  generate_audio?: boolean;
+  seed?: number;
+  job_id?: string;
+}
+
+export interface VideoJobResponse {
+  success: boolean;
+  accepted: boolean;
+  job_id: string;
+  stream_url: string;
+  prompt_length?: number;
+  reference_images_count?: number;
+  processing_time: {
+    total_seconds: number;
+    formatted: string;
+  };
+}
+
+export interface VideoJobResult {
+  video_url: string;
+  video_path?: string;
+  prompt: string;
+  reference_images?: string[];
+  engine?: string;
+  model?: string;
+  job_id: string;
+}
+
+export interface VideoJob {
+  _id: string;
+  user_id: string;
+  job_type: 'video';
+  prompt: string;
+  reference_images?: string[];
+  status: JobStatus;
+  result?: VideoJobResult;
+  video_output_url?: string;
+  video_output_path?: string;
+  error?: string;
+  created_at: string;
+  started_at?: string;
+  finished_at?: string;
+  updated_at: string;
+}
+
+export interface VideoJobStatusResponse {
+  success: boolean;
+  job_id: string;
+  job?: VideoJob;
 }
 

@@ -1,0 +1,19 @@
+/* Responsive styles for VideoGenerationTool */
+@media (max-width: 768px) {
+  .video-generation-tool-container {
+    padding: 1.5rem 1rem !important;
+    margin: 1rem auto !important;
+    gap: 1.25rem !important;
+    max-width: 100% !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .video-generation-tool-container {
+    padding: 1.25rem 0.75rem !important;
+    margin: 0.75rem auto !important;
+    gap: 1rem !important;
+    border-radius: 1rem !important;
+  }
+}
+

@@ -54,14 +54,38 @@ const FaqItem = ({ question, answer }) => {
 
 
 export default function Pricing() {
-  const [plans, setPlans] = useState<Plan[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
-  const navigate = useNavigate();
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [isMobile, setIsMobile] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
 
-  useEffect(() => {
-    fetchPlans();
-  }, []);
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth <= 768);
+      setIsTablet(window.innerWidth > 768 && window.innerWidth <= 1024);
+    };
+    
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
+  useEffect(() => {
+    fetchPlans();
+  }, []);
+
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth <= 768);
+      setIsTablet(window.innerWidth > 768 && window.innerWidth <= 1024);
+    };
+    
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
 
   const fetchPlans = async () => {
     try {
@@ -140,90 +164,154 @@ export default function Pricing() {
     );
   }
 
-  return (
-    <div style={{...styles.container, ...styles.darkBackground}}>
-      <section style={styles.hero}>
-        <h1 style={styles.title}>Simple, <span style={styles.highlightText}>Crypt-Secure</span> Pricing</h1>
-        <p style={styles.subtitle}>
-          Choose the plan that fits your security needs. All plans include access to our powerful voice security and verification tools.
-        </p>
-      </section>
+  // Get responsive styles
+  const getResponsiveStyles = () => {
+    const base = styles;
+    if (isMobile) {
+      return {
+        ...base,
+        hero: { ...base.hero, padding: '2rem 1rem 1.5rem' },
+        title: { ...base.title, fontSize: '2rem' },
+        subtitle: { ...base.subtitle, fontSize: '1rem', padding: '0 0.5rem' },
+        freeTier: { ...base.freeTier, padding: '1.5rem 1rem' },
+        freeCard: { ...base.freeCard, padding: '1.5rem' },
+        freeTitle: { ...base.freeTitle, fontSize: '1.5rem' },
+        freeNumber: { ...base.freeNumber, fontSize: '3rem' },
+        freeText: { ...base.freeText, fontSize: '1rem' },
+        freeDescription: { ...base.freeDescription, fontSize: '0.95rem' },
+        plans: { ...base.plans, padding: '2rem 1rem' },
+        planGrid: { ...base.planGrid, gridTemplateColumns: '1fr', gap: '1.5rem' },
+        planCard: { ...base.planCard, padding: '1.5rem' },
+        planName: { ...base.planName, fontSize: '1.25rem' },
+        planPriceAmount: { ...base.planPriceAmount, fontSize: '2.25rem' },
+        getInTouchContainer: { ...base.getInTouchContainer, padding: '2rem 1rem' },
+        getInTouchContent: { ...base.getInTouchContent, flexDirection: 'column' as const },
+        getInTouchLeft: { ...base.getInTouchLeft, minWidth: 'auto', padding: '2rem 1.5rem' },
+        getInTouchRight: { ...base.getInTouchRight, minWidth: 'auto', padding: '2rem 1.5rem' },
+        getInTouchTitle: { ...base.getInTouchTitle, fontSize: '1.75rem' },
+        getInTouchSubtitle: { ...base.getInTouchSubtitle, fontSize: '1rem' },
+        clientLogosGrid: { ...base.clientLogosGrid, gridTemplateColumns: 'repeat(2, 1fr)' },
+        featureComparison: { ...base.featureComparison, padding: '2rem 1rem' },
+        featureComparisonTitle: { ...base.featureComparisonTitle, fontSize: '1.75rem', marginBottom: '1.5rem' },
+        comparisonTable: { ...base.comparisonTable, display: 'block', overflowX: 'auto' },
+        comparisonHeaderRow: { ...base.comparisonHeaderRow, display: 'flex', minWidth: '600px' },
+        comparisonHeaderCell: { ...base.comparisonHeaderCell, minWidth: '150px', flex: '1' },
+        comparisonPlanTitle: { ...base.comparisonPlanTitle, fontSize: '1.1rem' },
+        comparisonPlanPrice: { ...base.comparisonPlanPrice, fontSize: '0.95rem' },
+        featuresLabel: { ...base.featuresLabel, display: 'none' },
+        comparisonFeatureRow: { ...base.comparisonFeatureRow, display: 'flex', minWidth: '600px' },
+        comparisonFeatureName: { ...base.comparisonFeatureName, minWidth: '200px', flex: '1.5', borderRight: 'none', borderBottom: '1px solid #333333', padding: '0.75rem' },
+        comparisonFeatureValue: { ...base.comparisonFeatureValue, minWidth: '150px', flex: '1', borderRight: 'none', borderBottom: '1px solid #333333', padding: '0.75rem' },
+        faq: { ...base.faq, padding: '2rem 1rem' },
+        faqTitle: { ...base.faqTitle, fontSize: '1.75rem', marginBottom: '1.5rem' },
+        faqGrid: { ...base.faqGrid, gridTemplateColumns: '1fr', gap: '1.25rem' },
+        faqItem: { ...base.faqItem, padding: '1.25rem' },
+        faqQuestion: { ...base.faqQuestion, fontSize: '1rem' },
+        faqAnswer: { ...base.faqAnswer, fontSize: '0.9rem' },
+      };
+    } else if (isTablet) {
+      return {
+        ...base,
+        hero: { ...base.hero, padding: '3rem 1.25rem 1.75rem' },
+        title: { ...base.title, fontSize: '2.5rem' },
+        subtitle: { ...base.subtitle, fontSize: '1.1rem' },
+        planGrid: { ...base.planGrid, gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' },
+        getInTouchContent: { ...base.getInTouchContent, flexWrap: 'wrap' as const },
+        getInTouchLeft: { ...base.getInTouchLeft, minWidth: '300px' },
+        getInTouchRight: { ...base.getInTouchRight, minWidth: '300px' },
+        comparisonTable: { ...base.comparisonTable, fontSize: '0.9rem' },
+        faqGrid: { ...base.faqGrid, gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))' },
+      };
+    }
+    return base;
+  };
 
-      <div style={styles.freeTier}>
-        <div style={styles.freeCard}>
-          <div style={styles.freeBadge}>Always Free</div>
-          <h3 style={styles.freeTitle}>Developer Tier</h3>
-          <div style={styles.freePoints}>
-            <span style={styles.freeNumber}>100</span>
-            <span style={styles.freeText}>Voice Tokens</span>
-          </div>
-          <p style={styles.freeDescription}>
-            Perfect for testing the VoiceCrypt API and authentication features. No credit card required.
-          </p>
-          <ul style={styles.freeFeatures}>
-            <li style={styles.freeFeature}>✓ 100 free Voice Tokens on signup</li>
-            <li style={styles.freeFeature}>✓ Core Biometric verification methods</li>
-            <li style={styles.freeFeature}>✓ Up to 15 seconds per API call</li>
-            <li style={styles.freeFeature}>✓ 7-day logs history</li>
-          </ul>
-        </div>
-      </div>
+  const responsiveStyles = getResponsiveStyles();
 
-      <section style={styles.plans}>
-        <div style={styles.planGrid}>
+  return (
+    <div style={{...responsiveStyles.container, ...responsiveStyles.darkBackground}}>
+      <section style={responsiveStyles.hero}>
+        <h1 style={responsiveStyles.title}>Simple, <span style={responsiveStyles.highlightText}>Crypt-Secure</span> Pricing</h1>
+        <p style={responsiveStyles.subtitle}>
+          Choose the plan that fits your security needs. All plans include access to our powerful voice security and verification tools.
+        </p>
+      </section>
+
+      <div style={responsiveStyles.freeTier}>
+        <div style={responsiveStyles.freeCard}>
+          <div style={responsiveStyles.freeBadge}>Always Free</div>
+          <h3 style={responsiveStyles.freeTitle}>Developer Tier</h3>
+          <div style={responsiveStyles.freePoints}>
+            <span style={responsiveStyles.freeNumber}>100</span>
+            <span style={responsiveStyles.freeText}>Voice Tokens</span>
+          </div>
+          <p style={responsiveStyles.freeDescription}>
+            Perfect for testing the VoiceCrypt API and authentication features. No credit card required.
+          </p>
+          <ul style={responsiveStyles.freeFeatures}>
+            <li style={responsiveStyles.freeFeature}>✓ 100 free Voice Tokens on signup</li>
+            <li style={responsiveStyles.freeFeature}>✓ Core Biometric verification methods</li>
+            <li style={responsiveStyles.freeFeature}>✓ Up to 15 seconds per API call</li>
+            <li style={responsiveStyles.freeFeature}>✓ 7-day logs history</li>
+          </ul>
+        </div>
+      </div>
+
+      <section style={responsiveStyles.plans}>
+        <div style={responsiveStyles.planGrid}>
           {plans.map((plan) => {
             const isPopular = plan.name === 'Pro';
             return (
-              <div
-                key={plan.id}
-                style={{
-                  ...styles.planCard,
-                  ...(isPopular ? styles.planCardPopular : {}),
-                }}
-              >
-                {isPopular && <div style={styles.popularBadge}>Most Popular</div>}
-                <div style={styles.planHeader}>
-                  <h3 style={styles.planName}>{plan.name}</h3>
-                  <div style={styles.planPrice}>
-                    <span style={styles.planPriceAmount}>${plan.price}</span>
-                    <span style={styles.planPricePeriod}>/month</span>
-                  </div>
-                  <div style={styles.planPoints}>
-                    {plan.energy_points.toLocaleString()} Voice Tokens/month
-                  </div>
-                </div>
+              <div
+                key={plan.id}
+                style={{
+                  ...responsiveStyles.planCard,
+                  ...(isPopular ? responsiveStyles.planCardPopular : {}),
+                }}
+              >
+                {isPopular && <div style={responsiveStyles.popularBadge}>Most Popular</div>}
+                <div style={responsiveStyles.planHeader}>
+                  <h3 style={responsiveStyles.planName}>{plan.name}</h3>
+                  <div style={responsiveStyles.planPrice}>
+                    <span style={responsiveStyles.planPriceAmount}>${plan.price}</span>
+                    <span style={responsiveStyles.planPricePeriod}>/month</span>
+                  </div>
+                  <div style={responsiveStyles.planPoints}>
+                    {plan.energy_points.toLocaleString()} Voice Tokens/month
+                  </div>
+                </div>
 
-                <ul style={styles.planFeatures}>
-                  <li style={styles.planFeature}>
-                    ✓ Up to {plan.features.maxDuration} seconds of voice data per transaction
-                  </li>
-                  <li style={styles.planFeature}>
-                    ✓ {plan.features.formats.length === 1 && plan.features.formats[0] === 'all'
-                      ? 'All voice/data formats supported'
-                      : plan.features.formats.join(', ').toUpperCase() + ' verification input'}
-                  </li>
-                  <li style={styles.planFeature}>
-                    ✓ {plan.features.priority.charAt(0).toUpperCase() + plan.features.priority.slice(1)} priority latency
-                  </li>
-                  <li style={styles.planFeature}>
-                    ✓ {plan.features.history}-day secure audit logs
-                  </li>
-                  {plan.features.api && (
-                    <li style={styles.planFeature}>✓ Dedicated API access</li>
-                  )}
-                  <li style={styles.planFeature}>✓ Advanced biometrics enrollment</li>
-                  <li style={styles.planFeature}>✓ Premium technical support</li>
-                </ul>
+                <ul style={responsiveStyles.planFeatures}>
+                  <li style={responsiveStyles.planFeature}>
+                    ✓ Up to {plan.features.maxDuration} seconds of voice data per transaction
+                  </li>
+                  <li style={responsiveStyles.planFeature}>
+                    ✓ {plan.features.formats.length === 1 && plan.features.formats[0] === 'all'
+                      ? 'All voice/data formats supported'
+                      : plan.features.formats.join(', ').toUpperCase() + ' verification input'}
+                  </li>
+                  <li style={responsiveStyles.planFeature}>
+                    ✓ {plan.features.priority.charAt(0).toUpperCase() + plan.features.priority.slice(1)} priority latency
+                  </li>
+                  <li style={responsiveStyles.planFeature}>
+                    ✓ {plan.features.history}-day secure audit logs
+                  </li>
+                  {plan.features.api && (
+                    <li style={responsiveStyles.planFeature}>✓ Dedicated API access</li>
+                  )}
+                  <li style={responsiveStyles.planFeature}>✓ Advanced biometrics enrollment</li>
+                  <li style={responsiveStyles.planFeature}>✓ Premium technical support</li>
+                </ul>
 
-                <button
-                  onClick={() => handleSubscribe(plan.name)}
-                  style={{
-                    ...styles.subscribeButton,
-                    ...(isPopular ? styles.subscribeButtonPopular : {}),
-                  }}
-                >
-                  Start {plan.name} Plan
-                </button>
+                <button
+                  onClick={() => handleSubscribe(plan.name)}
+                  style={{
+                    ...responsiveStyles.subscribeButton,
+                    ...(isPopular ? responsiveStyles.subscribeButtonPopular : {}),
+                  }}
+                >
+                  Start {plan.name} Plan
+                </button>
               </div>
             );
           })}
@@ -231,39 +319,39 @@ export default function Pricing() {
       </section>
       
     {/* NEW SECTION: Get in Touch */}
-    <section style={styles.getInTouchContainer}>
-        <div style={styles.getInTouchContent}>
-            <div style={styles.getInTouchLeft}>
-                <h2 style={styles.getInTouchTitle}>Get in Touch</h2>
-                <p style={styles.getInTouchSubtitle}>
+    <section style={responsiveStyles.getInTouchContainer}>
+        <div style={responsiveStyles.getInTouchContent}>
+            <div style={responsiveStyles.getInTouchLeft}>
+                <h2 style={responsiveStyles.getInTouchTitle}>Get in Touch</h2>
+                <p style={responsiveStyles.getInTouchSubtitle}>
                     We're looking forward to hearing from you! Please fill out the form for a demo or custom Enterprise plan, and we'll get back to you shortly.
                 </p>
                 
                 {/* Placeholder for Client Logos/Integrations */}
-                <div style={styles.clientLogosGrid}>
-                    <div style={styles.clientLogoBox}>VoiceCrypt Enterprise</div>
-                    <div style={styles.clientLogoBox}>High-Security APIs</div>
-                    <div style={styles.clientLogoBox}>Custom Biometrics</div>
-                    <div style={styles.clientLogoBox}>Global Compliance</div>
-                    <div style={styles.clientLogoBox}>Fraud Detection Suite</div>
-                    <div style={styles.clientLogoBox}>Dedicated Support</div>
+                <div style={responsiveStyles.clientLogosGrid}>
+                    <div style={responsiveStyles.clientLogoBox}>VoiceCrypt Enterprise</div>
+                    <div style={responsiveStyles.clientLogoBox}>High-Security APIs</div>
+                    <div style={responsiveStyles.clientLogoBox}>Custom Biometrics</div>
+                    <div style={responsiveStyles.clientLogoBox}>Global Compliance</div>
+                    <div style={responsiveStyles.clientLogoBox}>Fraud Detection Suite</div>
+                    <div style={responsiveStyles.clientLogoBox}>Dedicated Support</div>
                 </div>
             </div>
 
-            <div style={styles.getInTouchRight}>
-                <div style={styles.inputGroup}>
-                    <label htmlFor="email" style={styles.inputLabel}>Work Email Address</label>
+            <div style={responsiveStyles.getInTouchRight}>
+                <div style={responsiveStyles.inputGroup}>
+                    <label htmlFor="email" style={responsiveStyles.inputLabel}>Work Email Address</label>
                     <input 
                         type="email" 
                         id="email" 
                         placeholder="yourname@company.com" 
-                        style={styles.inputField} 
+                        style={responsiveStyles.inputField} 
                     />
                 </div>
                 
-                <div style={styles.inputGroup}>
-                    <label htmlFor="range" style={styles.inputLabel}>Approximate Monthly Token Volume</label>
-                    <select id="range" style={{...styles.inputField, ...styles.selectField}}>
+                <div style={responsiveStyles.inputGroup}>
+                    <label htmlFor="range" style={responsiveStyles.inputLabel}>Approximate Monthly Token Volume</label>
+                    <select id="range" style={{...responsiveStyles.inputField, ...responsiveStyles.selectField}}>
                         <option>Select volume range</option>
                         <option>1,000 - 5,000</option>
                         <option>5,001 - 20,000</option>
@@ -272,17 +360,17 @@ export default function Pricing() {
                     </select>
                 </div>
 
-                <div style={styles.inputGroup}>
-                    <label htmlFor="phone" style={styles.inputLabel}>Phone Number (Optional)</label>
+                <div style={responsiveStyles.inputGroup}>
+                    <label htmlFor="phone" style={responsiveStyles.inputLabel}>Phone Number (Optional)</label>
                     <input 
                         type="tel" 
                         id="phone" 
                         placeholder="+1 555 123 4567" 
-                        style={styles.inputField} 
+                        style={responsiveStyles.inputField} 
                     />
                 </div>
 
-                <button style={styles.submitButton}>
+                <button style={responsiveStyles.submitButton}>
                     Submit
                 </button>
             </div>
@@ -290,118 +378,118 @@ export default function Pricing() {
     </section>
       
     {/* Feature Comparison Section */}
-    <section style={styles.featureComparison}>
-        <h2 style={styles.featureComparisonTitle}>Feature Comparison</h2>
+    <section style={responsiveStyles.featureComparison}>
+        <h2 style={responsiveStyles.featureComparisonTitle}>Feature Comparison</h2>
 
-        <div style={styles.comparisonTable}>
+        <div style={responsiveStyles.comparisonTable}>
             {/* Table Header Row */}
-            <div style={styles.comparisonHeaderRow}>
-                <div style={styles.comparisonHeaderCell}></div> {/* Empty cell for alignment */}
-                <div style={styles.comparisonHeaderCell}>
-                    <h3 style={styles.comparisonPlanTitle}>Basic</h3>
-                    <p style={styles.comparisonPlanPrice}>from $9.99<span style={styles.comparisonPricePeriod}>/month</span></p>
-                    <button style={{ ...styles.comparisonActionButton, ...styles.comparisonActionButtonDefault }} onClick={() => handleSubscribe('Basic')}>
+            <div style={responsiveStyles.comparisonHeaderRow}>
+                <div style={responsiveStyles.comparisonHeaderCell}></div> {/* Empty cell for alignment */}
+                <div style={responsiveStyles.comparisonHeaderCell}>
+                    <h3 style={responsiveStyles.comparisonPlanTitle}>Basic</h3>
+                    <p style={responsiveStyles.comparisonPlanPrice}>from $9.99<span style={responsiveStyles.comparisonPricePeriod}>/month</span></p>
+                    <button style={{ ...responsiveStyles.comparisonActionButton, ...responsiveStyles.comparisonActionButtonDefault }} onClick={() => handleSubscribe('Basic')}>
                         Get Started
                     </button>
                 </div>
-                <div style={styles.comparisonHeaderCell}>
-                    <h3 style={styles.comparisonPlanTitle}>Pro</h3>
-                    <p style={styles.comparisonPlanPrice}>from $19.99<span style={styles.comparisonPricePeriod}>/month</span></p>
-                    <button style={{ ...styles.comparisonActionButton, ...styles.comparisonActionButtonPopular }} onClick={() => handleSubscribe('Pro')}>
+                <div style={responsiveStyles.comparisonHeaderCell}>
+                    <h3 style={responsiveStyles.comparisonPlanTitle}>Pro</h3>
+                    <p style={responsiveStyles.comparisonPlanPrice}>from $19.99<span style={responsiveStyles.comparisonPricePeriod}>/month</span></p>
+                    <button style={{ ...responsiveStyles.comparisonActionButton, ...responsiveStyles.comparisonActionButtonPopular }} onClick={() => handleSubscribe('Pro')}>
                         Get Started
                     </button>
                 </div>
-                <div style={styles.comparisonHeaderCell}>
-                    <h3 style={styles.comparisonPlanTitle}>Enterprise</h3>
-                    <p style={styles.comparisonPlanPrice}>Custom</p>
-                    <button style={{ ...styles.comparisonActionButton, ...styles.comparisonActionButtonDefault }} onClick={() => navigate('/contact')}>
+                <div style={responsiveStyles.comparisonHeaderCell}>
+                    <h3 style={responsiveStyles.comparisonPlanTitle}>Enterprise</h3>
+                    <p style={responsiveStyles.comparisonPlanPrice}>Custom</p>
+                    <button style={{ ...responsiveStyles.comparisonActionButton, ...responsiveStyles.comparisonActionButtonDefault }} onClick={() => navigate('/contact')}>
                         Contact Sales
                     </button>
                 </div>
             </div>
 
             {/* Features Label */}
-            <div style={styles.featuresLabel}>Features</div>
+            {!isMobile && <div style={responsiveStyles.featuresLabel}>Features</div>}
 
             {/* Feature Rows */}
-            <div style={styles.comparisonFeatureRow}>
-                <div style={styles.comparisonFeatureName}>
-                    Voice Tokens included <FiInfo size={14} color="#999" style={styles.infoIcon} title="Monthly allocation of secure voice transaction tokens." />
+            <div style={responsiveStyles.comparisonFeatureRow}>
+                <div style={responsiveStyles.comparisonFeatureName}>
+                    Voice Tokens included <FiInfo size={14} color="#999" style={responsiveStyles.infoIcon} title="Monthly allocation of secure voice transaction tokens." />
                 </div>
-                <div style={styles.comparisonFeatureValue}>500</div>
-                <div style={styles.comparisonFeatureValue}>1,500</div>
-                <div style={styles.comparisonFeatureValue}>Custom</div>
+                <div style={responsiveStyles.comparisonFeatureValue}>500</div>
+                <div style={responsiveStyles.comparisonFeatureValue}>1,500</div>
+                <div style={responsiveStyles.comparisonFeatureValue}>Custom</div>
             </div>
 
-            <div style={styles.comparisonFeatureRow}>
-                <div style={styles.comparisonFeatureName}>
+            <div style={responsiveStyles.comparisonFeatureRow}>
+                <div style={responsiveStyles.comparisonFeatureName}>
                     Max voice transaction duration
                 </div>
-                <div style={styles.comparisonFeatureValue}>30 sec</div>
-                <div style={styles.comparisonFeatureValue}>120 sec</div>
-                <div style={styles.comparisonFeatureValue}>300+ sec</div>
+                <div style={responsiveStyles.comparisonFeatureValue}>30 sec</div>
+                <div style={responsiveStyles.comparisonFeatureValue}>120 sec</div>
+                <div style={responsiveStyles.comparisonFeatureValue}>300+ sec</div>
             </div>
 
-            <div style={styles.comparisonFeatureRow}>
-                <div style={styles.comparisonFeatureName}>
+            <div style={responsiveStyles.comparisonFeatureRow}>
+                <div style={responsiveStyles.comparisonFeatureName}>
                     Supported input formats
                 </div>
-                <div style={styles.comparisonFeatureValue}>MP3, WAV</div>
-                <div style={styles.comparisonFeatureValue}>MP3, WAV, M4A, FLAC</div>
-                <div style={styles.comparisonFeatureValue}>All standard formats</div>
+                <div style={responsiveStyles.comparisonFeatureValue}>MP3, WAV</div>
+                <div style={responsiveStyles.comparisonFeatureValue}>MP3, WAV, M4A, FLAC</div>
+                <div style={responsiveStyles.comparisonFeatureValue}>All standard formats</div>
             </div>
 
-            <div style={styles.comparisonFeatureRow}>
-                <div style={styles.comparisonFeatureName}>
+            <div style={responsiveStyles.comparisonFeatureRow}>
+                <div style={responsiveStyles.comparisonFeatureName}>
                     Priority processing
                 </div>
-                <div style={styles.comparisonFeatureValue}>Standard</div>
-                <div style={styles.comparisonFeatureValue}>High</div>
-                <div style={styles.comparisonFeatureValue}>Highest</div>
+                <div style={responsiveStyles.comparisonFeatureValue}>Standard</div>
+                <div style={responsiveStyles.comparisonFeatureValue}>High</div>
+                <div style={responsiveStyles.comparisonFeatureValue}>Highest</div>
             </div>
 
-            <div style={styles.comparisonFeatureRow}>
-                <div style={styles.comparisonFeatureName}>
+            <div style={responsiveStyles.comparisonFeatureRow}>
+                <div style={responsiveStyles.comparisonFeatureName}>
                     Secure audit logs history
                 </div>
-                <div style={styles.comparisonFeatureValue}>30 days</div>
-                <div style={styles.comparisonFeatureValue}>90 days</div>
-                <div style={styles.comparisonFeatureValue}>365+ days</div>
+                <div style={responsiveStyles.comparisonFeatureValue}>30 days</div>
+                <div style={responsiveStyles.comparisonFeatureValue}>90 days</div>
+                <div style={responsiveStyles.comparisonFeatureValue}>365+ days</div>
             </div>
 
-            <div style={styles.comparisonFeatureRow}>
-                <div style={styles.comparisonFeatureName}>
+            <div style={responsiveStyles.comparisonFeatureRow}>
+                <div style={responsiveStyles.comparisonFeatureName}>
                     Dedicated API Access
                 </div>
-                <div style={styles.comparisonFeatureValue}>-</div>
-                <div style={styles.comparisonFeatureValue}>✓</div>
-                <div style={styles.comparisonFeatureValue}>✓</div>
+                <div style={responsiveStyles.comparisonFeatureValue}>-</div>
+                <div style={responsiveStyles.comparisonFeatureValue}>✓</div>
+                <div style={responsiveStyles.comparisonFeatureValue}>✓</div>
             </div>
 
-            <div style={styles.comparisonFeatureRow}>
-                <div style={styles.comparisonFeatureName}>
+            <div style={responsiveStyles.comparisonFeatureRow}>
+                <div style={responsiveStyles.comparisonFeatureName}>
                     Advanced Biometric Enrollment
                 </div>
-                <div style={styles.comparisonFeatureValue}>-</div>
-                <div style={styles.comparisonFeatureValue}>✓</div>
-                <div style={styles.comparisonFeatureValue}>✓</div>
+                <div style={responsiveStyles.comparisonFeatureValue}>-</div>
+                <div style={responsiveStyles.comparisonFeatureValue}>✓</div>
+                <div style={responsiveStyles.comparisonFeatureValue}>✓</div>
             </div>
             
-            <div style={styles.comparisonFeatureRow}>
-                <div style={styles.comparisonFeatureName}>
+            <div style={responsiveStyles.comparisonFeatureRow}>
+                <div style={responsiveStyles.comparisonFeatureName}>
                     Customer Support Tier
                 </div>
-                <div style={styles.comparisonFeatureValue}>Email</div>
-                <div style={styles.comparisonFeatureValue}>Priority Email</div>
-                <div style={styles.comparisonFeatureValue}>Dedicated Account Manager</div>
+                <div style={responsiveStyles.comparisonFeatureValue}>Email</div>
+                <div style={responsiveStyles.comparisonFeatureValue}>Priority Email</div>
+                <div style={responsiveStyles.comparisonFeatureValue}>Dedicated Account Manager</div>
             </div>
 
         </div>
     </section>
 
-      <section style={styles.faq}>
-        <h2 style={styles.faqTitle}>Frequently Asked Questions</h2>
-        <div style={styles.faqGrid}>
+      <section style={responsiveStyles.faq}>
+        <h2 style={responsiveStyles.faqTitle}>Frequently Asked Questions</h2>
+        <div style={responsiveStyles.faqGrid}>
             <FaqItem
                 question="What are Voice Tokens?"
                 answer="Voice Tokens are the secure currency used for verification and API calls. Each transaction consumes a small amount of tokens based on data size and security level."

@@ -13,6 +13,7 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
   { id: 'audio-to-text', label: 'Audio to Text', icon: '🎵', path: '/tools/audio-to-text' },
   { id: 'video-to-text', label: 'Video to Text', icon: '🎬', path: '/tools/video-to-text' },
+  { id: 'video-generation', label: 'Video Generation', icon: '🎥', path: '/tools/video-generation' },
   { id: 'video-dubber', label: 'Video Dubber', icon: '🎤', path: '/tools/video-dubber' },
   { id: 'video-translator', label: 'Video Translator', icon: '🌐', path: '/tools/video-translator' },
   { id: 'audio-translator', label: 'Audio Translator', icon: '🔊', path: '/tools/audio-translator' },

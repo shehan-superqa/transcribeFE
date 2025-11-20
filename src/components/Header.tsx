@@ -149,9 +149,85 @@ const HighlightedItem = ({ to, title, description }: { to: string; title: string
   );
 };
 
-const ComplexDropdown = () => {
+const ToolsDropdown = ({ isMobile }: { isMobile: boolean }) => {
+  if (isMobile) {
+    return (
+      <div style={{ backgroundColor: '#0d0d0d', borderRadius: '8px', boxShadow: '0 8px 20px rgba(0,0,0,0.5)', overflow: 'hidden', padding: '0.5rem', width: '100%' }}>
+        <HighlightedItem to="/tools/audio-to-text" title="Audio to Text" description="Convert audio files to accurate text transcriptions" />
+        <div style={{ display: 'flex', flexDirection: 'column', marginTop: '0.5rem' }}>
+          <DropdownSection title="TRANSCRIPTION">
+            <SectionItem to="/tools/audio-to-text" title="Audio to Text" description="Convert audio files to text" />
+            <SectionItem to="/tools/video-to-text" title="Video to Text" description="Extract text from video files" />
+            <SectionItem to="/tools/subtitle-generator" title="Subtitle Generator" description="Create subtitles for your videos" />
+          </DropdownSection>
+          <DropdownSection title="TRANSLATION">
+            <SectionItem to="/tools/audio-translator" title="Audio Translator" description="Translate audio content" />
+            <SectionItem to="/tools/video-translator" title="Video Translator" description="Translate video content" />
+          </DropdownSection>
+          <DropdownSection title="REAL-TIME">
+            <SectionItem to="/tools/live-transcribe" title="Live Transcribe" description="Real-time speech-to-text" />
+            <SectionItem to="/tools/web-captioner" title="Web Captioner" description="Generate live captions" />
+            <SectionItem to="/tools/real-time-translator" title="Real-Time Translator" description="Translate speech in real-time" />
+            <SectionItem to="/tools/live-voice-translator" title="Live Voice Translator" description="Translate voice conversations" />
+          </DropdownSection>
+          <DropdownSection title="OTHER">
+            <SectionItem to="/tools/video-dubber" title="Video Dubber" description="Dub videos with new audio" />
+            <SectionItem to="/tools/free-tools" title="Free Tools" description="Access free transcription tools" />
+          </DropdownSection>
+        </div>
+      </div>
+    );
+  }
+  
   return (
-    <div style={{ display: 'flex', backgroundColor: '#0d0d0d', borderRadius: '8px', boxShadow: '0 8px 20px rgba(0,0,0,0.5)', overflow: 'hidden', minWidth: '600px', padding: '0.5rem' }}>
+    <div style={{ display: 'flex', backgroundColor: '#0d0d0d', borderRadius: '8px', boxShadow: '0 8px 20px rgba(0,0,0,0.5)', overflow: 'hidden', minWidth: '600px', maxWidth: '900px', padding: '0.5rem' }}>
+      <HighlightedItem to="/tools/audio-to-text" title="Audio to Text" description="Convert audio files to accurate text transcriptions instantly." />
+      <div style={{ display: 'flex' }}>
+        <DropdownSection title="TRANSCRIPTION">
+          <SectionItem to="/tools/audio-to-text" title="Audio to Text" description="Convert audio files to text" />
+          <SectionItem to="/tools/video-to-text" title="Video to Text" description="Extract text from video files" />
+          <SectionItem to="/tools/subtitle-generator" title="Subtitle Generator" description="Create subtitles for videos" />
+        </DropdownSection>
+        <DropdownSection title="TRANSLATION">
+          <SectionItem to="/tools/audio-translator" title="Audio Translator" description="Translate audio content" />
+          <SectionItem to="/tools/video-translator" title="Video Translator" description="Translate video content" />
+        </DropdownSection>
+        <DropdownSection title="REAL-TIME">
+          <SectionItem to="/tools/live-transcribe" title="Live Transcribe" description="Real-time speech-to-text" />
+          <SectionItem to="/tools/web-captioner" title="Web Captioner" description="Generate live captions" />
+          <SectionItem to="/tools/real-time-translator" title="Real-Time Translator" description="Translate speech in real-time" />
+          <SectionItem to="/tools/live-voice-translator" title="Live Voice Translator" description="Translate voice conversations" />
+        </DropdownSection>
+        <DropdownSection title="OTHER">
+          <SectionItem to="/tools/video-dubber" title="Video Dubber" description="Dub videos with new audio" />
+          <SectionItem to="/tools/free-tools" title="Free Tools" description="Access free transcription tools" />
+        </DropdownSection>
+      </div>
+    </div>
+  );
+};
+
+const ComplexDropdown = ({ isMobile }: { isMobile: boolean }) => {
+  if (isMobile) {
+    return (
+      <div style={{ backgroundColor: '#0d0d0d', borderRadius: '8px', boxShadow: '0 8px 20px rgba(0,0,0,0.5)', overflow: 'hidden', padding: '0.5rem', width: '100%' }}>
+        <HighlightedItem to="/product/secure-voice-comm" title="Secure Comm." description="End-to-end encryption for all voice and data streams." />
+        <div style={{ display: 'flex', flexDirection: 'column', marginTop: '0.5rem' }}>
+          <DropdownSection title="Core Features">
+            <SectionItem to="/product/voice-biometrics" title="Voice Biometrics" description="Verify user identity using unique voice prints (IVR)" />
+            <SectionItem to="/product/data-tokenization" title="Data Tokenization" description="Anonymize sensitive data in real-time conversations" />
+          </DropdownSection>
+          <DropdownSection title="Use Cases">
+            <SectionItem to="/solutions/contact-center-security" title="Contact Center Security" description="Protect customer PII and meet compliance standards" />
+            <SectionItem to="/solutions/remote-work-security" title="Remote Work Security" description="Secure virtual meetings and team collaborations" />
+          </DropdownSection>
+        </div>
+      </div>
+    );
+  }
+  
+  return (
+    <div style={{ display: 'flex', backgroundColor: '#0d0d0d', borderRadius: '8px', boxShadow: '0 8px 20px rgba(0,0,0,0.5)', overflow: 'hidden', minWidth: '600px', maxWidth: '800px', padding: '0.5rem' }}>
       <HighlightedItem to="/product/secure-voice-comm" title="Secure Comm." description="End-to-end encryption for all voice and data streams." />
       <div style={{ display: 'flex' }}>
         <DropdownSection title="Core Features">
@@ -174,10 +250,16 @@ export default function Header() {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [productDropdownOpen, setProductDropdownOpen] = useState(false);
+  const [toolsDropdownOpen, setToolsDropdownOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(typeof window !== 'undefined' && window.innerWidth > 1024);
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth <= 768);
 
   useEffect(() => {
-    const handleResize = () => setIsDesktop(window.innerWidth > 1024);
+    const handleResize = () => {
+      setIsDesktop(window.innerWidth > 1024);
+      setIsMobile(window.innerWidth <= 768);
+    };
+    handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -185,14 +267,20 @@ export default function Header() {
   const handleToggleMobile = () => {
     setMobileOpen(!mobileOpen);
     setProductDropdownOpen(false);
+    setToolsDropdownOpen(false);
   };
 
   const handleOpenProductDropdown = () => isDesktop && setProductDropdownOpen(true);
   const handleCloseProductDropdown = () => isDesktop && setProductDropdownOpen(false);
   const handleToggleProductDropdown = () => !isDesktop && setProductDropdownOpen(!productDropdownOpen);
 
+  const handleOpenToolsDropdown = () => isDesktop && setToolsDropdownOpen(true);
+  const handleCloseToolsDropdown = () => isDesktop && setToolsDropdownOpen(false);
+  const handleToggleToolsDropdown = () => !isDesktop && setToolsDropdownOpen(!toolsDropdownOpen);
+
   const styles = {
     header: { backgroundColor: '#000', borderBottom: '1px solid #1a1a1a', position: 'sticky' as const, top: 0, zIndex: 200, padding: '0.75rem 2rem' },
+    headerMobile: { backgroundColor: '#000', borderBottom: '1px solid #1a1a1a', position: 'sticky' as const, top: 0, zIndex: 200, padding: '0.75rem 1rem' },
     container: { maxWidth: '1448px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' },
     leftNavSection: { display: 'flex', alignItems: 'center', gap: '2.5rem' },
     logo: { display: 'flex', alignItems: 'center', textDecoration: 'none' },
@@ -201,6 +289,7 @@ export default function Header() {
     desktopNavLinks: { display: 'flex', alignItems: 'baseline' as const, gap: '1.25rem' },
     productDropdownContainer: { position: 'relative' as const, marginBottom: '-4px' },
     productDropdownMenu: { position: 'absolute' as const, top: '100%', left: '-200px', paddingTop: '4px', zIndex: 201 },
+    productDropdownMenuMobile: { position: 'absolute' as const, top: '100%', left: '0', paddingTop: '4px', zIndex: 201, width: '100%' },
     rightAuthSection: { display: 'flex', alignItems: 'center', gap: '0.75rem' },
     mobileMenuIcon: { cursor: 'pointer' },
     mobileMenu: { display: 'flex', flexDirection: 'column' as const, gap: '0.6rem', backgroundColor: '#000', padding: '1rem 2rem', borderTop: '1px solid #1a1a1a' },
@@ -210,7 +299,7 @@ export default function Header() {
   };
 
   return (
-    <header style={styles.header}>
+    <header style={isMobile ? styles.headerMobile : styles.header}>
       <div style={styles.container}>
         {/* Left Section */}
         <div style={styles.leftNavSection}>
@@ -236,9 +325,14 @@ export default function Header() {
               <NavLink onClick={handleToggleProductDropdown}>
                 Product {productDropdownOpen ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
               </NavLink>
-              {productDropdownOpen && isDesktop && <div style={styles.productDropdownMenu}><ComplexDropdown /></div>}
+              {productDropdownOpen && isDesktop && <div style={styles.productDropdownMenu}><ComplexDropdown isMobile={false} /></div>}
             </div>
-            <NavLink to="/tools/real-time">Tools</NavLink>
+            <div style={styles.productDropdownContainer} onMouseEnter={handleOpenToolsDropdown} onMouseLeave={handleCloseToolsDropdown}>
+              <NavLink onClick={handleToggleToolsDropdown}>
+                Tools {toolsDropdownOpen ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
+              </NavLink>
+              {toolsDropdownOpen && isDesktop && <div style={styles.productDropdownMenu}><ToolsDropdown isMobile={false} /></div>}
+            </div>
             <NavLink to="/integrations">Integrations</NavLink>
             <NavLink to="/cases">Cases</NavLink>
             <NavLink to="/academy">Academy</NavLink>
@@ -307,15 +401,20 @@ export default function Header() {
             </NavLink>
             {productDropdownOpen && (
               <div style={styles.mobileDropdownMenu}>
-                <Link to="/product/secure-voice-comm" style={styles.simpleDropdownItem}>Secure Communication</Link>
-                <Link to="/product/voice-biometrics" style={styles.simpleDropdownItem}>Voice Biometrics</Link>
-                <Link to="/product/data-tokenization" style={styles.simpleDropdownItem}>Data Tokenization</Link>
-                <Link to="/solutions/contact-center-security" style={styles.simpleDropdownItem}>Contact Center Security</Link>
-                <Link to="/solutions/remote-work-security" style={styles.simpleDropdownItem}>Remote Work Security</Link>
+                <ComplexDropdown isMobile={true} />
               </div>
             )}
           </div>
-          <NavLink to="/tools/real-time">Tools</NavLink>
+          <div style={styles.mobileDropdownContainer}>
+            <NavLink onClick={handleToggleToolsDropdown}>
+              Tools {toolsDropdownOpen ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
+            </NavLink>
+            {toolsDropdownOpen && (
+              <div style={styles.mobileDropdownMenu}>
+                <ToolsDropdown isMobile={true} />
+              </div>
+            )}
+          </div>
           <NavLink to="/integrations">Integrations</NavLink>
           <NavLink to="/cases">Cases</NavLink>
           <NavLink to="/academy">Academy</NavLink>

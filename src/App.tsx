@@ -5,6 +5,7 @@ import { AuthProvider } from "./lib/auth";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import { store } from "./store";
 import { checkAuth } from "./store/authSlice";
+import "./App.css";
 
 import Header from "./components/Header";
 import Home from "./pages/Home";
@@ -118,5 +119,7 @@ const styles = {
   },
   footerText: {
     opacity: 0.8,
+    wordWrap: "break-word" as const,
+    overflowWrap: "break-word" as const,
   },
 };
