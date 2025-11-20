@@ -21,6 +21,7 @@ import MicIcon from '@mui/icons-material/Mic';
 import StopIcon from '@mui/icons-material/Stop';
 import { useLiveTranscription } from '../../hooks/useLiveTranscription';
 import { useMicrophone } from '../../hooks/useMicrophone';
+import { useWaveformVisualization } from '../../hooks/useWaveformVisualization';
 
 export default function LiveMicTab() {
   const [model, setModel] = useState('base');
@@ -40,11 +41,23 @@ export default function LiveMicTab() {
     clearResults,
   } = useLiveTranscription();
 
-  const { getAudioDevices } = useMicrophone();
+  const { getAudioDevices, audioStream } = useMicrophone();
+  const { canvasRef, audioLevel, startVisualization, stopVisualization } = useWaveformVisualization();
 
   useEffect(() => {
     getAudioDevices();
   }, [getAudioDevices]);
+
+  useEffect(() => {
+    if (audioStream && isRecording) {
+      startVisualization(audioStream);
+    } else {
+      stopVisualization();
+    }
+    return () => {
+      stopVisualization();
+    };
+  }, [audioStream, isRecording, startVisualization, stopVisualization]);
 
   const handleStart = async () => {
     try {
@@ -114,11 +127,57 @@ export default function LiveMicTab() {
         )}
       </Paper>
 
-      {/* Waveform visualization placeholder */}
-      <Paper sx={{ p: 3, mb: 3, minHeight: 200, backgroundColor: '#1e1e1e', border: '1px solid #333333' }}>
-        <Typography variant="body2" sx={{ color: '#a0a0a0' }}>
-          Waveform visualization will appear here
-        </Typography>
+      {/* Waveform visualization */}
+      <Paper sx={{ p: 3, mb: 3, backgroundColor: '#1e1e1e', border: '1px solid #333333' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h6" sx={{ color: '#e0e0e0' }}>
+            Audio Waveform
+          </Typography>
+          {isRecording && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box
+                sx={{
+                  width: 12,
+                  height: 12,
+                  borderRadius: '50%',
+                  backgroundColor: audioLevel > 0.1 ? '#4caf50' : '#666666',
+                  animation: audioLevel > 0.1 ? 'pulse 1s infinite' : 'none',
+                  '@keyframes pulse': {
+                    '0%, 100%': { opacity: 1 },
+                    '50%': { opacity: 0.5 },
+                  },
+                }}
+              />
+              <Typography variant="body2" sx={{ color: '#a0a0a0' }}>
+                {Math.round(audioLevel * 100)}% level
+              </Typography>
+            </Box>
+          )}
+        </Box>
+        <Box
+          sx={{
+            width: '100%',
+            height: 200,
+            backgroundColor: '#121212',
+            borderRadius: 1,
+            overflow: 'hidden',
+            border: '1px solid #333333',
+          }}
+        >
+          <canvas
+            ref={canvasRef}
+            style={{
+              width: '100%',
+              height: '100%',
+              display: 'block',
+            }}
+          />
+        </Box>
+        {!isRecording && (
+          <Typography variant="body2" sx={{ color: '#a0a0a0', mt: 2, textAlign: 'center' }}>
+            Start recording to see waveform visualization
+          </Typography>
+        )}
       </Paper>
 
       {/* Controls */}

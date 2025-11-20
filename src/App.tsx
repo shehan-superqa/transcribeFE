@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Provider } from "react-redux";
 import { AuthProvider } from "./lib/auth";
+import { NotificationProvider } from "./contexts/NotificationContext";
 import { store } from "./store";
 import { checkAuth } from "./store/authSlice";
 
@@ -23,8 +24,9 @@ function AppContent() {
   }, []);
 
   return (
-    <AuthProvider>
-      <Router>
+    <NotificationProvider>
+      <AuthProvider>
+        <Router>
         <div style={styles.app}>
           <Header />
           <main style={styles.main}>
@@ -69,7 +71,8 @@ function AppContent() {
           </footer>
         </div>
       </Router>
-    </AuthProvider>
+      </AuthProvider>
+    </NotificationProvider>
   );
 }
 

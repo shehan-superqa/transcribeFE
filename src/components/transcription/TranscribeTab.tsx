@@ -89,6 +89,9 @@ export default function TranscribeTab() {
       engine,
       language,
       model,
+      processing_mode: processingMode,
+      enable_punctuation: enablePunctuation,
+      enable_capitalization: enableCapitalization,
     };
 
     const submittedJobId = await submitJob(file, config);

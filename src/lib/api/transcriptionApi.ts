@@ -74,6 +74,9 @@ export async function submitTranscriptionJob(
   if (config.language) formData.append('language', config.language);
   if (config.model) formData.append('model', config.model);
   if (config.job_id) formData.append('job_id', config.job_id);
+  if (config.processing_mode) formData.append('processing_mode', config.processing_mode);
+  if (config.enable_punctuation !== undefined) formData.append('enable_punctuation', config.enable_punctuation.toString());
+  if (config.enable_capitalization !== undefined) formData.append('enable_capitalization', config.enable_capitalization.toString());
 
   // Axios automatically sets Content-Type: multipart/form-data with boundary for FormData
   // Don't set it manually to allow axios to include the boundary parameter
@@ -108,6 +111,9 @@ export async function simpleTranscription(
   if (config.engine) formData.append('engine', config.engine);
   if (config.language) formData.append('language', config.language);
   if (config.model) formData.append('model', config.model);
+  if (config.processing_mode) formData.append('processing_mode', config.processing_mode);
+  if (config.enable_punctuation !== undefined) formData.append('enable_punctuation', config.enable_punctuation.toString());
+  if (config.enable_capitalization !== undefined) formData.append('enable_capitalization', config.enable_capitalization.toString());
 
   // Axios automatically sets Content-Type: multipart/form-data with boundary for FormData
   const response = await apiClient.post('/api/transcribe/simple', formData);
@@ -149,6 +155,9 @@ export async function batchTranscription(
   if (config.engine) formData.append('engine', config.engine);
   if (config.language) formData.append('language', config.language);
   if (config.model) formData.append('model', config.model);
+  if (config.processing_mode) formData.append('processing_mode', config.processing_mode);
+  if (config.enable_punctuation !== undefined) formData.append('enable_punctuation', config.enable_punctuation.toString());
+  if (config.enable_capitalization !== undefined) formData.append('enable_capitalization', config.enable_capitalization.toString());
 
   // Axios automatically sets Content-Type: multipart/form-data with boundary for FormData
   const response = await apiClient.post('/api/transcribe/batch', formData);
@@ -205,5 +214,74 @@ export async function healthCheckTranscribe(): Promise<{
   } catch (error: any) {
     throw new Error(`Health check failed: ${error.message || 'Unknown error'}`);
   }
+}
+
+/**
+ * Start model training
+ */
+export async function startTraining(config: {
+  language: string;
+  audio_dir?: string;
+  transcriptions_file?: string;
+  audio_files?: File[];
+  transcriptions_file_data?: File;
+}): Promise<{
+  success: boolean;
+  training_id: string;
+  message: string;
+}> {
+  const user = getStoredUser();
+  if (!user || !user.id) {
+    throw new Error('User not authenticated. Please log in.');
+  }
+
+  const formData = new FormData();
+  formData.append('user_id', user.id);
+  formData.append('language', config.language);
+  
+  if (config.audio_dir) {
+    formData.append('audio_dir', config.audio_dir);
+  }
+  if (config.transcriptions_file) {
+    formData.append('transcriptions_file', config.transcriptions_file);
+  }
+  if (config.audio_files) {
+    config.audio_files.forEach((file) => {
+      formData.append('audio_files', file);
+    });
+  }
+  if (config.transcriptions_file_data) {
+    formData.append('transcriptions_file_data', config.transcriptions_file_data);
+  }
+
+  const response = await apiClient.post('/api/train', formData);
+  return response.data;
+}
+
+/**
+ * Get training status
+ */
+export async function getTrainingStatus(trainingId: string): Promise<{
+  success: boolean;
+  training_id: string;
+  status: 'queued' | 'preparing' | 'training' | 'completed' | 'error' | 'cancelled';
+  progress: number;
+  message: string;
+  log?: string[];
+  error?: string;
+}> {
+  const response = await apiClient.get(`/api/train/${trainingId}`);
+  return response.data;
+}
+
+/**
+ * Cancel training
+ */
+export async function cancelTraining(trainingId: string): Promise<{
+  success: boolean;
+  message: string;
+}> {
+  const response = await apiClient.post(`/api/train/${trainingId}/cancel`);
+  return response.data;
 }
 
