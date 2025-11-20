@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../lib/auth';
 import { convertYouTubeToM4A, isValidYouTubeUrl, ConversionProgress } from '../../lib/youtubeConverter';
 import { submitTranscriptionJob, type TranscriptionJobOptions } from '../../lib/transcribeApi';
-import { createSSEConnection, type SSEClient, type ProgressEvent } from '../../lib/sseClient';
+import { getJobStatus } from '../../lib/api/jobsApi';
 import { InputMode } from './types';
 
 export const useTranscription = (
@@ -19,15 +19,17 @@ export const useTranscription = (
   const [error, setError] = useState('');
   const [converting, setConverting] = useState(false);
   const [conversionProgress, setConversionProgress] = useState<ConversionProgress | null>(null);
-  const sseClientRef = useRef<SSEClient | null>(null);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isPollingRef = useRef<boolean>(false);
 
-  // Cleanup SSE connection on unmount
+  // Cleanup polling on unmount
   useEffect(() => {
     return () => {
-      if (sseClientRef.current) {
-        sseClientRef.current.close();
-        sseClientRef.current = null;
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
       }
+      isPollingRef.current = false;
     };
   }, []);
 
@@ -117,36 +119,59 @@ export const useTranscription = (
       const response = await submitTranscriptionJob(fileToUpload, jobOptions);
 
       if (response.success && response.accepted) {
-        // Set up SSE connection for progress updates
-        if (response.stream_url) {
-          // Close any existing SSE connection
-          if (sseClientRef.current) {
-            sseClientRef.current.close();
+        // Start polling job status
+        const jobId = response.job_id;
+        isPollingRef.current = true;
+
+        // Clear any existing polling
+        if (pollingIntervalRef.current) {
+          clearInterval(pollingIntervalRef.current);
+        }
+
+        // Poll job status every 2 seconds
+        const pollJobStatus = async () => {
+          if (!isPollingRef.current || !jobId) {
+            return;
           }
 
-          // Create new SSE connection
-          sseClientRef.current = createSSEConnection(
-            response.stream_url,
-            response.job_id,
-            (event: ProgressEvent) => {
-              // Handle progress updates
-              console.log('Transcription progress:', event);
-              
-              if (event.status === 'completed') {
+          try {
+            const statusResponse = await getJobStatus(jobId);
+            
+            if (statusResponse.success && statusResponse.job) {
+              const job = statusResponse.job;
+              console.log('Job status:', job.status);
+
+              // Check if job is complete
+              if (job.status === 'completed') {
                 setLoading(false);
+                isPollingRef.current = false;
+                if (pollingIntervalRef.current) {
+                  clearInterval(pollingIntervalRef.current);
+                  pollingIntervalRef.current = null;
+                }
                 // Job completed, refresh transcriptions list
                 onTranscriptionStart?.();
-              } else if (event.status === 'error') {
-                setError(event.error || 'Transcription failed');
+              } else if (job.status === 'error' || job.status === 'cancelled') {
+                setError(job.error || `Transcription ${job.status}`);
                 setLoading(false);
+                isPollingRef.current = false;
+                if (pollingIntervalRef.current) {
+                  clearInterval(pollingIntervalRef.current);
+                  pollingIntervalRef.current = null;
+                }
               }
-            },
-            (error) => {
-              console.error('SSE error:', error);
-              // Don't set error here as EventSource will try to reconnect
+              // Continue polling for other statuses (queued, starting, processing)
             }
-          );
-        }
+          } catch (err: any) {
+            console.error('Error polling job status:', err);
+            // Don't stop polling on error, might be temporary network issue
+          }
+        };
+
+        // Start polling
+        pollingIntervalRef.current = setInterval(pollJobStatus, 2000);
+        // Poll immediately
+        pollJobStatus();
 
         // Reset form
         audioChunksRef.current = [];

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/auth';
 import { useNavigate } from 'react-router-dom';
-import { FiInfo } from 'react-icons/fi'; 
+import { FiInfo } from 'react-icons/fi';
+import { authenticatedFetch, handleResponse } from '../lib/api'; 
 
 interface Plan {
   id: string;
@@ -63,63 +63,66 @@ export default function Pricing() {
     fetchPlans();
   }, []);
 
-  const fetchPlans = async () => {
-    if (!supabase) {
-      // If Supabase is not configured, use default plans
-      setPlans([
-        {
-          id: '1',
-          name: 'Basic',
-          price: 9.99,
-          energy_points: 500,
-          features: {
-            maxDuration: 30,
-            formats: ['mp3', 'wav'],
-            priority: 'standard',
-            history: 30,
-          },
-        },
-        {
-          id: '2',
-          name: 'Pro',
-          price: 19.99,
-          energy_points: 1500,
-          features: {
-            maxDuration: 120,
-            formats: ['mp3', 'wav', 'm4a', 'flac'],
-            priority: 'high',
-            history: 90,
-          },
-        },
-        {
-          id: '3',
-          name: 'Enterprise',
-          price: 49.99,
-          energy_points: 5000,
-          features: {
-            maxDuration: 300,
-            formats: ['all'],
-            priority: 'highest',
-            history: 365,
-            api: true,
-          },
-        },
-      ]);
-      setLoading(false);
-      return;
-    }
+  const fetchPlans = async () => {
+    try {
+      // Try to fetch plans from API
+      const response = await authenticatedFetch('/api/subscription/plans', { method: 'GET' });
+      const data = await handleResponse<{ success: boolean; plans: Plan[] }>(response);
+      
+      if (data.success && data.plans && data.plans.length > 0) {
+        setPlans(data.plans);
+      } else {
+        // Fallback to default plans if API doesn't return any
+        setPlans(getDefaultPlans());
+      }
+    } catch (error) {
+      // If API fails, use default plans
+      console.warn('Failed to fetch plans from API, using defaults:', error);
+      setPlans(getDefaultPlans());
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const { data } = await supabase
-      .from('subscription_plans')
-      .select('*')
-      .eq('active', true)
-      .order('price', { ascending: true });
-
-    if (data) {
-      setPlans(data as Plan[]);
-    }
-    setLoading(false);
-  };
+  const getDefaultPlans = (): Plan[] => [
+    {
+      id: '1',
+      name: 'Basic',
+      price: 9.99,
+      energy_points: 500,
+      features: {
+        maxDuration: 30,
+        formats: ['mp3', 'wav'],
+        priority: 'standard',
+        history: 30,
+      },
+    },
+    {
+      id: '2',
+      name: 'Pro',
+      price: 19.99,
+      energy_points: 1500,
+      features: {
+        maxDuration: 120,
+        formats: ['mp3', 'wav', 'm4a', 'flac'],
+        priority: 'high',
+        history: 90,
+      },
+    },
+    {
+      id: '3',
+      name: 'Enterprise',
+      price: 49.99,
+      energy_points: 5000,
+      features: {
+        maxDuration: 300,
+        formats: ['all'],
+        priority: 'highest',
+        history: 365,
+        api: true,
+      },
+    },
+  ];
 
   const handleSubscribe = (planName: string) => {
     if (!user) {

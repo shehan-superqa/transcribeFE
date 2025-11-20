@@ -138,7 +138,7 @@ export default function Login() {
           <h1 className="login-title">{isSignUpMode ? "Create VoiceCrypt Account" : "Welcome to VoiceCrypt"}</h1>
           <p className="login-subtitle">
             {isSignUpMode
-              ? "Sign up now and encrypt your audio! Get 100 free energy points"
+              ? "Sign up now and transcribe your audio and videos! Get 100 free energy points"
               : "Sign in to access your secure transcriptions and recordings"}
           </p>
         </div>

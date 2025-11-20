@@ -29,9 +29,7 @@ export type JobStatus =
   | 'queued' 
   | 'starting' 
   | 'processing' 
-  | 'running' 
   | 'completed' 
-  | 'failed' 
   | 'error' 
   | 'cancelled';
 
@@ -66,6 +64,9 @@ export interface TranscriptionConfig {
   language?: string;
   model?: string;
   job_id?: string;
+  processing_mode?: string;
+  enable_punctuation?: boolean;
+  enable_capitalization?: boolean;
 }
 
 export interface SubmitJobResponse {

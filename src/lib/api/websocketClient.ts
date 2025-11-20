@@ -3,6 +3,7 @@
  */
 
 import { io, Socket } from 'socket.io-client';
+import { getAccessToken } from '../api';
 import type { LiveTranscriptionConfig, LiveTranscriptionResult, VADStatus } from '../../types/transcription';
 
 const WEBSOCKET_URL = import.meta.env.VITE_WEBSOCKET_URL || 'ws://localhost:5003';
@@ -14,15 +15,30 @@ export class WebSocketClient {
 
   /**
    * Connect to WebSocket server
+   * Includes JWT token in auth object as per API requirements
    */
   connect(): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
+        const token = getAccessToken();
+        if (!token) {
+          reject(new Error('Authentication required. Please log in.'));
+          return;
+        }
+
+        // Include token in auth object (Option 2 from API instructions)
+        // Also include token in query string (Option 1) for compatibility
         this.socket = io(WEBSOCKET_URL, {
           transports: ['websocket'],
           reconnection: true,
           reconnectionDelay: 1000,
           reconnectionAttempts: 5,
+          auth: {
+            token: token,
+          },
+          query: {
+            token: token,
+          },
         });
 
         this.socket.on('connect', () => {
@@ -74,14 +90,25 @@ export class WebSocketClient {
 
   /**
    * Start transcription session
+   * Includes token in the event if not provided during connection
    */
   async startTranscription(config: LiveTranscriptionConfig): Promise<void> {
     if (!this.socket || !this.socket.connected) {
       throw new Error('WebSocket not connected');
     }
 
+    // Ensure token is included in the start_transcription event
+    const token = getAccessToken();
+    if (!token) {
+      throw new Error('Authentication required. Please log in.');
+    }
+
     return new Promise((resolve, reject) => {
-      this.socket!.emit('start_transcription', config, (response: any) => {
+      // Include token in the start_transcription event as per API instructions
+      this.socket!.emit('start_transcription', {
+        ...config,
+        token: token,
+      }, (response: any) => {
         if (response.status === 'started' && response.session_id) {
           this.sessionId = response.session_id;
           resolve();

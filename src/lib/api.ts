@@ -3,7 +3,8 @@
  * Handles all communication with the MongoDB + JWT backend API
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
+export const TRANSCRIBE_API_BASE_URL = import.meta.env.VITE_TRANSCRIBE_API_BASE_URL || 'http://localhost:5000';
 
 export interface User {
   id: string;
@@ -146,6 +147,37 @@ export function removeAuthToken(): void {
 let isRefreshing = false;
 let refreshPromise: Promise<string | null> | null = null;
 
+/**
+ * Decode JWT token to get expiration time
+ * Returns expiration timestamp in milliseconds, or null if invalid
+ */
+function getTokenExpiration(token: string): number | null {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    
+    const payload = JSON.parse(atob(parts[1]));
+    if (payload.exp) {
+      return payload.exp * 1000; // Convert to milliseconds
+    }
+    return null;
+  } catch (error) {
+    return null;
+  }
+}
+
+/**
+ * Check if token is expired or will expire soon (within 5 minutes)
+ */
+function isTokenExpiringSoon(token: string, bufferMinutes: number = 5): boolean {
+  const expiration = getTokenExpiration(token);
+  if (!expiration) return true; // If we can't parse, assume expired
+  
+  const now = Date.now();
+  const bufferMs = bufferMinutes * 60 * 1000;
+  return expiration - now < bufferMs;
+}
+
 export async function refreshAccessToken(): Promise<string | null> {
   if (isRefreshing && refreshPromise) {
     return refreshPromise;
@@ -200,8 +232,19 @@ export async function authenticatedFetch(
   retryOn401 = true,
   baseUrl?: string
 ): Promise<Response> {
-  const token = getAccessToken();
+  let token = getAccessToken();
   const url = baseUrl || API_BASE_URL;
+  
+  // Check if token is expiring soon and refresh proactively
+  if (token && isTokenExpiringSoon(token)) {
+    const newToken = await refreshAccessToken();
+    if (newToken) {
+      token = newToken;
+    } else {
+      // Refresh failed, but continue with old token - will handle 401 below
+      console.warn('Proactive token refresh failed, continuing with existing token');
+    }
+  }
   
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -476,12 +519,51 @@ export async function validateToken(token: string): Promise<TokenValidationRespo
  * Transcriptions / Generic Fetch
  * ------------------------ */
 export async function getTranscriptions(): Promise<{ success: boolean; transcriptions: Transcription[] }> {
-  const response = await authenticatedFetch('/api/transcriptions', { method: 'GET' });
+  const response = await authenticatedFetch('/api/transcriptions', { method: 'GET' }, true, TRANSCRIBE_API_BASE_URL);
   return handleResponse<{ success: boolean; transcriptions: Transcription[] }>(response);
 }
 
 // Generic fetch for any endpoint
-export async function fetchDataFromApi<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const response = await authenticatedFetch(endpoint, options);
+// If baseUrl is not provided, defaults to auth server (API_BASE_URL)
+// For transcription endpoints, pass TRANSCRIBE_API_BASE_URL as baseUrl
+export async function fetchDataFromApi<T>(endpoint: string, options: RequestInit = {}, baseUrl?: string): Promise<T> {
+  const response = await authenticatedFetch(endpoint, options, true, baseUrl);
   return handleResponse<T>(response);
+}
+
+/** -------------------------
+ * User Settings
+ * ------------------------ */
+export interface UserSettings {
+  audio: {
+    sample_rate: number;
+    channels: number;
+  };
+  output_dir: string;
+  api_key: string;
+}
+
+export interface SettingsResponse {
+  success: boolean;
+  data?: UserSettings;
+  message?: string;
+}
+
+/**
+ * Get user settings
+ */
+export async function getUserSettings(): Promise<SettingsResponse> {
+  const response = await authenticatedFetch('/api/users/settings', { method: 'GET' });
+  return handleResponse<SettingsResponse>(response);
+}
+
+/**
+ * Save user settings
+ */
+export async function saveUserSettings(settings: UserSettings): Promise<SettingsResponse> {
+  const response = await authenticatedFetch('/api/users/settings', {
+    method: 'POST',
+    body: JSON.stringify(settings),
+  });
+  return handleResponse<SettingsResponse>(response);
 }

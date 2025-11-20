@@ -90,7 +90,7 @@ export default function FileUploader({
           <Typography variant="h6" sx={{ color: '#e0e0e0' }}>
             {isDragActive
               ? 'Drop the file here'
-              : 'Drag & drop a file here, or click to select'}
+              : 'Drag & drop an audio or video file here, or click to select'}
           </Typography>
           {currentFile && (
             <Box sx={{ mt: 2, textAlign: 'center' }}>

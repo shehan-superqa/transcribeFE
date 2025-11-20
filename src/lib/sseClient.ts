@@ -44,7 +44,9 @@ export class SSEClient {
     }
 
     try {
-      this.eventSource = new EventSource(this.streamUrl);
+      // Normalize URL to use localhost instead of 127.0.0.1 to avoid CORS issues
+      const normalizedUrl = this.streamUrl.replace('http://127.0.0.1:', 'http://localhost:');
+      this.eventSource = new EventSource(normalizedUrl);
 
       this.eventSource.onmessage = (event) => {
         try {

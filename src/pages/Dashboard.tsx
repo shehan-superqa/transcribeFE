@@ -134,24 +134,26 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Transcription Tool with Tabs */}
-        <div className="tool-wrapper">
-          <div className="tool-container">
-            <ThemeProvider theme={darkTheme}>
-              <CssBaseline />
-              <TabNavigation currentTab={activeTab} onTabChange={setActiveTab} />
-              {activeTab === 0 && <TranscribeTab />}
-              {activeTab === 1 && <BatchTab />}
-              {activeTab === 2 && <LiveMicTab />}
-              {activeTab === 3 && <HistoryTab />}
-              {activeTab === 4 && <SettingsTab />}
-              {activeTab === 5 && <TrainerTab />}
-            </ThemeProvider>
+        {/* Main Content Area - Side by Side Layout */}
+        <div className="dashboard-main-layout">
+          {/* Transcription Tool with Tabs - Left Side */}
+          <div className="tool-wrapper">
+            <div className="tool-container">
+              <ThemeProvider theme={darkTheme}>
+                <CssBaseline />
+                <TabNavigation currentTab={activeTab} onTabChange={setActiveTab} />
+                {activeTab === 0 && <TranscribeTab />}
+                {activeTab === 1 && <BatchTab />}
+                {activeTab === 2 && <LiveMicTab />}
+                {activeTab === 3 && <HistoryTab />}
+                {activeTab === 4 && <SettingsTab />}
+                {activeTab === 5 && <TrainerTab />}
+              </ThemeProvider>
+            </div>
           </div>
-        </div>
 
-        {/* Transcriptions History */}
-        <div className="history-container">
+          {/* Transcriptions History - Right Side */}
+          <div className="history-container">
           <h2 className="history-title">
             Transcription History
           </h2>
@@ -168,7 +170,7 @@ export default function Dashboard() {
             <div className="empty-state">
               <p className="empty-state-text">No transcriptions yet</p>
               <p className="empty-state-subtext">
-                Start transcribing by uploading a file, pasting a YouTube link, or recording audio above.
+                Start transcribing by uploading an audio or video file, pasting a YouTube link, or recording audio above.
               </p>
             </div>
           ) : (
@@ -202,6 +204,7 @@ export default function Dashboard() {
               ))}
             </div>
           )}
+          </div>
         </div>
 
         {/* Transcription Detail Modal */}

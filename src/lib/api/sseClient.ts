@@ -4,7 +4,7 @@
 
 import type { ProgressEvent } from '../../types/api';
 
-const SSE_BASE_URL = import.meta.env.VITE_SSE_BASE_URL || 'http://127.0.0.1:5002';
+const SSE_BASE_URL = import.meta.env.VITE_SSE_BASE_URL || 'http://localhost:5002';
 
 export class SSEClient {
   private eventSource: EventSource | null = null;
@@ -22,7 +22,10 @@ export class SSEClient {
     this.jobId = jobId;
     const url = `${SSE_BASE_URL}/progress/stream/${jobId}`;
     
-    this.eventSource = new EventSource(url);
+    // Normalize URL to use localhost instead of 127.0.0.1 to avoid CORS issues
+    const normalizedUrl = url.replace('http://127.0.0.1:', 'http://localhost:');
+    
+    this.eventSource = new EventSource(normalizedUrl);
 
     this.eventSource.onmessage = (event) => {
       try {
