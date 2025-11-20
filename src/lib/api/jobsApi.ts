@@ -6,14 +6,14 @@ import axios from 'axios';
 import { getAccessToken } from '../api';
 import type { Job } from '../../types/api';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+const TRANSCRIBE_API_BASE_URL = import.meta.env.VITE_TRANSCRIBE_API_BASE_URL || 'http://localhost:5000';
 
 /**
  * Create axios instance with authentication
  */
 const createApiClient = () => {
   const client = axios.create({
-    baseURL: API_BASE_URL,
+    baseURL: TRANSCRIBE_API_BASE_URL,
     headers: {
       'Content-Type': 'application/json',
     },
@@ -50,7 +50,8 @@ export async function getJobStatus(jobId: string): Promise<{ success: boolean; j
  * Get all jobs for a user
  */
 export async function getUserJobs(userId: string): Promise<{ success: boolean; jobs: Job[] }> {
-  const response = await apiClient.get(`/api/users/${userId}/jobs`);
+  // Updated to match API instructions: GET /api/jobs/user/{user_id}
+  const response = await apiClient.get(`/api/jobs/user/${userId}`);
   return response.data;
 }
 

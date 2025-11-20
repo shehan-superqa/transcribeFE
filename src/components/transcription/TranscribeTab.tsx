@@ -24,7 +24,7 @@ import FileUploader from './common/FileUploader';
 import ProgressBar from './common/ProgressBar';
 import StatusLabel from './common/StatusLabel';
 import { transcriptionStore } from '../../stores/transcriptionStore';
-import { useSSE } from '../../hooks/useSSE';
+import { useJobPolling } from '../../hooks/useJobPolling';
 import { getAvailableModels } from '../../lib/api/transcriptionApi';
 import type { TranscriptionConfig } from '../../types/api';
 import type { ProcessingMode } from '../../types/transcription';
@@ -46,22 +46,30 @@ export default function TranscribeTab() {
   const results = transcriptionStore((state) => state.results);
   const error = transcriptionStore((state) => state.error);
   const clearResults = transcriptionStore((state) => state.clearResults);
-  const { progress, message, result } = useSSE(jobId);
+  const { progress, message, result, status, error: pollingError } = useJobPolling(jobId);
 
   useEffect(() => {
     // Load available models and languages
-    getAvailableModels().then((data) => {
-      if (data.success) {
-        setAvailableModels(data.models || []);
-        setAvailableLanguages(data.languages || []);
-      }
-    });
+    getAvailableModels()
+      .then((data) => {
+        if (data.success) {
+          setAvailableModels(data.models || []);
+          setAvailableLanguages(data.languages || []);
+        }
+      })
+      .catch((error) => {
+        // Silently handle errors - API might not be available
+        console.warn('Failed to load available models:', error);
+        // Set default values if API fails
+        setAvailableModels(['base', 'small', 'medium', 'large']);
+        setAvailableLanguages(['en']);
+      });
   }, []);
 
   const setResults = transcriptionStore((state) => state.setResults);
   
   useEffect(() => {
-    // Update results when SSE receives final result
+    // Update results when polling receives final result
     if (result && results !== result) {
       setResults(result);
     }

@@ -211,7 +211,7 @@ export default function ValidateToken() {
             whiteSpace: "pre-wrap",
             wordBreak: "break-all",
           }}>
-            GET {import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/api/auth/me{'\n'}
+            GET {import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001'}/api/auth/me{'\n'}
             Headers:{'\n'}
               Authorization: Bearer &lt;your-access-token&gt;
           </code>

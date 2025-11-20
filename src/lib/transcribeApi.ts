@@ -3,9 +3,9 @@
  * Handles all communication with the Transcription API backend
  */
 
-import { authenticatedFetch, handleResponse, getAccessToken, refreshAccessToken, clearAuthData } from './api';
+import { authenticatedFetch, handleResponse, getAccessToken, refreshAccessToken, clearAuthData, getStoredUser } from './api';
 
-const TRANSCRIBE_API_BASE_URL = import.meta.env.VITE_TRANSCRIBE_API_BASE_URL || 'http://localhost:5002';
+const TRANSCRIBE_API_BASE_URL = import.meta.env.VITE_TRANSCRIBE_API_BASE_URL || 'http://localhost:5000';
 
 export interface TranscriptionJobOptions {
   engine?: string;
@@ -40,7 +40,7 @@ export interface JobResult {
   };
   engine_requested?: string;
   engine_used?: string;
-  status: 'queued' | 'processing' | 'completed' | 'error';
+  status: 'queued' | 'starting' | 'processing' | 'completed' | 'error' | 'cancelled';
   result?: {
     text: string;
   };
@@ -89,8 +89,14 @@ export async function submitTranscriptionJob(
     throw new Error('Authentication required');
   }
 
+  const user = getStoredUser();
+  if (!user || !user.id) {
+    throw new Error('User not authenticated. Please log in.');
+  }
+
   const formData = new FormData();
   formData.append('file', file);
+  formData.append('user_id', user.id);
 
   if (options.engine) {
     formData.append('engine', options.engine);
@@ -158,8 +164,9 @@ export async function getJobStatus(jobId: string): Promise<JobStatusResponse> {
  * Get all jobs for a user
  */
 export async function getUserJobs(userId: string): Promise<UserJobsResponse> {
+  // Updated to match API instructions: GET /api/jobs/user/{user_id}
   const response = await authenticatedFetch(
-    `/api/users/${userId}/jobs`,
+    `/api/jobs/user/${userId}`,
     {
       method: 'GET',
     },

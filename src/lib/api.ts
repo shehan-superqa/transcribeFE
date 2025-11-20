@@ -3,7 +3,8 @@
  * Handles all communication with the MongoDB + JWT backend API
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
+export const TRANSCRIBE_API_BASE_URL = import.meta.env.VITE_TRANSCRIBE_API_BASE_URL || 'http://localhost:5000';
 
 export interface User {
   id: string;
@@ -476,12 +477,14 @@ export async function validateToken(token: string): Promise<TokenValidationRespo
  * Transcriptions / Generic Fetch
  * ------------------------ */
 export async function getTranscriptions(): Promise<{ success: boolean; transcriptions: Transcription[] }> {
-  const response = await authenticatedFetch('/api/transcriptions', { method: 'GET' });
+  const response = await authenticatedFetch('/api/transcriptions', { method: 'GET' }, true, TRANSCRIBE_API_BASE_URL);
   return handleResponse<{ success: boolean; transcriptions: Transcription[] }>(response);
 }
 
 // Generic fetch for any endpoint
-export async function fetchDataFromApi<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const response = await authenticatedFetch(endpoint, options);
+// If baseUrl is not provided, defaults to auth server (API_BASE_URL)
+// For transcription endpoints, pass TRANSCRIBE_API_BASE_URL as baseUrl
+export async function fetchDataFromApi<T>(endpoint: string, options: RequestInit = {}, baseUrl?: string): Promise<T> {
+  const response = await authenticatedFetch(endpoint, options, true, baseUrl);
   return handleResponse<T>(response);
 }
