@@ -25,8 +25,8 @@ function AppContent() {
 
   return (
     <NotificationProvider>
-      <AuthProvider>
-        <Router>
+    <AuthProvider>
+      <Router>
         <div style={styles.app}>
           <Header />
           <main style={styles.main}>
@@ -71,7 +71,7 @@ function AppContent() {
           </footer>
         </div>
       </Router>
-      </AuthProvider>
+    </AuthProvider>
     </NotificationProvider>
   );
 }

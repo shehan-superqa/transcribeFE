@@ -9,6 +9,13 @@ export interface ApiResponse<T = any> {
   message?: string;
 }
 
+export interface TextSegment {
+  start_time: number;
+  end_time: number;
+  segment_id: number;
+  text: string;
+}
+
 export interface Job {
   _id: string;
   user_id: string;
@@ -19,10 +26,14 @@ export interface Job {
   created_at: string;
   started_at?: string;
   finished_at?: string;
+  updated_at?: string;
   result?: TranscriptionResult;
   error?: string;
   replicate_data?: any;
   replicate_cancel_url?: string;
+  text_segments?: TextSegment[];
+  text_segments_count?: number;
+  final_transcription?: string;
 }
 
 export type JobStatus = 
@@ -57,6 +68,7 @@ export interface TranscriptionSegment {
   start: number;
   end: number;
   text: string;
+  id?: number;
 }
 
 export interface TranscriptionConfig {

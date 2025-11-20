@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 import { FiMenu, FiX, FiChevronDown, FiChevronUp } from 'react-icons/fi';
+import { FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
 
 // -------------------------
 // 1. NavLink Component
@@ -248,6 +249,29 @@ export default function Header() {
         <div style={{ ...styles.rightAuthSection, display: isDesktop ? 'flex' : 'none' }}>
           {user ? (
             <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginRight: '0.5rem' }}>
+                <span style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.85rem', color: '#ffffff', fontWeight: 500 }}>
+                  Welcome, {user?.name || user?.email}
+                </span>
+                {user.isEmailVerified ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.75rem', backgroundColor: '#d4edda', borderRadius: '9999px' }}>
+                    <FaCheckCircle style={{ color: '#155724', fontSize: '0.75rem' }} />
+                    <span style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.7rem', color: '#155724', fontWeight: 500 }}>
+                      Email verified
+                    </span>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.75rem', backgroundColor: '#fff3cd', borderRadius: '9999px' }}>
+                    <FaExclamationTriangle style={{ color: '#856404', fontSize: '0.75rem' }} />
+                    <Link 
+                      to="/auth/verify-email"
+                      style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.7rem', color: '#856404', fontWeight: 500, textDecoration: 'none' }}
+                    >
+                      Verify email
+                    </Link>
+                  </div>
+                )}
+              </div>
               <NavLink to="/dashboard">Dashboard</NavLink>
               <NavLink
   onClick={() => {
@@ -296,6 +320,29 @@ export default function Header() {
           <NavLink to="/pricing">Pricing</NavLink>
           {user ? (
             <>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.5rem', width: '100%' }}>
+                <span style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.85rem', color: '#ffffff', fontWeight: 500 }}>
+                  Welcome, {user?.name || user?.email}
+                </span>
+                {user.isEmailVerified ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.75rem', backgroundColor: '#d4edda', borderRadius: '9999px', width: 'fit-content' }}>
+                    <FaCheckCircle style={{ color: '#155724', fontSize: '0.75rem' }} />
+                    <span style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.7rem', color: '#155724', fontWeight: 500 }}>
+                      Email verified
+                    </span>
+                  </div>
+                ) : (
+                  <Link 
+                    to="/auth/verify-email"
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.75rem', backgroundColor: '#fff3cd', borderRadius: '9999px', width: 'fit-content', textDecoration: 'none' }}
+                  >
+                    <FaExclamationTriangle style={{ color: '#856404', fontSize: '0.75rem' }} />
+                    <span style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.7rem', color: '#856404', fontWeight: 500 }}>
+                      Verify email
+                    </span>
+                  </Link>
+                )}
+              </div>
               <NavLink to="/dashboard">Dashboard</NavLink>
               <NavLink
   onClick={() => {
