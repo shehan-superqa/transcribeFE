@@ -45,9 +45,10 @@ export default function Home() {
       {/* HERO SECTION */}
       <section className="hero-section">
         <div className="hero-content">
-          <h1 className="hero-title">AI Driven Voice to Text Instantly</h1>
+          <h1 className="hero-title">AI Driven Voice to Text & Text to Video</h1>
           <p className="hero-subtitle">
             Powerful voice-to-text transcription with support for audio/video file uploads, YouTube videos, and live recording. 
+            Plus, generate stunning videos from text prompts using advanced AI. 
             <span className="highlight"> Get started with 100 free energy points.</span>
           </p>
           <a href="/login" className="get-started-button">
@@ -91,6 +92,17 @@ export default function Home() {
     altText="Voice recording illustration"
     title="Voice Transcription"
     description="Record your voice directly and get instant, high-accuracy text transcriptions. Perfect for capturing meetings, lectures, ideas, or quick notes with a single click."
+    reverse
+  />
+</section>
+
+{/* Video Generation Section */}
+<section className="upload-section">
+  <ImageDescription
+    imageSrc={uploadScreenshot}
+    altText="Video generation illustration"
+    title="AI Video Generation"
+    description="Transform your text prompts into stunning videos using Google Veo 3.1. Create professional videos with custom aspect ratios, durations, and reference images. Perfect for content creators, marketers, and creative professionals."
   />
 </section>
 
@@ -108,6 +120,16 @@ export default function Home() {
             </div>
             <h3>Multiple Input Methods</h3>
             <p>Upload audio or video files, paste YouTube links, or record directly in your browser</p>
+          </div>
+
+          <div className="feature-card">
+            <div className="feature-icon">
+              <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <h3>AI Video Generation</h3>
+            <p>Create stunning videos from text prompts using Google Veo 3.1 with custom aspect ratios and durations</p>
           </div>
 
           <div className="feature-card">
@@ -137,7 +159,17 @@ export default function Home() {
               </svg>
             </div>
             <h3>History & Export</h3>
-            <p>Access all your transcriptions anytime and export in multiple formats</p>
+            <p>Access all your transcriptions and videos anytime and export in multiple formats</p>
+          </div>
+
+          <div className="feature-card">
+            <div className="feature-icon">
+              <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <h3>Reference Images</h3>
+            <p>Use reference images to guide video generation and create consistent visual styles</p>
           </div>
         </div>
       </section>
@@ -145,7 +177,7 @@ export default function Home() {
       {/* CTA SECTION */}
       <section className="cta-section">
         <h2>Ready to Get Started?</h2>
-        <p>Sign up now and get 100 free energy points to try our transcription service</p>
+        <p>Sign up now and get 100 free energy points to try our transcription and video generation services</p>
         <a href="/login" className="get-started-button">Get Started Free</a>
       </section>
     </div>

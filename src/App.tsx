@@ -55,6 +55,14 @@ function AppContent() {
                 path="/dashboard"
                 element={
                   <ProtectedRoute>
+                    <Navigate to="/dashboard/voice/transcribe" replace />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard/*"
+                element={
+                  <ProtectedRoute>
                     <Dashboard />
                   </ProtectedRoute>
                 }

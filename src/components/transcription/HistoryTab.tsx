@@ -69,7 +69,9 @@ export default function HistoryTab() {
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter((job) =>
-        job.file_info.filename.toLowerCase().includes(query)
+        job.file_info?.filename?.toLowerCase().includes(query) ||
+        job.prompt?.toLowerCase().includes(query) ||
+        false
       );
     }
 
@@ -122,7 +124,10 @@ export default function HistoryTab() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${job.file_info.filename.replace(/\.[^/.]+$/, '')}_transcription.txt`;
+    const filename = job.file_info?.filename 
+      ? job.file_info.filename.replace(/\.[^/.]+$/, '')
+      : `job_${job._id}`;
+    a.download = `${filename}_transcription.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -259,7 +264,9 @@ export default function HistoryTab() {
                     <ListItemText
                       primary={
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                          <Typography sx={{ color: '#e0e0e0' }}>{job.file_info.filename}</Typography>
+                          <Typography sx={{ color: '#e0e0e0' }}>
+                            {job.file_info?.filename || (job as any).prompt || `Job ${job._id}`}
+                          </Typography>
                           <Chip
                             label={job.status}
                             size="small"
@@ -275,7 +282,7 @@ export default function HistoryTab() {
                         <Typography sx={{ color: '#a0a0a0', mt: 0.5 }}>
                           Created: {formatRelativeTime(job.created_at)}
                           {job.engine_used && ` • Engine: ${job.engine_used}`}
-                          {job.file_info.size_mb && ` • Size: ${job.file_info.size_mb.toFixed(2)} MB`}
+                          {job.file_info?.size_mb && ` • Size: ${job.file_info.size_mb.toFixed(2)} MB`}
                         </Typography>
                       }
                     />
@@ -370,7 +377,9 @@ export default function HistoryTab() {
           <>
             <DialogTitle sx={{ color: '#e0e0e0', borderBottom: '1px solid #333333' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography variant="h6">{selectedJob.file_info.filename}</Typography>
+                <Typography variant="h6">
+                  {selectedJob.file_info?.filename || (selectedJob as any).prompt || `Job ${selectedJob._id}`}
+                </Typography>
                 <Chip
                   label={selectedJob.status}
                   size="small"
@@ -399,9 +408,14 @@ export default function HistoryTab() {
                 <Typography variant="body2" sx={{ color: '#a0a0a0', mb: 1 }}>
                   <strong>Engine:</strong> {selectedJob.engine_used}
                 </Typography>
-                {selectedJob.file_info.size_mb && (
+                {selectedJob.file_info?.size_mb && (
                   <Typography variant="body2" sx={{ color: '#a0a0a0', mb: 1 }}>
                     <strong>File Size:</strong> {selectedJob.file_info.size_mb.toFixed(2)} MB
+                  </Typography>
+                )}
+                {(selectedJob as any).prompt && (
+                  <Typography variant="body2" sx={{ color: '#a0a0a0', mb: 1 }}>
+                    <strong>Prompt:</strong> {(selectedJob as any).prompt}
                   </Typography>
                 )}
                 {selectedJob.error && (

@@ -5,6 +5,7 @@ import { fetchTranscriptions, Transcription } from "../store/transcriptionsSlice
 import { RootState, AppDispatch } from "../store";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
+import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import TabNavigation from "../components/transcription/TabNavigation";
 import TranscribeTab from "../components/transcription/TranscribeTab";
 import BatchTab from "../components/transcription/BatchTab";
@@ -34,16 +35,57 @@ const darkTheme = createTheme({
   },
 });
 
+// URL to tab index mapping
+const routeToTabIndex: Record<string, number> = {
+  'transcribe': 0,
+  'batch': 1,
+  'livemicvad': 2,
+  'tts': 3,
+  'history': 4,
+  'settings': 5,
+  'trainer': 6,
+};
+
+const tabIndexToRoute: Record<number, string> = {
+  0: 'transcribe',
+  1: 'batch',
+  2: 'livemicvad',
+  3: 'tts',
+  4: 'history',
+  5: 'settings',
+  6: 'trainer',
+};
+
 export default function Dashboard() {
   const { user } = useAuth();
   const dispatch = useDispatch<AppDispatch>();
+  const location = useLocation();
+  const navigate = useNavigate();
   const { items: transcriptions, loading, error } = useSelector(
     (state: RootState) => state.transcriptions
   );
 
   const [selectedTranscription, setSelectedTranscription] = useState<Transcription | null>(null);
   const [selectedJobDetails, setSelectedJobDetails] = useState<any | null>(null);
-  const [activeTab, setActiveTab] = useState(0);
+  
+  // Get current tab from URL
+  const getCurrentTabFromPath = () => {
+    const path = location.pathname;
+    if (path === '/dashboard' || path === '/dashboard/') {
+      return 0; // Default to transcribe
+    }
+    const route = path.replace('/dashboard/voice/', '');
+    return routeToTabIndex[route] ?? 0;
+  };
+  
+  const activeTab = getCurrentTabFromPath();
+
+  // Redirect /dashboard to /dashboard/voice/transcribe
+  useEffect(() => {
+    if (location.pathname === '/dashboard' || location.pathname === '/dashboard/') {
+      navigate('/dashboard/voice/transcribe', { replace: true });
+    }
+  }, [location.pathname]);
 
   useEffect(() => {
     if (user) {
@@ -178,14 +220,18 @@ export default function Dashboard() {
             <div className="tool-container">
               <ThemeProvider theme={darkTheme}>
                 <CssBaseline />
-                <TabNavigation currentTab={activeTab} onTabChange={setActiveTab} />
-                {activeTab === 0 && <TranscribeTab />}
-                {activeTab === 1 && <BatchTab />}
-                {activeTab === 2 && <LiveMicTab />}
-                {activeTab === 3 && <TTSTab />}
-                {activeTab === 4 && <HistoryTab />}
-                {activeTab === 5 && <SettingsTab />}
-                {activeTab === 6 && <TrainerTab />}
+                <TabNavigation currentTab={activeTab} />
+                <Routes>
+                  <Route path="/" element={<Navigate to="/dashboard/voice/transcribe" replace />} />
+                  <Route path="voice/transcribe" element={<TranscribeTab />} />
+                  <Route path="voice/batch" element={<BatchTab />} />
+                  <Route path="voice/livemicvad" element={<LiveMicTab />} />
+                  <Route path="voice/tts" element={<TTSTab />} />
+                  <Route path="voice/history" element={<HistoryTab />} />
+                  <Route path="voice/settings" element={<SettingsTab />} />
+                  <Route path="voice/trainer" element={<TrainerTab />} />
+                  <Route path="voice/*" element={<Navigate to="/dashboard/voice/transcribe" replace />} />
+                </Routes>
               </ThemeProvider>
             </div>
           </div>
