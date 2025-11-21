@@ -13,23 +13,47 @@ export default function Home() {
   const { user } = useAuth();
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // Track mouse for hero gradient
+  // Enhanced mouse tracking for cinematic interactive effects
   useEffect(() => {
-  const handleMouseMove = (e: MouseEvent) => {
-    const title = document.querySelector('.hero-title') as HTMLElement | null;
-    if (!title) return;
+    let rafId: number;
+    let lastUpdate = 0;
+    const throttleMs = 16; // ~60fps
 
-    const rect = title.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const handleMouseMove = (e: MouseEvent) => {
+      const now = Date.now();
+      if (now - lastUpdate < throttleMs) return;
+      lastUpdate = now;
 
-    title.style.setProperty('--cursor-x', `${x}px`);
-    title.style.setProperty('--cursor-y', `${y}px`);
-  };
+      const heroSection = document.querySelector('.hero-section') as HTMLElement | null;
+      if (!heroSection) return;
 
-  window.addEventListener('mousemove', handleMouseMove);
-  return () => window.removeEventListener('mousemove', handleMouseMove);
-}, []);
+      const rect = heroSection.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      // Normalized coordinates (0-1 range)
+      const normalizedX = x / rect.width;
+      const normalizedY = y / rect.height;
+      
+      // Percentage coordinates for CSS
+      const percentX = (x / rect.width) * 100;
+      const percentY = (y / rect.height) * 100;
+
+      // Set CSS custom properties on hero section
+      heroSection.style.setProperty('--mouse-x', `${x}px`);
+      heroSection.style.setProperty('--mouse-y', `${y}px`);
+      heroSection.style.setProperty('--mouse-x-percent', `${percentX}%`);
+      heroSection.style.setProperty('--mouse-y-percent', `${percentY}%`);
+      heroSection.style.setProperty('--mouse-x-norm', `${normalizedX}`);
+      heroSection.style.setProperty('--mouse-y-norm', `${normalizedY}`);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
+  }, []);
 
 
   const handleTranscriptionStart = () => {
@@ -44,6 +68,9 @@ export default function Home() {
     <div>
       {/* HERO SECTION */}
       <section className="hero-section">
+        <div className="hero-bg-layer hero-bg-layer-1"></div>
+        <div className="hero-bg-layer hero-bg-layer-2"></div>
+        <div className="hero-bg-layer hero-bg-layer-3"></div>
         <div className="hero-content">
           <h1 className="hero-title">AI Driven Voice to Text & Text to Video</h1>
           <p className="hero-subtitle">
@@ -52,8 +79,8 @@ export default function Home() {
             <span className="highlight"> Get started with 100 free energy points.</span>
           </p>
           <a href="/login" className="get-started-button">
-      Get Started Free
-    </a>
+            <span>Get Started Free</span>
+          </a>
         </div>
       </section>
 

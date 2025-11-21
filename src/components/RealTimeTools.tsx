@@ -9,7 +9,7 @@ export default function RealTimeTools() {
       id: 'live-transcribe',
       title: 'Live Transcribe',
       description: 'Real-time speech-to-text transcription as you speak',
-      path: '/tools/live-transcribe',
+      path: '/dashboard/voice/livemicvad',
     },
     {
       id: 'web-captioner',

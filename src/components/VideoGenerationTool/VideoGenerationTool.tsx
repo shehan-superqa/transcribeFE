@@ -101,6 +101,27 @@ const styles = {
     flexDirection: 'column' as const,
     gap: '0.5rem',
   },
+  imagePreview: {
+    maxWidth: '200px',
+    maxHeight: '150px',
+    borderRadius: '0.5rem',
+    marginTop: '0.5rem',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+  },
+  imageInputWrapper: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '0.5rem',
+  },
+  fileInputLabel: {
+    fontSize: '0.85rem',
+    color: '#cbd5e1',
+    cursor: 'pointer',
+    textDecoration: 'underline',
+  },
+  fileInput: {
+    display: 'none',
+  },
   addImageButton: {
     background: 'rgba(99, 102, 241, 0.2)',
     border: '1px solid rgba(99, 102, 241, 0.4)',
@@ -320,6 +341,43 @@ export default function VideoGenerationTool() {
     setReferenceImages(newImages);
   };
 
+  const handlePasteImage = async (index: number, e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const items = e.clipboardData.items;
+    
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.type.indexOf('image') !== -1) {
+        const blob = item.getAsFile();
+        if (blob) {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const base64data = reader.result as string;
+            const newImages = [...referenceImages];
+            newImages[index] = base64data;
+            setReferenceImages(newImages);
+          };
+          reader.readAsDataURL(blob);
+        }
+        break;
+      }
+    }
+  };
+
+  const handleFileSelect = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64data = reader.result as string;
+        const newImages = [...referenceImages];
+        newImages[index] = base64data;
+        setReferenceImages(newImages);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -413,18 +471,43 @@ export default function VideoGenerationTool() {
         <div style={styles.inputGroup}>
           <label style={styles.label}>Reference Images (Optional, 1-3 images)</label>
           <p style={{ fontSize: '0.85rem', color: '#cbd5e1', margin: '0 0 0.5rem 0' }}>
-            Provide URLs to images that will guide the video generation. Only works with 16:9 aspect ratio and 8-second duration.
+            Paste images from clipboard, upload files, or provide image URLs. Only works with 16:9 aspect ratio and 8-second duration.
           </p>
           {referenceImages.map((imageUrl, index) => (
-            <div key={index} style={styles.referenceImageInput}>
-              <input
-                type="url"
-                value={imageUrl}
-                onChange={(e) => handleReferenceImageChange(index, e.target.value)}
-                placeholder={`Reference image ${index + 1} URL`}
-                style={styles.input}
-                disabled={loading}
-              />
+            <div key={index} style={styles.imageInputWrapper}>
+              <div style={styles.referenceImageInput}>
+                <input
+                  type="text"
+                  value={imageUrl}
+                  onChange={(e) => handleReferenceImageChange(index, e.target.value)}
+                  onPaste={(e) => handlePasteImage(index, e)}
+                  placeholder={`Reference image ${index + 1} URL or paste image here`}
+                  style={styles.input}
+                  disabled={loading}
+                />
+                <label htmlFor={`file-input-${index}`} style={styles.fileInputLabel}>
+                  Or click to upload image file
+                </label>
+                <input
+                  id={`file-input-${index}`}
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleFileSelect(index, e)}
+                  style={styles.fileInput}
+                  disabled={loading}
+                />
+                {imageUrl && (imageUrl.startsWith('data:image') || imageUrl.startsWith('http')) && (
+                  <img 
+                    src={imageUrl} 
+                    alt={`Reference ${index + 1}`} 
+                    style={styles.imagePreview}
+                    onError={(e) => {
+                      // Hide image if it fails to load
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                )}
+              </div>
               {referenceImages.length > 1 && (
                 <button
                   type="button"

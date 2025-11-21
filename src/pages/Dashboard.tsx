@@ -14,6 +14,7 @@ import TTSTab from "../components/transcription/TTSTab";
 import HistoryTab from "../components/transcription/HistoryTab";
 import SettingsTab from "../components/transcription/SettingsTab";
 import TrainerTab from "../components/transcription/TrainerTab";
+import TextToVideoTab from "../components/video/TextToVideoTab";
 import "./Dashboard.css";
 
 // Create Material-UI dark theme matching Dashboard colors
@@ -79,6 +80,9 @@ export default function Dashboard() {
   };
   
   const activeTab = getCurrentTabFromPath();
+  
+  // Check if we're on a video route
+  const isVideoRoute = location.pathname.startsWith('/dashboard/video/');
 
   // Redirect /dashboard to /dashboard/voice/transcribe
   useEffect(() => {
@@ -220,7 +224,7 @@ export default function Dashboard() {
             <div className="tool-container">
               <ThemeProvider theme={darkTheme}>
                 <CssBaseline />
-                <TabNavigation currentTab={activeTab} />
+                {!isVideoRoute && <TabNavigation currentTab={activeTab} />}
                 <Routes>
                   <Route path="/" element={<Navigate to="/dashboard/voice/transcribe" replace />} />
                   <Route path="voice/transcribe" element={<TranscribeTab />} />
@@ -231,6 +235,7 @@ export default function Dashboard() {
                   <Route path="voice/settings" element={<SettingsTab />} />
                   <Route path="voice/trainer" element={<TrainerTab />} />
                   <Route path="voice/*" element={<Navigate to="/dashboard/voice/transcribe" replace />} />
+                  <Route path="video/text-to-video" element={<TextToVideoTab />} />
                 </Routes>
               </ThemeProvider>
             </div>
