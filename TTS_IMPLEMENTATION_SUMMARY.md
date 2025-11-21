@@ -151,3 +151,4 @@ All components follow the existing dark theme:
 - All API calls use the same authentication mechanism
 - The voice selector uses Material-UI Autocomplete for better performance with large lists
 
+
