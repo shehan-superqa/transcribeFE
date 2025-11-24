@@ -8,6 +8,7 @@ import { useTranscription } from './useTranscription';
 import { useMicrophonePreview } from './useMicrophonePreview';
 import { useRecording } from './useRecording';
 import { useWaveforms } from './useWaveforms';
+import './TranscriptionTool.css';
 
 export default function TranscriptionTool({ onTranscriptionStart }: TranscriptionToolProps) {
   const { user } = useAuth();
@@ -104,17 +105,18 @@ export default function TranscriptionTool({ onTranscriptionStart }: Transcriptio
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.energyBadge}>
+    <div style={styles.container} className="transcription-tool-container">
+      <div style={styles.energyBadge} className="energy-badge">
         <span style={styles.energyIcon}>⚡</span>
-        <span style={styles.energyText}>{energyPoints} Energy Points</span>
+        <span style={styles.energyText} className="energy-text">{energyPoints} Energy Points</span>
       </div>
 
-      <div style={styles.modeSelector}>
+      <div style={styles.modeSelector} className="mode-selector">
         <button
           style={{ ...styles.modeButton, ...(mode === 'file' ? styles.modeButtonActive : {}) }}
           onClick={() => setMode('file')}
           type="button"
+          className="mode-button"
         >
           Upload File
         </button>
@@ -122,6 +124,7 @@ export default function TranscriptionTool({ onTranscriptionStart }: Transcriptio
           style={{ ...styles.modeButton, ...(mode === 'youtube' ? styles.modeButtonActive : {}) }}
           onClick={() => setMode('youtube')}
           type="button"
+          className="mode-button"
         >
           YouTube Link
         </button>
@@ -129,6 +132,7 @@ export default function TranscriptionTool({ onTranscriptionStart }: Transcriptio
           style={{ ...styles.modeButton, ...(mode === 'recording' ? styles.modeButtonActive : {}) }}
           onClick={() => setMode('recording')}
           type="button"
+          className="mode-button"
         >
           Record Audio
         </button>
@@ -144,12 +148,12 @@ export default function TranscriptionTool({ onTranscriptionStart }: Transcriptio
                 onChange={(e) => setFile(e.target.files?.[0] || null)}
                 style={styles.fileInput}
               />
-              <div style={styles.fileUploadBox}>
+              <div style={styles.fileUploadBox} className="file-upload-box">
                 <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={styles.uploadIcon}>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                 </svg>
-                <p style={styles.uploadText}>{file ? file.name : 'Click to upload or drag and drop'}</p>
-                <p style={styles.uploadSubtext}>MP3, WAV, M4A, or video files</p>
+                <p style={styles.uploadText} className="upload-text">{file ? file.name : 'Click to upload or drag and drop'}</p>
+                <p style={styles.uploadSubtext} className="upload-subtext">MP3, WAV, M4A, or video files</p>
               </div>
             </label>
           </div>
@@ -164,6 +168,7 @@ export default function TranscriptionTool({ onTranscriptionStart }: Transcriptio
               onChange={(e) => setYoutubeUrl(e.target.value)}
               placeholder="https://www.youtube.com/watch?v=..."
               style={styles.input}
+              className="input"
               disabled={converting}
             />
             {converting && conversionProgress && (
@@ -209,7 +214,7 @@ export default function TranscriptionTool({ onTranscriptionStart }: Transcriptio
               height={120}
               style={styles.waveformCanvas}
             />
-            <div style={styles.recordingButtons}>
+            <div style={styles.recordingButtons} className="recording-buttons">
               <button
                 type="button"
                 onClick={isRecording ? stopRecording : handleStartRecording}
@@ -245,7 +250,7 @@ export default function TranscriptionTool({ onTranscriptionStart }: Transcriptio
                           borderRadius: 'var(--border-radius-sm)',
                         }} 
                       />
-                      <div style={styles.recordingControls}>
+                      <div style={styles.recordingControls} className="recording-controls">
                         <button
                           data-play-button
                           style={styles.playButton}
@@ -282,6 +287,7 @@ export default function TranscriptionTool({ onTranscriptionStart }: Transcriptio
             ...styles.submitButton,
             ...(loading || converting || !user || energyPoints < 10 ? styles.submitButtonDisabled : {}),
           }}
+          className="submit-button"
         >
           {converting 
             ? 'Converting...' 

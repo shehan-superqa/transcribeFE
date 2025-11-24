@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 import { FiMenu, FiX, FiChevronDown, FiChevronUp } from 'react-icons/fi';
+import { FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
 
 // -------------------------
 // 1. NavLink Component
@@ -109,7 +110,7 @@ const SectionItem = ({ to, title, description }: { to: string; title: string; de
 };
 
 const DropdownSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <div style={{ minWidth: '220px', borderLeft: '1px solid #1a1a1a', padding: '0.5rem 0' }}>
+  <div style={{ minWidth: '220px', flexShrink: 0, borderLeft: '1px solid #1a1a1a', padding: '0.5rem 0' }}>
     <h3 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: '0.75rem', color: '#aaaaaa', textTransform: 'uppercase', padding: '0 1rem 0.5rem 1rem', margin: 0 }}>
       {title}
     </h3>
@@ -148,9 +149,87 @@ const HighlightedItem = ({ to, title, description }: { to: string; title: string
   );
 };
 
-const ComplexDropdown = () => {
+const ToolsDropdown = ({ isMobile }: { isMobile: boolean }) => {
+  if (isMobile) {
+    return (
+      <div style={{ backgroundColor: '#0d0d0d', borderRadius: '8px', boxShadow: '0 8px 20px rgba(0,0,0,0.5)', overflow: 'hidden', padding: '0.5rem', width: '100%' }}>
+        <HighlightedItem to="/dashboard/voice/transcribe" title="Audio to Text" description="Convert audio files to accurate text transcriptions" />
+        <div style={{ display: 'flex', flexDirection: 'column', marginTop: '0.5rem' }}>
+          <DropdownSection title="TRANSCRIPTION">
+            <SectionItem to="/dashboard/voice/transcribe" title="Audio to Text" description="Convert audio files to text" />
+            <SectionItem to="/dashboard/voice/transcribe" title="Video to Text" description="Extract text from video files" />
+            <SectionItem to="/tools/subtitle-generator" title="Subtitle Generator" description="Create subtitles for your videos" />
+          </DropdownSection>
+          <DropdownSection title="TRANSLATION">
+            <SectionItem to="/tools/audio-translator" title="Audio Translator" description="Translate audio content" />
+            <SectionItem to="/tools/video-translator" title="Video Translator" description="Translate video content" />
+          </DropdownSection>
+          <DropdownSection title="REAL-TIME">
+            <SectionItem to="/dashboard/voice/livemicvad" title="Live Transcribe" description="Real-time speech-to-text" />
+            <SectionItem to="/tools/web-captioner" title="Web Captioner" description="Generate live captions" />
+            <SectionItem to="/tools/real-time-translator" title="Real-Time Translator" description="Translate speech in real-time" />
+            <SectionItem to="/tools/live-voice-translator" title="Live Voice Translator" description="Translate voice conversations" />
+          </DropdownSection>
+          <DropdownSection title="OTHER">
+            <SectionItem to="/dashboard/video/text-to-video" title="Text to Video" description="Generate videos from text prompts" />
+            <SectionItem to="/tools/video-dubber" title="Video Dubber" description="Dub videos with new audio" />
+            <SectionItem to="/tools/free-tools" title="Free Tools" description="Access free transcription tools" />
+          </DropdownSection>
+        </div>
+      </div>
+    );
+  }
+  
   return (
-    <div style={{ display: 'flex', backgroundColor: '#0d0d0d', borderRadius: '8px', boxShadow: '0 8px 20px rgba(0,0,0,0.5)', overflow: 'hidden', minWidth: '600px', padding: '0.5rem' }}>
+    <div className="tools-dropdown-scroll" style={{ display: 'flex', backgroundColor: '#0d0d0d', borderRadius: '8px', boxShadow: '0 8px 20px rgba(0,0,0,0.5)', overflowX: 'auto', overflowY: 'hidden', minWidth: '600px', maxWidth: '900px', padding: '0.5rem', scrollbarWidth: 'thin', scrollbarColor: '#333333 #0d0d0d' }}>
+      <HighlightedItem to="/dashboard/voice/transcribe" title="Audio to Text" description="Convert audio files to accurate text transcriptions instantly." />
+      <div style={{ display: 'flex', flexShrink: 0 }}>
+        <DropdownSection title="TRANSCRIPTION">
+          <SectionItem to="/dashboard/voice/transcribe" title="Audio to Text" description="Convert audio files to text" />
+          <SectionItem to="/dashboard/voice/transcribe" title="Video to Text" description="Extract text from video files" />
+          <SectionItem to="/tools/subtitle-generator" title="Subtitle Generator" description="Create subtitles for videos" />
+        </DropdownSection>
+        <DropdownSection title="TRANSLATION">
+          <SectionItem to="/tools/audio-translator" title="Audio Translator" description="Translate audio content" />
+          <SectionItem to="/tools/video-translator" title="Video Translator" description="Translate video content" />
+        </DropdownSection>
+        <DropdownSection title="REAL-TIME">
+          <SectionItem to="/dashboard/voice/livemicvad" title="Live Transcribe" description="Real-time speech-to-text" />
+          <SectionItem to="/tools/web-captioner" title="Web Captioner" description="Generate live captions" />
+          <SectionItem to="/tools/real-time-translator" title="Real-Time Translator" description="Translate speech in real-time" />
+          <SectionItem to="/tools/live-voice-translator" title="Live Voice Translator" description="Translate voice conversations" />
+        </DropdownSection>
+        <DropdownSection title="OTHER">
+          <SectionItem to="/dashboard/video/text-to-video" title="Text to Video" description="Generate videos from text prompts" />
+          <SectionItem to="/tools/video-dubber" title="Video Dubber" description="Dub videos with new audio" />
+          <SectionItem to="/tools/free-tools" title="Free Tools" description="Access free transcription tools" />
+        </DropdownSection>
+      </div>
+    </div>
+  );
+};
+
+const ComplexDropdown = ({ isMobile }: { isMobile: boolean }) => {
+  if (isMobile) {
+    return (
+      <div style={{ backgroundColor: '#0d0d0d', borderRadius: '8px', boxShadow: '0 8px 20px rgba(0,0,0,0.5)', overflow: 'hidden', padding: '0.5rem', width: '100%' }}>
+        <HighlightedItem to="/product/secure-voice-comm" title="Secure Comm." description="End-to-end encryption for all voice and data streams." />
+        <div style={{ display: 'flex', flexDirection: 'column', marginTop: '0.5rem' }}>
+          <DropdownSection title="Core Features">
+            <SectionItem to="/product/voice-biometrics" title="Voice Biometrics" description="Verify user identity using unique voice prints (IVR)" />
+            <SectionItem to="/product/data-tokenization" title="Data Tokenization" description="Anonymize sensitive data in real-time conversations" />
+          </DropdownSection>
+          <DropdownSection title="Use Cases">
+            <SectionItem to="/solutions/contact-center-security" title="Contact Center Security" description="Protect customer PII and meet compliance standards" />
+            <SectionItem to="/solutions/remote-work-security" title="Remote Work Security" description="Secure virtual meetings and team collaborations" />
+          </DropdownSection>
+        </div>
+      </div>
+    );
+  }
+  
+  return (
+    <div style={{ display: 'flex', backgroundColor: '#0d0d0d', borderRadius: '8px', boxShadow: '0 8px 20px rgba(0,0,0,0.5)', overflow: 'hidden', minWidth: '600px', maxWidth: '800px', padding: '0.5rem' }}>
       <HighlightedItem to="/product/secure-voice-comm" title="Secure Comm." description="End-to-end encryption for all voice and data streams." />
       <div style={{ display: 'flex' }}>
         <DropdownSection title="Core Features">
@@ -173,25 +252,87 @@ export default function Header() {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [productDropdownOpen, setProductDropdownOpen] = useState(false);
+  const [toolsDropdownOpen, setToolsDropdownOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(typeof window !== 'undefined' && window.innerWidth > 1024);
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth <= 768);
+  const toolsDropdownRef = useRef<HTMLDivElement>(null);
+  const [toolsDropdownPosition, setToolsDropdownPosition] = useState<React.CSSProperties>({});
 
   useEffect(() => {
-    const handleResize = () => setIsDesktop(window.innerWidth > 1024);
+    const handleResize = () => {
+      setIsDesktop(window.innerWidth > 1024);
+      setIsMobile(window.innerWidth <= 768);
+    };
+    handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  useEffect(() => {
+    if (!toolsDropdownOpen || !isDesktop || !toolsDropdownRef.current) {
+      setToolsDropdownPosition({});
+      return;
+    }
+
+    const calculatePosition = () => {
+      if (!toolsDropdownRef.current) return;
+      
+      const rect = toolsDropdownRef.current.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const dropdownMaxWidth = 900;
+      const padding = 32; // 2rem
+      
+      // Calculate if dropdown would overflow on the right
+      const spaceOnRight = viewportWidth - rect.right;
+      
+      if (spaceOnRight < dropdownMaxWidth + padding) {
+        // Align to right edge of viewport with padding
+        setToolsDropdownPosition({
+          position: 'fixed' as const,
+          top: `${rect.bottom + 4}px`,
+          right: `${padding}px`,
+          zIndex: 201,
+          maxWidth: `${viewportWidth - padding * 2}px`,
+        });
+      } else {
+        // Position normally below trigger
+        setToolsDropdownPosition({
+          position: 'absolute' as const,
+          top: '100%',
+          left: '0',
+          zIndex: 201,
+        });
+      }
+    };
+
+    calculatePosition();
+    window.addEventListener('resize', calculatePosition);
+    window.addEventListener('scroll', calculatePosition, true);
+    
+    return () => {
+      window.removeEventListener('resize', calculatePosition);
+      window.removeEventListener('scroll', calculatePosition, true);
+    };
+  }, [toolsDropdownOpen, isDesktop]);
+
+
   const handleToggleMobile = () => {
     setMobileOpen(!mobileOpen);
     setProductDropdownOpen(false);
+    setToolsDropdownOpen(false);
   };
 
   const handleOpenProductDropdown = () => isDesktop && setProductDropdownOpen(true);
   const handleCloseProductDropdown = () => isDesktop && setProductDropdownOpen(false);
   const handleToggleProductDropdown = () => !isDesktop && setProductDropdownOpen(!productDropdownOpen);
 
+  const handleOpenToolsDropdown = () => isDesktop && setToolsDropdownOpen(true);
+  const handleCloseToolsDropdown = () => isDesktop && setToolsDropdownOpen(false);
+  const handleToggleToolsDropdown = () => !isDesktop && setToolsDropdownOpen(!toolsDropdownOpen);
+
   const styles = {
     header: { backgroundColor: '#000', borderBottom: '1px solid #1a1a1a', position: 'sticky' as const, top: 0, zIndex: 200, padding: '0.75rem 2rem' },
+    headerMobile: { backgroundColor: '#000', borderBottom: '1px solid #1a1a1a', position: 'sticky' as const, top: 0, zIndex: 200, padding: '0.75rem 1rem' },
     container: { maxWidth: '1448px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' },
     leftNavSection: { display: 'flex', alignItems: 'center', gap: '2.5rem' },
     logo: { display: 'flex', alignItems: 'center', textDecoration: 'none' },
@@ -199,7 +340,8 @@ export default function Header() {
     logoText: { fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: '1.2rem', color: '#fff', letterSpacing: '0.5px' },
     desktopNavLinks: { display: 'flex', alignItems: 'baseline' as const, gap: '1.25rem' },
     productDropdownContainer: { position: 'relative' as const, marginBottom: '-4px' },
-    productDropdownMenu: { position: 'absolute' as const, top: '100%', left: '-200px', paddingTop: '4px', zIndex: 201 },
+    productDropdownMenu: { position: 'absolute' as const, top: '100%', left: '0', paddingTop: '4px', zIndex: 201 },
+    productDropdownMenuMobile: { position: 'absolute' as const, top: '100%', left: '0', paddingTop: '4px', zIndex: 201, width: '100%' },
     rightAuthSection: { display: 'flex', alignItems: 'center', gap: '0.75rem' },
     mobileMenuIcon: { cursor: 'pointer' },
     mobileMenu: { display: 'flex', flexDirection: 'column' as const, gap: '0.6rem', backgroundColor: '#000', padding: '1rem 2rem', borderTop: '1px solid #1a1a1a' },
@@ -209,8 +351,25 @@ export default function Header() {
   };
 
   return (
-    <header style={styles.header}>
-      <div style={styles.container}>
+    <>
+      <style>{`
+        .tools-dropdown-scroll::-webkit-scrollbar {
+          height: 8px;
+        }
+        .tools-dropdown-scroll::-webkit-scrollbar-track {
+          background: #0d0d0d;
+          border-radius: 4px;
+        }
+        .tools-dropdown-scroll::-webkit-scrollbar-thumb {
+          background: #333333;
+          border-radius: 4px;
+        }
+        .tools-dropdown-scroll::-webkit-scrollbar-thumb:hover {
+          background: #444444;
+        }
+      `}</style>
+      <header style={isMobile ? styles.headerMobile : styles.header}>
+        <div style={styles.container}>
         {/* Left Section */}
         <div style={styles.leftNavSection}>
           <Link to="/" style={styles.logo}>
@@ -235,7 +394,13 @@ export default function Header() {
               <NavLink onClick={handleToggleProductDropdown}>
                 Product {productDropdownOpen ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
               </NavLink>
-              {productDropdownOpen && isDesktop && <div style={styles.productDropdownMenu}><ComplexDropdown /></div>}
+              {productDropdownOpen && isDesktop && <div style={styles.productDropdownMenu}><ComplexDropdown isMobile={false} /></div>}
+            </div>
+            <div ref={toolsDropdownRef} style={styles.productDropdownContainer} onMouseEnter={handleOpenToolsDropdown} onMouseLeave={handleCloseToolsDropdown}>
+              <NavLink onClick={handleToggleToolsDropdown}>
+                Tools {toolsDropdownOpen ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
+              </NavLink>
+              {toolsDropdownOpen && isDesktop && <div style={Object.keys(toolsDropdownPosition).length > 0 ? toolsDropdownPosition : styles.productDropdownMenu}><ToolsDropdown isMobile={false} /></div>}
             </div>
             <NavLink to="/integrations">Integrations</NavLink>
             <NavLink to="/cases">Cases</NavLink>
@@ -248,6 +413,29 @@ export default function Header() {
         <div style={{ ...styles.rightAuthSection, display: isDesktop ? 'flex' : 'none' }}>
           {user ? (
             <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginRight: '0.5rem' }}>
+                <span style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.85rem', color: '#ffffff', fontWeight: 500 }}>
+                  Welcome, {user?.name || user?.email}
+                </span>
+                {user.isEmailVerified ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.75rem', backgroundColor: '#d4edda', borderRadius: '9999px' }}>
+                    <FaCheckCircle style={{ color: '#155724', fontSize: '0.75rem' }} />
+                    <span style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.7rem', color: '#155724', fontWeight: 500 }}>
+                      Email verified
+                    </span>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.75rem', backgroundColor: '#fff3cd', borderRadius: '9999px' }}>
+                    <FaExclamationTriangle style={{ color: '#856404', fontSize: '0.75rem' }} />
+                    <Link 
+                      to="/auth/verify-email"
+                      style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.7rem', color: '#856404', fontWeight: 500, textDecoration: 'none' }}
+                    >
+                      Verify email
+                    </Link>
+                  </div>
+                )}
+              </div>
               <NavLink to="/dashboard">Dashboard</NavLink>
               <NavLink
   onClick={() => {
@@ -282,11 +470,17 @@ export default function Header() {
             </NavLink>
             {productDropdownOpen && (
               <div style={styles.mobileDropdownMenu}>
-                <Link to="/product/secure-voice-comm" style={styles.simpleDropdownItem}>Secure Communication</Link>
-                <Link to="/product/voice-biometrics" style={styles.simpleDropdownItem}>Voice Biometrics</Link>
-                <Link to="/product/data-tokenization" style={styles.simpleDropdownItem}>Data Tokenization</Link>
-                <Link to="/solutions/contact-center-security" style={styles.simpleDropdownItem}>Contact Center Security</Link>
-                <Link to="/solutions/remote-work-security" style={styles.simpleDropdownItem}>Remote Work Security</Link>
+                <ComplexDropdown isMobile={true} />
+              </div>
+            )}
+          </div>
+          <div style={styles.mobileDropdownContainer}>
+            <NavLink onClick={handleToggleToolsDropdown}>
+              Tools {toolsDropdownOpen ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
+            </NavLink>
+            {toolsDropdownOpen && (
+              <div style={styles.mobileDropdownMenu}>
+                <ToolsDropdown isMobile={true} />
               </div>
             )}
           </div>
@@ -296,15 +490,39 @@ export default function Header() {
           <NavLink to="/pricing">Pricing</NavLink>
           {user ? (
             <>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.5rem', width: '100%' }}>
+                <span style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.85rem', color: '#ffffff', fontWeight: 500 }}>
+                  Welcome, {user?.name || user?.email}
+                </span>
+                {user.isEmailVerified ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.75rem', backgroundColor: '#d4edda', borderRadius: '9999px', width: 'fit-content' }}>
+                    <FaCheckCircle style={{ color: '#155724', fontSize: '0.75rem' }} />
+                    <span style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.7rem', color: '#155724', fontWeight: 500 }}>
+                      Email verified
+                    </span>
+                  </div>
+                ) : (
+                  <Link 
+                    to="/auth/verify-email"
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.75rem', backgroundColor: '#fff3cd', borderRadius: '9999px', width: 'fit-content', textDecoration: 'none' }}
+                  >
+                    <FaExclamationTriangle style={{ color: '#856404', fontSize: '0.75rem' }} />
+                    <span style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.7rem', color: '#856404', fontWeight: 500 }}>
+                      Verify email
+                    </span>
+                  </Link>
+                )}
+              </div>
               <NavLink to="/dashboard">Dashboard</NavLink>
+              <NavLink to="/tools/real-time">Tools</NavLink>
               <NavLink
-  onClick={() => {
-    signOut();
-    navigate('/auth/login');
-  }}
->
-  Sign Out
-</NavLink>
+                onClick={() => {
+                  signOut();
+                  navigate('/auth/login');
+                }}
+              >
+                Sign Out
+              </NavLink>
             </>
           ) : (
             <>
@@ -316,5 +534,6 @@ export default function Header() {
         </div>
       )}
     </header>
+    </>
   );
 }

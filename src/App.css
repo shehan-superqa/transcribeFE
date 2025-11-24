@@ -1,0 +1,24 @@
+/* Responsive Footer Styles */
+@media (max-width: 768px) {
+  footer {
+    padding: 1.5rem 1rem !important;
+  }
+
+  footer p {
+    font-size: 0.9rem;
+    padding: 0 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  footer {
+    padding: 1.25rem 0.75rem !important;
+  }
+
+  footer p {
+    font-size: 0.85rem;
+    padding: 0 0.25rem;
+    line-height: 1.5;
+  }
+}
+

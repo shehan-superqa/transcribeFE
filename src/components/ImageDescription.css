@@ -88,6 +88,87 @@
 /* ===========================
    RESPONSIVE DESIGN
    =========================== */
+
+/* Tablet breakpoint (768px - 1024px) */
+@media (max-width: 1024px) {
+    .image-description-container {
+        padding: 5rem 2.5rem;
+        gap: 3rem;
+    }
+
+    .title {
+        font-size: 2rem;
+    }
+
+    .description {
+        font-size: 1.1rem;
+    }
+}
+
+/* Mobile breakpoint (480px - 768px) */
+@media (max-width: 768px) {
+    .upload-section {
+        padding: 4rem 0;
+    }
+
+    .image-description-container {
+        flex-direction: column;
+        text-align: center;
+        padding: 3rem 1.5rem;
+        gap: 2rem;
+    }
+
+    .image-description-container.reverse-layout {
+        flex-direction: column; /* override reversal on mobile */
+    }
+
+    .description-wrapper {
+        padding: 0;
+    }
+
+    .title {
+        font-size: 1.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .description {
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+
+    .image {
+        max-width: 100%;
+    }
+}
+
+/* Small mobile breakpoint (< 480px) */
+@media (max-width: 480px) {
+    .upload-section {
+        padding: 3rem 0;
+    }
+
+    .image-description-container {
+        padding: 2rem 1rem;
+        gap: 1.5rem;
+    }
+
+    .title {
+        font-size: 1.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .description {
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+
+    .image {
+        max-width: 100%;
+        border-width: 4px;
+    }
+}
+
+/* Original breakpoint (900px) - kept for backward compatibility */
 @media (max-width: 900px) {
     .image-description-container {
         flex-direction: column;

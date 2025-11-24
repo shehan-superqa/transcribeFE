@@ -11,14 +11,21 @@
 
 .dashboard-header {
   margin-bottom: 2rem;
-  text-align: center;
+}
+
+.dashboard-header-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
 }
 
 .dashboard-title {
   color: #e0e0e0;
   font-size: clamp(1.5rem, 4vw, 2rem);
-  margin-bottom: 0.5rem;
+  margin: 0;
   font-weight: 700;
+  text-align: center;
 }
 
 .verification-banner {
@@ -26,11 +33,12 @@
   background-color: #fff3cd;
   color: #856404;
   border-radius: 8px;
-  margin-bottom: 2rem;
   border: 1px solid #ffc107;
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
+  width: 100%;
+  max-width: 600px;
 }
 
 .verification-icon {
@@ -60,12 +68,13 @@
   background-color: #d4edda;
   color: #155724;
   border-radius: 8px;
-  margin-bottom: 2rem;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
   font-size: 0.875rem;
+  width: 100%;
+  max-width: 600px;
 }
 
 .dashboard-main-layout {
@@ -201,6 +210,29 @@
   display: inline;
 }
 
+.transcription-preview {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #333333;
+}
+
+.transcription-preview-text {
+  color: #a0a0a0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.transcription-error {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #333333;
+}
+
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -230,7 +262,35 @@
   display: flex;
   justify-content: space-between;
   align-items: start;
+  margin-bottom: 1rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.5rem;
   margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.modal-download-button {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background-color: #00c6ff;
+  color: #121212;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: background-color 0.2s;
+  font-family: inherit;
+}
+
+.modal-download-button:hover {
+  background-color: #00b0e6;
+}
+
+.modal-download-button:active {
+  transform: scale(0.98);
 }
 
 .modal-title {

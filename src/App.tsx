@@ -5,11 +5,13 @@ import { AuthProvider } from "./lib/auth";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import { store } from "./store";
 import { checkAuth } from "./store/authSlice";
+import "./App.css";
 
 import Header from "./components/Header";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import ToolsDashboard from "./pages/ToolsDashboard";
 import Pricing from "./pages/Pricing";
 import VerifyEmail from "./pages/VerifyEmail";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -25,8 +27,8 @@ function AppContent() {
 
   return (
     <NotificationProvider>
-      <AuthProvider>
-        <Router>
+    <AuthProvider>
+      <Router>
         <div style={styles.app}>
           <Header />
           <main style={styles.main}>
@@ -53,7 +55,25 @@ function AppContent() {
                 path="/dashboard"
                 element={
                   <ProtectedRoute>
+                    <Navigate to="/dashboard/voice/transcribe" replace />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard/*"
+                element={
+                  <ProtectedRoute>
                     <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Tools Dashboard with Sidebar Navigation */}
+              <Route
+                path="/tools/*"
+                element={
+                  <ProtectedRoute>
+                    <ToolsDashboard />
                   </ProtectedRoute>
                 }
               />
@@ -71,7 +91,7 @@ function AppContent() {
           </footer>
         </div>
       </Router>
-      </AuthProvider>
+    </AuthProvider>
     </NotificationProvider>
   );
 }
@@ -107,5 +127,7 @@ const styles = {
   },
   footerText: {
     opacity: 0.8,
+    wordWrap: "break-word" as const,
+    overflowWrap: "break-word" as const,
   },
 };

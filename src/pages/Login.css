@@ -182,3 +182,146 @@
 .link:hover {
     color: #00c6ff;
 }
+
+/* ===========================
+   RESPONSIVE DESIGN
+   =========================== */
+
+/* Tablet breakpoint (768px - 1024px) */
+@media (max-width: 1024px) {
+    .login-container {
+        padding: 1.5rem 1rem;
+    }
+
+    .login-card {
+        max-width: 400px;
+        padding: 1.75rem;
+    }
+}
+
+/* Mobile breakpoint (480px - 768px) */
+@media (max-width: 768px) {
+    .login-container {
+        padding: 1rem 0.75rem;
+        min-height: 100vh;
+        align-items: flex-start;
+        padding-top: 2rem;
+    }
+
+    .login-card {
+        max-width: 100%;
+        padding: 1.5rem 1.25rem;
+        border-radius: 0.75rem;
+    }
+
+    .login-title {
+        font-size: 1.35rem;
+    }
+
+    .login-subtitle {
+        font-size: 0.75rem;
+    }
+
+    .input-field {
+        padding: 0.65rem 0.9rem;
+        font-size: 0.95rem;
+    }
+
+    .submit-button {
+        padding: 0.85rem 1.1rem;
+        font-size: 0.9rem;
+    }
+
+    .toggle-text {
+        font-size: 0.8rem;
+    }
+
+    .toggle-button {
+        font-size: 0.8rem;
+    }
+
+    .link {
+        font-size: 0.75rem;
+    }
+}
+
+/* Small mobile breakpoint (< 480px) */
+@media (max-width: 480px) {
+    .login-container {
+        padding: 0.75rem 0.5rem;
+        padding-top: 1.5rem;
+    }
+
+    .login-card {
+        padding: 1.25rem 1rem;
+        border-radius: 0.5rem;
+    }
+
+    .login-header {
+        margin-bottom: 1.25rem;
+    }
+
+    .login-title {
+        font-size: 1.2rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .login-subtitle {
+        font-size: 0.7rem;
+        line-height: 1.4;
+    }
+
+    .login-form {
+        gap: 0.875rem;
+    }
+
+    .input-label {
+        font-size: 0.75rem;
+    }
+
+    .input-icon {
+        margin-right: 0.3rem;
+        font-size: 0.85rem;
+    }
+
+    .input-field {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.9rem;
+    }
+
+    .error-message {
+        padding: 0.45rem 0.7rem;
+        font-size: 0.75rem;
+        line-height: 1.4;
+    }
+
+    .submit-button {
+        padding: 0.75rem 1rem;
+        font-size: 0.85rem;
+    }
+
+    .login-footer {
+        margin-top: 0.875rem;
+        padding-top: 0.875rem;
+    }
+
+    .toggle-text {
+        font-size: 0.75rem;
+        line-height: 1.5;
+    }
+
+    .toggle-button {
+        font-size: 0.75rem;
+        display: block;
+        margin-top: 0.25rem;
+        margin-left: 0;
+    }
+
+    .back-link {
+        margin-top: 0.875rem;
+    }
+
+    .link {
+        font-size: 0.7rem;
+    }
+}
