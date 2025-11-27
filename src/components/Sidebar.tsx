@@ -2,24 +2,67 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './Sidebar.css';
 
+interface SubMenuItem {
+  id: string;
+  label: string;
+  path: string;
+}
+
 interface MenuItem {
   id: string;
   label: string;
   icon: string;
   path: string;
   isExpandable?: boolean;
+  subItems?: SubMenuItem[];
 }
 
 const menuItems: MenuItem[] = [
-  { id: 'audio-to-text', label: 'Audio to Text', icon: '🎵', path: '/dashboard/voice/transcribe' },
-  { id: 'video-to-text', label: 'Video to Text', icon: '🎬', path: '/dashboard/voice/transcribe' },
-  { id: 'video-generation', label: 'Video Generation', icon: '🎥', path: '/tools/video-generation' },
-  { id: 'video-dubber', label: 'Video Dubber', icon: '🎤', path: '/tools/video-dubber' },
-  { id: 'video-translator', label: 'Video Translator', icon: '🌐', path: '/tools/video-translator' },
-  { id: 'audio-translator', label: 'Audio Translator', icon: '🔊', path: '/tools/audio-translator' },
-  { id: 'subtitle-generator', label: 'Subtitle Generator', icon: '📝', path: '/tools/subtitle-generator' },
-  { id: 'free-tools', label: 'Free Tools', icon: '🎁', path: '/tools/free-tools' },
-  { id: 'real-time', label: 'Real-Time', icon: '⚡', path: '/tools/real-time', isExpandable: true },
+  { 
+    id: 'audio-to-text', 
+    label: 'Audio to Text', 
+    icon: '🎵', 
+    path: '/voice/transcribe',
+    isExpandable: true,
+    subItems: [
+      { id: 'transcribe', label: 'Transcribe', path: '/voice/transcribe' },
+      { id: 'batch', label: 'Batch Process', path: '/voice/batch' },
+      { id: 'live', label: 'Live Mic VAD', path: '/voice/live' },
+      { id: 'tts', label: 'Text-to-Speech', path: '/voice/tts' },
+      { id: 'history', label: 'History', path: '/voice/history' },
+      { id: 'settings', label: 'Settings', path: '/voice/settings' },
+      { id: 'trainer', label: 'Trainer', path: '/voice/trainer' },
+    ]
+  },
+  { 
+    id: 'video-tools', 
+    label: 'Video Tools', 
+    icon: '🎬', 
+    path: '/video/text-to-video',
+    isExpandable: true,
+    subItems: [
+      { id: 'text-to-video', label: 'Text to Video', path: '/video/text-to-video' },
+      { id: 'to-text', label: 'Video to Text', path: '/video/to-text' },
+      { id: 'dubber', label: 'Video Dubber', path: '/video/dubber' },
+      { id: 'translator', label: 'Video Translator', path: '/video/translator' },
+      { id: 'subtitle-generator', label: 'Subtitle Generator', path: '/video/subtitle-generator' },
+    ]
+  },
+  { id: 'audio-translator', label: 'Audio Translator', icon: '🔊', path: '/voice/translator' },
+  { id: 'free-tools', label: 'Free Tools', icon: '🎁', path: '/voice/transcribe' },
+  { 
+    id: 'real-time', 
+    label: 'Real-Time', 
+    icon: '⚡', 
+    path: '/voice/live', 
+    isExpandable: true,
+    subItems: [
+      { id: 'live-transcribe', label: 'Live Transcribe', path: '/voice/live-transcribe' },
+      { id: 'live-captioner', label: 'Web Captioner', path: '/voice/live-captioner' },
+      { id: 'live-translator', label: 'Real-Time Translator', path: '/voice/live-translator' },
+      { id: 'live-voice-translator', label: 'Live Voice Translator', path: '/voice/live-voice-translator' },
+    ]
+  },
 ];
 
 interface SidebarProps {
@@ -34,36 +77,41 @@ export default function Sidebar({ onRealTimeExpand }: SidebarProps) {
 
   useEffect(() => {
     const path = location.pathname;
-    const isRealTimeSubPage = path.includes('/tools/live-transcribe') || 
-                              path.includes('/tools/web-captioner') || 
-                              path.includes('/tools/real-time-translator') || 
-                              path.includes('/tools/live-voice-translator');
     
-    // If on /tools or real-time sub-page, show Real-Time as active and expanded
-    if (path === '/tools' || path === '/tools/' || isRealTimeSubPage) {
-      setActiveItem('real-time');
-      setExpandedItems(prev => {
-        if (!prev.has('real-time')) {
-          const newExpanded = new Set(prev);
-          newExpanded.add('real-time');
-          onRealTimeExpand?.(true);
-          return newExpanded;
+    // Check if path matches any sub-item
+    let parentItem: MenuItem | undefined;
+    let activeSubItem: string | undefined;
+    
+    for (const item of menuItems) {
+      if (item.subItems) {
+        const matchingSubItem = item.subItems.find(sub => 
+          path === sub.path || path.startsWith(sub.path + '/')
+        );
+        if (matchingSubItem) {
+          parentItem = item;
+          activeSubItem = matchingSubItem.id;
+          break;
         }
-        return prev;
-      });
-    } else {
-      const currentItem = menuItems.find(item => 
-        path === item.path || 
-        path.startsWith(item.path + '/')
-      );
-      if (currentItem && !currentItem.isExpandable) {
-        setActiveItem(currentItem.id);
-        // Close Real-Time if another item is selected
+      }
+      // Also check if path matches the parent item directly
+      if (path === item.path || path.startsWith(item.path + '/')) {
+        if (!item.subItems) {
+          parentItem = item;
+          break;
+        }
+      }
+    }
+    
+    if (parentItem) {
+      setActiveItem(parentItem.id);
+      if (parentItem.isExpandable) {
         setExpandedItems(prev => {
-          if (prev.has('real-time')) {
+          if (!prev.has(parentItem!.id)) {
             const newExpanded = new Set(prev);
-            newExpanded.delete('real-time');
-            onRealTimeExpand?.(false);
+            newExpanded.add(parentItem!.id);
+            if (parentItem!.id === 'real-time') {
+              onRealTimeExpand?.(true);
+            }
             return newExpanded;
           }
           return prev;
@@ -83,17 +131,30 @@ export default function Sidebar({ onRealTimeExpand }: SidebarProps) {
       }
       setExpandedItems(newExpanded);
       setActiveItem(item.id);
-      onRealTimeExpand?.(newExpanded.has(item.id));
+      if (item.id === 'real-time') {
+        onRealTimeExpand?.(newExpanded.has(item.id));
+      }
+      // Navigate to default path if collapsing
+      if (!newExpanded.has(item.id) && item.path) {
+        navigate(item.path);
+      }
     } else {
       // Navigate for regular items
       setActiveItem(item.id);
       navigate(item.path);
-      // Close Real-Time if another item is selected
-      if (expandedItems.has('real-time')) {
-        const newExpanded = new Set(expandedItems);
-        newExpanded.delete('real-time');
-        setExpandedItems(newExpanded);
-        onRealTimeExpand?.(false);
+    }
+  };
+
+  const handleSubItemClick = (subItem: SubMenuItem, parentId: string) => {
+    setActiveItem(parentId);
+    navigate(subItem.path);
+    // Ensure parent is expanded
+    if (!expandedItems.has(parentId)) {
+      const newExpanded = new Set(expandedItems);
+      newExpanded.add(parentId);
+      setExpandedItems(newExpanded);
+      if (parentId === 'real-time') {
+        onRealTimeExpand?.(true);
       }
     }
   };
@@ -115,6 +176,25 @@ export default function Sidebar({ onRealTimeExpand }: SidebarProps) {
                 </span>
               )}
             </button>
+            {item.isExpandable && item.subItems && expandedItems.has(item.id) && (
+              <div className="sidebar-submenu">
+                {item.subItems.map((subItem) => {
+                  const isActive = location.pathname === subItem.path || location.pathname.startsWith(subItem.path + '/');
+                  return (
+                    <button
+                      key={subItem.id}
+                      className={`sidebar-subitem ${isActive ? 'active' : ''}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSubItemClick(subItem, item.id);
+                      }}
+                    >
+                      {subItem.label}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         ))}
       </div>

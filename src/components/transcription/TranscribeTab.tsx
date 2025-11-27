@@ -179,14 +179,35 @@ export default function TranscribeTab() {
               value={model} 
               onChange={(e) => setModel(e.target.value)} 
               disabled={engine !== 'whisper'}
+              MenuProps={{
+                PaperProps: {
+                  style: {
+                    zIndex: 1300,
+                    backgroundColor: '#1e1e1e',
+                    color: '#e0e0e0',
+                  },
+                },
+              }}
               sx={{ 
                 color: '#e0e0e0',
+                backgroundColor: '#121212',
                 '& .MuiOutlinedInput-notchedOutline': { borderColor: '#333333' },
                 '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#00c6ff' },
+                '& .MuiSelect-icon': { color: '#e0e0e0' },
               }}
             >
               {availableModels.map((m) => (
-                <MenuItem key={m} value={m}>
+                <MenuItem 
+                  key={m} 
+                  value={m}
+                  sx={{
+                    color: '#e0e0e0',
+                    backgroundColor: '#1e1e1e',
+                    '&:hover': {
+                      backgroundColor: '#2a2a2a',
+                    },
+                  }}
+                >
                   {m}
                 </MenuItem>
               ))}

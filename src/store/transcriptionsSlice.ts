@@ -199,7 +199,14 @@ const transcriptionsSlice = createSlice({
       })
       .addCase(fetchTranscriptions.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || "Failed to fetch transcriptions";
+        const errorMessage = action.payload || "Failed to fetch transcriptions";
+        // Only set error if it's not an authentication issue (those are handled by interceptors)
+        if (!errorMessage.includes('Authentication failed') && !errorMessage.includes('Authentication service unavailable')) {
+          state.error = errorMessage;
+        } else {
+          // Clear error for auth issues as they're handled by interceptors
+          state.error = null;
+        }
       });
   },
 });

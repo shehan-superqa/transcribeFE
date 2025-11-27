@@ -1,23 +1,41 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../lib/auth';
 import { submitVideoJob, getVideoJobStatus } from '../../lib/api/videoApi';
+import { getUserJobs } from '../../lib/api/jobsApi';
 import { useSSE } from '../../hooks/useSSE';
-import type { VideoJobRequest, VideoJobResult } from '../../types/api';
+import type { VideoJobRequest, VideoJobResult, VideoJob, Job } from '../../types/api';
 import './VideoGenerationTool.css';
 
 const styles = {
   container: {
     display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '1.5rem',
+    flexDirection: 'row' as const,
+    gap: '2rem',
     padding: '2rem',
     borderRadius: '1.25rem',
     background: 'linear-gradient(145deg, #0f172a, #1e293b)',
     color: '#f8fafc',
     boxShadow: '0 10px 25px rgba(0, 0, 0, 0.25)',
-    maxWidth: '900px',
+    maxWidth: '1600px',
     margin: '2rem auto',
     fontFamily: 'Inter, system-ui, sans-serif',
+    alignItems: 'flex-start' as const,
+  },
+  formWrapper: {
+    flex: '1',
+    minWidth: 0,
+    maxWidth: '600px',
+  },
+  rightSidebar: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '2rem',
+    minWidth: '400px',
+    position: 'sticky' as const,
+    top: '2rem',
+    alignSelf: 'flex-start' as const,
+    maxHeight: 'calc(100vh - 4rem)',
+    overflowY: 'auto' as const,
   },
   form: {
     display: 'flex',
@@ -60,10 +78,14 @@ const styles = {
     borderRadius: '0.75rem',
     border: '1px solid rgba(255, 255, 255, 0.1)',
     background: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(30, 41, 59, 0.8)',
     color: '#f8fafc',
     outline: 'none',
     fontSize: '0.95rem',
     cursor: 'pointer',
+    appearance: 'none' as const,
+    WebkitAppearance: 'none' as const,
+    MozAppearance: 'none' as const,
   },
   checkboxGroup: {
     display: 'flex',
@@ -194,9 +216,12 @@ const styles = {
     display: 'flex',
     flexDirection: 'column' as const,
     gap: '1rem',
-    padding: '1rem',
+    padding: '1.5rem',
     background: 'rgba(255, 255, 255, 0.05)',
     borderRadius: '0.75rem',
+    minWidth: '400px',
+    maxWidth: '500px',
+    flexShrink: 0,
   },
   video: {
     width: '100%',
@@ -216,6 +241,62 @@ const styles = {
     textDecoration: 'none',
     display: 'inline-block',
   },
+  historyContainer: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '1rem',
+    padding: '1.5rem',
+    background: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: '0.75rem',
+    minWidth: '350px',
+    maxWidth: '400px',
+    flexShrink: 0,
+    minHeight: 0,
+  },
+  historyTitle: {
+    margin: 0,
+    fontSize: '1.25rem',
+    fontWeight: 600,
+    color: '#f8fafc',
+  },
+  historyCard: {
+    padding: '1rem',
+    background: 'rgba(255, 255, 255, 0.03)',
+    borderRadius: '0.75rem',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+  },
+  historyCardHover: {
+    borderColor: 'rgba(99, 102, 241, 0.5)',
+    background: 'rgba(255, 255, 255, 0.05)',
+  },
+  historyCardHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '0.5rem',
+  },
+  historyCardPrompt: {
+    fontSize: '0.9rem',
+    color: '#cbd5e1',
+    marginBottom: '0.5rem',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap' as const,
+  },
+  historyCardMeta: {
+    fontSize: '0.75rem',
+    color: '#94a3b8',
+    display: 'flex',
+    gap: '0.5rem',
+    flexWrap: 'wrap' as const,
+  },
+  emptyHistory: {
+    textAlign: 'center' as const,
+    padding: '2rem',
+    color: '#94a3b8',
+  },
   charCount: {
     fontSize: '0.75rem',
     color: '#cbd5e1',
@@ -229,8 +310,8 @@ export default function VideoGenerationTool() {
   const [prompt, setPrompt] = useState('');
   const [referenceImages, setReferenceImages] = useState<string[]>(['']);
   const [aspectRatio, setAspectRatio] = useState<'16:9' | '9:16' | '1:1' | '4:3' | '3:4'>('16:9');
-  const [duration, setDuration] = useState(8);
-  const [resolution, setResolution] = useState<'720p' | '1080p' | '1440p' | '4K'>('1080p');
+  const [duration, setDuration] = useState<4 | 6 | 8>(8);
+  const [resolution, setResolution] = useState<'720p' | '1080p'>('1080p');
   const [negativePrompt, setNegativePrompt] = useState('');
   const [generateAudio, setGenerateAudio] = useState(true);
   const [seed, setSeed] = useState<number | undefined>(undefined);
@@ -241,9 +322,78 @@ export default function VideoGenerationTool() {
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
   const [usePolling, setUsePolling] = useState(false);
+  const [pollingProgress, setPollingProgress] = useState<number>(0);
+  const [pollingStatus, setPollingStatus] = useState<string>('');
+  const [pollingMessage, setPollingMessage] = useState<string>('');
+  const [videoHistory, setVideoHistory] = useState<VideoJob[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState<string | null>(null);
 
   // Use SSE hook for progress tracking
   const { progress, status, message, result, error: sseError, isConnected } = useSSE(jobId);
+
+  // Fetch video job history
+  useEffect(() => {
+    const fetchVideoHistory = async () => {
+      if (!user) return;
+      
+      setHistoryLoading(true);
+      setHistoryError(null);
+      
+      try {
+        const response = await getUserJobs(user.id);
+        if (response.success && response.jobs) {
+          // Filter for video jobs only
+          const videoJobs = response.jobs.filter(
+            (job: Job) => (job as any).job_type === 'video'
+          ).map((job: Job) => job as unknown as VideoJob);
+          
+          // Sort by created_at (newest first)
+          videoJobs.sort((a, b) => {
+            const dateA = new Date(a.created_at).getTime();
+            const dateB = new Date(b.created_at).getTime();
+            return dateB - dateA;
+          });
+          
+          setVideoHistory(videoJobs);
+        }
+      } catch (err: any) {
+        console.error('Error fetching video history:', err);
+        setHistoryError(err?.message || 'Failed to load video history');
+      } finally {
+        setHistoryLoading(false);
+      }
+    };
+
+    fetchVideoHistory();
+  }, [user]);
+
+  // Refresh history when a job completes
+  useEffect(() => {
+    if (videoUrl && user) {
+      const fetchVideoHistory = async () => {
+        try {
+          const response = await getUserJobs(user.id);
+          if (response.success && response.jobs) {
+            const videoJobs = response.jobs.filter(
+              (job: Job) => (job as any).job_type === 'video'
+            ).map((job: Job) => job as unknown as VideoJob);
+            
+            videoJobs.sort((a, b) => {
+              const dateA = new Date(a.created_at).getTime();
+              const dateB = new Date(b.created_at).getTime();
+              return dateB - dateA;
+            });
+            
+            setVideoHistory(videoJobs);
+          }
+        } catch (err) {
+          console.error('Error refreshing video history:', err);
+        }
+      };
+      fetchVideoHistory();
+    }
+  }, [videoUrl, user]);
 
   const startPolling = useCallback(() => {
     if (!jobId) return;
@@ -253,12 +403,68 @@ export default function VideoGenerationTool() {
         const response = await getVideoJobStatus(jobId!);
         if (response.success && response.job) {
           const jobStatus = response.job.status;
+          setPollingStatus(jobStatus);
+          
+          // Extract progress from various possible locations
+          let extractedProgress = 0;
+          let extractedMessage = '';
+          
+          // Check replicate_data for progress (common in video generation APIs)
+          const replicateData = (response.job as any).replicate_data;
+          if (replicateData) {
+            if (typeof replicateData.progress === 'number') {
+              extractedProgress = Math.min(Math.max(replicateData.progress * 100, 0), 100);
+            }
+            if (replicateData.status) {
+              extractedMessage = replicateData.status;
+            }
+            if (replicateData.logs && Array.isArray(replicateData.logs)) {
+              const lastLog = replicateData.logs[replicateData.logs.length - 1];
+              if (lastLog && typeof lastLog === 'string') {
+                extractedMessage = lastLog;
+              }
+            }
+          }
+          
+          // Check for progress field directly on job
+          if (!extractedProgress && (response.job as any).progress !== undefined) {
+            extractedProgress = Math.min(Math.max((response.job as any).progress, 0), 100);
+          }
+          
+          // Estimate progress based on status if no explicit progress
+          if (!extractedProgress) {
+            switch (jobStatus) {
+              case 'queued':
+                extractedProgress = 5;
+                extractedMessage = extractedMessage || 'Job queued...';
+                break;
+              case 'starting':
+                extractedProgress = 10;
+                extractedMessage = extractedMessage || 'Starting video generation...';
+                break;
+              case 'processing':
+                extractedProgress = 50; // Mid-range for processing
+                extractedMessage = extractedMessage || 'Generating video...';
+                break;
+              case 'completed':
+                extractedProgress = 100;
+                extractedMessage = extractedMessage || 'Video generation completed!';
+                break;
+              default:
+                extractedProgress = 0;
+            }
+          }
+          
+          setPollingProgress(extractedProgress);
+          setPollingMessage(extractedMessage);
           
           if (jobStatus === 'completed' && response.job.result) {
             const url = response.job.result.video_url || response.job.video_output_url;
             if (url) {
               setVideoUrl(url);
               setLoading(false);
+              setPollingProgress(100);
+              setPollingMessage('Video generation completed!');
               setPollingInterval((prev) => {
                 if (prev) {
                   clearInterval(prev);
@@ -283,7 +489,7 @@ export default function VideoGenerationTool() {
     };
 
     poll(); // Poll immediately
-    const interval = setInterval(poll, 5000); // Then every 5 seconds
+    const interval = setInterval(poll, 1000); // Poll every 1 second for real-time updates
     setPollingInterval(interval);
   }, [jobId]);
 
@@ -385,6 +591,9 @@ export default function VideoGenerationTool() {
     setLoading(true);
     setJobId(null);
     setUsePolling(false);
+    setPollingProgress(0);
+    setPollingStatus('');
+    setPollingMessage('');
 
     if (!prompt.trim()) {
       setError('Please enter a prompt');
@@ -395,10 +604,15 @@ export default function VideoGenerationTool() {
     // Filter out empty reference images
     const validReferenceImages = referenceImages.filter(img => img.trim() !== '');
 
+    // Ensure duration is a valid number
+    const durationValue = typeof duration === 'number' && (duration === 4 || duration === 6 || duration === 8) 
+      ? duration 
+      : 8; // Default to 8 if invalid
+
     const request: VideoJobRequest = {
       prompt: prompt.trim(),
       aspect_ratio: aspectRatio,
-      duration,
+      duration: durationValue,
       resolution,
       negative_prompt: negativePrompt.trim() || undefined,
       generate_audio: generateAudio,
@@ -406,16 +620,25 @@ export default function VideoGenerationTool() {
       reference_images: validReferenceImages.length > 0 ? validReferenceImages : undefined,
     };
 
+    // Log request for debugging
+    console.log('Video generation request:', JSON.stringify(request, null, 2));
+    console.log('Duration value:', durationValue, 'Type:', typeof durationValue);
+
     try {
       const response = await submitVideoJob(request);
       if (response.success && response.job_id) {
         setJobId(response.job_id);
-        // SSE will handle progress, but start polling as backup
+        // Set initial progress state
+        setPollingProgress(5);
+        setPollingStatus('queued');
+        setPollingMessage('Job submitted, starting...');
+        // SSE will handle progress, but start polling as backup immediately
+        // Polling will start automatically via useEffect if SSE doesn't connect
         setTimeout(() => {
           if (!isConnected) {
             startPolling();
           }
-        }, 2000);
+        }, 1000);
       } else {
         setError('Failed to submit video generation job');
         setLoading(false);
@@ -446,13 +669,56 @@ export default function VideoGenerationTool() {
     };
   }, [pollingInterval]);
 
-  const currentStatus = loading ? (status || 'queued') : '';
-  const displayProgress = progress || 0;
-  const displayMessage = message || (currentStatus === 'queued' ? 'Job queued...' : currentStatus === 'processing' ? 'Generating video...' : '');
+  // Use polling progress/status if SSE is not connected, otherwise use SSE data
+  const currentStatus = loading ? (isConnected ? status : pollingStatus || 'queued') : '';
+  const displayProgress = isConnected ? (progress || 0) : (pollingProgress || 0);
+  const displayMessage = isConnected 
+    ? (message || (currentStatus === 'queued' ? 'Job queued...' : currentStatus === 'processing' ? 'Generating video...' : ''))
+    : (pollingMessage || (currentStatus === 'queued' ? 'Job queued...' : currentStatus === 'processing' ? 'Generating video...' : currentStatus === 'starting' ? 'Starting video generation...' : ''));
+
+  // Helper functions
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "completed":
+        return "#4caf50";
+      case "processing":
+      case "starting":
+        return "#ff9800";
+      case "error":
+      case "cancelled":
+        return "#f44336";
+      case "queued":
+        return "#2196f3";
+      default:
+        return "#666666";
+    }
+  };
+
+  const handleVideoJobClick = (job: VideoJob) => {
+    if (job.result?.video_url || job.video_output_url) {
+      const url = job.result?.video_url || job.video_output_url;
+      if (url) {
+        setVideoUrl(url);
+        setJobId(job._id);
+      }
+    }
+  };
 
   return (
     <div style={styles.container} className="video-generation-tool-container">
-      <form onSubmit={handleSubmit} style={styles.form}>
+      <div style={styles.formWrapper}>
+        <form onSubmit={handleSubmit} style={styles.form}>
         <div style={styles.inputGroup}>
           <label style={styles.label}>
             Prompt <span style={{ color: '#ef4444' }}>*</span>
@@ -560,29 +826,33 @@ export default function VideoGenerationTool() {
 
             <div style={styles.inputGroup}>
               <label style={styles.label}>Duration (seconds)</label>
-              <input
-                type="number"
-                value={duration}
-                onChange={(e) => setDuration(parseInt(e.target.value) || 8)}
-                min={1}
-                max={60}
-                style={styles.input}
+              <select
+                value={duration.toString()}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value, 10);
+                  if (val === 4 || val === 6 || val === 8) {
+                    setDuration(val as 4 | 6 | 8);
+                  }
+                }}
+                style={styles.select}
                 disabled={loading}
-              />
+              >
+                <option value="4">4 seconds</option>
+                <option value="6">6 seconds</option>
+                <option value="8">8 seconds</option>
+              </select>
             </div>
 
             <div style={styles.inputGroup}>
               <label style={styles.label}>Resolution</label>
               <select
                 value={resolution}
-                onChange={(e) => setResolution(e.target.value as any)}
+                onChange={(e) => setResolution(e.target.value as '720p' | '1080p')}
                 style={styles.select}
                 disabled={loading}
               >
                 <option value="720p">720p</option>
                 <option value="1080p">1080p</option>
-                <option value="1440p">1440p</option>
-                <option value="4K">4K</option>
               </select>
             </div>
 
@@ -599,16 +869,16 @@ export default function VideoGenerationTool() {
             </div>
 
             <div style={styles.inputGroup}>
-              <div style={styles.checkboxGroup}>
-                <input
-                  type="checkbox"
-                  checked={generateAudio}
-                  onChange={(e) => setGenerateAudio(e.target.checked)}
-                  style={styles.checkbox}
-                  disabled={loading}
-                />
-                <label style={styles.label}>Generate Audio</label>
-              </div>
+              <label style={styles.label}>Generate Audio</label>
+              <select
+                value={generateAudio ? 'true' : 'false'}
+                onChange={(e) => setGenerateAudio(e.target.value === 'true')}
+                style={styles.select}
+                disabled={loading}
+              >
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+              </select>
             </div>
 
             <div style={styles.inputGroup}>
@@ -630,30 +900,12 @@ export default function VideoGenerationTool() {
         {(currentStatus || loading) && (
           <div style={styles.progressContainer}>
             <div style={styles.progressText}>
-              {displayMessage}
-              {displayProgress > 0 && <span> ({Math.round(displayProgress)}%)</span>}
+              {displayMessage || 'Processing...'}
+              <span> ({Math.round(displayProgress)}%)</span>
             </div>
-            {displayProgress > 0 && (
-              <div style={styles.progressBarContainer}>
-                <div style={{ ...styles.progressBar, width: `${displayProgress}%` }} />
-              </div>
-            )}
-          </div>
-        )}
-
-        {videoUrl && (
-          <div style={styles.videoContainer}>
-            <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Generated Video</h3>
-            <video src={videoUrl} controls style={styles.video}>
-              Your browser does not support the video tag.
-            </video>
-            <a
-              href={videoUrl}
-              download={`video-${jobId || 'output'}.mp4`}
-              style={styles.downloadButton}
-            >
-              Download Video
-            </a>
+            <div style={styles.progressBarContainer}>
+              <div style={{ ...styles.progressBar, width: `${Math.max(displayProgress, 5)}%` }} />
+            </div>
           </div>
         )}
 
@@ -674,6 +926,100 @@ export default function VideoGenerationTool() {
           </p>
         )}
       </form>
+      </div>
+
+      {/* Right Sidebar: Video Result + History */}
+      <div style={styles.rightSidebar}>
+        {videoUrl && (
+          <div style={styles.videoContainer}>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#f8fafc' }}>Generated Video</h3>
+            <video src={videoUrl} controls style={styles.video}>
+              Your browser does not support the video tag.
+            </video>
+            <a
+              href={videoUrl}
+              download={`video-${jobId || 'output'}.mp4`}
+              style={styles.downloadButton}
+            >
+              Download Video
+            </a>
+          </div>
+        )}
+
+        {/* Video History Section */}
+        <div style={styles.historyContainer}>
+        <h3 style={styles.historyTitle}>Video History</h3>
+        
+        {historyLoading ? (
+          <div style={styles.emptyHistory}>Loading history...</div>
+        ) : historyError ? (
+          <div style={{ ...styles.emptyHistory, color: '#f44336' }}>
+            {historyError}
+          </div>
+        ) : videoHistory.length === 0 ? (
+          <div style={styles.emptyHistory}>
+            <p>No video generations yet</p>
+            <p style={{ fontSize: '0.85rem', marginTop: '0.5rem' }}>
+              Start generating videos using the form on the left.
+            </p>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {videoHistory.map((job) => {
+              const hasVideo = !!(job.result?.video_url || job.video_output_url);
+              return (
+                <div
+                  key={job._id}
+                  style={{
+                    ...styles.historyCard,
+                    ...(hasVideo ? {} : { opacity: 0.7 }),
+                  }}
+                  onClick={() => hasVideo && handleVideoJobClick(job)}
+                  onMouseEnter={(e) => {
+                    if (hasVideo) {
+                      e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.5)';
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (hasVideo) {
+                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                    }
+                  }}
+                >
+                  <div style={styles.historyCardHeader}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#f8fafc' }}>
+                      {job.prompt.length > 30 ? `${job.prompt.substring(0, 30)}...` : job.prompt}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        color: getStatusColor(job.status),
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      {job.status}
+                    </span>
+                  </div>
+                  <div style={styles.historyCardMeta}>
+                    <span>{formatDate(job.created_at)}</span>
+                    {(job as any).duration && <span>• {(job as any).duration}s</span>}
+                    {(job as any).resolution && <span>• {(job as any).resolution}</span>}
+                  </div>
+                  {hasVideo && (
+                    <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#4caf50' }}>
+                      ✓ Video available - Click to view
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+        </div>
+      </div>
     </div>
   );
 }

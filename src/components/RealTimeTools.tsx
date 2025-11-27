@@ -9,25 +9,25 @@ export default function RealTimeTools() {
       id: 'live-transcribe',
       title: 'Live Transcribe',
       description: 'Real-time speech-to-text transcription as you speak',
-      path: '/dashboard/voice/livemicvad',
+      path: '/voice/live-transcribe',
     },
     {
       id: 'web-captioner',
       title: 'Web Captioner',
       description: 'Generate live captions for web content and videos',
-      path: '/tools/web-captioner',
+      path: '/voice/live-captioner',
     },
     {
       id: 'real-time-translator',
       title: 'Real Time Translator',
       description: 'Translate speech in real-time across multiple languages',
-      path: '/tools/real-time-translator',
+      path: '/voice/live-translator',
     },
     {
       id: 'live-voice-translator',
       title: 'Live Voice Translator',
       description: 'Translate voice conversations instantly',
-      path: '/tools/live-voice-translator',
+      path: '/voice/live-voice-translator',
     },
   ];
 

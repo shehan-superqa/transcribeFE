@@ -5,8 +5,11 @@
 }
 
 .dashboard-content-wrapper {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
 }
 
 .dashboard-header {
@@ -78,10 +81,12 @@
 }
 
 .dashboard-main-layout {
+  flex: 1;
   display: grid;
   grid-template-columns: 1fr 400px;
   gap: 2rem;
   align-items: start;
+  min-width: 0;
 }
 
 .tool-wrapper {

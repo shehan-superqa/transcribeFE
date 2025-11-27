@@ -1,4 +1,38 @@
+/* Dark theme styles for select dropdowns */
+.video-generation-tool-container select {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  color: #f8fafc !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.video-generation-tool-container select option {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+  padding: 0.5rem !important;
+}
+
+.video-generation-tool-container select:focus {
+  outline: none !important;
+  border-color: rgba(99, 102, 241, 0.5) !important;
+}
+
 /* Responsive styles for VideoGenerationTool */
+@media (max-width: 1200px) {
+  .video-generation-tool-container {
+    flex-direction: column !important;
+  }
+  
+  .video-generation-tool-container > div:last-child {
+    min-width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  .video-generation-tool-container > div:last-child > div {
+    position: static !important;
+    max-height: none !important;
+  }
+}
+
 @media (max-width: 768px) {
   .video-generation-tool-container {
     padding: 1.5rem 1rem !important;

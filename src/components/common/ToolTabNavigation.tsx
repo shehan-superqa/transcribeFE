@@ -1,5 +1,5 @@
 /**
- * Tab navigation component for transcription features
+ * Common tab navigation component for both voice and video tools
  */
 
 import { Box, Tabs, Tab } from '@mui/material';
@@ -11,12 +11,21 @@ import SchoolIcon from '@mui/icons-material/School';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import FolderIcon from '@mui/icons-material/Folder';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
+import VideoFileIcon from '@mui/icons-material/VideoFile';
+import TranslateIcon from '@mui/icons-material/Translate';
+import SubtitlesIcon from '@mui/icons-material/Subtitles';
+import MovieIcon from '@mui/icons-material/Movie';
+import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 
-export interface TabNavigationProps {
-  currentTab: number;
+export type ToolType = 'voice' | 'video';
+
+interface TabConfig {
+  label: string;
+  icon: React.ReactElement;
+  path: string;
 }
 
-const tabs = [
+const voiceTabs: TabConfig[] = [
   { label: 'Transcribe', icon: <UploadFileIcon />, path: '/voice/transcribe' },
   { label: 'Batch Process', icon: <FolderIcon />, path: '/voice/batch' },
   { label: 'Live Mic VAD', icon: <MicIcon />, path: '/voice/live' },
@@ -26,9 +35,24 @@ const tabs = [
   { label: 'Trainer', icon: <SchoolIcon />, path: '/voice/trainer' },
 ];
 
-export default function TabNavigation({ currentTab }: TabNavigationProps) {
+const videoTabs: TabConfig[] = [
+  { label: 'Text to Video', icon: <AutoFixHighIcon />, path: '/video/text-to-video' },
+  { label: 'Video to Text', icon: <VideoFileIcon />, path: '/video/to-text' },
+  { label: 'Video Dubber', icon: <MovieIcon />, path: '/video/dubber' },
+  { label: 'Video Translator', icon: <TranslateIcon />, path: '/video/translator' },
+  { label: 'Subtitle Generator', icon: <SubtitlesIcon />, path: '/video/subtitle-generator' },
+];
+
+interface ToolTabNavigationProps {
+  toolType: ToolType;
+}
+
+export default function ToolTabNavigation({ toolType }: ToolTabNavigationProps) {
   const navigate = useNavigate();
   const location = useLocation();
+
+  const tabs = toolType === 'voice' ? voiceTabs : videoTabs;
+  const basePath = toolType === 'voice' ? '/voice' : '/video';
 
   const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
     const tab = tabs[newValue];
@@ -39,7 +63,7 @@ export default function TabNavigation({ currentTab }: TabNavigationProps) {
 
   // Determine current tab from location
   const getCurrentTab = () => {
-    if (location.pathname === '/voice' || location.pathname === '/voice/') {
+    if (location.pathname === basePath || location.pathname === `${basePath}/`) {
       return 0;
     }
     const currentPath = location.pathname;

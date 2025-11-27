@@ -2,8 +2,8 @@
  * Job management API endpoints
  */
 
-import axios from 'axios';
-import { getAccessToken } from '../api';
+import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
+import { getAccessToken, refreshAccessToken, clearAuthData } from '../api';
 import type { Job } from '../../types/api';
 
 const TRANSCRIBE_API_BASE_URL = import.meta.env.VITE_TRANSCRIBE_API_BASE_URL || 'http://localhost:5000';
@@ -29,6 +29,47 @@ const createApiClient = () => {
       return config;
     },
     (error) => {
+      return Promise.reject(error);
+    }
+  );
+
+  // Add response interceptor to handle 401 errors with token refresh
+  client.interceptors.response.use(
+    (response) => response,
+    async (error: AxiosError) => {
+      const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+
+      // If error is 401 and we haven't retried yet
+      if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+        originalRequest._retry = true;
+
+        try {
+          // Attempt to refresh the token
+          const newToken = await refreshAccessToken();
+          
+          if (newToken && originalRequest.headers) {
+            // Update the authorization header with the new token
+            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+            
+            // Retry the original request
+            return client(originalRequest);
+          } else {
+            // Token refresh failed, clear auth data
+            clearAuthData();
+            return Promise.reject(new Error('Authentication failed. Please log in again.'));
+          }
+        } catch (refreshError) {
+          // Token refresh failed, clear auth data
+          clearAuthData();
+          return Promise.reject(new Error('Authentication failed. Please log in again.'));
+        }
+      }
+
+      // Handle auth service 404 errors gracefully
+      if (error.response?.status === 404 && error.config?.url?.includes('/api/jobs')) {
+        return Promise.reject(new Error('Authentication service unavailable. Please try again later.'));
+      }
+
       return Promise.reject(error);
     }
   );

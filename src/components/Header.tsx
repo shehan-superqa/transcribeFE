@@ -153,27 +153,25 @@ const ToolsDropdown = ({ isMobile }: { isMobile: boolean }) => {
   if (isMobile) {
     return (
       <div style={{ backgroundColor: '#0d0d0d', borderRadius: '8px', boxShadow: '0 8px 20px rgba(0,0,0,0.5)', overflow: 'hidden', padding: '0.5rem', width: '100%' }}>
-        <HighlightedItem to="/dashboard/voice/transcribe" title="Audio to Text" description="Convert audio files to accurate text transcriptions" />
+        <HighlightedItem to="/voice/transcribe" title="Audio to Text" description="Convert audio files to accurate text transcriptions" />
         <div style={{ display: 'flex', flexDirection: 'column', marginTop: '0.5rem' }}>
-          <DropdownSection title="TRANSCRIPTION">
-            <SectionItem to="/dashboard/voice/transcribe" title="Audio to Text" description="Convert audio files to text" />
-            <SectionItem to="/dashboard/voice/transcribe" title="Video to Text" description="Extract text from video files" />
-            <SectionItem to="/tools/subtitle-generator" title="Subtitle Generator" description="Create subtitles for your videos" />
+          <DropdownSection title="VOICE (AUDIO) TOOLS">
+            <SectionItem to="/voice/transcribe" title="Audio to Text" description="Convert audio files to text" />
+            <SectionItem to="/voice/batch" title="Batch Processing" description="Process multiple audio files" />
+            <SectionItem to="/voice/live" title="Live Transcription" description="Real-time speech-to-text" />
+            <SectionItem to="/voice/tts" title="Text to Speech" description="Convert text to audio" />
+            <SectionItem to="/voice/translator" title="Audio Translator" description="Translate audio content" />
+            <SectionItem to="/voice/live-transcribe" title="Live Transcribe" description="Real-time transcription" />
+            <SectionItem to="/voice/live-captioner" title="Web Captioner" description="Generate live captions" />
+            <SectionItem to="/voice/live-translator" title="Real-Time Translator" description="Translate speech in real-time" />
+            <SectionItem to="/voice/live-voice-translator" title="Live Voice Translator" description="Translate voice conversations" />
           </DropdownSection>
-          <DropdownSection title="TRANSLATION">
-            <SectionItem to="/tools/audio-translator" title="Audio Translator" description="Translate audio content" />
-            <SectionItem to="/tools/video-translator" title="Video Translator" description="Translate video content" />
-          </DropdownSection>
-          <DropdownSection title="REAL-TIME">
-            <SectionItem to="/dashboard/voice/livemicvad" title="Live Transcribe" description="Real-time speech-to-text" />
-            <SectionItem to="/tools/web-captioner" title="Web Captioner" description="Generate live captions" />
-            <SectionItem to="/tools/real-time-translator" title="Real-Time Translator" description="Translate speech in real-time" />
-            <SectionItem to="/tools/live-voice-translator" title="Live Voice Translator" description="Translate voice conversations" />
-          </DropdownSection>
-          <DropdownSection title="OTHER">
-            <SectionItem to="/dashboard/video/text-to-video" title="Text to Video" description="Generate videos from text prompts" />
-            <SectionItem to="/tools/video-dubber" title="Video Dubber" description="Dub videos with new audio" />
-            <SectionItem to="/tools/free-tools" title="Free Tools" description="Access free transcription tools" />
+          <DropdownSection title="VIDEO TOOLS">
+            <SectionItem to="/video/text-to-video" title="Text to Video" description="Generate videos from text prompts" />
+            <SectionItem to="/video/to-text" title="Video to Text" description="Extract text from video files" />
+            <SectionItem to="/video/dubber" title="Video Dubber" description="Dub videos with new audio" />
+            <SectionItem to="/video/translator" title="Video Translator" description="Translate video content" />
+            <SectionItem to="/video/subtitle-generator" title="Subtitle Generator" description="Create subtitles for videos" />
           </DropdownSection>
         </div>
       </div>
@@ -182,27 +180,25 @@ const ToolsDropdown = ({ isMobile }: { isMobile: boolean }) => {
   
   return (
     <div className="tools-dropdown-scroll" style={{ display: 'flex', backgroundColor: '#0d0d0d', borderRadius: '8px', boxShadow: '0 8px 20px rgba(0,0,0,0.5)', overflowX: 'auto', overflowY: 'hidden', minWidth: '600px', maxWidth: '900px', padding: '0.5rem', scrollbarWidth: 'thin', scrollbarColor: '#333333 #0d0d0d' }}>
-      <HighlightedItem to="/dashboard/voice/transcribe" title="Audio to Text" description="Convert audio files to accurate text transcriptions instantly." />
+      <HighlightedItem to="/voice/transcribe" title="Audio to Text" description="Convert audio files to accurate text transcriptions instantly." />
       <div style={{ display: 'flex', flexShrink: 0 }}>
-        <DropdownSection title="TRANSCRIPTION">
-          <SectionItem to="/dashboard/voice/transcribe" title="Audio to Text" description="Convert audio files to text" />
-          <SectionItem to="/dashboard/voice/transcribe" title="Video to Text" description="Extract text from video files" />
-          <SectionItem to="/tools/subtitle-generator" title="Subtitle Generator" description="Create subtitles for videos" />
+        <DropdownSection title="VOICE (AUDIO) TOOLS">
+          <SectionItem to="/voice/transcribe" title="Audio to Text" description="Convert audio files to text" />
+          <SectionItem to="/voice/batch" title="Batch Processing" description="Process multiple audio files" />
+          <SectionItem to="/voice/live" title="Live Transcription" description="Real-time speech-to-text" />
+          <SectionItem to="/voice/tts" title="Text to Speech" description="Convert text to audio" />
+          <SectionItem to="/voice/translator" title="Audio Translator" description="Translate audio content" />
+          <SectionItem to="/voice/live-transcribe" title="Live Transcribe" description="Real-time transcription" />
+          <SectionItem to="/voice/live-captioner" title="Web Captioner" description="Generate live captions" />
+          <SectionItem to="/voice/live-translator" title="Real-Time Translator" description="Translate speech in real-time" />
+          <SectionItem to="/voice/live-voice-translator" title="Live Voice Translator" description="Translate voice conversations" />
         </DropdownSection>
-        <DropdownSection title="TRANSLATION">
-          <SectionItem to="/tools/audio-translator" title="Audio Translator" description="Translate audio content" />
-          <SectionItem to="/tools/video-translator" title="Video Translator" description="Translate video content" />
-        </DropdownSection>
-        <DropdownSection title="REAL-TIME">
-          <SectionItem to="/dashboard/voice/livemicvad" title="Live Transcribe" description="Real-time speech-to-text" />
-          <SectionItem to="/tools/web-captioner" title="Web Captioner" description="Generate live captions" />
-          <SectionItem to="/tools/real-time-translator" title="Real-Time Translator" description="Translate speech in real-time" />
-          <SectionItem to="/tools/live-voice-translator" title="Live Voice Translator" description="Translate voice conversations" />
-        </DropdownSection>
-        <DropdownSection title="OTHER">
-          <SectionItem to="/dashboard/video/text-to-video" title="Text to Video" description="Generate videos from text prompts" />
-          <SectionItem to="/tools/video-dubber" title="Video Dubber" description="Dub videos with new audio" />
-          <SectionItem to="/tools/free-tools" title="Free Tools" description="Access free transcription tools" />
+        <DropdownSection title="VIDEO TOOLS">
+          <SectionItem to="/video/text-to-video" title="Text to Video" description="Generate videos from text prompts" />
+          <SectionItem to="/video/to-text" title="Video to Text" description="Extract text from video files" />
+          <SectionItem to="/video/dubber" title="Video Dubber" description="Dub videos with new audio" />
+          <SectionItem to="/video/translator" title="Video Translator" description="Translate video content" />
+          <SectionItem to="/video/subtitle-generator" title="Subtitle Generator" description="Create subtitles for videos" />
         </DropdownSection>
       </div>
     </div>
@@ -212,16 +208,16 @@ const ToolsDropdown = ({ isMobile }: { isMobile: boolean }) => {
 const ComplexDropdown = ({ isMobile }: { isMobile: boolean }) => {
   if (isMobile) {
     return (
-      <div style={{ backgroundColor: '#0d0d0d', borderRadius: '8px', boxShadow: '0 8px 20px rgba(0,0,0,0.5)', overflow: 'hidden', padding: '0.5rem', width: '100%' }}>
-        <HighlightedItem to="/product/secure-voice-comm" title="Secure Comm." description="End-to-end encryption for all voice and data streams." />
+      <div style={{ backgroundColor: '#0d0d0d', borderRadius: '8px', boxShadow: '0 8px 20px rgba(0,0,0,0.5)', overflow: 'visible', padding: '0.5rem', width: '100%' }}>
+        <HighlightedItem to="/pricing" title="Secure Comm." description="End-to-end encryption for all voice and data streams." />
         <div style={{ display: 'flex', flexDirection: 'column', marginTop: '0.5rem' }}>
           <DropdownSection title="Core Features">
-            <SectionItem to="/product/voice-biometrics" title="Voice Biometrics" description="Verify user identity using unique voice prints (IVR)" />
-            <SectionItem to="/product/data-tokenization" title="Data Tokenization" description="Anonymize sensitive data in real-time conversations" />
+            <SectionItem to="/pricing" title="Voice Biometrics" description="Verify user identity using unique voice prints (IVR)" />
+            <SectionItem to="/pricing" title="Data Tokenization" description="Anonymize sensitive data in real-time conversations" />
           </DropdownSection>
           <DropdownSection title="Use Cases">
-            <SectionItem to="/solutions/contact-center-security" title="Contact Center Security" description="Protect customer PII and meet compliance standards" />
-            <SectionItem to="/solutions/remote-work-security" title="Remote Work Security" description="Secure virtual meetings and team collaborations" />
+            <SectionItem to="/pricing" title="Contact Center Security" description="Protect customer PII and meet compliance standards" />
+            <SectionItem to="/pricing" title="Remote Work Security" description="Secure virtual meetings and team collaborations" />
           </DropdownSection>
         </div>
       </div>
@@ -229,16 +225,16 @@ const ComplexDropdown = ({ isMobile }: { isMobile: boolean }) => {
   }
   
   return (
-    <div style={{ display: 'flex', backgroundColor: '#0d0d0d', borderRadius: '8px', boxShadow: '0 8px 20px rgba(0,0,0,0.5)', overflow: 'hidden', minWidth: '600px', maxWidth: '800px', padding: '0.5rem' }}>
-      <HighlightedItem to="/product/secure-voice-comm" title="Secure Comm." description="End-to-end encryption for all voice and data streams." />
-      <div style={{ display: 'flex' }}>
+    <div style={{ display: 'flex', backgroundColor: '#0d0d0d', borderRadius: '8px', boxShadow: '0 8px 20px rgba(0,0,0,0.5)', overflow: 'visible', minWidth: '600px', maxWidth: '800px', padding: '0.5rem' }}>
+      <HighlightedItem to="/pricing" title="Secure Comm." description="End-to-end encryption for all voice and data streams." />
+      <div style={{ display: 'flex', overflow: 'visible' }}>
         <DropdownSection title="Core Features">
-          <SectionItem to="/product/voice-biometrics" title="Voice Biometrics" description="Verify user identity using unique voice prints (IVR)" />
-          <SectionItem to="/product/data-tokenization" title="Data Tokenization" description="Anonymize sensitive data in real-time conversations" />
+          <SectionItem to="/pricing" title="Voice Biometrics" description="Verify user identity using unique voice prints (IVR)" />
+          <SectionItem to="/pricing" title="Data Tokenization" description="Anonymize sensitive data in real-time conversations" />
         </DropdownSection>
         <DropdownSection title="Use Cases">
-          <SectionItem to="/solutions/contact-center-security" title="Contact Center Security" description="Protect customer PII and meet compliance standards" />
-          <SectionItem to="/solutions/remote-work-security" title="Remote Work Security" description="Secure virtual meetings and team collaborations" />
+          <SectionItem to="/pricing" title="Contact Center Security" description="Protect customer PII and meet compliance standards" />
+          <SectionItem to="/pricing" title="Remote Work Security" description="Secure virtual meetings and team collaborations" />
         </DropdownSection>
       </div>
     </div>
@@ -340,7 +336,7 @@ export default function Header() {
     logoText: { fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: '1.2rem', color: '#fff', letterSpacing: '0.5px' },
     desktopNavLinks: { display: 'flex', alignItems: 'baseline' as const, gap: '1.25rem' },
     productDropdownContainer: { position: 'relative' as const, marginBottom: '-4px' },
-    productDropdownMenu: { position: 'absolute' as const, top: '100%', left: '0', paddingTop: '4px', zIndex: 201 },
+    productDropdownMenu: { position: 'absolute' as const, top: '100%', left: '0', paddingTop: '4px', zIndex: 201, overflow: 'visible' },
     productDropdownMenuMobile: { position: 'absolute' as const, top: '100%', left: '0', paddingTop: '4px', zIndex: 201, width: '100%' },
     rightAuthSection: { display: 'flex', alignItems: 'center', gap: '0.75rem' },
     mobileMenuIcon: { cursor: 'pointer' },
@@ -436,7 +432,7 @@ export default function Header() {
                   </div>
                 )}
               </div>
-              <NavLink to="/dashboard">Dashboard</NavLink>
+              <NavLink to="/voice/transcribe">Dashboard</NavLink>
               <NavLink
   onClick={() => {
     signOut();
@@ -513,8 +509,8 @@ export default function Header() {
                   </Link>
                 )}
               </div>
-              <NavLink to="/dashboard">Dashboard</NavLink>
-              <NavLink to="/tools/real-time">Tools</NavLink>
+              <NavLink to="/voice/transcribe">Dashboard</NavLink>
+              <NavLink to="/voice/live">Tools</NavLink>
               <NavLink
                 onClick={() => {
                   signOut();

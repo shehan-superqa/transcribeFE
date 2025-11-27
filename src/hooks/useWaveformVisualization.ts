@@ -1,141 +1,124 @@
 /**
- * Hook for real-time waveform visualization
+ * Hook for real-time waveform visualization using WaveSurfer.js with React wrapper
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
+import { useWavesurfer } from '@wavesurfer/react';
+import RecordPlugin from 'wavesurfer.js/dist/plugins/record.esm.js';
 
 export interface UseWaveformVisualizationReturn {
-  canvasRef: React.RefObject<HTMLCanvasElement>;
+  waveformRef: React.RefObject<HTMLDivElement>;
   audioLevel: number;
   startVisualization: (stream: MediaStream) => void;
   stopVisualization: () => void;
 }
 
 export function useWaveformVisualization(): UseWaveformVisualizationReturn {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationFrameRef = useRef<number | null>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const analyserRef = useRef<AnalyserNode | null>(null);
-  const dataArrayRef = useRef<Uint8Array | null>(null);
+  const waveformRef = useRef<HTMLDivElement>(null);
+  const recordPluginRef = useRef<RecordPlugin | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [audioLevel, setAudioLevel] = useState(0);
+  const [isReady, setIsReady] = useState(false);
 
-  const draw = () => {
-    if (!canvasRef.current || !analyserRef.current || !dataArrayRef.current) {
-      return;
+  // Create record plugin instance with scrolling waveform enabled
+  const recordPlugin = useMemo(() => RecordPlugin.create({
+    scrollingWaveform: true,
+    scrollingWaveformWindow: 5,
+    continuousWaveform: true,
+    renderRecordedAudio: false, // We don't want to render recorded audio, just visualize
+  }), []);
+
+  // Initialize WaveSurfer with record plugin
+  const { wavesurfer } = useWavesurfer({
+    container: waveformRef,
+    height: 200,
+    waveColor: '#00c6ff',
+    progressColor: '#00c6ff',
+    cursorColor: '#00c6ff',
+    barWidth: 2,
+    barRadius: 2,
+    normalize: true,
+    interact: false,
+    plugins: useMemo(() => [recordPlugin], [recordPlugin]),
+  });
+
+  // Store record plugin reference
+  useEffect(() => {
+    if (recordPlugin && wavesurfer) {
+      recordPluginRef.current = recordPlugin;
+      setIsReady(true);
     }
+  }, [recordPlugin, wavesurfer]);
 
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+  // Update audio level periodically
+  useEffect(() => {
+    if (!isReady || !streamRef.current) return;
 
-    const analyser = analyserRef.current;
-    const dataArray = dataArrayRef.current;
+    const updateAudioLevel = () => {
+      try {
+        // Create analyser from the stream to get audio level
+        const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+        const audioContext = new AudioContextClass();
+        const source = audioContext.createMediaStreamSource(streamRef.current!);
+        const analyser = audioContext.createAnalyser();
+        analyser.fftSize = 256;
+        source.connect(analyser);
 
-    analyser.getByteFrequencyData(dataArray);
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+        analyser.getByteFrequencyData(dataArray);
+        const average = dataArray.reduce((sum, value) => sum + value, 0) / dataArray.length;
+        setAudioLevel(average / 255); // Normalize to 0-1
 
-    // Clear canvas
-    ctx.fillStyle = '#121212';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // Cleanup
+        source.disconnect();
+        analyser.disconnect();
+        audioContext.close();
+      } catch (error) {
+        // Silently handle errors
+      }
+    };
 
-    // Calculate average audio level
-    const average = dataArray.reduce((sum, value) => sum + value, 0) / dataArray.length;
-    setAudioLevel(average / 255); // Normalize to 0-1
+    const levelInterval = setInterval(updateAudioLevel, 100);
+    return () => clearInterval(levelInterval);
+  }, [isReady]);
 
-    // Draw waveform
-    const barWidth = canvas.width / dataArray.length;
-    let x = 0;
-
-    ctx.fillStyle = '#00c6ff';
-    ctx.strokeStyle = '#00c6ff';
-    ctx.lineWidth = 2;
-
-    // Draw bars
-    for (let i = 0; i < dataArray.length; i++) {
-      const barHeight = (dataArray[i] / 255) * canvas.height;
-      
-      ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-      x += barWidth;
-    }
-
-    // Draw center line
-    ctx.strokeStyle = '#333333';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(0, canvas.height / 2);
-    ctx.lineTo(canvas.width, canvas.height / 2);
-    ctx.stroke();
-
-    animationFrameRef.current = requestAnimationFrame(draw);
-  };
-
-  const startVisualization = (stream: MediaStream) => {
-    if (streamRef.current === stream) {
+  const startVisualization = async (stream: MediaStream) => {
+    if (streamRef.current === stream && recordPluginRef.current?.isActive()) {
       return; // Already visualizing this stream
     }
 
     stopVisualization();
 
+    if (!recordPluginRef.current || !wavesurfer || !isReady) {
+      console.error('WaveSurfer or record plugin not ready');
+      return;
+    }
+
     streamRef.current = stream;
 
     try {
-      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-      const audioContext = new AudioContextClass();
-      audioContextRef.current = audioContext;
-
-      const source = audioContext.createMediaStreamSource(stream);
-      const analyser = audioContext.createAnalyser();
-      analyser.fftSize = 256;
-      analyser.smoothingTimeConstant = 0.8;
-
-      const bufferLength = analyser.frequencyBinCount;
-      const dataArray = new Uint8Array(bufferLength);
-      dataArrayRef.current = dataArray;
-
-      source.connect(analyser);
-      analyserRef.current = analyser;
-
-      // Set canvas size
-      if (canvasRef.current) {
-        canvasRef.current.width = canvasRef.current.offsetWidth;
-        canvasRef.current.height = 200;
-      }
-
-      draw();
+      // Use renderMicStream to visualize the microphone stream
+      recordPluginRef.current.renderMicStream(stream);
+      console.log('Microphone visualization started');
     } catch (error) {
-      console.error('Error starting waveform visualization:', error);
+      console.error('Error starting microphone visualization:', error);
     }
   };
 
   const stopVisualization = () => {
-    if (animationFrameRef.current !== null) {
-      cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = null;
-    }
-
-    if (analyserRef.current) {
-      analyserRef.current.disconnect();
-      analyserRef.current = null;
-    }
-
-    if (audioContextRef.current) {
-      audioContextRef.current.close();
-      audioContextRef.current = null;
+    if (recordPluginRef.current?.isActive()) {
+      try {
+        recordPluginRef.current.stopMic();
+      } catch (error) {
+        console.error('Error stopping microphone:', error);
+      }
     }
 
     streamRef.current = null;
     setAudioLevel(0);
-
-    // Clear canvas
-    if (canvasRef.current) {
-      const ctx = canvasRef.current.getContext('2d');
-      if (ctx) {
-        ctx.fillStyle = '#121212';
-        ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-      }
-    }
   };
 
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
       stopVisualization();
@@ -143,10 +126,9 @@ export function useWaveformVisualization(): UseWaveformVisualizationReturn {
   }, []);
 
   return {
-    canvasRef,
+    waveformRef,
     audioLevel,
     startVisualization,
     stopVisualization,
   };
 }
-

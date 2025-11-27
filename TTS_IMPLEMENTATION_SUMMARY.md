@@ -152,3 +152,4 @@ All components follow the existing dark theme:
 - The voice selector uses Material-UI Autocomplete for better performance with large lists
 
 
+

@@ -50,17 +50,9 @@ function AppContent() {
 
               <Route path="/pricing" element={<Pricing />} />
 
-              {/* Protected Routes */}
+              {/* Protected Routes - Voice (Audio) Tools */}
               <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <Navigate to="/dashboard/voice/transcribe" replace />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/dashboard/*"
+                path="/voice/*"
                 element={
                   <ProtectedRoute>
                     <Dashboard />
@@ -68,12 +60,40 @@ function AppContent() {
                 }
               />
 
-              {/* Tools Dashboard with Sidebar Navigation */}
+              {/* Protected Routes - Video Tools */}
+              <Route
+                path="/video/*"
+                element={
+                  <ProtectedRoute>
+                    <ToolsDashboard />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Legacy dashboard route - redirect to voice */}
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <Navigate to="/voice/transcribe" replace />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard/*"
+                element={
+                  <ProtectedRoute>
+                    <Navigate to="/voice/transcribe" replace />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Legacy tools route - redirect to video */}
               <Route
                 path="/tools/*"
                 element={
                   <ProtectedRoute>
-                    <ToolsDashboard />
+                    <Navigate to="/video/text-to-video" replace />
                   </ProtectedRoute>
                 }
               />

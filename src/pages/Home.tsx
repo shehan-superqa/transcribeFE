@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import TranscriptionTool from '../components/TranscriptionTool';
 import { useAuth } from '../lib/auth';
 import ImageDescription from "../components/ImageDescription"
@@ -78,9 +78,9 @@ export default function Home() {
             Plus, generate stunning videos from text prompts using advanced AI. 
             <span className="highlight"> Get started with 100 free energy points.</span>
           </p>
-          <a href="/login" className="get-started-button">
+          <Link to="/auth/login" className="get-started-button">
             <span>Get Started Free</span>
-          </a>
+          </Link>
         </div>
       </section>
 
@@ -205,7 +205,7 @@ export default function Home() {
       <section className="cta-section">
         <h2>Ready to Get Started?</h2>
         <p>Sign up now and get 100 free energy points to try our transcription and video generation services</p>
-        <a href="/login" className="get-started-button">Get Started Free</a>
+        <Link to="/auth/login" className="get-started-button">Get Started Free</Link>
       </section>
     </div>
   );
