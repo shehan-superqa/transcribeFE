@@ -8,7 +8,6 @@ import CssBaseline from "@mui/material/CssBaseline";
 import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import TranscribeTab from "../components/transcription/TranscribeTab";
-import BatchTab from "../components/transcription/BatchTab";
 import LiveMicTab from "../components/transcription/LiveMicTab";
 import TTSTab from "../components/transcription/TTSTab";
 import HistoryTab from "../components/transcription/HistoryTab";
@@ -200,7 +199,7 @@ export default function Dashboard() {
                 <Routes>
                   <Route path="/" element={<Navigate to="/voice/transcribe" replace />} />
                   <Route path="transcribe" element={<TranscribeTab />} />
-                  <Route path="batch" element={<BatchTab />} />
+                  <Route path="batch" element={<Navigate to="/voice/transcribe" replace />} />
                   <Route path="live" element={<LiveMicTab />} />
                   <Route path="livemicvad" element={<Navigate to="/voice/live" replace />} />
                   <Route path="tts" element={<TTSTab />} />

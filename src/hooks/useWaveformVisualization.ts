@@ -1,8 +1,9 @@
 /**
  * Hook for real-time waveform visualization using WaveSurfer.js with React wrapper
+ * Uses @wavesurfer/react hook similar to the official example
  */
 
-import { useEffect, useRef, useState, useMemo } from 'react';
+import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { useWavesurfer } from '@wavesurfer/react';
 import RecordPlugin from 'wavesurfer.js/dist/plugins/record.esm.js';
 
@@ -17,28 +18,33 @@ export function useWaveformVisualization(): UseWaveformVisualizationReturn {
   const waveformRef = useRef<HTMLDivElement>(null);
   const recordPluginRef = useRef<RecordPlugin | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const micStreamRef = useRef<{ onDestroy: () => void; onEnd: () => void } | null>(null);
   const [audioLevel, setAudioLevel] = useState(0);
-  const [isReady, setIsReady] = useState(false);
 
-  // Create record plugin instance with scrolling waveform enabled
+  // Create RecordPlugin instance with smaller scrolling window
   const recordPlugin = useMemo(() => RecordPlugin.create({
     scrollingWaveform: true,
-    scrollingWaveformWindow: 5,
+    scrollingWaveformWindow: 1, // Very small window (1 second) - shows minimal time at once
     continuousWaveform: true,
-    renderRecordedAudio: false, // We don't want to render recorded audio, just visualize
+    renderRecordedAudio: false,
+    mediaRecorderTimeslice: 50,
   }), []);
 
-  // Initialize WaveSurfer with record plugin
+  // Use @wavesurfer/react hook - similar to the official example
   const { wavesurfer } = useWavesurfer({
     container: waveformRef,
     height: 200,
     waveColor: '#00c6ff',
     progressColor: '#00c6ff',
     cursorColor: '#00c6ff',
-    barWidth: 2,
-    barRadius: 2,
+    barWidth: 1,
+    barRadius: 0,
+    barGap: 0,
     normalize: true,
     interact: false,
+    fillParent: true,
+    // Ensure the waveform fills the container properly
+    minPxPerSec: 50, // Controls the zoom level - smaller value = more compressed
     plugins: useMemo(() => [recordPlugin], [recordPlugin]),
   });
 
@@ -46,28 +52,28 @@ export function useWaveformVisualization(): UseWaveformVisualizationReturn {
   useEffect(() => {
     if (recordPlugin && wavesurfer) {
       recordPluginRef.current = recordPlugin;
-      setIsReady(true);
     }
   }, [recordPlugin, wavesurfer]);
 
   // Update audio level periodically
   useEffect(() => {
-    if (!isReady || !streamRef.current) return;
+    if (!streamRef.current) return;
 
     const updateAudioLevel = () => {
       try {
-        // Create analyser from the stream to get audio level
+        // Create analyser from the stream
         const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
         const audioContext = new AudioContextClass();
         const source = audioContext.createMediaStreamSource(streamRef.current!);
         const analyser = audioContext.createAnalyser();
         analyser.fftSize = 256;
+        analyser.smoothingTimeConstant = 0.8;
         source.connect(analyser);
 
         const dataArray = new Uint8Array(analyser.frequencyBinCount);
         analyser.getByteFrequencyData(dataArray);
         const average = dataArray.reduce((sum, value) => sum + value, 0) / dataArray.length;
-        setAudioLevel(average / 255); // Normalize to 0-1
+        setAudioLevel(average / 255);
 
         // Cleanup
         source.disconnect();
@@ -80,17 +86,23 @@ export function useWaveformVisualization(): UseWaveformVisualizationReturn {
 
     const levelInterval = setInterval(updateAudioLevel, 100);
     return () => clearInterval(levelInterval);
-  }, [isReady]);
+  }, [streamRef.current]);
 
-  const startVisualization = async (stream: MediaStream) => {
-    if (streamRef.current === stream && recordPluginRef.current?.isActive()) {
+  const startVisualization = useCallback(async (stream: MediaStream) => {
+    if (streamRef.current === stream && micStreamRef.current) {
       return; // Already visualizing this stream
     }
 
     stopVisualization();
 
-    if (!recordPluginRef.current || !wavesurfer || !isReady) {
-      console.error('WaveSurfer or record plugin not ready');
+    if (!recordPluginRef.current || !wavesurfer) {
+      console.log('Waiting for WaveSurfer to be ready...');
+      // Retry after a short delay
+      setTimeout(() => {
+        if (recordPluginRef.current && wavesurfer) {
+          startVisualization(stream);
+        }
+      }, 200);
       return;
     }
 
@@ -98,14 +110,27 @@ export function useWaveformVisualization(): UseWaveformVisualizationReturn {
 
     try {
       // Use renderMicStream to visualize the microphone stream
-      recordPluginRef.current.renderMicStream(stream);
-      console.log('Microphone visualization started');
+      // This creates a real-time scrolling waveform with filled appearance
+      const micStream = recordPluginRef.current.renderMicStream(stream);
+      micStreamRef.current = micStream;
+      console.log('WaveSurfer.js microphone visualization started with stream:', stream.id);
     } catch (error) {
-      console.error('Error starting microphone visualization:', error);
+      console.error('Error starting WaveSurfer.js microphone visualization:', error);
     }
-  };
+  }, [wavesurfer]);
 
-  const stopVisualization = () => {
+  const stopVisualization = useCallback(() => {
+    // Clean up MicStream if it exists
+    if (micStreamRef.current) {
+      try {
+        micStreamRef.current.onDestroy();
+      } catch (error) {
+        console.error('Error destroying mic stream:', error);
+      }
+      micStreamRef.current = null;
+    }
+
+    // Stop microphone monitoring if active
     if (recordPluginRef.current?.isActive()) {
       try {
         recordPluginRef.current.stopMic();
@@ -116,14 +141,14 @@ export function useWaveformVisualization(): UseWaveformVisualizationReturn {
 
     streamRef.current = null;
     setAudioLevel(0);
-  };
+  }, []);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       stopVisualization();
     };
-  }, []);
+  }, [stopVisualization]);
 
   return {
     waveformRef,

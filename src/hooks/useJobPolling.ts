@@ -6,6 +6,16 @@ import { useEffect, useState, useRef } from 'react';
 import { getJobStatus } from '../lib/api/jobsApi';
 import type { Job } from '../types/api';
 
+export interface ProgressDetails {
+  percentage?: number;
+  audio_duration?: number;
+  audio_time_processed?: number;
+  audio_time_remaining?: number;
+  current_frames?: number;
+  frames_progress?: string;
+  total_frames?: number;
+}
+
 export interface UseJobPollingReturn {
   job: Job | null;
   status: string;
@@ -14,6 +24,7 @@ export interface UseJobPollingReturn {
   result: any | null;
   error: string | null;
   isLoading: boolean;
+  progressDetails: ProgressDetails | null;
 }
 
 /**
@@ -28,6 +39,7 @@ export function useJobPolling(jobId: string | null, pollInterval: number = 2000)
   const [result, setResult] = useState<any | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [progressDetails, setProgressDetails] = useState<ProgressDetails | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const isPollingRef = useRef<boolean>(false);
 
@@ -45,6 +57,7 @@ export function useJobPolling(jobId: string | null, pollInterval: number = 2000)
       setMessage('');
       setResult(null);
       setError(null);
+      setProgressDetails(null);
       setIsLoading(false);
       return;
     }
@@ -92,6 +105,39 @@ export function useJobPolling(jobId: string | null, pollInterval: number = 2000)
           if (!calculatedProgress && (jobData as any).percentage !== undefined) {
             calculatedProgress = Math.min(Math.max((jobData as any).percentage, 0), 100);
           }
+
+          // 4. Check for progress_details object (new detailed progress structure)
+          let extractedProgressDetails: ProgressDetails | null = null;
+          if ((jobData as any).progress_details) {
+            const pd = (jobData as any).progress_details;
+            extractedProgressDetails = {
+              percentage: pd.percentage,
+              audio_duration: pd.audio_duration,
+              audio_time_processed: pd.audio_time_processed,
+              audio_time_remaining: pd.audio_time_remaining,
+              current_frames: pd.current_frames,
+              frames_progress: pd.frames_progress,
+              total_frames: pd.total_frames,
+            };
+            
+            // Use percentage from progress_details if available
+            if (pd.percentage !== undefined && pd.percentage !== null) {
+              calculatedProgress = Math.min(Math.max(pd.percentage, 0), 100);
+            }
+            
+            // Create detailed status message
+            if (pd.audio_time_processed !== undefined && pd.audio_time_remaining !== undefined) {
+              const processedMin = Math.floor(pd.audio_time_processed / 60);
+              const processedSec = Math.floor(pd.audio_time_processed % 60);
+              const remainingMin = Math.floor(pd.audio_time_remaining / 60);
+              const remainingSec = Math.floor(pd.audio_time_remaining % 60);
+              statusMessage = `Processed: ${processedMin}:${processedSec.toString().padStart(2, '0')} / Remaining: ${remainingMin}:${remainingSec.toString().padStart(2, '0')} (${pd.percentage || 0}%)`;
+            } else if (pd.frames_progress) {
+              statusMessage = `Processing frames: ${pd.frames_progress} (${pd.percentage || 0}%)`;
+            }
+          }
+          
+          setProgressDetails(extractedProgressDetails);
 
           // Check if replicate_data contains progress information
           if (!calculatedProgress && jobData.replicate_data) {
@@ -217,6 +263,7 @@ export function useJobPolling(jobId: string | null, pollInterval: number = 2000)
     result,
     error,
     isLoading,
+    progressDetails,
   };
 }
 

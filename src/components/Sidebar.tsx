@@ -25,8 +25,7 @@ const menuItems: MenuItem[] = [
     path: '/voice/transcribe',
     isExpandable: true,
     subItems: [
-      { id: 'transcribe', label: 'Transcribe', path: '/voice/transcribe' },
-      { id: 'batch', label: 'Batch Process', path: '/voice/batch' },
+      { id: 'transcribe', label: 'Transcribe (Single & Batch)', path: '/voice/transcribe' },
       { id: 'live', label: 'Live Mic VAD', path: '/voice/live' },
       { id: 'tts', label: 'Text-to-Speech', path: '/voice/tts' },
       { id: 'history', label: 'History', path: '/voice/history' },

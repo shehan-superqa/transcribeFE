@@ -213,11 +213,17 @@ export default function LiveMicTab() {
             borderRadius: 1,
             overflow: 'hidden',
             border: '1px solid #333333',
+            position: 'relative',
             '& wave': {
               height: '200px !important',
             },
             '& wavesurfer': {
               height: '200px !important',
+              width: '100% !important',
+            },
+            '& > div': {
+              width: '100% !important',
+              height: '100% !important',
             },
           }}
         >
@@ -226,6 +232,7 @@ export default function LiveMicTab() {
             style={{
               width: '100%',
               height: '100%',
+              minHeight: '200px',
             }}
           />
         </Box>

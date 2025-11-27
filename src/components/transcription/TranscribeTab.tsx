@@ -1,9 +1,9 @@
 /**
- * Transcription tab component
- * Main interface for file transcription
+ * Unified Transcription tab component
+ * Handles both single file and batch processing
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Button,
@@ -19,18 +19,39 @@ import {
   Radio,
   TextField,
   Alert,
+  List,
+  ListItem,
+  ListItemText,
+  IconButton,
+  Chip,
+  LinearProgress,
 } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
+import DownloadIcon from '@mui/icons-material/Download';
+import CancelIcon from '@mui/icons-material/Cancel';
+import AddIcon from '@mui/icons-material/Add';
 import FileUploader from './common/FileUploader';
 import ProgressBar from './common/ProgressBar';
 import StatusLabel from './common/StatusLabel';
 import { transcriptionStore } from '../../stores/transcriptionStore';
 import { useJobPolling } from '../../hooks/useJobPolling';
-import { getAvailableModels } from '../../lib/api/transcriptionApi';
+import { getAvailableModels, submitTranscriptionJob } from '../../lib/api/transcriptionApi';
+import { cancelJob } from '../../lib/api/jobsApi';
 import type { TranscriptionConfig } from '../../types/api';
 import type { ProcessingMode } from '../../types/transcription';
+import type { TranscriptionResult } from '../../types/api';
+
+interface BatchFile {
+  file: File;
+  status: 'idle' | 'pending' | 'processing' | 'completed' | 'error' | 'cancelled';
+  result?: TranscriptionResult;
+  error?: string;
+  jobId?: string;
+}
 
 export default function TranscribeTab() {
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
+  const [batchFiles, setBatchFiles] = useState<BatchFile[]>([]);
   const [engine, setEngine] = useState('replicate');
   const [language, setLanguage] = useState('en');
   const [model, setModel] = useState('base');
@@ -40,13 +61,21 @@ export default function TranscribeTab() {
   const [jobId, setJobId] = useState<string | null>(null);
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [availableLanguages, setAvailableLanguages] = useState<string[]>([]);
+  const [isBatchProcessing, setIsBatchProcessing] = useState(false);
+  const [batchProgress, setBatchProgress] = useState(0);
+  const [batchError, setBatchError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const submitJob = transcriptionStore((state) => state.submitJob);
   const isProcessing = transcriptionStore((state) => state.isProcessing);
   const results = transcriptionStore((state) => state.results);
   const error = transcriptionStore((state) => state.error);
   const clearResults = transcriptionStore((state) => state.clearResults);
-  const { progress, message, result, status, error: pollingError } = useJobPolling(jobId);
+  const { progress, message, result, status, error: pollingError, progressDetails, job } = useJobPolling(jobId);
+
+  // Determine if we're in batch mode (multiple files) or single mode
+  const isBatchMode = files.length > 1;
+  const singleFile = files.length === 1 ? files[0] : null;
 
   useEffect(() => {
     // Load available models and languages
@@ -58,30 +87,94 @@ export default function TranscribeTab() {
         }
       })
       .catch((error) => {
-        // Silently handle errors - API might not be available
         console.warn('Failed to load available models:', error);
-        // Set default values if API fails
         setAvailableModels(['base', 'small', 'medium', 'large']);
         setAvailableLanguages(['en']);
       });
   }, []);
 
   const setResults = transcriptionStore((state) => state.setResults);
+  const setIsProcessing = transcriptionStore((state) => state.setIsProcessing);
   
   useEffect(() => {
-    // Update results when polling receives final result
+    // Update results when polling receives final result or when job completes
     if (result && results !== result) {
       setResults(result);
+      setIsProcessing(false);
+    } else if (status === 'completed') {
+      // Job completed - ensure isProcessing is false and extract result if available
+      setIsProcessing(false);
+      if (job?.result && !results) {
+        // Extract result from job object if not already set
+        setResults(job.result);
+      } else if (result && !results) {
+        // Use result from polling hook if available
+        setResults(result);
+      }
+    } else if (status === 'error' || status === 'cancelled') {
+      // Job failed or cancelled
+      setIsProcessing(false);
+    } else if (status === 'processing' || status === 'queued' || status === 'starting') {
+      // Job is still processing
+      setIsProcessing(true);
     }
-  }, [result, results, setResults]);
+  }, [result, results, setResults, setIsProcessing, status, job]);
+
+  // Convert files array to batchFiles when switching to batch mode
+  useEffect(() => {
+    if (isBatchMode && files.length > 0) {
+      const newBatchFiles: BatchFile[] = files.map((file) => {
+        // Check if file already exists in batchFiles
+        const existing = batchFiles.find((bf) => bf.file === file);
+        if (existing) return existing;
+        // New files start as 'idle' - they haven't been queued for processing yet
+        return {
+          file,
+          status: 'idle' as const,
+        };
+      });
+      // Remove files that are no longer in the files array
+      const updatedBatchFiles = newBatchFiles.filter((bf) => files.includes(bf.file));
+      setBatchFiles(updatedBatchFiles);
+    } else if (!isBatchMode && files.length === 0) {
+      setBatchFiles([]);
+    }
+  }, [files, isBatchMode]);
 
   const handleFileSelect = (selectedFile: File) => {
-    setFile(selectedFile);
+    // If single file mode, replace; if batch mode, add
+    if (files.length === 0) {
+      setFiles([selectedFile]);
+    } else {
+      setFiles([...files, selectedFile]);
+    }
     clearResults();
+    setBatchError(null);
+  };
+
+  const handleMultipleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = event.target.files;
+    if (selectedFiles) {
+      const newFiles = Array.from(selectedFiles);
+      setFiles((prev) => [...prev, ...newFiles]);
+      setBatchError(null);
+    }
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRemoveFile = (index: number) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+    if (files.length === 2) {
+      // Switching from batch to single mode
+      setBatchFiles([]);
+    }
   };
 
   const handleStartTranscription = async () => {
-    if (!file) {
+    if (files.length === 0) {
       return;
     }
 
@@ -94,41 +187,568 @@ export default function TranscribeTab() {
       enable_capitalization: enableCapitalization,
     };
 
-    const submittedJobId = await submitJob(file, config);
-    if (submittedJobId) {
-      setJobId(submittedJobId);
+    if (isBatchMode) {
+      // Batch processing
+      await handleStartBatch(config);
+    } else {
+      // Single file processing
+      const submittedJobId = await submitJob(singleFile!, config);
+      if (submittedJobId) {
+        setJobId(submittedJobId);
+      }
     }
   };
 
-  const cancelJob = transcriptionStore((state) => state.cancelJob);
+  const handleStartBatch = async (config: TranscriptionConfig) => {
+    if (batchFiles.length === 0) {
+      setBatchError('Please select at least one file');
+      return;
+    }
+
+    // Get files that are idle (new files) or pending (retry)
+    const filesToProcess = batchFiles.filter((f) => f.status === 'idle' || f.status === 'pending');
+    
+    if (filesToProcess.length === 0) {
+      setBatchError('No files ready for processing');
+      return;
+    }
+
+    setIsBatchProcessing(true);
+    setBatchProgress(0);
+    setBatchError(null);
+
+    // Set idle files to pending, then immediately to processing
+    setBatchFiles((prev) =>
+      prev.map((f) => {
+        if (f.status === 'idle' || f.status === 'pending') {
+          return { ...f, status: 'processing' as const };
+        }
+        return f;
+      })
+    );
+
+    try {
+      const jobPromises = filesToProcess.map(async (batchFile) => {
+        try {
+          const response = await submitTranscriptionJob(batchFile.file, config);
+          return {
+            file: batchFile.file,
+            jobId: response.job_id,
+            success: true,
+          };
+        } catch (err: any) {
+          let errorMessage = err.response?.data?.error || err.message || 'Failed to submit job';
+          if (err.response?.status === 401 || errorMessage.includes('Authentication failed')) {
+            errorMessage = 'Authentication failed. Please log in again.';
+          } else if (errorMessage.includes('Authentication service unavailable')) {
+            errorMessage = 'Authentication service unavailable. Please try again later.';
+          }
+          return {
+            file: batchFile.file,
+            jobId: undefined,
+            success: false,
+            error: errorMessage,
+          };
+        }
+      });
+
+      const jobResults = await Promise.all(jobPromises);
+
+      setBatchFiles((prev) => {
+        return prev.map((batchFile) => {
+          const jobResult = jobResults.find((jr) => jr.file === batchFile.file);
+          if (jobResult) {
+            if (jobResult.success && jobResult.jobId) {
+              return {
+                ...batchFile,
+                status: 'processing' as const,
+                jobId: jobResult.jobId,
+              };
+            } else {
+              return {
+                ...batchFile,
+                status: 'error' as const,
+                error: jobResult.error,
+              };
+            }
+          }
+          return batchFile;
+        });
+      });
+
+      const successfulJobs = jobResults.filter((jr) => jr.success && jr.jobId).map((jr) => jr.jobId!);
+      if (successfulJobs.length > 0) {
+        pollBatchJobStatuses(successfulJobs);
+      } else {
+        setIsBatchProcessing(false);
+      }
+    } catch (err: any) {
+      let errorMessage = err.response?.data?.error || err.message || 'Batch processing failed';
+      if (err.response?.status === 401 || errorMessage.includes('Authentication failed')) {
+        errorMessage = 'Authentication failed. Please log in again.';
+      } else if (errorMessage.includes('Authentication service unavailable')) {
+        errorMessage = 'Authentication service unavailable. Please try again later.';
+      }
+      setBatchError(errorMessage);
+      setBatchFiles((prev) =>
+        prev.map((f) =>
+          f.status === 'processing' ? { ...f, status: 'error' as const, error: errorMessage } : f
+        )
+      );
+      setIsBatchProcessing(false);
+    }
+  };
+
+  const pollBatchJobStatuses = (jobIds: string[]) => {
+    if (jobIds.length === 0) {
+      setIsBatchProcessing(false);
+      return;
+    }
+
+    const pollInterval = setInterval(async () => {
+      const { getJobStatus } = await import('../../lib/api/jobsApi');
+      
+      const statusPromises = jobIds.map(async (jobId) => {
+        try {
+          const response = await getJobStatus(jobId);
+          return { jobId, job: response.job };
+        } catch {
+          return { jobId, job: null };
+        }
+      });
+
+      const statuses = await Promise.all(statusPromises);
+      
+      setBatchFiles((prev) => {
+        let allCompleted = true;
+        const updated = prev.map((batchFile) => {
+          if (!batchFile.jobId) return batchFile;
+          
+          const status = statuses.find((s) => s.jobId === batchFile.jobId);
+          if (!status || !status.job) {
+            if (batchFile.status === 'processing') {
+              allCompleted = false;
+            }
+            return batchFile;
+          }
+
+          const job = status.job;
+          if (job.status === 'completed' && job.result) {
+            return {
+              ...batchFile,
+              status: 'completed' as const,
+              result: job.result,
+            };
+          } else if (job.status === 'error' || job.status === 'cancelled') {
+            return {
+              ...batchFile,
+              status: job.status === 'cancelled' ? ('cancelled' as const) : ('error' as const),
+              error: job.error || 'Processing failed',
+            };
+          } else {
+            allCompleted = false;
+            return batchFile;
+          }
+        });
+
+        // Update progress
+        const completedCount = updated.filter((f) => f.status === 'completed').length;
+        setBatchProgress((completedCount / updated.length) * 100);
+
+        if (allCompleted) {
+          setIsBatchProcessing(false);
+          clearInterval(pollInterval);
+        }
+
+        return updated;
+      });
+    }, 2000);
+
+    setTimeout(() => {
+      clearInterval(pollInterval);
+      setIsBatchProcessing(false);
+    }, 600000);
+  };
+
+  const handleCancelFile = async (index: number) => {
+    const batchFile = batchFiles[index];
+    if (!batchFile.jobId) {
+      handleRemoveFile(index);
+      return;
+    }
+
+    try {
+      await cancelJob(batchFile.jobId);
+      setBatchFiles((prev) =>
+        prev.map((f, i) =>
+          i === index ? { ...f, status: 'cancelled' as const } : f
+        )
+      );
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.error || err.message || 'Failed to cancel job';
+      setBatchError(`Failed to cancel ${batchFile.file.name}: ${errorMessage}`);
+    }
+  };
+
+  const handleDownload = (text: string, filename: string) => {
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${filename.replace(/\.[^/.]+$/, '')}_transcription.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const cancelJobStore = transcriptionStore((state) => state.cancelJob);
   
   const handleStop = () => {
     if (jobId) {
-      cancelJob(jobId);
+      cancelJobStore(jobId);
       setJobId(null);
     }
   };
 
+  const completedCount = batchFiles.filter((f) => f.status === 'completed').length;
+  const errorCount = batchFiles.filter((f) => f.status === 'error').length;
+  const pendingCount = batchFiles.filter((f) => f.status === 'pending').length;
+  const idleCount = batchFiles.filter((f) => f.status === 'idle').length;
+
+  // Helper function to format time in seconds to MM:SS format
+  const formatTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   return (
     <Box>
-      <Typography variant="h4" gutterBottom sx={{ color: '#e0e0e0', mb: 3 }}>
-        Transcribe Audio/Video
-      </Typography>
-
-      {/* File Upload */}
-      <Paper sx={{ p: 3, mb: 3, backgroundColor: '#1e1e1e', border: '1px solid #333333' }}>
-        <Typography variant="h6" gutterBottom sx={{ color: '#e0e0e0', mb: 2 }}>
-          Audio/Video File
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h4" sx={{ color: '#e0e0e0' }}>
+          Transcribe Audio/Video
         </Typography>
-        <FileUploader
-          onFileSelect={handleFileSelect}
-          currentFile={file}
-          disabled={isProcessing}
-        />
-        {file && (
-          <Typography variant="body2" sx={{ mt: 1, color: '#a0a0a0' }}>
-            Size: {(file.size / (1024 * 1024)).toFixed(2)} MB | Format: {file.name.split('.').pop()?.toUpperCase()}
+        {isBatchMode && (
+          <Chip 
+            label={`Batch Mode: ${files.length} files`}
+            sx={{
+              backgroundColor: '#00c6ff',
+              color: '#121212',
+              fontWeight: 600,
+            }}
+          />
+        )}
+        {!isBatchMode && files.length === 1 && (
+          <Chip 
+            label="Single File Mode"
+            sx={{
+              backgroundColor: '#4caf50',
+              color: '#fff',
+              fontWeight: 600,
+            }}
+          />
+        )}
+      </Box>
+
+      {/* Controls - Moved to Top */}
+      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+        <Button
+          variant="contained"
+          onClick={handleStartTranscription}
+          disabled={files.length === 0 || isProcessing || isBatchProcessing || (isBatchMode && batchFiles.every((f) => f.status !== 'idle' && f.status !== 'pending'))}
+          size="large"
+          sx={{
+            backgroundColor: '#00c6ff',
+            color: '#121212',
+            '&:hover': { backgroundColor: '#00b0e6' },
+            '&:disabled': { backgroundColor: '#333333', color: '#666666' },
+          }}
+        >
+          {isBatchMode 
+            ? `Start Batch Processing (${idleCount + pendingCount} files)`
+            : 'Start Audio/Video Transcription'
+          }
+        </Button>
+        {!isBatchMode && (
+          <Button
+            variant="outlined"
+            onClick={handleStop}
+            disabled={!isProcessing}
+            size="large"
+            sx={{
+              borderColor: '#333333',
+              color: '#e0e0e0',
+              '&:hover': { borderColor: '#00c6ff', backgroundColor: '#1a1a1a' },
+              '&:disabled': { borderColor: '#333333', color: '#666666' },
+            }}
+          >
+            Stop
+          </Button>
+        )}
+        {isBatchMode && files.length > 0 && (
+          <Button
+            variant="outlined"
+            onClick={() => {
+              setFiles([]);
+              setBatchFiles([]);
+              setBatchError(null);
+            }}
+            disabled={isBatchProcessing}
+            size="large"
+            sx={{
+              borderColor: '#333333',
+              color: '#e0e0e0',
+              '&:hover': { borderColor: '#00c6ff', backgroundColor: '#1a1a1a' },
+              '&:disabled': { borderColor: '#333333', color: '#666666' },
+            }}
+          >
+            Clear All
+          </Button>
+        )}
+      </Box>
+
+      {/* File Upload Section */}
+      <Paper sx={{ p: 3, mb: 3, backgroundColor: '#1e1e1e', border: '1px solid #333333' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h6" sx={{ color: '#e0e0e0' }}>
+            {isBatchMode ? `Audio/Video Files (${files.length})` : 'Audio/Video File'}
           </Typography>
+          {isBatchMode && (
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Chip label={`${completedCount} Completed`} size="small" sx={{ backgroundColor: '#4caf50', color: '#fff' }} />
+              {errorCount > 0 && <Chip label={`${errorCount} Errors`} size="small" sx={{ backgroundColor: '#f44336', color: '#fff' }} />}
+              {pendingCount > 0 && <Chip label={`${pendingCount} Pending`} size="small" sx={{ backgroundColor: '#666666', color: '#fff' }} />}
+              {idleCount > 0 && <Chip label={`${idleCount} Ready`} size="small" sx={{ backgroundColor: '#333333', color: '#a0a0a0' }} />}
+            </Box>
+          )}
+        </Box>
+
+        {/* Hidden file input - always rendered for "Add More Files" button */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          accept="audio/*,video/*"
+          onChange={handleMultipleFileSelect}
+          style={{ display: 'none' }}
+        />
+
+        {!isBatchMode ? (
+          // Single file upload
+          <>
+            <FileUploader
+              onFileSelect={handleFileSelect}
+              currentFile={singleFile}
+              disabled={isProcessing || isBatchProcessing}
+            />
+            {singleFile && (
+              <Box sx={{ mt: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: isProcessing ? 2 : 0 }}>
+                  <Typography variant="body2" sx={{ color: '#a0a0a0' }}>
+                    {singleFile.name} • {(singleFile.size / (1024 * 1024)).toFixed(2)} MB • {singleFile.name.split('.').pop()?.toUpperCase()}
+                  </Typography>
+                  <Button
+                    size="small"
+                    startIcon={<AddIcon />}
+                    onClick={() => {
+                      if (fileInputRef.current) {
+                        fileInputRef.current.click();
+                      }
+                    }}
+                    disabled={isProcessing || isBatchProcessing}
+                    sx={{ 
+                      color: '#00c6ff',
+                      '&:disabled': { color: '#666666' },
+                    }}
+                  >
+                    Add More Files
+                  </Button>
+                </Box>
+                
+                {/* Progress Details in File Upload Area */}
+                {isProcessing && progressDetails && (
+                  <Box sx={{ 
+                    mt: 2, 
+                    p: 2, 
+                    backgroundColor: '#121212', 
+                    borderRadius: 1, 
+                    border: '1px solid #333333' 
+                  }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+                      <Typography variant="subtitle2" sx={{ color: '#e0e0e0', fontWeight: 600 }}>
+                        Processing Progress
+                      </Typography>
+                      {progressDetails.percentage !== undefined && (
+                        <Typography variant="body2" sx={{ color: '#00c6ff', fontWeight: 600 }}>
+                          {progressDetails.percentage}%
+                        </Typography>
+                      )}
+                    </Box>
+                    <Box sx={{ mb: 2 }}>
+                      <ProgressBar value={progress} />
+                    </Box>
+                    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 1.5 }}>
+                      {progressDetails.audio_time_processed !== undefined && progressDetails.audio_duration !== undefined && (
+                        <Box>
+                          <Typography variant="caption" sx={{ color: '#666666', display: 'block', mb: 0.5 }}>
+                            Audio Processed
+                          </Typography>
+                          <Typography variant="body2" sx={{ color: '#e0e0e0' }}>
+                            {formatTime(progressDetails.audio_time_processed)} / {formatTime(progressDetails.audio_duration)}
+                          </Typography>
+                        </Box>
+                      )}
+                      {progressDetails.audio_time_remaining !== undefined && (
+                        <Box>
+                          <Typography variant="caption" sx={{ color: '#666666', display: 'block', mb: 0.5 }}>
+                            Time Remaining
+                          </Typography>
+                          <Typography variant="body2" sx={{ color: '#e0e0e0' }}>
+                            {formatTime(progressDetails.audio_time_remaining)}
+                          </Typography>
+                        </Box>
+                      )}
+                      {progressDetails.frames_progress && (
+                        <Box>
+                          <Typography variant="caption" sx={{ color: '#666666', display: 'block', mb: 0.5 }}>
+                            Frames Progress
+                          </Typography>
+                          <Typography variant="body2" sx={{ color: '#e0e0e0' }}>
+                            {progressDetails.frames_progress}
+                          </Typography>
+                        </Box>
+                      )}
+                    </Box>
+                  </Box>
+                )}
+              </Box>
+            )}
+          </>
+        ) : (
+          // Batch file list
+          <>
+            <Button
+              variant="outlined"
+              startIcon={<AddIcon />}
+              onClick={() => {
+                if (fileInputRef.current) {
+                  fileInputRef.current.click();
+                }
+              }}
+              disabled={isProcessing || isBatchProcessing}
+              sx={{
+                mb: 2,
+                borderColor: '#333333',
+                color: '#e0e0e0',
+                '&:hover': { borderColor: '#00c6ff', backgroundColor: '#1a1a1a' },
+                '&:disabled': { borderColor: '#333333', color: '#666666' },
+              }}
+            >
+              Add More Files
+            </Button>
+            <List>
+              {files.map((file, index) => {
+                const batchFile = batchFiles.find((bf) => bf.file === file);
+                const fileStatus = batchFile?.status || 'idle';
+                return (
+                  <ListItem
+                    key={index}
+                    sx={{
+                      backgroundColor: '#121212',
+                      border: '1px solid #333333',
+                      borderRadius: 1,
+                      mb: 1,
+                      flexDirection: 'column',
+                      alignItems: 'stretch',
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                      <ListItemText
+                        primary={
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography sx={{ color: '#e0e0e0' }}>{file.name}</Typography>
+                            {batchFile && (
+                              <Chip
+                                label={fileStatus === 'cancelled' ? 'cancelled' : fileStatus === 'idle' ? 'ready' : fileStatus}
+                                size="small"
+                                sx={{
+                                  backgroundColor:
+                                    fileStatus === 'completed' ? '#4caf50' :
+                                    fileStatus === 'error' ? '#f44336' :
+                                    fileStatus === 'processing' ? '#ff9800' :
+                                    fileStatus === 'cancelled' ? '#9e9e9e' :
+                                    fileStatus === 'idle' ? '#333333' :
+                                    '#666666',
+                                  color: fileStatus === 'idle' ? '#a0a0a0' : '#fff',
+                                  fontSize: '0.7rem',
+                                }}
+                              />
+                            )}
+                          </Box>
+                        }
+                        secondary={
+                          <Typography sx={{ color: '#a0a0a0' }}>
+                            {(file.size / (1024 * 1024)).toFixed(2)} MB • {file.name.split('.').pop()?.toUpperCase()}
+                            {batchFile?.error && ` • Error: ${batchFile.error}`}
+                            {batchFile?.jobId && ` • Job: ${batchFile.jobId.substring(0, 8)}...`}
+                          </Typography>
+                        }
+                      />
+                      <Box sx={{ display: 'flex', gap: 0.5 }}>
+                        {batchFile?.status === 'completed' && batchFile.result && (
+                          <IconButton
+                            onClick={() => handleDownload(batchFile.result!.text, file.name)}
+                            sx={{ color: '#00c6ff' }}
+                            size="small"
+                            title="Download transcription"
+                          >
+                            <DownloadIcon />
+                          </IconButton>
+                        )}
+                        {batchFile?.status === 'processing' && (
+                          <IconButton
+                            onClick={() => handleCancelFile(batchFiles.indexOf(batchFile))}
+                            sx={{ color: '#ff9800' }}
+                            size="small"
+                            title="Cancel processing"
+                          >
+                            <CancelIcon />
+                          </IconButton>
+                        )}
+                        <IconButton
+                          onClick={() => handleRemoveFile(index)}
+                          sx={{ color: '#f44336' }}
+                          size="small"
+                          title="Remove file"
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Box>
+                    </Box>
+                    {batchFile?.status === 'completed' && batchFile.result && (
+                      <Box sx={{ mt: 2, width: '100%' }}>
+                        <TextField
+                          fullWidth
+                          multiline
+                          rows={3}
+                          value={batchFile.result.text}
+                          InputProps={{ readOnly: true }}
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              color: '#e0e0e0',
+                              backgroundColor: '#0a0a0a',
+                              '& fieldset': { borderColor: '#333333' },
+                            },
+                          }}
+                        />
+                      </Box>
+                    )}
+                  </ListItem>
+                );
+              })}
+            </List>
+          </>
         )}
       </Paper>
 
@@ -143,16 +763,27 @@ export default function TranscribeTab() {
             <Select 
               value={engine} 
               onChange={(e) => setEngine(e.target.value)}
+              disabled={isProcessing || isBatchProcessing}
               sx={{ 
                 color: '#e0e0e0',
+                backgroundColor: '#121212',
                 '& .MuiOutlinedInput-notchedOutline': { borderColor: '#333333' },
                 '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#00c6ff' },
+                '& .MuiSelect-icon': { color: '#e0e0e0' },
+              }}
+              MenuProps={{
+                PaperProps: {
+                  style: {
+                    backgroundColor: '#1e1e1e',
+                    color: '#e0e0e0',
+                  },
+                },
               }}
             >
-              <MenuItem value="whisper">Whisper</MenuItem>
-              <MenuItem value="google">Google</MenuItem>
-              <MenuItem value="openai">OpenAI</MenuItem>
-              <MenuItem value="replicate">Replicate</MenuItem>
+              <MenuItem value="whisper" sx={{ color: '#e0e0e0', '&:hover': { backgroundColor: '#2a2a2a' } }}>Whisper</MenuItem>
+              <MenuItem value="google" sx={{ color: '#e0e0e0', '&:hover': { backgroundColor: '#2a2a2a' } }}>Google</MenuItem>
+              <MenuItem value="openai" sx={{ color: '#e0e0e0', '&:hover': { backgroundColor: '#2a2a2a' } }}>OpenAI</MenuItem>
+              <MenuItem value="replicate" sx={{ color: '#e0e0e0', '&:hover': { backgroundColor: '#2a2a2a' } }}>Replicate</MenuItem>
             </Select>
           </FormControl>
           <FormControl fullWidth>
@@ -160,14 +791,25 @@ export default function TranscribeTab() {
             <Select 
               value={language} 
               onChange={(e) => setLanguage(e.target.value)}
+              disabled={isProcessing || isBatchProcessing}
               sx={{ 
                 color: '#e0e0e0',
+                backgroundColor: '#121212',
                 '& .MuiOutlinedInput-notchedOutline': { borderColor: '#333333' },
                 '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#00c6ff' },
+                '& .MuiSelect-icon': { color: '#e0e0e0' },
+              }}
+              MenuProps={{
+                PaperProps: {
+                  style: {
+                    backgroundColor: '#1e1e1e',
+                    color: '#e0e0e0',
+                  },
+                },
               }}
             >
               {availableLanguages.map((lang) => (
-                <MenuItem key={lang} value={lang}>
+                <MenuItem key={lang} value={lang} sx={{ color: '#e0e0e0', '&:hover': { backgroundColor: '#2a2a2a' } }}>
                   {lang}
                 </MenuItem>
               ))}
@@ -178,7 +820,7 @@ export default function TranscribeTab() {
             <Select 
               value={model} 
               onChange={(e) => setModel(e.target.value)} 
-              disabled={engine !== 'whisper'}
+              disabled={isProcessing || isBatchProcessing || engine !== 'whisper'}
               MenuProps={{
                 PaperProps: {
                   style: {
@@ -221,6 +863,7 @@ export default function TranscribeTab() {
               <Checkbox
                 checked={enablePunctuation}
                 onChange={(e) => setEnablePunctuation(e.target.checked)}
+                disabled={isProcessing || isBatchProcessing}
                 sx={{ color: '#00c6ff' }}
               />
             }
@@ -231,6 +874,7 @@ export default function TranscribeTab() {
               <Checkbox
                 checked={enableCapitalization}
                 onChange={(e) => setEnableCapitalization(e.target.checked)}
+                disabled={isProcessing || isBatchProcessing}
                 sx={{ color: '#00c6ff' }}
               />
             }
@@ -238,78 +882,48 @@ export default function TranscribeTab() {
           />
         </Box>
 
-        {/* Processing Mode */}
-        <Box>
-          <Typography variant="subtitle1" gutterBottom sx={{ color: '#e0e0e0', mb: 1 }}>
-            Processing Mode
-          </Typography>
-          <RadioGroup
-            value={processingMode}
-            onChange={(e) => setProcessingMode(e.target.value as ProcessingMode)}
-          >
-            <FormControlLabel 
-              value="batch" 
-              control={<Radio sx={{ color: '#00c6ff' }} />} 
-              label={<Typography sx={{ color: '#e0e0e0' }}>Batch Processing (Process entire file at once)</Typography>} 
-            />
-            <FormControlLabel 
-              value="streaming" 
-              control={<Radio sx={{ color: '#00c6ff' }} />} 
-              label={<Typography sx={{ color: '#e0e0e0' }}>Parallel Streaming (Process all 5s chunks simultaneously)</Typography>} 
-            />
-            <FormControlLabel 
-              value="realtime" 
-              control={<Radio sx={{ color: '#00c6ff' }} />} 
-              label={<Typography sx={{ color: '#e0e0e0' }}>Real-time Streaming (Process 5s chunks with 5s delays)</Typography>} 
-            />
-            <FormControlLabel 
-              value="advanced" 
-              control={<Radio sx={{ color: '#00c6ff' }} />} 
-              label={<Typography sx={{ color: '#e0e0e0' }}>Advanced Streaming (Research-grade with Local Agreement Policy)</Typography>} 
-            />
-            <FormControlLabel 
-              value="vad" 
-              control={<Radio sx={{ color: '#00c6ff' }} />} 
-              label={<Typography sx={{ color: '#e0e0e0' }}>VAD-Enhanced Streaming (With Voice Activity Detection)</Typography>} 
-            />
-          </RadioGroup>
-        </Box>
+        {/* Processing Mode - Only show for single file */}
+        {!isBatchMode && (
+          <Box>
+            <Typography variant="subtitle1" gutterBottom sx={{ color: '#e0e0e0', mb: 1 }}>
+              Processing Mode
+            </Typography>
+            <RadioGroup
+              value={processingMode}
+              onChange={(e) => setProcessingMode(e.target.value as ProcessingMode)}
+            >
+              <FormControlLabel 
+                value="batch" 
+                control={<Radio sx={{ color: '#00c6ff' }} />} 
+                label={<Typography sx={{ color: '#e0e0e0' }}>Batch Processing (Process entire file at once)</Typography>} 
+              />
+              <FormControlLabel 
+                value="streaming" 
+                control={<Radio sx={{ color: '#00c6ff' }} />} 
+                label={<Typography sx={{ color: '#e0e0e0' }}>Parallel Streaming (Process all 5s chunks simultaneously)</Typography>} 
+              />
+              <FormControlLabel 
+                value="realtime" 
+                control={<Radio sx={{ color: '#00c6ff' }} />} 
+                label={<Typography sx={{ color: '#e0e0e0' }}>Real-time Streaming (Process 5s chunks with 5s delays)</Typography>} 
+              />
+              <FormControlLabel 
+                value="advanced" 
+                control={<Radio sx={{ color: '#00c6ff' }} />} 
+                label={<Typography sx={{ color: '#e0e0e0' }}>Advanced Streaming (Research-grade with Local Agreement Policy)</Typography>} 
+              />
+              <FormControlLabel 
+                value="vad" 
+                control={<Radio sx={{ color: '#00c6ff' }} />} 
+                label={<Typography sx={{ color: '#e0e0e0' }}>VAD-Enhanced Streaming (With Voice Activity Detection)</Typography>} 
+              />
+            </RadioGroup>
+          </Box>
+        )}
       </Paper>
 
-      {/* Controls */}
-      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-        <Button
-          variant="contained"
-          onClick={handleStartTranscription}
-          disabled={!file || isProcessing}
-          size="large"
-          sx={{
-            backgroundColor: '#00c6ff',
-            color: '#121212',
-            '&:hover': { backgroundColor: '#00b0e6' },
-            '&:disabled': { backgroundColor: '#333333', color: '#666666' },
-          }}
-        >
-          Start Audio/Video Transcription
-        </Button>
-        <Button
-          variant="outlined"
-          onClick={handleStop}
-          disabled={!isProcessing}
-          size="large"
-          sx={{
-            borderColor: '#333333',
-            color: '#e0e0e0',
-            '&:hover': { borderColor: '#00c6ff', backgroundColor: '#1a1a1a' },
-            '&:disabled': { borderColor: '#333333', color: '#666666' },
-          }}
-        >
-          Stop
-        </Button>
-      </Box>
-
-      {/* Progress */}
-      {isProcessing && (
+      {/* Single File Progress - Status Message Only (detailed progress shown in file upload area) */}
+      {isProcessing && !isBatchMode && !progressDetails && (
         <Paper sx={{ p: 3, mb: 3, backgroundColor: '#1e1e1e', border: '1px solid #333333' }}>
           <StatusLabel
             status={isProcessing ? 'processing' : 'ready'}
@@ -321,15 +935,34 @@ export default function TranscribeTab() {
         </Paper>
       )}
 
-      {/* Error */}
-      {error && (
+      {/* Batch Progress */}
+      {isBatchProcessing && isBatchMode && (
+        <Paper sx={{ p: 3, mb: 3, backgroundColor: '#1e1e1e', border: '1px solid #333333' }}>
+          <Typography variant="body2" sx={{ color: '#a0a0a0', mb: 1 }}>
+            Processing batch... {completedCount} of {batchFiles.length} completed
+          </Typography>
+          <LinearProgress 
+            variant="determinate" 
+            value={batchProgress}
+            sx={{
+              backgroundColor: '#333333',
+              '& .MuiLinearProgress-bar': {
+                backgroundColor: '#00c6ff',
+              },
+            }}
+          />
+        </Paper>
+      )}
+
+      {/* Errors */}
+      {(error || batchError) && (
         <Alert severity="error" sx={{ mb: 3, backgroundColor: '#1e1e1e', color: '#f44336' }}>
-          {error}
+          {error || batchError}
         </Alert>
       )}
 
-      {/* Results */}
-      {results && (
+      {/* Single File Results */}
+      {(results || (status === 'completed' && (job?.result || result))) && !isBatchMode && (
         <Paper sx={{ p: 3, backgroundColor: '#1e1e1e', border: '1px solid #333333' }}>
           <Typography variant="h6" gutterBottom sx={{ color: '#e0e0e0', mb: 2 }}>
             Transcription Results
@@ -338,7 +971,7 @@ export default function TranscribeTab() {
             fullWidth
             multiline
             rows={10}
-            value={results.text}
+            value={results?.text || job?.result?.text || result?.text || ''}
             InputProps={{ readOnly: true }}
             sx={{ 
               mb: 2,
@@ -353,7 +986,10 @@ export default function TranscribeTab() {
           <Box sx={{ display: 'flex', gap: 2 }}>
             <Button 
               variant="contained" 
-              onClick={() => navigator.clipboard.writeText(results.text || '')}
+              onClick={() => {
+                const text = results?.text || job?.result?.text || result?.text || '';
+                navigator.clipboard.writeText(text);
+              }}
               sx={{
                 backgroundColor: '#00c6ff',
                 color: '#121212',
@@ -379,4 +1015,3 @@ export default function TranscribeTab() {
     </Box>
   );
 }
-
