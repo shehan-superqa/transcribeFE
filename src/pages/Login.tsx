@@ -24,18 +24,17 @@ export default function Login() {
   const [showEmailVerificationPrompt, setShowEmailVerificationPrompt] = useState(false);
 
   useEffect(() => {
-    if (isAuthenticated && user && !hasNavigated.current && !authLoading) {
+    // Only redirect if user is authenticated AND there's a redirect parameter
+    // This means they were redirected here from a protected route
+    // Don't redirect if they explicitly navigated to login/signup pages
+    const searchParams = new URLSearchParams(location.search);
+    const redirectPath = searchParams.get('redirect');
+    
+    if (isAuthenticated && user && !hasNavigated.current && !authLoading && redirectPath) {
       hasNavigated.current = true;
       // Check if email is verified
       if (user.isEmailVerified) {
-        // Check for redirect parameter in URL
-        const searchParams = new URLSearchParams(location.search);
-        const redirectPath = searchParams.get('redirect');
-        if (redirectPath) {
-          navigate(redirectPath, { replace: true });
-        } else {
-          navigate("/dashboard", { replace: true });
-        }
+        navigate(redirectPath, { replace: true });
       } else {
         setShowEmailVerificationPrompt(true);
       }
