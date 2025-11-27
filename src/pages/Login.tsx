@@ -28,12 +28,19 @@ export default function Login() {
       hasNavigated.current = true;
       // Check if email is verified
       if (user.isEmailVerified) {
-        navigate("/dashboard", { replace: true });
+        // Check for redirect parameter in URL
+        const searchParams = new URLSearchParams(location.search);
+        const redirectPath = searchParams.get('redirect');
+        if (redirectPath) {
+          navigate(redirectPath, { replace: true });
+        } else {
+          navigate("/dashboard", { replace: true });
+        }
       } else {
         setShowEmailVerificationPrompt(true);
       }
     }
-  }, [isAuthenticated, user, navigate, authLoading]);
+  }, [isAuthenticated, user, navigate, authLoading, location.search]);
 
   useEffect(() => {
     // Clear errors when switching between login/signup
@@ -102,12 +109,16 @@ export default function Login() {
     }
 
     try {
+      // Get redirect path from URL
+      const searchParams = new URLSearchParams(location.search);
+      const redirectPath = searchParams.get('redirect');
+      
       if (isSignUpMode) {
         const result = await dispatch(signupUser({ email, password, name: name || undefined })).unwrap();
         if (result) {
           // Check if email is verified
           if (result.isEmailVerified) {
-            navigate("/dashboard");
+            navigate(redirectPath || "/dashboard", { replace: true });
           } else {
             setShowEmailVerificationPrompt(true);
           }
@@ -117,7 +128,7 @@ export default function Login() {
         if (result) {
           // Check if email is verified
           if (result.isEmailVerified) {
-            navigate("/dashboard");
+            navigate(redirectPath || "/dashboard", { replace: true });
           } else {
             setShowEmailVerificationPrompt(true);
           }

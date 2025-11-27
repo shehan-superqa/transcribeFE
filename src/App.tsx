@@ -12,6 +12,7 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import ToolsDashboard from "./pages/ToolsDashboard";
+import ImagesDashboard from "./pages/ImagesDashboard";
 import Pricing from "./pages/Pricing";
 import VerifyEmail from "./pages/VerifyEmail";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -66,6 +67,16 @@ function AppContent() {
                 element={
                   <ProtectedRoute>
                     <ToolsDashboard />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Protected Routes - Image Tools */}
+              <Route
+                path="/images/*"
+                element={
+                  <ProtectedRoute>
+                    <ImagesDashboard />
                   </ProtectedRoute>
                 }
               />

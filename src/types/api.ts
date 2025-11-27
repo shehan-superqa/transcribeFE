@@ -105,7 +105,7 @@ export interface ProgressEvent {
   status: JobStatus;
   progress: number;
   message: string;
-  result?: TranscriptionResult | VideoJobResult;
+  result?: TranscriptionResult | VideoJobResult | ImageJobResult | ImageTrainingJobResult;
   error?: string;
 }
 
@@ -239,5 +239,157 @@ export interface VideoJobStatusResponse {
   success: boolean;
   job_id: string;
   job?: VideoJob;
+}
+
+/**
+ * Image Generation Types
+ */
+export interface ImageJobRequest {
+  prompt: string;
+  negative_prompt?: string;
+  width?: number;
+  height?: number;
+  num_outputs?: number;
+  guidance_scale?: number;
+  num_inference_steps?: number;
+  seed?: number;
+  model?: 'black-forest-labs/flux-dev' | 'black-forest-labs/flux-schnell' | 'stability-ai/sdxl' | 'stability-ai/stable-diffusion';
+  image?: string;
+  mask?: string;
+  strength?: number;
+  job_id?: string;
+}
+
+export interface ImageJobResponse {
+  success: boolean;
+  accepted: boolean;
+  job_id: string;
+  stream_url: string;
+  prompt_length?: number;
+  width?: number;
+  height?: number;
+  num_outputs?: number;
+  guidance_scale?: number;
+  num_inference_steps?: number;
+  seed?: number;
+  model?: string;
+  processing_time: {
+    total_seconds: number;
+    formatted: string;
+  };
+}
+
+export interface ImageJobResult {
+  image_url: string;
+  image_path?: string;
+  image_urls?: string[];
+  image_paths?: string[];
+  prompt: string;
+  width?: number;
+  height?: number;
+  engine?: string;
+  model?: string;
+  job_id: string;
+}
+
+export interface ImageJob {
+  _id: string;
+  user_id: string;
+  job_type: 'image';
+  prompt: string;
+  width?: number;
+  height?: number;
+  status: JobStatus;
+  result?: ImageJobResult;
+  image_output_url?: string;
+  image_output_path?: string;
+  image_output_urls?: string[];
+  image_output_paths?: string[];
+  error?: string;
+  created_at: string;
+  started_at?: string;
+  finished_at?: string;
+  updated_at: string;
+}
+
+export interface ImageJobStatusResponse {
+  success: boolean;
+  job_id: string;
+  job?: ImageJob;
+}
+
+/**
+ * Image Training (LoRA) Types
+ */
+export interface ImageTrainingJobRequest {
+  image_urls: string[];
+  trigger_word: string;
+  lora_type?: 'subject' | 'style';
+  base_model?: string;
+  training_steps?: number;
+  learning_rate?: number;
+  batch_size?: number;
+  resolution?: number;
+  training_model?: string;
+  job_id?: string;
+}
+
+export interface ImageTrainingJobResponse {
+  success: boolean;
+  accepted: boolean;
+  job_id: string;
+  stream_url: string;
+  num_images?: number;
+  trigger_word?: string;
+  lora_type?: string;
+  base_model?: string;
+  training_steps?: number;
+  processing_time: {
+    total_seconds: number;
+    formatted: string;
+  };
+}
+
+export interface ImageTrainingJobResult {
+  trained_model: string;
+  training_id?: string;
+  training_status?: {
+    training_id: string;
+    status: string;
+    completed_at?: string;
+    trained_model: string;
+  };
+}
+
+export interface ImageTrainingJob {
+  _id: string;
+  user_id: string;
+  job_type: 'image_training';
+  image_urls: string[];
+  trigger_word: string;
+  lora_type?: string;
+  base_model?: string;
+  training_steps?: number;
+  training_id?: string;
+  trained_model?: string;
+  training_status?: {
+    training_id: string;
+    status: string;
+    completed_at?: string;
+    trained_model: string;
+  };
+  status: JobStatus;
+  result?: ImageTrainingJobResult;
+  error?: string;
+  created_at: string;
+  started_at?: string;
+  finished_at?: string;
+  updated_at: string;
+}
+
+export interface ImageTrainingJobStatusResponse {
+  success: boolean;
+  job_id: string;
+  job?: ImageTrainingJob;
 }
 

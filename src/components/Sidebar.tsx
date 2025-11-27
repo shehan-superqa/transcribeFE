@@ -47,6 +47,17 @@ const menuItems: MenuItem[] = [
       { id: 'subtitle-generator', label: 'Subtitle Generator', path: '/video/subtitle-generator' },
     ]
   },
+  { 
+    id: 'image-tools', 
+    label: 'Image Tools', 
+    icon: '🖼️', 
+    path: '/images/generate',
+    isExpandable: true,
+    subItems: [
+      { id: 'generate', label: 'Image Generation', path: '/images/generate' },
+      { id: 'train', label: 'Image Training (LoRA)', path: '/images/train' },
+    ]
+  },
   { id: 'audio-translator', label: 'Audio Translator', icon: '🔊', path: '/voice/translator' },
   { id: 'free-tools', label: 'Free Tools', icon: '🎁', path: '/voice/transcribe' },
   { 

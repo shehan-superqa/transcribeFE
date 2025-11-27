@@ -2,8 +2,8 @@
  * Text-to-Speech (TTS) API endpoints
  */
 
-import axios from 'axios';
-import { getAccessToken, getStoredUser, TRANSCRIBE_API_BASE_URL } from '../api';
+import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
+import { getAccessToken, getStoredUser, refreshAccessToken, clearAuthData, TRANSCRIBE_API_BASE_URL } from '../api';
 
 // TTS API uses port 5000 (same as transcription API)
 const TTS_API_BASE_URL = TRANSCRIBE_API_BASE_URL;
@@ -30,6 +30,39 @@ const createApiClient = () => {
       return config;
     },
     (error) => {
+      return Promise.reject(error);
+    }
+  );
+
+  // Add response interceptor to handle 401 errors with token refresh
+  client.interceptors.response.use(
+    (response) => response,
+    async (error: AxiosError) => {
+      const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+      
+      // Handle 401 errors with token refresh
+      if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+        originalRequest._retry = true;
+        try {
+          const newToken = await refreshAccessToken();
+          if (newToken && originalRequest.headers) {
+            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+            return client(originalRequest);
+          } else {
+            clearAuthData();
+            return Promise.reject(new Error('Authentication failed. Please log in again.'));
+          }
+        } catch (refreshError) {
+          clearAuthData();
+          return Promise.reject(new Error('Authentication failed. Please log in again.'));
+        }
+      }
+
+      // Handle auth service 404 errors gracefully
+      if (error.response?.status === 404 && error.config?.url?.includes('/api/tts')) {
+        return Promise.reject(new Error('TTS service unavailable. Please try again later.'));
+      }
+
       return Promise.reject(error);
     }
   );
@@ -61,7 +94,11 @@ export interface TTSJobResponse {
 export async function submitTTSJob(request: TTSJobRequest): Promise<TTSJobResponse> {
   const user = getStoredUser();
   if (!user || !user.id) {
-    throw new Error('User not authenticated. Please log in.');
+    // Clear auth data and throw a special error that can be caught to redirect
+    clearAuthData();
+    const authError = new Error('User not authenticated. Please log in.');
+    (authError as any).isAuthError = true;
+    throw authError;
   }
 
   // Build request body matching backend API format
