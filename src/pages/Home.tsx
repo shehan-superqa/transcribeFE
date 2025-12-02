@@ -15,7 +15,6 @@ export default function Home() {
 
   // Enhanced mouse tracking for cinematic interactive effects
   useEffect(() => {
-    let rafId: number;
     let lastUpdate = 0;
     const throttleMs = 16; // ~60fps
 
@@ -51,7 +50,6 @@ export default function Home() {
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
-      if (rafId) cancelAnimationFrame(rafId);
     };
   }, []);
 

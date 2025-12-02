@@ -19,6 +19,16 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { 
+    id: 'audio', 
+    label: 'Audio', 
+    icon: '🔊', 
+    path: '/voice/transcribe',
+    isExpandable: true,
+    subItems: [
+      { id: 'audio-translator', label: 'Audio Translator', path: '/voice/translator' },
+    ]
+  },
+  { 
     id: 'audio-to-text', 
     label: 'Audio to Text', 
     icon: '🎵', 
@@ -58,7 +68,6 @@ const menuItems: MenuItem[] = [
       { id: 'train', label: 'Image Training (LoRA)', path: '/images/train' },
     ]
   },
-  { id: 'audio-translator', label: 'Audio Translator', icon: '🔊', path: '/voice/translator' },
   { id: 'free-tools', label: 'Free Tools', icon: '🎁', path: '/voice/transcribe' },
   { 
     id: 'real-time', 

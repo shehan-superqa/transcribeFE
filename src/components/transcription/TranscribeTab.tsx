@@ -61,6 +61,7 @@ export default function TranscribeTab() {
   const [jobId, setJobId] = useState<string | null>(null);
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [availableLanguages, setAvailableLanguages] = useState<string[]>([]);
+  const [enginesData, setEnginesData] = useState<Array<{ name: string; models: string[] }>>([]);
   const [isBatchProcessing, setIsBatchProcessing] = useState(false);
   const [batchProgress, setBatchProgress] = useState(0);
   const [batchError, setBatchError] = useState<string | null>(null);
@@ -81,9 +82,26 @@ export default function TranscribeTab() {
     // Load available models and languages
     getAvailableModels()
       .then((data) => {
-        if (data.success) {
-          setAvailableModels(data.models || []);
+        if (data.success || data.engines) {
+          // Store engines data
+          const engines = data.engines || [];
+          setEnginesData(engines.map(e => ({ name: e.name, models: e.models || [] })));
+          
+          // Set languages
           setAvailableLanguages(data.languages || []);
+          
+          // Set models for current engine or default to whisper models
+          const currentEngineData = engines.find(e => e.name === engine);
+          if (currentEngineData && currentEngineData.models.length > 0) {
+            setAvailableModels(currentEngineData.models);
+            // Reset model if current model is not available for selected engine
+            if (!currentEngineData.models.includes(model)) {
+              setModel(currentEngineData.models[0] || 'base');
+            }
+          } else {
+            // Fallback to legacy models or default
+            setAvailableModels(data.models || ['base', 'small', 'medium', 'large']);
+          }
         }
       })
       .catch((error) => {
@@ -92,6 +110,45 @@ export default function TranscribeTab() {
         setAvailableLanguages(['en']);
       });
   }, []);
+
+  // Update available models when engine changes
+  useEffect(() => {
+    // Don't update if enginesData is not loaded yet (empty array)
+    if (enginesData.length === 0) {
+      return;
+    }
+
+    const currentEngineData = enginesData.find(e => e.name === engine);
+    if (currentEngineData && currentEngineData.models.length > 0) {
+      setAvailableModels(currentEngineData.models);
+      // Reset model if current model is not available for selected engine
+      if (!currentEngineData.models.includes(model)) {
+        setModel(currentEngineData.models[0] || 'base');
+      }
+    } else if (engine === 'whisper') {
+      // Default whisper models if engine data not loaded yet
+      setAvailableModels(['tiny', 'base', 'small', 'medium', 'large', 'large-v2', 'large-v3']);
+      if (!model || !['tiny', 'base', 'small', 'medium', 'large', 'large-v2', 'large-v3'].includes(model)) {
+        setModel('base');
+      }
+    } else {
+      // For engines without models (like google), show empty array but keep dropdown visible with a message
+      // Actually, let's check if replicate has models - it should
+      if (engine === 'replicate') {
+        // Replicate should have models, use default if not found
+        setAvailableModels(['base', 'small', 'medium', 'large']);
+        if (!model || !['base', 'small', 'medium', 'large'].includes(model)) {
+          setModel('base');
+        }
+      } else {
+        // For engines that truly don't support models (like google), hide dropdown
+        setAvailableModels([]);
+        if (model) {
+          setModel('');
+        }
+      }
+    }
+  }, [engine, enginesData]);
 
   const setResults = transcriptionStore((state) => state.setResults);
   const setIsProcessing = transcriptionStore((state) => state.setIsProcessing);
@@ -815,46 +872,48 @@ export default function TranscribeTab() {
               ))}
             </Select>
           </FormControl>
-          <FormControl fullWidth>
-            <InputLabel sx={{ color: '#a0a0a0' }}>Model</InputLabel>
-            <Select 
-              value={model} 
-              onChange={(e) => setModel(e.target.value)} 
-              disabled={isProcessing || isBatchProcessing || engine !== 'whisper'}
-              MenuProps={{
-                PaperProps: {
-                  style: {
-                    zIndex: 1300,
-                    backgroundColor: '#1e1e1e',
-                    color: '#e0e0e0',
-                  },
-                },
-              }}
-              sx={{ 
-                color: '#e0e0e0',
-                backgroundColor: '#121212',
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#333333' },
-                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#00c6ff' },
-                '& .MuiSelect-icon': { color: '#e0e0e0' },
-              }}
-            >
-              {availableModels.map((m) => (
-                <MenuItem 
-                  key={m} 
-                  value={m}
-                  sx={{
-                    color: '#e0e0e0',
-                    backgroundColor: '#1e1e1e',
-                    '&:hover': {
-                      backgroundColor: '#2a2a2a',
+          {availableModels.length > 0 && (
+            <FormControl fullWidth>
+              <InputLabel sx={{ color: '#a0a0a0' }}>Model</InputLabel>
+              <Select 
+                value={model || ''} 
+                onChange={(e) => setModel(e.target.value)} 
+                disabled={isProcessing || isBatchProcessing || availableModels.length === 0}
+                MenuProps={{
+                  PaperProps: {
+                    style: {
+                      zIndex: 1300,
+                      backgroundColor: '#1e1e1e',
+                      color: '#e0e0e0',
                     },
-                  }}
-                >
-                  {m}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+                  },
+                }}
+                sx={{ 
+                  color: '#e0e0e0',
+                  backgroundColor: '#121212',
+                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#333333' },
+                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#00c6ff' },
+                  '& .MuiSelect-icon': { color: '#e0e0e0' },
+                }}
+              >
+                {availableModels.map((m) => (
+                  <MenuItem 
+                    key={m} 
+                    value={m}
+                    sx={{
+                      color: '#e0e0e0',
+                      backgroundColor: '#1e1e1e',
+                      '&:hover': {
+                        backgroundColor: '#2a2a2a',
+                      },
+                    }}
+                  >
+                    {m}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
         </Box>
 
         <Box sx={{ mb: 2 }}>

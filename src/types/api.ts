@@ -109,12 +109,24 @@ export interface ProgressEvent {
   error?: string;
 }
 
+export interface EngineInfo {
+  name: string;
+  available: boolean;
+  models: string[];
+  description?: string;
+  status?: EngineStatus;
+}
+
 export interface ModelsResponse {
   success: boolean;
-  models: string[];
+  engines: EngineInfo[];
   languages: string[];
-  engines: string[];
-  engines_status: Record<string, EngineStatus>;
+  default_engine?: string;
+  default_model?: string;
+  available_engines?: string[];
+  // Legacy fields for backward compatibility
+  models?: string[];
+  engines_status?: Record<string, EngineStatus>;
 }
 
 export interface EngineStatus {
@@ -123,6 +135,7 @@ export interface EngineStatus {
   recognizer_initialized?: boolean;
   api_key_set?: boolean;
   reason?: string;
+  package_installed?: boolean;
 }
 
 export interface User {
