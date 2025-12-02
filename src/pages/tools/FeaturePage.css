@@ -1,10 +1,10 @@
 .feature-page {
-  background: #1a1a1a;
-  border-radius: 16px;
+  background: #1e1e1e;
+  border-radius: 12px;
   padding: 2rem;
   min-height: 600px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid #333333;
 }
 
 .feature-header {
@@ -37,12 +37,13 @@
 .coming-soon {
   padding: 3rem;
   text-align: center;
-  color: rgba(255, 255, 255, 0.7);
+  color: #a0a0a0;
 }
 
 .coming-soon p {
   margin: 0.5rem 0;
   font-size: 1rem;
+  color: #a0a0a0;
 }
 
 .coming-soon p:first-child {

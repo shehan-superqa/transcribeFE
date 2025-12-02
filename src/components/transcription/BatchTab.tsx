@@ -121,11 +121,20 @@ export default function BatchTab() {
             success: true,
           };
         } catch (err: any) {
+          let errorMessage = err.response?.data?.error || err.message || 'Failed to submit job';
+          
+          // Handle authentication errors more gracefully
+          if (err.response?.status === 401 || errorMessage.includes('Authentication failed')) {
+            errorMessage = 'Authentication failed. Please log in again.';
+          } else if (errorMessage.includes('Authentication service unavailable')) {
+            errorMessage = 'Authentication service unavailable. Please try again later.';
+          }
+          
           return {
             index: files.indexOf(batchFile),
             jobId: undefined,
             success: false,
-            error: err.response?.data?.error || err.message || 'Failed to submit job',
+            error: errorMessage,
           };
         }
       });
@@ -158,7 +167,15 @@ export default function BatchTab() {
       // Poll for job status updates
       pollJobStatuses(jobResults.filter((jr) => jr.success && jr.jobId).map((jr) => jr.jobId!));
     } catch (err: any) {
-      const errorMessage = err.response?.data?.error || err.message || 'Batch processing failed';
+      let errorMessage = err.response?.data?.error || err.message || 'Batch processing failed';
+      
+      // Handle authentication errors more gracefully
+      if (err.response?.status === 401 || errorMessage.includes('Authentication failed')) {
+        errorMessage = 'Authentication failed. Please log in again.';
+      } else if (errorMessage.includes('Authentication service unavailable')) {
+        errorMessage = 'Authentication service unavailable. Please try again later.';
+      }
+      
       setError(errorMessage);
       setFiles((prev) =>
         prev.map((f) =>
@@ -336,14 +353,35 @@ export default function BatchTab() {
               value={model} 
               onChange={(e) => setModel(e.target.value)} 
               disabled={isProcessing || engine !== 'whisper'}
+              MenuProps={{
+                PaperProps: {
+                  style: {
+                    zIndex: 1300,
+                    backgroundColor: '#1e1e1e',
+                    color: '#e0e0e0',
+                  },
+                },
+              }}
               sx={{ 
                 color: '#e0e0e0',
+                backgroundColor: '#121212',
                 '& .MuiOutlinedInput-notchedOutline': { borderColor: '#333333' },
                 '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#00c6ff' },
+                '& .MuiSelect-icon': { color: '#e0e0e0' },
               }}
             >
               {availableModels.map((m) => (
-                <MenuItem key={m} value={m}>
+                <MenuItem 
+                  key={m} 
+                  value={m}
+                  sx={{
+                    color: '#e0e0e0',
+                    backgroundColor: '#1e1e1e',
+                    '&:hover': {
+                      backgroundColor: '#2a2a2a',
+                    },
+                  }}
+                >
                   {m}
                 </MenuItem>
               ))}

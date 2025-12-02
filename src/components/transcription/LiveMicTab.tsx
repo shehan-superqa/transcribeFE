@@ -2,7 +2,7 @@
  * Live microphone transcription tab
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Typography,
@@ -27,6 +27,7 @@ export default function LiveMicTab() {
   const [model, setModel] = useState('base');
   const [language, setLanguage] = useState('en');
   const [vadThreshold, setVadThreshold] = useState(0.01);
+  const [audioDevices, setAudioDevices] = useState<MediaDeviceInfo[]>([]);
 
   const {
     isActive,
@@ -41,15 +42,65 @@ export default function LiveMicTab() {
     clearResults,
   } = useLiveTranscription();
 
-  const { getAudioDevices, audioStream } = useMicrophone();
-  const { canvasRef, audioLevel, startVisualization, stopVisualization } = useWaveformVisualization();
+  const { getAudioDevices, audioStream, startRecording, stopRecording, selectedDeviceId, setSelectedDeviceId } = useMicrophone();
+  const { waveformRef, audioLevel, startVisualization, stopVisualization } = useWaveformVisualization();
 
+  // Load audio devices and auto-start microphone when component mounts
   useEffect(() => {
-    getAudioDevices();
-  }, [getAudioDevices]);
+    const initializeMicrophone = async () => {
+      try {
+        const devices = await getAudioDevices();
+        setAudioDevices(devices);
+        // Start recording immediately (just for waveform, not transcription)
+        await startRecording();
+      } catch (error) {
+        console.error('Error initializing microphone:', error);
+      }
+    };
+    
+    initializeMicrophone();
+    
+    // Cleanup: stop recording when component unmounts
+    return () => {
+      stopRecording();
+    };
+  }, [getAudioDevices, startRecording, stopRecording]);
 
+  // Restart microphone when device selection changes (but not on initial mount)
+  const isInitialMount = useRef(true);
+  const prevDeviceIdRef = useRef<string | null>(null);
+  
   useEffect(() => {
-    if (audioStream && isRecording) {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      prevDeviceIdRef.current = selectedDeviceId;
+      return;
+    }
+
+    // Only restart if device actually changed and we have an active stream
+    if (prevDeviceIdRef.current !== selectedDeviceId && audioStream) {
+      const restartWithNewDevice = async () => {
+        try {
+          stopRecording();
+          // Small delay to ensure cleanup
+          await new Promise(resolve => setTimeout(resolve, 200));
+          await startRecording();
+          prevDeviceIdRef.current = selectedDeviceId;
+        } catch (error) {
+          console.error('Error restarting microphone with new device:', error);
+        }
+      };
+
+      restartWithNewDevice();
+    } else {
+      prevDeviceIdRef.current = selectedDeviceId;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDeviceId]); // Only depend on selectedDeviceId to avoid loops
+
+  // Start waveform visualization as soon as audio stream is available
+  useEffect(() => {
+    if (audioStream) {
       startVisualization(audioStream);
     } else {
       stopVisualization();
@@ -57,7 +108,7 @@ export default function LiveMicTab() {
     return () => {
       stopVisualization();
     };
-  }, [audioStream, isRecording, startVisualization, stopVisualization]);
+  }, [audioStream, startVisualization, stopVisualization]);
 
   const handleStart = async () => {
     try {
@@ -99,10 +150,10 @@ export default function LiveMicTab() {
             }}
           />
           <Chip
-            label={isRecording ? 'Recording' : 'Not Recording'}
-            color={isRecording ? 'error' : 'default'}
+            label={audioStream ? 'Microphone Active' : 'Microphone Inactive'}
+            color={audioStream ? 'success' : 'default'}
             sx={{
-              backgroundColor: isRecording ? '#f44336' : '#666666',
+              backgroundColor: audioStream ? '#4caf50' : '#666666',
               color: '#fff',
             }}
           />
@@ -133,7 +184,7 @@ export default function LiveMicTab() {
           <Typography variant="h6" sx={{ color: '#e0e0e0' }}>
             Audio Waveform
           </Typography>
-          {isRecording && (
+          {audioStream && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Box
                 sx={{
@@ -162,20 +213,32 @@ export default function LiveMicTab() {
             borderRadius: 1,
             overflow: 'hidden',
             border: '1px solid #333333',
+            position: 'relative',
+            '& wave': {
+              height: '200px !important',
+            },
+            '& wavesurfer': {
+              height: '200px !important',
+              width: '100% !important',
+            },
+            '& > div': {
+              width: '100% !important',
+              height: '100% !important',
+            },
           }}
         >
-          <canvas
-            ref={canvasRef}
+          <div
+            ref={waveformRef}
             style={{
               width: '100%',
               height: '100%',
-              display: 'block',
+              minHeight: '200px',
             }}
           />
         </Box>
-        {!isRecording && (
+        {!audioStream && (
           <Typography variant="body2" sx={{ color: '#a0a0a0', mt: 2, textAlign: 'center' }}>
-            Start recording to see waveform visualization
+            Requesting microphone access...
           </Typography>
         )}
       </Paper>
@@ -185,6 +248,50 @@ export default function LiveMicTab() {
         <Typography variant="h6" gutterBottom sx={{ color: '#e0e0e0', mb: 2 }}>
           Live Transcription Controls
         </Typography>
+        
+        {/* Microphone Selection */}
+        <Box sx={{ mb: 2 }}>
+          <FormControl fullWidth>
+            <InputLabel sx={{ color: '#a0a0a0' }}>Microphone</InputLabel>
+            <Select 
+              value={selectedDeviceId || 'default'} 
+              onChange={(e) => {
+                const deviceId = e.target.value === 'default' ? null : e.target.value;
+                setSelectedDeviceId(deviceId);
+              }}
+              sx={{ 
+                color: '#e0e0e0',
+                backgroundColor: '#121212',
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#333333' },
+                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#00c6ff' },
+                '& .MuiSelect-icon': { color: '#e0e0e0' },
+              }}
+              MenuProps={{
+                PaperProps: {
+                  style: {
+                    backgroundColor: '#1e1e1e',
+                    color: '#e0e0e0',
+                    border: '1px solid #333333',
+                  },
+                },
+              }}
+            >
+              <MenuItem value="default" sx={{ color: '#e0e0e0', '&:hover': { backgroundColor: '#2a2a2a' } }}>
+                Default Microphone
+              </MenuItem>
+              {audioDevices.map((device) => (
+                <MenuItem 
+                  key={device.deviceId} 
+                  value={device.deviceId}
+                  sx={{ color: '#e0e0e0', '&:hover': { backgroundColor: '#2a2a2a' } }}
+                >
+                  {device.label || `Microphone ${device.deviceId.substring(0, 8)}`}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
+
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2, mb: 2 }}>
           <FormControl fullWidth>
             <InputLabel sx={{ color: '#a0a0a0' }}>Model</InputLabel>
@@ -193,15 +300,26 @@ export default function LiveMicTab() {
               onChange={(e) => setModel(e.target.value)}
               sx={{ 
                 color: '#e0e0e0',
+                backgroundColor: '#121212',
                 '& .MuiOutlinedInput-notchedOutline': { borderColor: '#333333' },
                 '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#00c6ff' },
+                '& .MuiSelect-icon': { color: '#e0e0e0' },
+              }}
+              MenuProps={{
+                PaperProps: {
+                  style: {
+                    backgroundColor: '#1e1e1e',
+                    color: '#e0e0e0',
+                    border: '1px solid #333333',
+                  },
+                },
               }}
             >
-              <MenuItem value="tiny">Tiny</MenuItem>
-              <MenuItem value="base">Base</MenuItem>
-              <MenuItem value="small">Small</MenuItem>
-              <MenuItem value="medium">Medium</MenuItem>
-              <MenuItem value="large">Large</MenuItem>
+              <MenuItem value="tiny" sx={{ color: '#e0e0e0', '&:hover': { backgroundColor: '#2a2a2a' } }}>Tiny</MenuItem>
+              <MenuItem value="base" sx={{ color: '#e0e0e0', '&:hover': { backgroundColor: '#2a2a2a' } }}>Base</MenuItem>
+              <MenuItem value="small" sx={{ color: '#e0e0e0', '&:hover': { backgroundColor: '#2a2a2a' } }}>Small</MenuItem>
+              <MenuItem value="medium" sx={{ color: '#e0e0e0', '&:hover': { backgroundColor: '#2a2a2a' } }}>Medium</MenuItem>
+              <MenuItem value="large" sx={{ color: '#e0e0e0', '&:hover': { backgroundColor: '#2a2a2a' } }}>Large</MenuItem>
             </Select>
           </FormControl>
           <FormControl fullWidth>
@@ -211,14 +329,25 @@ export default function LiveMicTab() {
               onChange={(e) => setLanguage(e.target.value)}
               sx={{ 
                 color: '#e0e0e0',
+                backgroundColor: '#121212',
                 '& .MuiOutlinedInput-notchedOutline': { borderColor: '#333333' },
                 '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#00c6ff' },
+                '& .MuiSelect-icon': { color: '#e0e0e0' },
+              }}
+              MenuProps={{
+                PaperProps: {
+                  style: {
+                    backgroundColor: '#1e1e1e',
+                    color: '#e0e0e0',
+                    border: '1px solid #333333',
+                  },
+                },
               }}
             >
-              <MenuItem value="en">English</MenuItem>
-              <MenuItem value="es">Spanish</MenuItem>
-              <MenuItem value="fr">French</MenuItem>
-              <MenuItem value="de">German</MenuItem>
+              <MenuItem value="en" sx={{ color: '#e0e0e0', '&:hover': { backgroundColor: '#2a2a2a' } }}>English</MenuItem>
+              <MenuItem value="es" sx={{ color: '#e0e0e0', '&:hover': { backgroundColor: '#2a2a2a' } }}>Spanish</MenuItem>
+              <MenuItem value="fr" sx={{ color: '#e0e0e0', '&:hover': { backgroundColor: '#2a2a2a' } }}>French</MenuItem>
+              <MenuItem value="de" sx={{ color: '#e0e0e0', '&:hover': { backgroundColor: '#2a2a2a' } }}>German</MenuItem>
             </Select>
           </FormControl>
         </Box>

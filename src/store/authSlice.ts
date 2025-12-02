@@ -9,6 +9,7 @@ import {
   getRefreshToken,
   getStoredUser,
   setStoredUser,
+  clearAuthData,
   User,
 } from "../lib/api";
 
@@ -35,21 +36,42 @@ export const checkAuth = createAsyncThunk<User | null, void, { rejectValue: stri
       const refreshToken = getRefreshToken();
       const storedUser = getStoredUser();
 
-      if (!accessToken || !storedUser) return null;
+      if (!accessToken || !storedUser) {
+        // No token or user, ensure auth data is cleared
+        clearAuthData();
+        return null;
+      }
 
       try {
         const freshUser = await getCurrentUser();
         if (freshUser.success && freshUser.data) {
           setStoredUser(freshUser.data);
           return freshUser.data;
+        } else {
+          // Token is invalid or user data is missing, clear auth data
+          clearAuthData();
+          return null;
         }
-      } catch {
-        // If backend is not available, use stored user
-        return storedUser;
+      } catch (error: any) {
+        // Check if it's a 401/403 error (invalid token)
+        if (error.message?.includes('401') || error.message?.includes('403') || 
+            error.message?.includes('Unauthorized') || error.message?.includes('Forbidden')) {
+          // Token is invalid, clear auth data
+          clearAuthData();
+          return null;
+        }
+        // If backend is not available and we have a stored user, use it
+        // But only if we have both token and stored user
+        if (accessToken && storedUser) {
+          return storedUser;
+        }
+        // Otherwise clear auth data
+        clearAuthData();
+        return null;
       }
-
-      return null;
     } catch (err: any) {
+      // On any other error, clear auth data to be safe
+      clearAuthData();
       return rejectWithValue(err.message || "Authentication check failed");
     }
   }
@@ -99,9 +121,19 @@ export const refreshUserData = createAsyncThunk<User | null, void, { rejectValue
       if (res.success && res.data) {
         setStoredUser(res.data);
         return res.data;
+      } else {
+        // Token is invalid, clear auth data
+        clearAuthData();
+        return null;
       }
-      return null;
     } catch (err: any) {
+      // Check if it's a 401/403 error (invalid token)
+      if (err.message?.includes('401') || err.message?.includes('403') || 
+          err.message?.includes('Unauthorized') || err.message?.includes('Forbidden')) {
+        // Token is invalid, clear auth data
+        clearAuthData();
+        return null;
+      }
       return rejectWithValue(err.message || "Failed to refresh user data");
     }
   }

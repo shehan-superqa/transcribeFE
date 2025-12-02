@@ -379,6 +379,9 @@ export async function refreshToken(): Promise<RefreshTokenResponse> {
 
 export async function getCurrentUser(): Promise<UserResponse> {
   const response = await authenticatedFetch('/api/auth/me', { method: 'GET' });
+  
+  // If we get a 401, the token is invalid and auth data should already be cleared by authenticatedFetch
+  // Let handleResponse throw the error so it can be caught properly
   const data = await handleResponse<UserResponse>(response);
   
   if (data.success && data.data) {

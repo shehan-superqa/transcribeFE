@@ -6,15 +6,18 @@ import { RootState, AppDispatch } from "../store";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
-import TabNavigation from "../components/transcription/TabNavigation";
+import Sidebar from "../components/Sidebar";
 import TranscribeTab from "../components/transcription/TranscribeTab";
-import BatchTab from "../components/transcription/BatchTab";
 import LiveMicTab from "../components/transcription/LiveMicTab";
 import TTSTab from "../components/transcription/TTSTab";
 import HistoryTab from "../components/transcription/HistoryTab";
 import SettingsTab from "../components/transcription/SettingsTab";
 import TrainerTab from "../components/transcription/TrainerTab";
-import TextToVideoTab from "../components/video/TextToVideoTab";
+import AudioTranslatorPage from "./tools/AudioTranslatorPage";
+import LiveTranscribePage from "./tools/LiveTranscribePage";
+import WebCaptionerPage from "./tools/WebCaptionerPage";
+import RealTimeTranslatorPage from "./tools/RealTimeTranslatorPage";
+import LiveVoiceTranslatorPage from "./tools/LiveVoiceTranslatorPage";
 import "./Dashboard.css";
 
 // Create Material-UI dark theme matching Dashboard colors
@@ -36,27 +39,6 @@ const darkTheme = createTheme({
   },
 });
 
-// URL to tab index mapping
-const routeToTabIndex: Record<string, number> = {
-  'transcribe': 0,
-  'batch': 1,
-  'livemicvad': 2,
-  'tts': 3,
-  'history': 4,
-  'settings': 5,
-  'trainer': 6,
-};
-
-const tabIndexToRoute: Record<number, string> = {
-  0: 'transcribe',
-  1: 'batch',
-  2: 'livemicvad',
-  3: 'tts',
-  4: 'history',
-  5: 'settings',
-  6: 'trainer',
-};
-
 export default function Dashboard() {
   const { user } = useAuth();
   const dispatch = useDispatch<AppDispatch>();
@@ -69,25 +51,13 @@ export default function Dashboard() {
   const [selectedTranscription, setSelectedTranscription] = useState<Transcription | null>(null);
   const [selectedJobDetails, setSelectedJobDetails] = useState<any | null>(null);
   
-  // Get current tab from URL
-  const getCurrentTabFromPath = () => {
-    const path = location.pathname;
-    if (path === '/dashboard' || path === '/dashboard/') {
-      return 0; // Default to transcribe
-    }
-    const route = path.replace('/dashboard/voice/', '');
-    return routeToTabIndex[route] ?? 0;
-  };
-  
-  const activeTab = getCurrentTabFromPath();
-  
-  // Check if we're on a video route
-  const isVideoRoute = location.pathname.startsWith('/dashboard/video/');
+  // Check if we're on a video route (legacy support)
+  const isVideoRoute = location.pathname.startsWith('/dashboard/video/') || location.pathname.startsWith('/video/');
 
-  // Redirect /dashboard to /dashboard/voice/transcribe
+  // Redirect /dashboard to /voice/transcribe
   useEffect(() => {
     if (location.pathname === '/dashboard' || location.pathname === '/dashboard/') {
-      navigate('/dashboard/voice/transcribe', { replace: true });
+      navigate('/voice/transcribe', { replace: true });
     }
   }, [location.pathname]);
 
@@ -216,7 +186,9 @@ export default function Dashboard() {
   return (
     <div className="dashboard-container">
       <div className="dashboard-content-wrapper">
-
+        {/* Sidebar Navigation */}
+        <Sidebar />
+        
         {/* Main Content Area - Side by Side Layout */}
         <div className="dashboard-main-layout">
           {/* Transcription Tool with Tabs - Left Side */}
@@ -224,18 +196,22 @@ export default function Dashboard() {
             <div className="tool-container">
               <ThemeProvider theme={darkTheme}>
                 <CssBaseline />
-                {!isVideoRoute && <TabNavigation currentTab={activeTab} />}
                 <Routes>
-                  <Route path="/" element={<Navigate to="/dashboard/voice/transcribe" replace />} />
-                  <Route path="voice/transcribe" element={<TranscribeTab />} />
-                  <Route path="voice/batch" element={<BatchTab />} />
-                  <Route path="voice/livemicvad" element={<LiveMicTab />} />
-                  <Route path="voice/tts" element={<TTSTab />} />
-                  <Route path="voice/history" element={<HistoryTab />} />
-                  <Route path="voice/settings" element={<SettingsTab />} />
-                  <Route path="voice/trainer" element={<TrainerTab />} />
-                  <Route path="voice/*" element={<Navigate to="/dashboard/voice/transcribe" replace />} />
-                  <Route path="video/text-to-video" element={<TextToVideoTab />} />
+                  <Route path="/" element={<Navigate to="/voice/transcribe" replace />} />
+                  <Route path="transcribe" element={<TranscribeTab />} />
+                  <Route path="batch" element={<Navigate to="/voice/transcribe" replace />} />
+                  <Route path="live" element={<LiveMicTab />} />
+                  <Route path="livemicvad" element={<Navigate to="/voice/live" replace />} />
+                  <Route path="tts" element={<TTSTab />} />
+                  <Route path="translator" element={<AudioTranslatorPage />} />
+                  <Route path="history" element={<HistoryTab />} />
+                  <Route path="settings" element={<SettingsTab />} />
+                  <Route path="trainer" element={<TrainerTab />} />
+                  <Route path="live-transcribe" element={<LiveTranscribePage />} />
+                  <Route path="live-captioner" element={<WebCaptionerPage />} />
+                  <Route path="live-translator" element={<RealTimeTranslatorPage />} />
+                  <Route path="live-voice-translator" element={<LiveVoiceTranslatorPage />} />
+                  <Route path="*" element={<Navigate to="/voice/transcribe" replace />} />
                 </Routes>
               </ThemeProvider>
             </div>
@@ -251,9 +227,13 @@ export default function Dashboard() {
             <div className="loading-state">
               Loading transcriptions...
             </div>
-          ) : error ? (
+          ) : error && !error.includes('Authentication failed') && !error.includes('Authentication service unavailable') ? (
             <div className="error-state">
               Error: {error}
+            </div>
+          ) : error && (error.includes('Authentication failed') || error.includes('Authentication service unavailable')) ? (
+            <div className="error-state">
+              <p>Unable to load transcription history. Please refresh the page or log in again.</p>
             </div>
           ) : transcriptions.length === 0 ? (
             <div className="empty-state">

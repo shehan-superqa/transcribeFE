@@ -12,6 +12,7 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import ToolsDashboard from "./pages/ToolsDashboard";
+import ImagesDashboard from "./pages/ImagesDashboard";
 import Pricing from "./pages/Pricing";
 import VerifyEmail from "./pages/VerifyEmail";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -50,17 +51,9 @@ function AppContent() {
 
               <Route path="/pricing" element={<Pricing />} />
 
-              {/* Protected Routes */}
+              {/* Protected Routes - Voice (Audio) Tools */}
               <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <Navigate to="/dashboard/voice/transcribe" replace />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/dashboard/*"
+                path="/voice/*"
                 element={
                   <ProtectedRoute>
                     <Dashboard />
@@ -68,12 +61,50 @@ function AppContent() {
                 }
               />
 
-              {/* Tools Dashboard with Sidebar Navigation */}
+              {/* Protected Routes - Video Tools */}
+              <Route
+                path="/video/*"
+                element={
+                  <ProtectedRoute>
+                    <ToolsDashboard />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Protected Routes - Image Tools */}
+              <Route
+                path="/images/*"
+                element={
+                  <ProtectedRoute>
+                    <ImagesDashboard />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Legacy dashboard route - redirect to voice */}
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <Navigate to="/voice/transcribe" replace />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard/*"
+                element={
+                  <ProtectedRoute>
+                    <Navigate to="/voice/transcribe" replace />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Legacy tools route - redirect to video */}
               <Route
                 path="/tools/*"
                 element={
                   <ProtectedRoute>
-                    <ToolsDashboard />
+                    <Navigate to="/video/text-to-video" replace />
                   </ProtectedRoute>
                 }
               />

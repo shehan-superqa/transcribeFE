@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Button,
@@ -31,10 +32,11 @@ import AudioPlayer from './tts/AudioPlayer';
 import { submitTTSJob, getTTSJobStatus, getAvailableVoices, type TTSVoice, type TTSJobRequest } from '../../lib/api/ttsApi';
 
 export default function TTSTab() {
+  const navigate = useNavigate();
   const [text, setText] = useState('');
   const [selectedVoice, setSelectedVoice] = useState<string>('');
   const [language, setLanguage] = useState<string>('en');
-  const [emotion, setEmotion] = useState<string>('auto');
+  const [emotion, setEmotion] = useState<string>('');
   const [speed, setSpeed] = useState<number>(1.0);
   const [pitch, setPitch] = useState<number>(1.0);
   const [volume, setVolume] = useState<number>(1.0);
@@ -139,7 +141,17 @@ export default function TTSTab() {
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    // Prevent navigation if button is clicked
+    if (e && e.nativeEvent) {
+      e.nativeEvent.stopImmediatePropagation();
+    }
+
     if (!text.trim()) {
       setError('Please enter text to convert to speech');
       return;
@@ -152,6 +164,8 @@ export default function TTSTab() {
 
     setError(null);
     setTtsJob(null);
+    setProgress(0);
+    setStatus('');
 
     try {
       const request: TTSJobRequest = {
@@ -164,15 +178,39 @@ export default function TTSTab() {
         volume: volume,
       };
 
+      console.log('Submitting TTS job:', request);
       const response = await submitTTSJob(request);
+      console.log('TTS job response:', response);
+      
       if (response.success && response.job_id) {
         setJobId(response.job_id);
+        setStatus('queued');
+        setProgress(5);
       } else {
-        setError(response.message || 'Failed to submit TTS job');
+        const errorMsg = response.message || 'Failed to submit TTS job';
+        setError(errorMsg);
+        console.error('TTS job submission failed:', errorMsg);
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to submit TTS job');
+      // Check if this is an authentication error
+      if (err.isAuthError || err.message?.includes('not authenticated') || err.message?.includes('Please log in')) {
+        // Only redirect if we're actually not authenticated
+        // Don't redirect if user is already on login page
+        if (!window.location.pathname.includes('/auth/login')) {
+          const currentPath = window.location.pathname;
+          navigate(`/auth/login?redirect=${encodeURIComponent(currentPath)}`, { replace: true });
+        }
+        return;
+      }
+      
+      const errorMsg = err.response?.data?.error || err.message || 'Failed to submit TTS job';
+      setError(errorMsg);
       console.error('Error submitting TTS job:', err);
+      console.error('Error details:', {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status,
+      });
     }
   };
 
@@ -465,8 +503,13 @@ export default function TTSTab() {
             </Button>
           )}
           <Button
+            type="button"
             variant="contained"
-            onClick={handleSubmit}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleSubmit(e);
+            }}
             disabled={!text.trim() || !selectedVoice || currentStatus === 'processing' || currentStatus === 'queued'}
             startIcon={<VolumeUpIcon />}
             fullWidth={{ xs: true, sm: false }}
