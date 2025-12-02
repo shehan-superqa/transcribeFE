@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../lib/auth';
-import { submitImageTrainingJob, getImageTrainingJobStatus } from '../../lib/api/imageTrainingApi';
+import { submitImageTrainingJob, getImageTrainingJobStatus, type ImageWithDescription } from '../../lib/api/imageTrainingApi';
 import { getUserJobs } from '../../lib/api/jobsApi';
 import { useSSE } from '../../hooks/useSSE';
 import type { ImageTrainingJobRequest, ImageTrainingJobResult, ImageTrainingJob, Job } from '../../types/api';
+import ImageUploader from './ImageUploader';
 import './ImageTrainingTool.css';
 
 const styles = {
@@ -276,7 +277,8 @@ const styles = {
 
 export default function ImageTrainingTool() {
   const { user } = useAuth();
-  const [imageUrls, setImageUrls] = useState<string[]>(['']);
+  const [images, setImages] = useState<ImageWithDescription[]>([]);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [triggerWord, setTriggerWord] = useState('');
   const [loraType, setLoraType] = useState<'subject' | 'style'>('subject');
   const [baseModel, setBaseModel] = useState('black-forest-labs/flux-dev');
@@ -284,6 +286,7 @@ export default function ImageTrainingTool() {
   const [learningRate, setLearningRate] = useState(0.0001);
   const [batchSize, setBatchSize] = useState(1);
   const [resolution, setResolution] = useState(1024);
+  const [trainingModel, setTrainingModel] = useState('lucataco/sd3.5-large-fine-tuner');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -297,9 +300,10 @@ export default function ImageTrainingTool() {
   const [trainingHistory, setTrainingHistory] = useState<ImageTrainingJob[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
+  const [streamUrl, setStreamUrl] = useState<string | undefined>(undefined);
 
   // Use SSE hook for progress tracking
-  const { progress, status, message, result, error: sseError, isConnected } = useSSE(jobId);
+  const { progress, status, message, result, error: sseError, isConnected } = useSSE(jobId, streamUrl);
 
   // Fetch training job history
   useEffect(() => {
@@ -480,21 +484,10 @@ export default function ImageTrainingTool() {
     }
   }, [sseError, usePolling, startPolling]);
 
-  const handleAddImageUrl = () => {
-    setImageUrls([...imageUrls, '']);
-  };
-
-  const handleRemoveImageUrl = (index: number) => {
-    if (imageUrls.length > 1) {
-      setImageUrls(imageUrls.filter((_, i) => i !== index));
-    }
-  };
-
-  const handleImageUrlChange = (index: number, value: string) => {
-    const newUrls = [...imageUrls];
-    newUrls[index] = value;
-    setImageUrls(newUrls);
-  };
+  // Handle uploaded URLs from ImageUploader
+  const handleUploadUrls = useCallback((urls: string[]) => {
+    setImageUrls(urls);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -502,16 +495,32 @@ export default function ImageTrainingTool() {
     setTrainedModel(null);
     setLoading(true);
     setJobId(null);
+    setStreamUrl(undefined);
     setUsePolling(false);
     setPollingProgress(0);
     setPollingStatus('');
     setPollingMessage('');
 
-    // Filter out empty URLs
-    const validImageUrls = imageUrls.filter(url => url.trim() !== '');
+    // Use uploaded URLs if available, otherwise check if images need to be uploaded
+    let validImageUrls = imageUrls.filter(url => url.trim() !== '');
+    
+    // If no URLs but we have images, check if they're uploaded
+    if (validImageUrls.length === 0 && images.length > 0) {
+      const uploadedUrls = images
+        .map(img => img.uploadedUrl)
+        .filter((url): url is string => !!url);
+      
+      if (uploadedUrls.length === 0) {
+        setError('Please upload images first to get public URLs, or provide image URLs manually');
+        setLoading(false);
+        return;
+      }
+      
+      validImageUrls = uploadedUrls;
+    }
 
     if (validImageUrls.length === 0) {
-      setError('Please provide at least one image URL');
+      setError('Please provide at least one image. Upload images or provide image URLs.');
       setLoading(false);
       return;
     }
@@ -544,12 +553,17 @@ export default function ImageTrainingTool() {
       learning_rate: learningRate,
       batch_size: batchSize,
       resolution,
+      training_model: trainingModel,
     };
 
     try {
       const response = await submitImageTrainingJob(request);
       if (response.success && response.job_id) {
         setJobId(response.job_id);
+        // Use stream_url from response if available
+        if (response.stream_url) {
+          setStreamUrl(response.stream_url);
+        }
         setPollingProgress(5);
         setPollingStatus('queued');
         setPollingMessage('Training job submitted, starting...');
@@ -638,40 +652,58 @@ export default function ImageTrainingTool() {
 
         <div style={styles.inputGroup}>
           <label style={styles.label}>
-            Image URLs <span style={{ color: '#ef4444' }}>*</span>
+            Training Images <span style={{ color: '#ef4444' }}>*</span>
           </label>
-          {imageUrls.map((url, index) => (
-            <div key={index} style={styles.imageUrlInput}>
-              <input
-                type="text"
-                value={url}
-                onChange={(e) => handleImageUrlChange(index, e.target.value)}
-                placeholder={`Image URL ${index + 1} (must be publicly accessible)`}
-                style={styles.input}
-                disabled={loading}
-              />
-              {imageUrls.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => handleRemoveImageUrl(index)}
-                  style={styles.removeButton}
-                  disabled={loading}
-                >
-                  Remove
-                </button>
-              )}
-            </div>
-          ))}
-          <button
-            type="button"
-            onClick={handleAddImageUrl}
-            style={styles.addButton}
+          <ImageUploader
+            images={images}
+            onImagesChange={setImages}
             disabled={loading}
-          >
-            + Add Image URL
-          </button>
-          <small style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-            {imageUrls.filter(u => u.trim()).length} image{imageUrls.filter(u => u.trim()).length !== 1 ? 's' : ''} provided
+            onUploadUrls={handleUploadUrls}
+          />
+          {/* Manual URL input fallback */}
+          <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
+            <label style={{ ...styles.label, fontSize: '0.85rem', marginBottom: '0.5rem' }}>
+              Or provide image URLs manually:
+            </label>
+            {imageUrls.map((url, index) => (
+              <div key={index} style={{ ...styles.imageUrlInput, marginBottom: '0.5rem' }}>
+                <input
+                  type="text"
+                  value={url}
+                  onChange={(e) => {
+                    const newUrls = [...imageUrls];
+                    newUrls[index] = e.target.value;
+                    setImageUrls(newUrls);
+                  }}
+                  placeholder={`Image URL ${index + 1} (must be publicly accessible)`}
+                  style={styles.input}
+                  disabled={loading}
+                />
+                {imageUrls.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => setImageUrls(imageUrls.filter((_, i) => i !== index))}
+                    style={styles.removeButton}
+                    disabled={loading}
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => setImageUrls([...imageUrls, ''])}
+              style={styles.addButton}
+              disabled={loading}
+            >
+              + Add Image URL
+            </button>
+          </div>
+          <small style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.5rem', display: 'block' }}>
+            {images.length > 0 
+              ? `${images.length} image${images.length !== 1 ? 's' : ''} uploaded, ${imageUrls.filter(u => u.trim()).length} URL${imageUrls.filter(u => u.trim()).length !== 1 ? 's' : ''} provided`
+              : `${imageUrls.filter(u => u.trim()).length} image URL${imageUrls.filter(u => u.trim()).length !== 1 ? 's' : ''} provided`}
           </small>
         </div>
 
@@ -722,10 +754,10 @@ export default function ImageTrainingTool() {
 
         <button
           type="submit"
-          disabled={loading || !user || imageUrls.filter(u => u.trim()).length === 0 || !triggerWord.trim()}
+          disabled={loading || !user || (images.length === 0 && imageUrls.filter(u => u.trim()).length === 0) || !triggerWord.trim()}
           style={{
             ...styles.submitButton,
-            ...(loading || !user || imageUrls.filter(u => u.trim()).length === 0 || !triggerWord.trim() ? styles.submitButtonDisabled : {}),
+            ...(loading || !user || (images.length === 0 && imageUrls.filter(u => u.trim()).length === 0) || !triggerWord.trim() ? styles.submitButtonDisabled : {}),
           }}
         >
           {loading ? 'Training...' : 'Start Training'}
@@ -824,6 +856,21 @@ export default function ImageTrainingTool() {
                 <option value={1024}>1024 (Recommended)</option>
                 <option value={1280}>1280 (High Quality)</option>
               </select>
+            </div>
+
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Training Model</label>
+              <input
+                type="text"
+                value={trainingModel}
+                onChange={(e) => setTrainingModel(e.target.value)}
+                placeholder="lucataco/sd3.5-large-fine-tuner"
+                style={styles.input}
+                disabled={loading}
+              />
+              <small style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                Default: lucataco/sd3.5-large-fine-tuner
+              </small>
             </div>
           </div>
         )}
@@ -928,5 +975,6 @@ export default function ImageTrainingTool() {
     </div>
   );
 }
+
 
 

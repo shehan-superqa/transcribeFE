@@ -17,8 +17,10 @@ export interface UseSSEReturn {
 
 /**
  * Hook to listen to SSE progress stream for a job
+ * @param jobId - Job ID to stream progress for
+ * @param streamUrl - Optional stream URL from API response
  */
-export function useSSE(jobId: string | null): UseSSEReturn {
+export function useSSE(jobId: string | null, streamUrl?: string): UseSSEReturn {
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState<string>('');
   const [message, setMessage] = useState<string>('');
@@ -33,7 +35,7 @@ export function useSSE(jobId: string | null): UseSSEReturn {
     }
 
     // Connect to SSE stream
-    sseClient.connect(jobId);
+    sseClient.connect(jobId, streamUrl);
     setIsConnected(true);
 
     // Set up progress callback
@@ -71,7 +73,7 @@ export function useSSE(jobId: string | null): UseSSEReturn {
       sseClient.close();
       setIsConnected(false);
     };
-  }, [jobId]);
+  }, [jobId, streamUrl]);
 
   return {
     progress,
