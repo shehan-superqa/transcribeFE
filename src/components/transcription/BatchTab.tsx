@@ -48,23 +48,88 @@ export default function BatchTab() {
   const [error, setError] = useState<string | null>(null);
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [availableLanguages, setAvailableLanguages] = useState<string[]>([]);
+  const [enginesData, setEnginesData] = useState<Array<{ name: string; models: string[] }>>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load available models and languages
   useEffect(() => {
+    // Set default models initially so dropdown is visible
+    setAvailableModels(['base', 'small', 'medium', 'large']);
+    
     getAvailableModels()
       .then((data) => {
-        if (data.success) {
-          setAvailableModels(data.models || []);
+        if (data.success || data.engines) {
+          // Store engines data
+          const engines = data.engines || [];
+          setEnginesData(engines.map(e => ({ name: e.name, models: e.models || [] })));
+          
+          // Set languages
           setAvailableLanguages(data.languages || []);
+          
+          // Set models for current engine or default to whisper models
+          const currentEngineData = engines.find(e => e.name === engine);
+          if (currentEngineData && currentEngineData.models.length > 0) {
+            setAvailableModels(currentEngineData.models);
+            // Reset model if current model is not available for selected engine
+            if (!currentEngineData.models.includes(model)) {
+              setModel(currentEngineData.models[0] || 'base');
+            }
+          } else {
+            // Fallback to legacy models or default
+            const fallbackModels = data.models || ['base', 'small', 'medium', 'large'];
+            setAvailableModels(fallbackModels);
+            if (!fallbackModels.includes(model)) {
+              setModel(fallbackModels[0] || 'base');
+            }
+          }
         }
       })
       .catch((error) => {
         console.warn('Failed to load available models:', error);
+        // Keep default models on error
         setAvailableModels(['base', 'small', 'medium', 'large']);
         setAvailableLanguages(['en']);
       });
   }, []);
+
+  // Update available models when engine changes
+  useEffect(() => {
+    // Don't update if enginesData is not loaded yet (empty array)
+    if (enginesData.length === 0) {
+      return;
+    }
+
+    const currentEngineData = enginesData.find(e => e.name === engine);
+    if (currentEngineData && currentEngineData.models.length > 0) {
+      setAvailableModels(currentEngineData.models);
+      // Reset model if current model is not available for selected engine
+      if (!currentEngineData.models.includes(model)) {
+        setModel(currentEngineData.models[0] || 'base');
+      }
+    } else if (engine === 'whisper') {
+      // Default whisper models if engine data not loaded yet
+      setAvailableModels(['tiny', 'base', 'small', 'medium', 'large', 'large-v2', 'large-v3']);
+      if (!model || !['tiny', 'base', 'small', 'medium', 'large', 'large-v2', 'large-v3'].includes(model)) {
+        setModel('base');
+      }
+    } else {
+      // For engines without models (like google), show empty array but keep dropdown visible with a message
+      // Actually, let's check if replicate has models - it should
+      if (engine === 'replicate') {
+        // Replicate should have models, use default if not found
+        setAvailableModels(['base', 'small', 'medium', 'large']);
+        if (!model || !['base', 'small', 'medium', 'large'].includes(model)) {
+          setModel('base');
+        }
+      } else {
+        // For engines that truly don't support models (like google), hide dropdown
+        setAvailableModels([]);
+        if (model) {
+          setModel('');
+        }
+      }
+    }
+  }, [engine, enginesData]);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = event.target.files;
@@ -347,12 +412,13 @@ export default function BatchTab() {
               ))}
             </Select>
           </FormControl>
-          <FormControl fullWidth>
-            <InputLabel sx={{ color: '#a0a0a0' }}>Model</InputLabel>
-            <Select 
-              value={model} 
+          {availableModels.length > 0 && (
+            <FormControl fullWidth>
+              <InputLabel sx={{ color: '#a0a0a0' }}>Model</InputLabel>
+              <Select 
+              value={model || ''} 
               onChange={(e) => setModel(e.target.value)} 
-              disabled={isProcessing || engine !== 'whisper'}
+              disabled={isProcessing || availableModels.length === 0}
               MenuProps={{
                 PaperProps: {
                   style: {

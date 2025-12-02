@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 import { FiMenu, FiX, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import { FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
@@ -208,14 +208,17 @@ const ToolsDropdown = ({ isMobile }: { isMobile: boolean }) => {
 const ComplexDropdown = ({ isMobile }: { isMobile: boolean }) => {
   if (isMobile) {
     return (
-      <div style={{ backgroundColor: '#0d0d0d', borderRadius: '8px', boxShadow: '0 8px 20px rgba(0,0,0,0.5)', overflow: 'visible', padding: '0.5rem', width: '100%' }}>
+      <div style={{ backgroundColor: '#0d0d0d', borderRadius: '8px', boxShadow: '0 8px 20px rgba(0,0,0,0.5)', overflow: 'hidden', padding: '0.5rem', width: '100%' }}>
         <HighlightedItem to="/pricing" title="Secure Comm." description="End-to-end encryption for all voice and data streams." />
         <div style={{ display: 'flex', flexDirection: 'column', marginTop: '0.5rem' }}>
-          <DropdownSection title="Core Features">
+          <DropdownSection title="CORE FEATURES">
             <SectionItem to="/pricing" title="Voice Biometrics" description="Verify user identity using unique voice prints (IVR)" />
             <SectionItem to="/pricing" title="Data Tokenization" description="Anonymize sensitive data in real-time conversations" />
-          </DropdownSection>
-          <DropdownSection title="Use Cases">
+            <div style={{ padding: '0.5rem 1rem 0.25rem 1rem' }}>
+              <h3 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: '0.75rem', color: '#aaaaaa', textTransform: 'uppercase', margin: '0.5rem 0 0.25rem 0' }}>
+                USE CASES
+              </h3>
+            </div>
             <SectionItem to="/pricing" title="Contact Center Security" description="Protect customer PII and meet compliance standards" />
             <SectionItem to="/pricing" title="Remote Work Security" description="Secure virtual meetings and team collaborations" />
           </DropdownSection>
@@ -225,14 +228,17 @@ const ComplexDropdown = ({ isMobile }: { isMobile: boolean }) => {
   }
   
   return (
-    <div style={{ display: 'flex', backgroundColor: '#0d0d0d', borderRadius: '8px', boxShadow: '0 8px 20px rgba(0,0,0,0.5)', overflow: 'visible', minWidth: '600px', maxWidth: '800px', padding: '0.5rem' }}>
+    <div className="tools-dropdown-scroll" style={{ display: 'flex', backgroundColor: '#0d0d0d', borderRadius: '8px', boxShadow: '0 8px 20px rgba(0,0,0,0.5)', overflowX: 'auto', overflowY: 'hidden', minWidth: '600px', maxWidth: '900px', padding: '0.5rem', scrollbarWidth: 'thin', scrollbarColor: '#333333 #0d0d0d' }}>
       <HighlightedItem to="/pricing" title="Secure Comm." description="End-to-end encryption for all voice and data streams." />
-      <div style={{ display: 'flex', overflow: 'visible' }}>
-        <DropdownSection title="Core Features">
+      <div style={{ display: 'flex', flexShrink: 0 }}>
+        <DropdownSection title="CORE FEATURES">
           <SectionItem to="/pricing" title="Voice Biometrics" description="Verify user identity using unique voice prints (IVR)" />
           <SectionItem to="/pricing" title="Data Tokenization" description="Anonymize sensitive data in real-time conversations" />
-        </DropdownSection>
-        <DropdownSection title="Use Cases">
+          <div style={{ padding: '0.5rem 1rem 0.25rem 1rem' }}>
+            <h3 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: '0.75rem', color: '#aaaaaa', textTransform: 'uppercase', margin: '0.5rem 0 0.25rem 0' }}>
+              USE CASES
+            </h3>
+          </div>
           <SectionItem to="/pricing" title="Contact Center Security" description="Protect customer PII and meet compliance standards" />
           <SectionItem to="/pricing" title="Remote Work Security" description="Secure virtual meetings and team collaborations" />
         </DropdownSection>
@@ -244,8 +250,9 @@ const ComplexDropdown = ({ isMobile }: { isMobile: boolean }) => {
 // 4. Header Component
 // -------------------------
 export default function Header() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, refreshUser } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [productDropdownOpen, setProductDropdownOpen] = useState(false);
   const [toolsDropdownOpen, setToolsDropdownOpen] = useState(false);
@@ -253,6 +260,20 @@ export default function Header() {
   const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth <= 768);
   const toolsDropdownRef = useRef<HTMLDivElement>(null);
   const [toolsDropdownPosition, setToolsDropdownPosition] = useState<React.CSSProperties>({});
+
+  // Refresh user data when navigating to dashboard after login
+  useEffect(() => {
+    const shouldRefresh = location.pathname.startsWith('/voice/') || 
+                          location.pathname.startsWith('/video/') || 
+                          location.pathname.startsWith('/dashboard');
+    
+    if (shouldRefresh && !user) {
+      // Try to refresh user data if we're on a protected route but user is null
+      refreshUser().catch(error => {
+        console.error('Failed to refresh user in header:', error);
+      });
+    }
+  }, [location.pathname, user, refreshUser]);
 
   useEffect(() => {
     const handleResize = () => {

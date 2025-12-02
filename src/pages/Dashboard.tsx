@@ -40,7 +40,7 @@ const darkTheme = createTheme({
 });
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const dispatch = useDispatch<AppDispatch>();
   const location = useLocation();
   const navigate = useNavigate();
@@ -50,22 +50,37 @@ export default function Dashboard() {
 
   const [selectedTranscription, setSelectedTranscription] = useState<Transcription | null>(null);
   const [selectedJobDetails, setSelectedJobDetails] = useState<any | null>(null);
-  
-  // Check if we're on a video route (legacy support)
-  const isVideoRoute = location.pathname.startsWith('/dashboard/video/') || location.pathname.startsWith('/video/');
+  const [userRefreshed, setUserRefreshed] = useState(false);
 
   // Redirect /dashboard to /voice/transcribe
   useEffect(() => {
     if (location.pathname === '/dashboard' || location.pathname === '/dashboard/') {
       navigate('/voice/transcribe', { replace: true });
     }
-  }, [location.pathname]);
+  }, [location.pathname, navigate]);
+
+  // Refresh user data when Dashboard mounts (after login)
+  useEffect(() => {
+    const refreshUserData = async () => {
+      if (!userRefreshed) {
+        try {
+          await refreshUser();
+          setUserRefreshed(true);
+        } catch (error) {
+          console.error('Failed to refresh user data:', error);
+          setUserRefreshed(true); // Set to true even on error to prevent infinite loop
+        }
+      }
+    };
+    
+    refreshUserData();
+  }, [refreshUser, userRefreshed]);
 
   useEffect(() => {
-    if (user) {
+    if (user && userRefreshed) {
       dispatch(fetchTranscriptions());
     }
-  }, [user, dispatch]);
+  }, [user, userRefreshed, dispatch]);
 
   // Note: handleTranscriptionStart removed as TranscriptionTool is replaced with tab-based interface
   // Transcription start handling is now managed within individual tab components

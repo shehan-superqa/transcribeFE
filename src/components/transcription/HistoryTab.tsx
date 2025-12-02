@@ -25,6 +25,7 @@ import {
   MenuItem,
   LinearProgress,
   CircularProgress,
+  Alert,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
@@ -37,7 +38,7 @@ import type { Job } from '../../types/api';
 const ITEMS_PER_PAGE = 10;
 
 export default function HistoryTab() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const jobs = jobStore((state) => state.jobs);
   const isLoading = jobStore((state) => state.isLoading);
   const fetchJobs = jobStore((state) => state.fetchJobs);
@@ -48,13 +49,31 @@ export default function HistoryTab() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const [refreshingJob, setRefreshingJob] = useState<string | null>(null);
+  const [userRefreshed, setUserRefreshed] = useState(false);
+
+  // Refresh user data when HistoryTab mounts (after login)
+  useEffect(() => {
+    const refreshUserData = async () => {
+      if (!userRefreshed && !user) {
+        try {
+          await refreshUser();
+          setUserRefreshed(true);
+        } catch (error) {
+          console.error('Failed to refresh user data:', error);
+        }
+      } else {
+        setUserRefreshed(true);
+      }
+    };
+    
+    refreshUserData();
+  }, [refreshUser, userRefreshed, user]);
 
   useEffect(() => {
-    if (user) {
+    if (user && userRefreshed) {
       fetchJobs(user.id);
     }
-  }, [user, fetchJobs]);
+  }, [user, userRefreshed, fetchJobs]);
 
   // Filter and search jobs
   const filteredJobs = useMemo(() => {
@@ -70,7 +89,7 @@ export default function HistoryTab() {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter((job) =>
         job.file_info?.filename?.toLowerCase().includes(query) ||
-        job.prompt?.toLowerCase().includes(query) ||
+        (job as any).prompt?.toLowerCase().includes(query) ||
         false
       );
     }
@@ -102,7 +121,6 @@ export default function HistoryTab() {
   };
 
   const handleViewJob = async (jobId: string) => {
-    setRefreshingJob(jobId);
     try {
       const job = await getJob(jobId);
       if (job) {
@@ -110,8 +128,6 @@ export default function HistoryTab() {
       }
     } catch (error) {
       console.error('Error fetching job details:', error);
-    } finally {
-      setRefreshingJob(null);
     }
   };
 
@@ -276,6 +292,25 @@ export default function HistoryTab() {
                               fontSize: '0.7rem',
                             }}
                           />
+                          {job.status === 'completed' && job.result && (
+                            <IconButton
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDownload(job);
+                              }}
+                              sx={{ 
+                                color: '#4caf50',
+                                padding: '4px',
+                                '&:hover': {
+                                  backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                                },
+                              }}
+                              size="small"
+                              title="Download transcription"
+                            >
+                              <DownloadIcon fontSize="small" />
+                            </IconButton>
+                          )}
                         </Box>
                       }
                       secondary={
@@ -288,28 +323,21 @@ export default function HistoryTab() {
                     />
                     <Box>
                       {job.status === 'completed' && job.result && (
-                        <>
-                          <IconButton
-                            onClick={() => handleViewJob(job._id)}
-                            sx={{ color: '#00c6ff' }}
-                            size="small"
-                          >
-                            <VisibilityIcon />
-                          </IconButton>
-                          <IconButton
-                            onClick={() => handleDownload(job)}
-                            sx={{ color: '#4caf50' }}
-                            size="small"
-                          >
-                            <DownloadIcon />
-                          </IconButton>
-                        </>
+                        <IconButton
+                          onClick={() => handleViewJob(job._id)}
+                          sx={{ color: '#00c6ff' }}
+                          size="small"
+                          title="View details"
+                        >
+                          <VisibilityIcon />
+                        </IconButton>
                       )}
                       {['queued', 'processing', 'running'].includes(job.status) && (
                         <IconButton
                           onClick={() => handleCancel(job._id)}
                           sx={{ color: '#f44336' }}
                           size="small"
+                          title="Cancel job"
                         >
                           <DeleteIcon />
                         </IconButton>

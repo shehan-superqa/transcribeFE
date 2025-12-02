@@ -4,7 +4,7 @@
 
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { getAccessToken, getStoredUser, refreshAccessToken, clearAuthData } from '../api';
-import type { SubmitJobResponse, TranscriptionConfig, TranscriptionResult } from '../../types/api';
+import type { SubmitJobResponse, TranscriptionConfig, TranscriptionResult, ModelsResponse } from '../../types/api';
 
 const TRANSCRIBE_API_BASE_URL = import.meta.env.VITE_TRANSCRIBE_API_BASE_URL || 'http://localhost:5000';
 
@@ -209,26 +209,56 @@ export async function batchTranscription(
 /**
  * Get available models and languages
  */
-export async function getAvailableModels(): Promise<{
-  success: boolean;
-  models: string[];
-  languages: string[];
-  engines: string[];
-  engines_status: Record<string, any>;
-}> {
+export async function getAvailableModels(): Promise<ModelsResponse> {
   try {
-    const response = await apiClient.get('/api/models');
-    return response.data;
+    const response = await apiClient.get<ModelsResponse>('/api/models');
+    const data = response.data;
+    
+    // Handle both new and legacy response formats
+    if (data.engines && Array.isArray(data.engines) && data.engines.length > 0) {
+      // New format with engines array
+      return data;
+    } else if (data.models && Array.isArray(data.models)) {
+      // Legacy format - convert to new format
+      return {
+        ...data,
+        engines: (data.engines as any as string[] || []).map((engineName: string) => ({
+          name: engineName,
+          available: data.engines_status?.[engineName]?.available ?? true,
+          models: engineName === 'whisper' ? (data.models || []) : [],
+          status: data.engines_status?.[engineName],
+        })),
+      };
+    }
+    
+    // Fallback to default values
+    return {
+      success: false,
+      engines: [
+        {
+          name: 'whisper',
+          available: true,
+          models: ['base', 'small', 'medium', 'large'],
+        },
+      ],
+      languages: ['en'],
+      models: ['base', 'small', 'medium', 'large'],
+    };
   } catch (error: any) {
     // Handle 404 and other errors gracefully
     if (error.response?.status === 404) {
       console.warn('Models endpoint not found (404). Using default values.');
       return {
         success: false,
-        models: ['base', 'small', 'medium', 'large'],
+        engines: [
+          {
+            name: 'whisper',
+            available: true,
+            models: ['base', 'small', 'medium', 'large'],
+          },
+        ],
         languages: ['en'],
-        engines: ['whisper', 'google', 'openai', 'replicate'],
-        engines_status: {},
+        models: ['base', 'small', 'medium', 'large'],
       };
     }
     // Re-throw other errors
