@@ -48,14 +48,26 @@ export default function SettingsTab() {
     try {
       const response = await getUserSettings();
       if (response.success && response.data) {
-        setSampleRate(response.data.audio.sample_rate);
-        setChannels(response.data.audio.channels);
-        setOutputDir(response.data.output_dir);
-        setApiKey(response.data.api_key);
-        // Also update local store
-        updateAudioSettings(response.data.audio);
-        updateOutputDir(response.data.output_dir);
-        updateApiKey(response.data.api_key);
+        // Handle new API response structure where sample_rate is directly on data
+        // or old structure where it's nested under audio
+        const sampleRate = (response.data as any).sample_rate ?? response.data.audio?.sample_rate;
+        const channels = response.data.audio?.channels ?? 1; // Default to mono if not provided
+        const outputDir = response.data.output_dir ?? '';
+        const apiKey = response.data.api_key ?? '';
+        
+        if (sampleRate !== undefined) {
+          setSampleRate(sampleRate);
+          setChannels(channels);
+          setOutputDir(outputDir);
+          setApiKey(apiKey);
+          // Also update local store
+          updateAudioSettings({
+            sample_rate: sampleRate,
+            channels: channels,
+          });
+          updateOutputDir(outputDir);
+          updateApiKey(apiKey);
+        }
       }
     } catch (error: any) {
       // If settings don't exist yet, that's okay - use defaults
