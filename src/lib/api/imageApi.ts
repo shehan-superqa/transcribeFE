@@ -57,3 +57,4 @@ export async function getImageJobStatus(jobId: string): Promise<ImageJobStatusRe
   return response.data;
 }
 
+
