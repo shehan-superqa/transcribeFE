@@ -776,17 +776,6 @@ export default function ImageCaptioningTool() {
     <div style={styles.container}>
       <div style={styles.containerWithHistory}>
         <div style={styles.mainContent}>
-          <div style={styles.header}>
-            <h1 style={styles.title}>Image Captioning Tool</h1>
-            <p style={styles.subtitle}>
-              Upload images and generate detailed captions automatically
-            </p>
-          </div>
-
-      <div style={styles.infoBox}>
-        <strong>How to use:</strong> Upload images using drag & drop, paste from clipboard, or click to browse. 
-        Then click "Generate All Captions" to caption all images, or generate captions individually.
-      </div>
 
       <div
         {...getRootProps()}
