@@ -65,6 +65,7 @@ const menuItems: MenuItem[] = [
     isExpandable: true,
     subItems: [
       { id: 'generate', label: 'Image Generation', path: '/images/generate' },
+      { id: 'caption', label: 'Image Captioning', path: '/images/caption' },
       { id: 'train', label: 'Image Training (LoRA)', path: '/images/train' },
     ]
   },
