@@ -1,11 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../lib/auth';
-import { submitImageTrainingJob, submitImageTrainingJobWithZip, getImageTrainingJobStatus, type ImageWithDescription } from '../../lib/api/imageTrainingApi';
+import { submitImageTrainingJob, getImageTrainingJobStatus, uploadImagesForTraining, getLoRAsFromReplicate, type ImageWithDescription, type LoRAModel } from '../../lib/api/imageTrainingApi';
 import { getUserJobs } from '../../lib/api/jobsApi';
 import { useSSE } from '../../hooks/useSSE';
 import type { ImageTrainingJobRequest, ImageTrainingJobResult, ImageTrainingJob, Job } from '../../types/api';
 import ImageUploader from './ImageUploader';
-import JSZip from 'jszip';
 import './ImageTrainingTool.css';
 
 const styles = {
@@ -281,6 +280,7 @@ export default function ImageTrainingTool() {
   const [images, setImages] = useState<ImageWithDescription[]>([]);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [triggerWord, setTriggerWord] = useState('');
+  const [destinationModel, setDestinationModel] = useState('');
   const [loraType, setLoraType] = useState<'subject' | 'style'>('subject');
   const [baseModel, setBaseModel] = useState('black-forest-labs/flux-dev');
   const [trainingSteps, setTrainingSteps] = useState(1000);
@@ -289,6 +289,7 @@ export default function ImageTrainingTool() {
   const [resolution, setResolution] = useState(1024);
   const [trainingModel, setTrainingModel] = useState('lucataco/sd3.5-large-fine-tuner');
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [autoGenerateModel, setAutoGenerateModel] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
@@ -301,16 +302,49 @@ export default function ImageTrainingTool() {
   const [trainingHistory, setTrainingHistory] = useState<ImageTrainingJob[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
+  const [loras, setLoras] = useState<LoRAModel[]>([]);
+  const [lorasLoading, setLorasLoading] = useState(false);
+  const [lorasError, setLorasError] = useState<string | null>(null);
   const [streamUrl, setStreamUrl] = useState<string | undefined>(undefined);
   
   // Training workflow progress state
-  const [trainingStep, setTrainingStep] = useState<'idle' | 'creating_zip' | 'uploading' | 'training'>('idle');
+  const [trainingStep, setTrainingStep] = useState<'idle' | 'uploading_images' | 'training'>('idle');
   const [stepMessage, setStepMessage] = useState<string>('');
-  const [createdZipFile, setCreatedZipFile] = useState<File | null>(null);
-  const [zipDownloadUrl, setZipDownloadUrl] = useState<string | null>(null);
 
   // Use SSE hook for progress tracking
   const { progress, status, message, result, error: sseError, isConnected } = useSSE(jobId, streamUrl);
+
+  // Fetch LoRAs from Replicate
+  useEffect(() => {
+    const fetchLoRAs = async () => {
+      if (!user) return;
+      
+      setLorasLoading(true);
+      setLorasError(null);
+      
+      try {
+        const response = await getLoRAsFromReplicate();
+        if (response.success && response.loras) {
+          // Sort by updated_at (newest first)
+          const sortedLoras = [...response.loras].sort((a, b) => {
+            const dateA = new Date(a.updated_at || a.created_at).getTime();
+            const dateB = new Date(b.updated_at || b.created_at).getTime();
+            return dateB - dateA;
+          });
+          setLoras(sortedLoras);
+        } else {
+          setLorasError(response.error || response.message || 'Failed to load LoRAs');
+        }
+      } catch (err: any) {
+        console.error('Error fetching LoRAs:', err);
+        setLorasError(err?.message || 'Failed to load LoRAs');
+      } finally {
+        setLorasLoading(false);
+      }
+    };
+
+    fetchLoRAs();
+  }, [user]);
 
   // Fetch training job history
   useEffect(() => {
@@ -348,7 +382,7 @@ export default function ImageTrainingTool() {
     fetchTrainingHistory();
   }, [user]);
 
-  // Refresh history when a job completes
+  // Refresh history when a job completes or status changes
   useEffect(() => {
     if (trainedModel && user) {
       const fetchTrainingHistory = async () => {
@@ -374,6 +408,34 @@ export default function ImageTrainingTool() {
       fetchTrainingHistory();
     }
   }, [trainedModel, user]);
+
+  // Also refresh history periodically when there's an active job
+  useEffect(() => {
+    if (!jobId || !user) return;
+    
+    const refreshInterval = setInterval(async () => {
+      try {
+        const response = await getUserJobs(user.id);
+        if (response.success && response.jobs) {
+          const trainingJobs = response.jobs.filter(
+            (job: Job) => (job as any).job_type === 'image_training'
+          ).map((job: Job) => job as unknown as ImageTrainingJob);
+          
+          trainingJobs.sort((a, b) => {
+            const dateA = new Date(a.created_at).getTime();
+            const dateB = new Date(b.created_at).getTime();
+            return dateB - dateA;
+          });
+          
+          setTrainingHistory(trainingJobs);
+        }
+      } catch (err) {
+        console.error('Error refreshing training history:', err);
+      }
+    }, 30000); // Refresh every 30 seconds
+    
+    return () => clearInterval(refreshInterval);
+  }, [jobId, user]);
 
   const startPolling = useCallback(() => {
     if (!jobId) return;
@@ -423,20 +485,53 @@ export default function ImageTrainingTool() {
           setPollingProgress(extractedProgress);
           setPollingMessage(extractedMessage);
           
-          if (jobStatus === 'completed' && response.job.trained_model) {
+          // Check for completion (case-insensitive and handle variations)
+          const normalizedStatus = jobStatus?.toLowerCase();
+          if ((normalizedStatus === 'completed' || normalizedStatus === 'complete') && response.job.trained_model) {
             setTrainedModel(response.job.trained_model);
             setLoading(false);
             setPollingProgress(100);
+            setPollingStatus('completed');
             setPollingMessage('Training completed!');
-            setPollingInterval((prev) => {
-              if (prev) {
-                clearInterval(prev);
-              }
-              return null;
-            });
-          } else if (jobStatus === 'error') {
+            
+            // Refresh history when job completes
+            if (user) {
+              const refreshHistory = async () => {
+                try {
+                  const historyResponse = await getUserJobs(user.id);
+                  if (historyResponse.success && historyResponse.jobs) {
+                    const trainingJobs = historyResponse.jobs.filter(
+                      (job: Job) => (job as any).job_type === 'image_training'
+                    ).map((job: Job) => job as unknown as ImageTrainingJob);
+                    
+                    trainingJobs.sort((a, b) => {
+                      const dateA = new Date(a.created_at).getTime();
+                      const dateB = new Date(b.created_at).getTime();
+                      return dateB - dateA;
+                    });
+                    
+                    setTrainingHistory(trainingJobs);
+                  }
+                } catch (err) {
+                  console.error('Error refreshing training history:', err);
+                }
+              };
+              refreshHistory();
+            }
+            
+            // Stop polling after a short delay to ensure final status is captured
+            setTimeout(() => {
+              setPollingInterval((prev) => {
+                if (prev) {
+                  clearInterval(prev);
+                }
+                return null;
+              });
+            }, 2000);
+          } else if (normalizedStatus === 'error' || normalizedStatus === 'failed') {
             setError(response.job.error || 'Training failed');
             setLoading(false);
+            setPollingStatus('error');
             setPollingInterval((prev) => {
               if (prev) {
                 clearInterval(prev);
@@ -496,55 +591,6 @@ export default function ImageTrainingTool() {
     setImageUrls(urls);
   }, []);
 
-  // Create training dataset ZIP file
-  const createTrainingDatasetZip = useCallback(async (imagesWithCaptions: ImageWithDescription[]): Promise<File> => {
-    console.log('[Training] Creating dataset ZIP file...');
-    
-    const zip = new JSZip();
-    const imagesFolder = zip.folder('images');
-    const captionsFolder = zip.folder('captions');
-
-    if (!imagesFolder || !captionsFolder) {
-      throw new Error('Failed to create ZIP folders');
-    }
-
-    // Add images and captions
-    for (let i = 0; i < imagesWithCaptions.length; i++) {
-      const image = imagesWithCaptions[i];
-      const imageName = `image_${i + 1}_${image.file.name}`;
-      
-      // Add image file
-      imagesFolder.file(imageName, image.file);
-
-      // Add caption file
-      const description = image.description || 'No description available';
-      const captionFileName = `image_${i + 1}_caption.txt`;
-      captionsFolder.file(captionFileName, description);
-    }
-
-    // Create metadata file
-    const metadata = {
-      total_images: imagesWithCaptions.length,
-      created_at: new Date().toISOString(),
-      trigger_word: triggerWord.trim(),
-      lora_type: loraType,
-      images: imagesWithCaptions.map((img, idx) => ({
-        index: idx + 1,
-        filename: img.file.name,
-        description: img.description || 'No description available',
-      })),
-    };
-    zip.file('metadata.json', JSON.stringify(metadata, null, 2));
-
-    // Generate zip file
-    const zipBlob = await zip.generateAsync({ type: 'blob' });
-    const zipFile = new File([zipBlob], `training-dataset-${Date.now()}.zip`, { type: 'application/zip' });
-    
-    console.log('[Training] ZIP file created:', zipFile.name, `(${(zipFile.size / 1024 / 1024).toFixed(2)} MB)`);
-    
-    return zipFile;
-  }, [triggerWord, loraType]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -558,16 +604,13 @@ export default function ImageTrainingTool() {
     setPollingMessage('');
     setTrainingStep('idle');
     setStepMessage('');
-    // Clean up previous ZIP download URL if exists
-    if (zipDownloadUrl) {
-      URL.revokeObjectURL(zipDownloadUrl);
-      setZipDownloadUrl(null);
-    }
-    setCreatedZipFile(null);
 
+    // Collect all image URLs (from uploaded files + manual URLs)
+    const manualUrls = imageUrls.filter(url => url.trim());
+    
     // Validation
-    if (images.length === 0) {
-      setError('Please provide at least one image.');
+    if (images.length === 0 && manualUrls.length === 0) {
+      setError('Please provide at least one image (upload files or provide URLs).');
       setLoading(false);
       return;
     }
@@ -578,37 +621,111 @@ export default function ImageTrainingTool() {
       return;
     }
 
+    if (!destinationModel.trim()) {
+      setError('Please enter a destination model (format: username/model-name)');
+      setLoading(false);
+      return;
+    }
+
+    // Validate destination_model format
+    if (!/^[a-z0-9-]+\/[a-z0-9-]+$/.test(destinationModel.trim())) {
+      setError('Invalid destination model format. Use: username/model-name (lowercase, hyphens, alphanumerics only)');
+      setLoading(false);
+      return;
+    }
+
+    const totalImageCount = images.length + manualUrls.length;
+
     // Validate minimum images based on LoRA type
-    if (loraType === 'subject' && images.length < 5) {
+    if (loraType === 'subject' && totalImageCount < 5) {
       setError('Subject training requires at least 5 images (recommended: 5-10)');
       setLoading(false);
       return;
     }
 
-    if (loraType === 'style' && images.length < 20) {
+    if (loraType === 'style' && totalImageCount < 20) {
       setError('Style training requires at least 20 images (recommended: 20-100)');
       setLoading(false);
       return;
     }
 
     try {
-      // Step 1: Create ZIP (use images as-is, captions are optional)
-      setTrainingStep('creating_zip');
-      setStepMessage('Creating dataset ZIP file...');
+      let allImageUrls: string[] = [...manualUrls];
+
+      // Step 1: Upload images if any files were uploaded
+      if (images.length > 0) {
+        setTrainingStep('uploading_images');
+        setStepMessage(`Uploading ${images.length} image${images.length !== 1 ? 's' : ''}...`);
+        
+        const uploadResponse = await uploadImagesForTraining(images.map(img => img.file), {
+          trigger_word: triggerWord.trim(),
+          destination_model: destinationModel.trim(),
+          lora_type: loraType,
+        });
+        
+        console.log('[Training] Upload response:', uploadResponse);
+        
+        // Check if upload endpoint started training directly (returns job_id)
+        if (uploadResponse.success && (uploadResponse as any).job_id) {
+          console.log('[Training] Upload endpoint started training directly, job_id:', (uploadResponse as any).job_id);
+          setJobId((uploadResponse as any).job_id);
+          
+          // Use stream_url from response if available
+          if ((uploadResponse as any).stream_url) {
+            setStreamUrl((uploadResponse as any).stream_url);
+          }
+          
+          setPollingProgress(5);
+          setPollingStatus('queued');
+          setPollingMessage('Training job submitted, starting...');
+          
+          setTimeout(() => {
+            if (!isConnected) {
+              startPolling();
+            }
+          }, 1000);
+          return; // Training started, no need to proceed with separate submission
+        }
+        
+        // Handle different response structures for image URLs
+        if (uploadResponse.success) {
+          let uploadedUrls: string[] = [];
+          
+          // Check if response has images array
+          if (uploadResponse.images && Array.isArray(uploadResponse.images)) {
+            uploadedUrls = uploadResponse.images.map(img => img.url).filter((url): url is string => !!url);
+          }
+          // Check if response has image_urls array (alternative structure)
+          else if ((uploadResponse as any).image_urls && Array.isArray((uploadResponse as any).image_urls)) {
+            uploadedUrls = (uploadResponse as any).image_urls.filter((url: string): url is string => !!url);
+          }
+          // Check if response has urls array (another alternative)
+          else if ((uploadResponse as any).urls && Array.isArray((uploadResponse as any).urls)) {
+            uploadedUrls = (uploadResponse as any).urls.filter((url: string): url is string => !!url);
+          }
+          
+          if (uploadedUrls.length > 0) {
+            allImageUrls = [...allImageUrls, ...uploadedUrls];
+            console.log('[Training] Successfully uploaded', uploadedUrls.length, 'images');
+          } else {
+            console.warn('[Training] Upload successful but no URLs found in response:', uploadResponse);
+            throw new Error('Upload successful but no image URLs returned. Response: ' + JSON.stringify(uploadResponse));
+          }
+        } else {
+          const errorMsg = (uploadResponse as any).error || (uploadResponse as any).message || 'Unknown error';
+          console.error('[Training] Upload failed:', errorMsg, uploadResponse);
+          throw new Error(`Failed to upload images: ${errorMsg}`);
+        }
+      }
+
+      // Step 2: Submit training job with image URLs
+      setTrainingStep('training');
+      setStepMessage('Starting training...');
       
-      const zipFile = await createTrainingDatasetZip(images);
-      
-      // Create download URL for the ZIP file
-      const downloadUrl = URL.createObjectURL(zipFile);
-      setCreatedZipFile(zipFile);
-      setZipDownloadUrl(downloadUrl);
-      
-      // Step 2: Upload ZIP
-      setTrainingStep('uploading');
-      setStepMessage('Uploading dataset for training...');
-      
-      const response = await submitImageTrainingJobWithZip(zipFile, {
+      const response = await submitImageTrainingJob({
+        image_urls: allImageUrls,
         trigger_word: triggerWord.trim(),
+        destination_model: destinationModel.trim(),
         lora_type: loraType,
         base_model: baseModel,
         training_steps: trainingSteps,
@@ -619,9 +736,6 @@ export default function ImageTrainingTool() {
       });
       
       if (response.success && response.job_id) {
-        // Step 3: Training started
-        setTrainingStep('training');
-        setStepMessage('Training started...');
         setJobId(response.job_id);
         
         // Use stream_url from response if available
@@ -665,12 +779,8 @@ export default function ImageTrainingTool() {
       if (pollingInterval) {
         clearInterval(pollingInterval);
       }
-      // Cleanup ZIP download URL
-      if (zipDownloadUrl) {
-        URL.revokeObjectURL(zipDownloadUrl);
-      }
     };
-  }, [pollingInterval, zipDownloadUrl]);
+  }, [pollingInterval]);
 
   // Use polling progress/status if SSE is not connected, otherwise use SSE data
   const currentStatus = loading ? (isConnected ? status : pollingStatus || 'queued') : '';
@@ -692,12 +802,16 @@ export default function ImageTrainingTool() {
   };
 
   const getStatusColor = (status: string) => {
-    switch (status) {
+    const normalizedStatus = status?.toLowerCase();
+    switch (normalizedStatus) {
       case "completed":
+      case "complete":
         return "#4caf50";
       case "processing":
+      case "in_progress":
         return "#ff9800";
       case "error":
+      case "failed":
       case "cancelled":
         return "#f44336";
       case "queued":
@@ -789,7 +903,17 @@ export default function ImageTrainingTool() {
           <input
             type="text"
             value={triggerWord}
-            onChange={(e) => setTriggerWord(e.target.value)}
+            onChange={(e) => {
+              setTriggerWord(e.target.value);
+              // Auto-generate destination_model if enabled
+              if (autoGenerateModel && e.target.value.trim()) {
+                const modelName = e.target.value
+                  .toLowerCase()
+                  .replace(/[^a-z0-9]+/g, '-')
+                  .replace(/^-+|-+$/g, '');
+                setDestinationModel(`shehan-superqa/${modelName}-lora`);
+              }
+            }}
             placeholder="e.g., mycustomstyle, johnportrait, watercolorstyle"
             style={styles.input}
             disabled={loading}
@@ -797,6 +921,48 @@ export default function ImageTrainingTool() {
           />
           <small style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
             Unique word to invoke your trained model. Use this word in prompts when generating images.
+          </small>
+        </div>
+
+        <div style={styles.inputGroup}>
+          <label style={styles.label}>
+            Destination Model <span style={{ color: '#ef4444' }}>*</span>
+          </label>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}>
+            <input
+              type="checkbox"
+              checked={autoGenerateModel}
+              onChange={(e) => {
+                setAutoGenerateModel(e.target.checked);
+                if (e.target.checked && triggerWord.trim()) {
+                  const modelName = triggerWord
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, '-')
+                    .replace(/^-+|-+$/g, '');
+                  setDestinationModel(`shehan-superqa/${modelName}-lora`);
+                }
+              }}
+              style={{ cursor: 'pointer' }}
+              disabled={loading}
+            />
+            <label style={{ fontSize: '0.85rem', color: '#cbd5e1', cursor: 'pointer' }}>
+              Auto-generate from trigger word
+            </label>
+          </div>
+          <input
+            type="text"
+            value={destinationModel}
+            onChange={(e) => {
+              setDestinationModel(e.target.value);
+              setAutoGenerateModel(false);
+            }}
+            placeholder="shehan-superqa/my-custom-lora"
+            style={styles.input}
+            disabled={loading || autoGenerateModel}
+            required
+          />
+          <small style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+            Format: username/model-name (e.g., shehan-superqa/my-lora). The model will be created on Replicate if it doesn't exist.
           </small>
         </div>
 
@@ -819,78 +985,13 @@ export default function ImageTrainingTool() {
         {trainingStep !== 'idle' && (
           <div style={styles.progressContainer}>
             <div style={{ ...styles.progressText, marginBottom: '0.5rem', fontWeight: 600 }}>
-              {trainingStep === 'creating_zip' && '📦 Step 1: Creating Dataset ZIP'}
-              {trainingStep === 'uploading' && '☁️ Step 2: Uploading Dataset'}
-              {trainingStep === 'training' && '🚀 Step 3: Training Model'}
+              {trainingStep === 'uploading_images' && '☁️ Step 1: Uploading Images'}
+              {trainingStep === 'training' && '🚀 Step 2: Training Model'}
             </div>
             
-            {trainingStep === 'creating_zip' && (
-              <div>
-                <div style={styles.progressText}>
-                  {stepMessage}
-                </div>
-                {createdZipFile && zipDownloadUrl && (
-                  <div style={{ marginTop: '0.75rem' }}>
-                    <a
-                      href={zipDownloadUrl}
-                      download={createdZipFile.name}
-                      style={{
-                        display: 'inline-block',
-                        background: 'rgba(16, 185, 129, 0.2)',
-                        border: '1px solid rgba(16, 185, 129, 0.4)',
-                        color: '#6ee7b7',
-                        padding: '0.5rem 1rem',
-                        borderRadius: '0.5rem',
-                        textDecoration: 'none',
-                        fontSize: '0.85rem',
-                        fontWeight: 600,
-                        transition: 'all 0.2s ease',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'rgba(16, 185, 129, 0.3)';
-                        e.currentTarget.style.borderColor = 'rgba(16, 185, 129, 0.6)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'rgba(16, 185, 129, 0.2)';
-                        e.currentTarget.style.borderColor = 'rgba(16, 185, 129, 0.4)';
-                      }}
-                    >
-                      📥 Download ZIP File ({(createdZipFile.size / 1024 / 1024).toFixed(2)} MB)
-                    </a>
-                  </div>
-                )}
-              </div>
-            )}
-            
-            {trainingStep === 'uploading' && (
-              <div>
-                <div style={styles.progressText}>
-                  {stepMessage}
-                </div>
-                {createdZipFile && zipDownloadUrl && (
-                  <div style={{ marginTop: '0.75rem', fontSize: '0.75rem', color: '#94a3b8' }}>
-                    ZIP file ready for download
-                    <a
-                      href={zipDownloadUrl}
-                      download={createdZipFile.name}
-                      style={{
-                        marginLeft: '0.5rem',
-                        color: '#60a5fa',
-                        textDecoration: 'underline',
-                      }}
-                    >
-                      Download
-                    </a>
-                  </div>
-                )}
-              </div>
-            )}
-            
-            {trainingStep === 'training' && (
-              <div style={styles.progressText}>
-                {stepMessage}
-              </div>
-            )}
+            <div style={styles.progressText}>
+              {stepMessage}
+            </div>
           </div>
         )}
 
@@ -909,15 +1010,14 @@ export default function ImageTrainingTool() {
 
         <button
           type="submit"
-          disabled={loading || !user || (images.length === 0 && imageUrls.filter(u => u.trim()).length === 0) || !triggerWord.trim()}
+          disabled={loading || !user || (images.length === 0 && imageUrls.filter(u => u.trim()).length === 0) || !triggerWord.trim() || !destinationModel.trim()}
           style={{
             ...styles.submitButton,
-            ...(loading || !user || (images.length === 0 && imageUrls.filter(u => u.trim()).length === 0) || !triggerWord.trim() ? styles.submitButtonDisabled : {}),
+            ...(loading || !user || (images.length === 0 && imageUrls.filter(u => u.trim()).length === 0) || !triggerWord.trim() || !destinationModel.trim() ? styles.submitButtonDisabled : {}),
           }}
         >
-          {loading && trainingStep === 'creating_zip' ? 'Creating ZIP...' :
-           loading && trainingStep === 'uploading' ? 'Uploading...' :
-           loading && trainingStep === 'training' ? 'Training...' :
+          {loading && trainingStep === 'uploading_images' ? 'Uploading Images...' :
+           loading && trainingStep === 'training' ? 'Starting Training...' :
            'Start Training'}
         </button>
 
@@ -1037,63 +1137,6 @@ export default function ImageTrainingTool() {
 
       {/* Right Sidebar: Training Result + History */}
       <div style={styles.rightSidebar}>
-        {createdZipFile && zipDownloadUrl && (
-          <div style={styles.resultContainer}>
-            <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#f8fafc', marginBottom: '1rem' }}>Dataset ZIP Created</h3>
-            <div style={styles.modelInfo}>
-              <div style={{ marginBottom: '0.75rem' }}>
-                Your training dataset ZIP file is ready:
-              </div>
-              <div style={{ 
-                fontSize: '0.85rem', 
-                color: '#cbd5e1', 
-                marginBottom: '0.75rem',
-                wordBreak: 'break-word' 
-              }}>
-                {createdZipFile.name}
-              </div>
-              <div style={{ 
-                fontSize: '0.75rem', 
-                color: '#94a3b8', 
-                marginBottom: '1rem' 
-              }}>
-                Size: {(createdZipFile.size / 1024 / 1024).toFixed(2)} MB
-              </div>
-              <a
-                href={zipDownloadUrl}
-                download={createdZipFile.name}
-                style={{
-                  display: 'block',
-                  background: 'linear-gradient(90deg, #6366f1, #3b82f6)',
-                  color: '#f8fafc',
-                  border: 'none',
-                  borderRadius: '0.5rem',
-                  padding: '0.75rem 1rem',
-                  fontWeight: 600,
-                  fontSize: '0.9rem',
-                  textDecoration: 'none',
-                  textAlign: 'center',
-                  transition: 'all 0.2s ease',
-                  marginBottom: '0.5rem',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.opacity = '0.9';
-                  e.currentTarget.style.transform = 'scale(1.02)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.opacity = '1';
-                  e.currentTarget.style.transform = 'scale(1)';
-                }}
-              >
-                📥 Download ZIP File
-              </a>
-              <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.5rem' }}>
-                Contains {images.length} image{images.length !== 1 ? 's' : ''} and caption files
-              </div>
-            </div>
-          </div>
-        )}
-
         {trainedModel && (
           <div style={styles.resultContainer}>
             <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#f8fafc' }}>Training Completed!</h3>
@@ -1112,6 +1155,80 @@ export default function ImageTrainingTool() {
             </div>
           </div>
         )}
+
+        {/* LoRAs from Replicate Section */}
+        <div style={styles.historyContainer}>
+        <h3 style={styles.historyTitle}>My LoRAs</h3>
+        
+        {lorasLoading ? (
+          <div style={styles.emptyHistory}>Loading LoRAs...</div>
+        ) : lorasError ? (
+          <div style={{ ...styles.emptyHistory, color: '#f44336' }}>
+            {lorasError}
+          </div>
+        ) : loras.length === 0 ? (
+          <div style={styles.emptyHistory}>
+            <p>No LoRAs found</p>
+            <p style={{ fontSize: '0.85rem', marginTop: '0.5rem' }}>
+              Train a model to create your first LoRA.
+            </p>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {loras.map((lora) => {
+              const loraUrl = lora.url || `${lora.owner}/${lora.name}`;
+              return (
+                <div
+                  key={lora.id}
+                  style={styles.historyCard}
+                  onClick={() => {
+                    setTrainedModel(loraUrl);
+                    navigator.clipboard.writeText(loraUrl);
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.5)';
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                  }}
+                >
+                  <div style={styles.historyCardHeader}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#f8fafc' }}>
+                      {lora.name}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        color: lora.visibility === 'public' ? '#4caf50' : '#ff9800',
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      {lora.visibility}
+                    </span>
+                  </div>
+                  {lora.description && (
+                    <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '0.5rem' }}>
+                      {lora.description.length > 60 
+                        ? `${lora.description.substring(0, 60)}...` 
+                        : lora.description}
+                    </div>
+                  )}
+                  <div style={styles.historyCardMeta}>
+                    <span>{formatDate(lora.updated_at || lora.created_at)}</span>
+                    {lora.owner && <span>• {lora.owner}</span>}
+                  </div>
+                  <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#60a5fa' }}>
+                    {loraUrl} - Click to copy
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        </div>
 
         {/* Training History Section */}
         <div style={styles.historyContainer}>
@@ -1134,6 +1251,8 @@ export default function ImageTrainingTool() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             {trainingHistory.map((job) => {
               const hasModel = !!job.trained_model;
+              // Determine actual status: if model exists, it's completed regardless of status field
+              const actualStatus = hasModel ? 'completed' : (job.status || 'unknown');
               return (
                 <div
                   key={job._id}
@@ -1163,11 +1282,11 @@ export default function ImageTrainingTool() {
                       style={{
                         fontSize: '0.75rem',
                         fontWeight: 600,
-                        color: getStatusColor(job.status),
+                        color: getStatusColor(actualStatus),
                         textTransform: 'uppercase',
                       }}
                     >
-                      {job.status}
+                      {actualStatus}
                     </span>
                   </div>
                   <div style={styles.historyCardMeta}>

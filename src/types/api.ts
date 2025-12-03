@@ -337,6 +337,7 @@ export interface ImageJobStatusResponse {
 export interface ImageTrainingJobRequest {
   image_urls: string[];
   trigger_word: string;
+  destination_model: string; // Required: username/model-name format
   lora_type?: 'subject' | 'style';
   base_model?: string;
   training_steps?: number;
