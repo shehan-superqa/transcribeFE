@@ -33,6 +33,7 @@ import AddIcon from '@mui/icons-material/Add';
 import FileUploader from './common/FileUploader';
 import ProgressBar from './common/ProgressBar';
 import StatusLabel from './common/StatusLabel';
+import HowToUse from '../../components/common/HowToUse';
 import { transcriptionStore } from '../../stores/transcriptionStore';
 import { useJobPolling } from '../../hooks/useJobPolling';
 import { getAvailableModels, submitTranscriptionJob } from '../../lib/api/transcriptionApi';
@@ -482,6 +483,11 @@ export default function TranscribeTab() {
 
   return (
     <Box>
+      <HowToUse
+        title="Audio to Text"
+        subtitle="Convert audio files to accurate text transcriptions"
+        instructions="Upload audio files using drag & drop, paste from clipboard, or click to browse. You can also paste a YouTube link or record audio directly. Select your preferred engine and model, then click 'Transcribe' to start. The transcription will appear in your history once completed."
+      />
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" sx={{ color: '#e0e0e0' }}>
           Transcribe Audio/Video
