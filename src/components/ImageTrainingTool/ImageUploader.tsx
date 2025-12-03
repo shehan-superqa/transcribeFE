@@ -14,6 +14,8 @@ interface ImageUploaderProps {
   onImagesChange: (images: ImageWithDescription[]) => void;
   disabled?: boolean;
   onUploadUrls?: (urls: string[]) => void;
+  trainingInProgress?: boolean;
+  captionProgress?: Record<number, { status: 'pending' | 'generating' | 'completed' | 'failed'; description?: string; error?: string }>;
 }
 
 export default function ImageUploader({
@@ -21,10 +23,14 @@ export default function ImageUploader({
   onImagesChange,
   disabled = false,
   onUploadUrls,
+  trainingInProgress = false,
+  captionProgress = {},
 }: ImageUploaderProps) {
   const [isGeneratingDescriptions, setIsGeneratingDescriptions] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isCreatingZip, setIsCreatingZip] = useState(false);
+  const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
+  const [compactView, setCompactView] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const imagesRef = useRef<ImageWithDescription[]>(images);
@@ -362,10 +368,42 @@ export default function ImageUploader({
   }, [images]);
 
   // Remove image
-  const removeImage = useCallback((index: number) => {
+  const removeImage = useCallback((index: number, e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
     const newImages = images.filter((_, i) => i !== index);
     onImagesChange(newImages);
+    // Remove from expanded set
+    setExpandedCards(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(index);
+      // Adjust indices for items after the removed one
+      const adjustedSet = new Set<number>();
+      newSet.forEach(idx => {
+        if (idx > index) {
+          adjustedSet.add(idx - 1);
+        } else {
+          adjustedSet.add(idx);
+        }
+      });
+      return adjustedSet;
+    });
   }, [images, onImagesChange]);
+
+  // Toggle card expansion
+  const toggleCardExpansion = useCallback((index: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setExpandedCards(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  }, []);
 
   return (
     <div className="image-uploader-container">
@@ -437,12 +475,22 @@ export default function ImageUploader({
       {images.length > 0 && (
         <div className="image-grid-container">
           <div className="image-grid-header">
-            <h3>{images.length} Image{images.length !== 1 ? 's' : ''} Selected</h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <h3>{images.length} Image{images.length !== 1 ? 's' : ''} Selected</h3>
+              <button
+                type="button"
+                onClick={() => setCompactView(!compactView)}
+                className="action-button"
+                style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}
+              >
+                {compactView ? '📐 Standard View' : '📦 Compact View'}
+              </button>
+            </div>
             <div className="image-grid-actions">
               <button
                 type="button"
                 onClick={generateAllDescriptions}
-                disabled={disabled || isGeneratingDescriptions || images.every(img => img.description)}
+                disabled={disabled || isGeneratingDescriptions || images.every(img => img.description) || trainingInProgress}
                 className="action-button"
               >
                 {isGeneratingDescriptions ? 'Generating...' : '📝 Generate All Descriptions'}
@@ -466,43 +514,98 @@ export default function ImageUploader({
             </div>
           </div>
 
-          <div className="image-grid">
-            {images.map((image, index) => (
-              <div key={index} className="image-card">
-                <div className="image-card-header">
-                  <span className="image-number">#{index + 1}</span>
-                  <button
-                    type="button"
-                    onClick={() => removeImage(index)}
-                    className="remove-image-button"
-                    disabled={disabled}
-                  >
-                    ✕
-                  </button>
-                </div>
-                <div className="image-preview-wrapper">
-                  <img src={image.preview} alt={`Image ${index + 1}`} className="image-preview" />
-                  {image.uploadedUrlLoading && (
-                    <div className="image-overlay">
-                      <div className="loading-spinner">⏳</div>
-                      <span>Uploading...</span>
+          <div className={`image-grid ${compactView ? 'compact' : ''}`}>
+            {images.map((image, index) => {
+              const isExpanded = expandedCards.has(index);
+              const hasDescription = !!image.description;
+              const isLoading = image.descriptionLoading;
+              
+              return (
+                <div 
+                  key={index} 
+                  className={`image-card ${compactView ? 'compact' : ''} ${isExpanded ? 'expanded' : ''}`}
+                  onClick={(e) => {
+                    if (!isExpanded && hasDescription) {
+                      toggleCardExpansion(index, e);
+                    }
+                  }}
+                >
+                  <div className="image-card-header">
+                    <span className="image-number">#{index + 1}</span>
+                    <button
+                      type="button"
+                      onClick={(e) => removeImage(index, e)}
+                      className="remove-image-button"
+                      disabled={disabled}
+                      title="Remove image"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <div className="image-preview-wrapper">
+                    <img src={image.preview} alt={`Image ${index + 1}`} className="image-preview" />
+                    
+                    {/* Status indicator */}
+                    {(() => {
+                      const progress = captionProgress[index];
+                      if (progress) {
+                        if (progress.status === 'completed') {
+                          return <div className="image-status-indicator has-description" title="Caption generated"></div>;
+                        } else if (progress.status === 'generating') {
+                          return <div className="image-status-indicator loading" title="Generating caption"></div>;
+                        } else if (progress.status === 'failed') {
+                          return <div className="image-status-indicator error" title="Caption generation failed"></div>;
+                        }
+                      }
+                      // Fallback to image state
+                      if (hasDescription) {
+                        return <div className="image-status-indicator has-description" title="Has description"></div>;
+                      }
+                      if (isLoading) {
+                        return <div className="image-status-indicator loading" title="Generating description"></div>;
+                      }
+                      if (image.descriptionError) {
+                        return <div className="image-status-indicator error" title="Error generating description"></div>;
+                      }
+                      return null;
+                    })()}
+                    
+                    {image.uploadedUrlLoading && (
+                      <div className="image-overlay">
+                        <div className="loading-spinner">⏳</div>
+                        <span>Uploading...</span>
+                      </div>
+                    )}
+                    {image.uploadedUrl && (
+                      <div className="image-badge success">✓</div>
+                    )}
+                    {image.uploadedUrlError && (
+                      <div className="image-badge error">✗</div>
+                    )}
+                    
+                    {/* Expand/collapse toggle */}
+                    {hasDescription && (
+                      <button
+                        type="button"
+                        onClick={(e) => toggleCardExpansion(index, e)}
+                        className="image-expand-toggle"
+                        title={isExpanded ? 'Collapse' : 'Expand to see description'}
+                      >
+                        {isExpanded ? '−' : '+'}
+                      </button>
+                    )}
+                  </div>
+                <div className="image-card-content">
+                  <div className="image-name" title={image.file.name}>{image.file.name}</div>
+                  {!compactView && (
+                    <div className="image-size">
+                      {(image.file.size / 1024 / 1024).toFixed(2)} MB
                     </div>
                   )}
-                  {image.uploadedUrl && (
-                    <div className="image-badge success">✓ Uploaded</div>
-                  )}
-                  {image.uploadedUrlError && (
-                    <div className="image-badge error">✗ Error</div>
-                  )}
-                </div>
-                <div className="image-card-content">
-                  <div className="image-name">{image.file.name}</div>
-                  <div className="image-size">
-                    {(image.file.size / 1024 / 1024).toFixed(2)} MB
-                  </div>
                   
-                  {/* Description Section */}
-                  <div className="image-description-section">
+                  {/* Description Section - Only show when expanded */}
+                  {isExpanded && (
+                    <div className="image-description-section">
                     {image.descriptionLoading ? (
                       <div className="description-loading">Generating description...</div>
                     ) : image.description ? (
@@ -526,15 +629,16 @@ export default function ImageUploader({
                         type="button"
                         onClick={() => generateDescription(index)}
                         className="generate-description-button"
-                        disabled={disabled}
+                        disabled={disabled || trainingInProgress}
                       >
                         📝 Generate Description
                       </button>
                     )}
-                  </div>
+                    </div>
+                  )}
 
-                  {/* Uploaded URL */}
-                  {image.uploadedUrl && (
+                  {/* Uploaded URL - Only show when expanded */}
+                  {isExpanded && image.uploadedUrl && (
                     <div className="image-url-section">
                       <div className="url-label">URL:</div>
                       <div className="url-text" title={image.uploadedUrl}>
@@ -553,7 +657,8 @@ export default function ImageUploader({
                   )}
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

@@ -382,12 +382,76 @@ export interface ImageDescriptionResponse {
 }
 
 /**
+ * Image Training with ZIP file request
+ */
+export interface ImageTrainingZipRequest {
+  dataset_zip: File;
+  trigger_word: string;
+  lora_type?: 'subject' | 'style';
+  base_model?: string;
+  training_steps?: number;
+  learning_rate?: number;
+  batch_size?: number;
+  resolution?: number;
+  training_model?: string;
+  job_id?: string;
+}
+
+/**
  * Submit an image training job
  */
 export async function submitImageTrainingJob(
   request: ImageTrainingJobRequest
 ): Promise<ImageTrainingJobResponse> {
   const response = await apiClient.post<ImageTrainingJobResponse>('/api/image/train', request);
+  return response.data;
+}
+
+/**
+ * Submit an image training job with ZIP file
+ */
+export async function submitImageTrainingJobWithZip(
+  zipFile: File,
+  request: Omit<ImageTrainingZipRequest, 'dataset_zip'>
+): Promise<ImageTrainingJobResponse> {
+  const formData = new FormData();
+  formData.append('dataset_zip', zipFile);
+  formData.append('trigger_word', request.trigger_word);
+  
+  if (request.lora_type) {
+    formData.append('lora_type', request.lora_type);
+  }
+  if (request.base_model) {
+    formData.append('base_model', request.base_model);
+  }
+  if (request.training_steps !== undefined) {
+    formData.append('training_steps', request.training_steps.toString());
+  }
+  if (request.learning_rate !== undefined) {
+    formData.append('learning_rate', request.learning_rate.toString());
+  }
+  if (request.batch_size !== undefined) {
+    formData.append('batch_size', request.batch_size.toString());
+  }
+  if (request.resolution !== undefined) {
+    formData.append('resolution', request.resolution.toString());
+  }
+  if (request.training_model) {
+    formData.append('training_model', request.training_model);
+  }
+  if (request.job_id) {
+    formData.append('job_id', request.job_id);
+  }
+
+  const response = await multipartApiClient.post<ImageTrainingJobResponse>(
+    '/api/image/train',
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  );
   return response.data;
 }
 

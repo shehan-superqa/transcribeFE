@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../lib/auth';
-import { submitImageTrainingJob, getImageTrainingJobStatus, type ImageWithDescription } from '../../lib/api/imageTrainingApi';
+import { submitImageTrainingJob, submitImageTrainingJobWithZip, getImageTrainingJobStatus, generateImageDescription, type ImageWithDescription } from '../../lib/api/imageTrainingApi';
 import { getUserJobs } from '../../lib/api/jobsApi';
 import { useSSE } from '../../hooks/useSSE';
 import type { ImageTrainingJobRequest, ImageTrainingJobResult, ImageTrainingJob, Job } from '../../types/api';
 import ImageUploader from './ImageUploader';
+import JSZip from 'jszip';
 import './ImageTrainingTool.css';
 
 const styles = {
@@ -301,6 +302,16 @@ export default function ImageTrainingTool() {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
   const [streamUrl, setStreamUrl] = useState<string | undefined>(undefined);
+  
+  // Training workflow progress state
+  const [trainingStep, setTrainingStep] = useState<'idle' | 'generating_captions' | 'creating_zip' | 'uploading' | 'training'>('idle');
+  const [captionProgress, setCaptionProgress] = useState<Record<number, { status: 'pending' | 'generating' | 'completed' | 'failed'; description?: string; error?: string }>>({});
+  const [captionRetries, setCaptionRetries] = useState<Record<number, number>>({});
+  const [stepMessage, setStepMessage] = useState<string>('');
+  const [currentCaptionIndex, setCurrentCaptionIndex] = useState<number>(0);
+  const [totalCaptions, setTotalCaptions] = useState<number>(0);
+  const [createdZipFile, setCreatedZipFile] = useState<File | null>(null);
+  const [zipDownloadUrl, setZipDownloadUrl] = useState<string | null>(null);
 
   // Use SSE hook for progress tracking
   const { progress, status, message, result, error: sseError, isConnected } = useSSE(jobId, streamUrl);
@@ -489,6 +500,198 @@ export default function ImageTrainingTool() {
     setImageUrls(urls);
   }, []);
 
+  // Generate all captions for training with retry logic
+  const generateAllCaptionsForTraining = useCallback(async (): Promise<ImageWithDescription[]> => {
+    // Get current images state
+    setImages(currentImages => {
+      const imagesToProcess = currentImages.filter(img => !img.description);
+      setTotalCaptions(imagesToProcess.length);
+      setCurrentCaptionIndex(0);
+      return currentImages;
+    });
+    
+    // Use functional updates to always get latest state
+    let updatedImages = [...images];
+    const progressMap: Record<number, { status: 'pending' | 'generating' | 'completed' | 'failed'; description?: string; error?: string }> = {};
+    const retriesMap: Record<number, number> = {};
+    
+    // Initialize progress for all images
+    images.forEach((_, index) => {
+      if (!images[index].description) {
+        progressMap[index] = { status: 'pending' };
+      }
+    });
+    setCaptionProgress(progressMap);
+    
+    // Process each image
+    for (let i = 0; i < images.length; i++) {
+      // Get latest images state
+      setImages(currentImages => {
+        updatedImages = [...currentImages];
+        return currentImages;
+      });
+      
+      const image = updatedImages[i];
+      
+      // Skip if already has description
+      if (image.description) {
+        continue;
+      }
+      
+      setCurrentCaptionIndex(i + 1);
+      
+      // Update progress to generating
+      progressMap[i] = { status: 'generating' };
+      setCaptionProgress({ ...progressMap });
+      
+      // Update image loading state
+      updatedImages[i] = {
+        ...updatedImages[i],
+        descriptionLoading: true,
+        descriptionError: undefined,
+      };
+      setImages([...updatedImages]);
+      
+      let success = false;
+      const maxRetries = 3;
+      let attempt = 0;
+      
+      while (attempt < maxRetries && !success) {
+        try {
+          attempt++;
+          retriesMap[i] = attempt;
+          setCaptionRetries({ ...retriesMap });
+          
+          console.log(`[Training] Generating caption for image ${i + 1} (attempt ${attempt}/${maxRetries})`);
+          
+          const response = await generateImageDescription(image.file, {
+            caption: true,
+            context: 'describe the image styles and colors and contexts',
+            question: 'describe this image or images detail manner',
+            temperature: 1,
+            use_nucleus_sampling: false,
+          });
+          
+          if (response.success && response.description) {
+            // Get latest state before updating
+            setImages(currentImages => {
+              updatedImages = [...currentImages];
+              updatedImages[i] = {
+                ...updatedImages[i],
+                description: response.description,
+                descriptionLoading: false,
+                descriptionError: undefined,
+              };
+              return updatedImages;
+            });
+            
+            progressMap[i] = {
+              status: 'completed',
+              description: response.description,
+            };
+            
+            success = true;
+            console.log(`[Training] Successfully generated caption for image ${i + 1}`);
+          }
+        } catch (error: any) {
+          console.error(`[Training] Caption generation failed for image ${i + 1}, attempt ${attempt}:`, error);
+          
+          if (attempt >= maxRetries) {
+            // Max retries reached, use placeholder
+            setImages(currentImages => {
+              updatedImages = [...currentImages];
+              updatedImages[i] = {
+                ...updatedImages[i],
+                description: 'No description available',
+                descriptionLoading: false,
+                descriptionError: `Failed after ${maxRetries} attempts: ${error.message || 'Unknown error'}`,
+              };
+              return updatedImages;
+            });
+            
+            progressMap[i] = {
+              status: 'failed',
+              error: error.message || 'Failed to generate description',
+            };
+            
+            console.warn(`[Training] Using placeholder for image ${i + 1} after ${maxRetries} failed attempts`);
+          } else {
+            // Wait before retry
+            await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+          }
+        }
+        
+        // Update progress state
+        setCaptionProgress({ ...progressMap });
+      }
+      
+      // Small delay between images to avoid overwhelming the API
+      if (i < images.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+    }
+    
+    // Get final updated images state
+    return new Promise<ImageWithDescription[]>((resolve) => {
+      // Use setTimeout to ensure state updates are complete
+      setTimeout(() => {
+        setImages(currentImages => {
+          resolve([...currentImages]);
+          return currentImages;
+        });
+      }, 100);
+    });
+  }, [images]);
+
+  // Create training dataset ZIP file
+  const createTrainingDatasetZip = useCallback(async (imagesWithCaptions: ImageWithDescription[]): Promise<File> => {
+    console.log('[Training] Creating dataset ZIP file...');
+    
+    const zip = new JSZip();
+    const imagesFolder = zip.folder('images');
+    const captionsFolder = zip.folder('captions');
+
+    if (!imagesFolder || !captionsFolder) {
+      throw new Error('Failed to create ZIP folders');
+    }
+
+    // Add images and captions
+    for (let i = 0; i < imagesWithCaptions.length; i++) {
+      const image = imagesWithCaptions[i];
+      const imageName = `image_${i + 1}_${image.file.name}`;
+      
+      // Add image file
+      imagesFolder.file(imageName, image.file);
+
+      // Add caption file
+      const description = image.description || 'No description available';
+      const captionFileName = `image_${i + 1}_caption.txt`;
+      captionsFolder.file(captionFileName, description);
+    }
+
+    // Create metadata file
+    const metadata = {
+      total_images: imagesWithCaptions.length,
+      created_at: new Date().toISOString(),
+      trigger_word: triggerWord.trim(),
+      lora_type: loraType,
+      images: imagesWithCaptions.map((img, idx) => ({
+        index: idx + 1,
+        filename: img.file.name,
+        description: img.description || 'No description available',
+      })),
+    };
+    zip.file('metadata.json', JSON.stringify(metadata, null, 2));
+
+    // Generate zip file
+    const zipBlob = await zip.generateAsync({ type: 'blob' });
+    const zipFile = new File([zipBlob], `training-dataset-${Date.now()}.zip`, { type: 'application/zip' });
+    
+    console.log('[Training] ZIP file created:', zipFile.name, `(${(zipFile.size / 1024 / 1024).toFixed(2)} MB)`);
+    
+    return zipFile;
+  }, [triggerWord, loraType]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -500,27 +703,20 @@ export default function ImageTrainingTool() {
     setPollingProgress(0);
     setPollingStatus('');
     setPollingMessage('');
-
-    // Use uploaded URLs if available, otherwise check if images need to be uploaded
-    let validImageUrls = imageUrls.filter(url => url.trim() !== '');
-    
-    // If no URLs but we have images, check if they're uploaded
-    if (validImageUrls.length === 0 && images.length > 0) {
-      const uploadedUrls = images
-        .map(img => img.uploadedUrl)
-        .filter((url): url is string => !!url);
-      
-      if (uploadedUrls.length === 0) {
-        setError('Please upload images first to get public URLs, or provide image URLs manually');
-        setLoading(false);
-        return;
-      }
-      
-      validImageUrls = uploadedUrls;
+    setTrainingStep('idle');
+    setStepMessage('');
+    setCaptionProgress({});
+    setCaptionRetries({});
+    // Clean up previous ZIP download URL if exists
+    if (zipDownloadUrl) {
+      URL.revokeObjectURL(zipDownloadUrl);
+      setZipDownloadUrl(null);
     }
+    setCreatedZipFile(null);
 
-    if (validImageUrls.length === 0) {
-      setError('Please provide at least one image. Upload images or provide image URLs.');
+    // Validation
+    if (images.length === 0) {
+      setError('Please provide at least one image.');
       setLoading(false);
       return;
     }
@@ -532,41 +728,75 @@ export default function ImageTrainingTool() {
     }
 
     // Validate minimum images based on LoRA type
-    if (loraType === 'subject' && validImageUrls.length < 5) {
+    if (loraType === 'subject' && images.length < 5) {
       setError('Subject training requires at least 5 images (recommended: 5-10)');
       setLoading(false);
       return;
     }
 
-    if (loraType === 'style' && validImageUrls.length < 20) {
+    if (loraType === 'style' && images.length < 20) {
       setError('Style training requires at least 20 images (recommended: 20-100)');
       setLoading(false);
       return;
     }
 
-    const request: ImageTrainingJobRequest = {
-      image_urls: validImageUrls.map(url => url.trim()),
-      trigger_word: triggerWord.trim(),
-      lora_type: loraType,
-      base_model: baseModel,
-      training_steps: trainingSteps,
-      learning_rate: learningRate,
-      batch_size: batchSize,
-      resolution,
-      training_model: trainingModel,
-    };
-
     try {
-      const response = await submitImageTrainingJob(request);
+      // Step 1: Generate Captions
+      setTrainingStep('generating_captions');
+      setStepMessage(`Generating captions for ${images.length} image${images.length !== 1 ? 's' : ''}...`);
+      
+      const imagesWithCaptions = await generateAllCaptionsForTraining();
+      
+      // Update images state with captions
+      setImages(imagesWithCaptions);
+      
+      // Check if any captions failed
+      const failedCount = imagesWithCaptions.filter(img => img.descriptionError).length;
+      if (failedCount > 0) {
+        console.warn(`[Training] ${failedCount} caption(s) failed, continuing with placeholders`);
+      }
+      
+      // Step 2: Create ZIP
+      setTrainingStep('creating_zip');
+      setStepMessage('Creating dataset ZIP file...');
+      
+      const zipFile = await createTrainingDatasetZip(imagesWithCaptions);
+      
+      // Create download URL for the ZIP file
+      const downloadUrl = URL.createObjectURL(zipFile);
+      setCreatedZipFile(zipFile);
+      setZipDownloadUrl(downloadUrl);
+      
+      // Step 3: Upload ZIP
+      setTrainingStep('uploading');
+      setStepMessage('Uploading dataset for training...');
+      
+      const response = await submitImageTrainingJobWithZip(zipFile, {
+        trigger_word: triggerWord.trim(),
+        lora_type: loraType,
+        base_model: baseModel,
+        training_steps: trainingSteps,
+        learning_rate: learningRate,
+        batch_size: batchSize,
+        resolution,
+        training_model: trainingModel,
+      });
+      
       if (response.success && response.job_id) {
+        // Step 4: Training started
+        setTrainingStep('training');
+        setStepMessage('Training started...');
         setJobId(response.job_id);
+        
         // Use stream_url from response if available
         if (response.stream_url) {
           setStreamUrl(response.stream_url);
         }
+        
         setPollingProgress(5);
         setPollingStatus('queued');
         setPollingMessage('Training job submitted, starting...');
+        
         setTimeout(() => {
           if (!isConnected) {
             startPolling();
@@ -575,10 +805,14 @@ export default function ImageTrainingTool() {
       } else {
         setError('Failed to submit training job');
         setLoading(false);
+        setTrainingStep('idle');
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to submit training job');
+      console.error('[Training] Error in training workflow:', err);
+      setError(err.message || 'Failed to start training workflow');
       setLoading(false);
+      setTrainingStep('idle');
+      setStepMessage('');
     }
   };
 
@@ -595,8 +829,12 @@ export default function ImageTrainingTool() {
       if (pollingInterval) {
         clearInterval(pollingInterval);
       }
+      // Cleanup ZIP download URL
+      if (zipDownloadUrl) {
+        URL.revokeObjectURL(zipDownloadUrl);
+      }
     };
-  }, [pollingInterval]);
+  }, [pollingInterval, zipDownloadUrl]);
 
   // Use polling progress/status if SSE is not connected, otherwise use SSE data
   const currentStatus = loading ? (isConnected ? status : pollingStatus || 'queued') : '';
@@ -659,6 +897,8 @@ export default function ImageTrainingTool() {
             onImagesChange={setImages}
             disabled={loading}
             onUploadUrls={handleUploadUrls}
+            trainingInProgress={trainingStep !== 'idle'}
+            captionProgress={captionProgress}
           />
           {/* Manual URL input fallback */}
           <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
@@ -740,7 +980,112 @@ export default function ImageTrainingTool() {
 
         {error && <div style={styles.error}>{error}</div>}
 
-        {(currentStatus || loading) && (
+        {/* Training Workflow Progress */}
+        {trainingStep !== 'idle' && (
+          <div style={styles.progressContainer}>
+            <div style={{ ...styles.progressText, marginBottom: '0.5rem', fontWeight: 600 }}>
+              {trainingStep === 'generating_captions' && '📝 Step 1: Generating Captions'}
+              {trainingStep === 'creating_zip' && '📦 Step 2: Creating Dataset ZIP'}
+              {trainingStep === 'uploading' && '☁️ Step 3: Uploading Dataset'}
+              {trainingStep === 'training' && '🚀 Step 4: Training Model'}
+            </div>
+            
+            {trainingStep === 'generating_captions' && (
+              <div style={{ marginBottom: '0.5rem' }}>
+                <div style={styles.progressText}>
+                  {stepMessage}
+                  {totalCaptions > 0 && (
+                    <span> ({currentCaptionIndex} / {totalCaptions})</span>
+                  )}
+                </div>
+                {totalCaptions > 0 && (
+                  <div style={styles.progressBarContainer}>
+                    <div style={{ 
+                      ...styles.progressBar, 
+                      width: `${Math.min((currentCaptionIndex / totalCaptions) * 100, 100)}%` 
+                    }} />
+                  </div>
+                )}
+                <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.5rem' }}>
+                  {Object.values(captionProgress).filter(p => p.status === 'completed').length} completed,{' '}
+                  {Object.values(captionProgress).filter(p => p.status === 'generating').length} generating,{' '}
+                  {Object.values(captionProgress).filter(p => p.status === 'failed').length} failed
+                </div>
+              </div>
+            )}
+            
+            {trainingStep === 'creating_zip' && (
+              <div>
+                <div style={styles.progressText}>
+                  {stepMessage}
+                </div>
+                {createdZipFile && zipDownloadUrl && (
+                  <div style={{ marginTop: '0.75rem' }}>
+                    <a
+                      href={zipDownloadUrl}
+                      download={createdZipFile.name}
+                      style={{
+                        display: 'inline-block',
+                        background: 'rgba(16, 185, 129, 0.2)',
+                        border: '1px solid rgba(16, 185, 129, 0.4)',
+                        color: '#6ee7b7',
+                        padding: '0.5rem 1rem',
+                        borderRadius: '0.5rem',
+                        textDecoration: 'none',
+                        fontSize: '0.85rem',
+                        fontWeight: 600,
+                        transition: 'all 0.2s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'rgba(16, 185, 129, 0.3)';
+                        e.currentTarget.style.borderColor = 'rgba(16, 185, 129, 0.6)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'rgba(16, 185, 129, 0.2)';
+                        e.currentTarget.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+                      }}
+                    >
+                      📥 Download ZIP File ({(createdZipFile.size / 1024 / 1024).toFixed(2)} MB)
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {trainingStep === 'uploading' && (
+              <div>
+                <div style={styles.progressText}>
+                  {stepMessage}
+                </div>
+                {createdZipFile && zipDownloadUrl && (
+                  <div style={{ marginTop: '0.75rem', fontSize: '0.75rem', color: '#94a3b8' }}>
+                    ZIP file ready for download
+                    <a
+                      href={zipDownloadUrl}
+                      download={createdZipFile.name}
+                      style={{
+                        marginLeft: '0.5rem',
+                        color: '#60a5fa',
+                        textDecoration: 'underline',
+                      }}
+                    >
+                      Download
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {trainingStep === 'training' && (
+              <div style={styles.progressText}>
+                {stepMessage}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Training Progress (after workflow completes) */}
+        {(currentStatus || (loading && trainingStep === 'training')) && trainingStep === 'training' && (
           <div style={styles.progressContainer}>
             <div style={styles.progressText}>
               {displayMessage || 'Processing...'}
@@ -760,7 +1105,11 @@ export default function ImageTrainingTool() {
             ...(loading || !user || (images.length === 0 && imageUrls.filter(u => u.trim()).length === 0) || !triggerWord.trim() ? styles.submitButtonDisabled : {}),
           }}
         >
-          {loading ? 'Training...' : 'Start Training'}
+          {loading && trainingStep === 'generating_captions' ? 'Generating Captions...' :
+           loading && trainingStep === 'creating_zip' ? 'Creating ZIP...' :
+           loading && trainingStep === 'uploading' ? 'Uploading...' :
+           loading && trainingStep === 'training' ? 'Training...' :
+           'Start Training'}
         </button>
 
         {!user && (
@@ -879,6 +1228,63 @@ export default function ImageTrainingTool() {
 
       {/* Right Sidebar: Training Result + History */}
       <div style={styles.rightSidebar}>
+        {createdZipFile && zipDownloadUrl && (
+          <div style={styles.resultContainer}>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#f8fafc', marginBottom: '1rem' }}>Dataset ZIP Created</h3>
+            <div style={styles.modelInfo}>
+              <div style={{ marginBottom: '0.75rem' }}>
+                Your training dataset ZIP file is ready:
+              </div>
+              <div style={{ 
+                fontSize: '0.85rem', 
+                color: '#cbd5e1', 
+                marginBottom: '0.75rem',
+                wordBreak: 'break-word' 
+              }}>
+                {createdZipFile.name}
+              </div>
+              <div style={{ 
+                fontSize: '0.75rem', 
+                color: '#94a3b8', 
+                marginBottom: '1rem' 
+              }}>
+                Size: {(createdZipFile.size / 1024 / 1024).toFixed(2)} MB
+              </div>
+              <a
+                href={zipDownloadUrl}
+                download={createdZipFile.name}
+                style={{
+                  display: 'block',
+                  background: 'linear-gradient(90deg, #6366f1, #3b82f6)',
+                  color: '#f8fafc',
+                  border: 'none',
+                  borderRadius: '0.5rem',
+                  padding: '0.75rem 1rem',
+                  fontWeight: 600,
+                  fontSize: '0.9rem',
+                  textDecoration: 'none',
+                  textAlign: 'center',
+                  transition: 'all 0.2s ease',
+                  marginBottom: '0.5rem',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.opacity = '0.9';
+                  e.currentTarget.style.transform = 'scale(1.02)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.opacity = '1';
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}
+              >
+                📥 Download ZIP File
+              </a>
+              <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.5rem' }}>
+                Contains {images.length} image{images.length !== 1 ? 's' : ''} and caption files
+              </div>
+            </div>
+          </div>
+        )}
+
         {trainedModel && (
           <div style={styles.resultContainer}>
             <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#f8fafc' }}>Training Completed!</h3>
