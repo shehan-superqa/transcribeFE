@@ -22,6 +22,7 @@ import StopIcon from '@mui/icons-material/Stop';
 import { useLiveTranscription } from '../../hooks/useLiveTranscription';
 import { useMicrophone } from '../../hooks/useMicrophone';
 import { useWaveformVisualization } from '../../hooks/useWaveformVisualization';
+import HowToUse from '../../components/common/HowToUse';
 
 export default function LiveMicTab() {
   const [model, setModel] = useState('base');
@@ -134,6 +135,11 @@ export default function LiveMicTab() {
 
   return (
     <Box>
+      <HowToUse
+        title="Live Mic VAD"
+        subtitle="Real-time speech-to-text transcription as you speak"
+        instructions="Click 'Start Recording' to begin. Grant microphone permissions when prompted. Speak clearly into your microphone. The transcription will appear in real-time as you speak. Adjust the VAD (Voice Activity Detection) threshold to control sensitivity. Click 'Stop Recording' when finished. You can copy the transcription or save it to your history."
+      />
       <Typography variant="h4" gutterBottom sx={{ color: '#e0e0e0', mb: 3 }}>
         Live Microphone Transcription with VAD
       </Typography>

@@ -4,12 +4,16 @@
   border-radius: 12px;
   padding: 1.5rem;
   min-width: 250px;
+  max-width: 280px;
+  width: 100%;
   height: fit-content;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
   position: sticky;
   top: 2rem;
   max-height: calc(100vh - 4rem);
   align-self: flex-start;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .sidebar-content {
@@ -36,6 +40,8 @@
   font-weight: 500;
   font-size: 0.95rem;
   width: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .sidebar-item:hover {
@@ -62,6 +68,10 @@
 
 .sidebar-label {
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .sidebar-chevron {
@@ -82,6 +92,8 @@
   margin-left: 2rem;
   padding-left: 0.5rem;
   border-left: 2px solid #333333;
+  overflow: hidden;
+  min-width: 0;
 }
 
 .sidebar-subitem {
@@ -99,6 +111,10 @@
   font-weight: 400;
   font-size: 0.875rem;
   width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .sidebar-subitem:hover {

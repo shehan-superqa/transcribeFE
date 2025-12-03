@@ -29,6 +29,7 @@ import ProgressBar from './common/ProgressBar';
 import StatusLabel from './common/StatusLabel';
 import VoiceSelector from './tts/VoiceSelector';
 import AudioPlayer from './tts/AudioPlayer';
+import HowToUse from '../../components/common/HowToUse';
 import { submitTTSJob, getTTSJobStatus, getAvailableVoices, type TTSVoice, type TTSJobRequest } from '../../lib/api/ttsApi';
 
 export default function TTSTab() {
@@ -229,17 +230,11 @@ export default function TTSTab() {
 
   return (
     <Box sx={{ p: { xs: 1.5, sm: 2, md: 3 } }}>
-      <Typography 
-        variant="h5" 
-        gutterBottom 
-        sx={{ 
-          mb: { xs: 2, md: 3 }, 
-          color: '#e0e0e0',
-          fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem' }
-        }}
-      >
-        Text-to-Speech
-      </Typography>
+      <HowToUse
+        title="Text-to-Speech"
+        subtitle="Convert text into natural-sounding speech with multiple voice options"
+        instructions="Enter the text you want to convert to speech in the input field. Select a voice from over 300 available voices, or use the search to find a specific voice. Optionally adjust emotion, language, speed, pitch, and volume settings. Click 'Generate Speech' to create the audio. Once generated, you can play, pause, or download the audio file."
+      />
 
       {/* Error Alert */}
       {currentError && (

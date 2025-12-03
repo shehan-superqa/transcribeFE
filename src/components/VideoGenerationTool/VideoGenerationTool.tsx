@@ -4,6 +4,7 @@ import { submitVideoJob, getVideoJobStatus } from '../../lib/api/videoApi';
 import { getUserJobs } from '../../lib/api/jobsApi';
 import { useSSE } from '../../hooks/useSSE';
 import type { VideoJobRequest, VideoJobResult, VideoJob, Job } from '../../types/api';
+import HowToUse from '../../components/common/HowToUse';
 import './VideoGenerationTool.css';
 
 const styles = {
@@ -716,9 +717,15 @@ export default function VideoGenerationTool() {
   };
 
   return (
-    <div style={styles.container} className="video-generation-tool-container">
-      <div style={styles.formWrapper}>
-        <form onSubmit={handleSubmit} style={styles.form}>
+    <div>
+      <HowToUse
+        title="Text to Video"
+        subtitle="Generate videos using AI with text prompts and reference images"
+        instructions="Enter a detailed text prompt describing the video you want to generate. Optionally upload reference images to guide the video style (1-3 images, works with 16:9 aspect ratio and 8-second duration). Adjust settings like aspect ratio, duration, and model selection. Click 'Generate Video' to create your video. The process may take several minutes depending on the video length."
+      />
+      <div style={styles.container} className="video-generation-tool-container">
+        <div style={styles.formWrapper}>
+          <form onSubmit={handleSubmit} style={styles.form}>
         <div style={styles.inputGroup}>
           <label style={styles.label}>
             Prompt <span style={{ color: '#ef4444' }}>*</span>
@@ -1019,6 +1026,7 @@ export default function VideoGenerationTool() {
           </div>
         )}
         </div>
+      </div>
       </div>
     </div>
   );
