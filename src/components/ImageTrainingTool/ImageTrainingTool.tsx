@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../lib/auth';
-import { submitImageTrainingJob, submitImageTrainingJobWithZip, getImageTrainingJobStatus, generateImageDescription, type ImageWithDescription } from '../../lib/api/imageTrainingApi';
+import { submitImageTrainingJob, submitImageTrainingJobWithZip, getImageTrainingJobStatus, type ImageWithDescription } from '../../lib/api/imageTrainingApi';
 import { getUserJobs } from '../../lib/api/jobsApi';
 import { useSSE } from '../../hooks/useSSE';
 import type { ImageTrainingJobRequest, ImageTrainingJobResult, ImageTrainingJob, Job } from '../../types/api';
@@ -304,12 +304,8 @@ export default function ImageTrainingTool() {
   const [streamUrl, setStreamUrl] = useState<string | undefined>(undefined);
   
   // Training workflow progress state
-  const [trainingStep, setTrainingStep] = useState<'idle' | 'generating_captions' | 'creating_zip' | 'uploading' | 'training'>('idle');
-  const [captionProgress, setCaptionProgress] = useState<Record<number, { status: 'pending' | 'generating' | 'completed' | 'failed'; description?: string; error?: string }>>({});
-  const [captionRetries, setCaptionRetries] = useState<Record<number, number>>({});
+  const [trainingStep, setTrainingStep] = useState<'idle' | 'creating_zip' | 'uploading' | 'training'>('idle');
   const [stepMessage, setStepMessage] = useState<string>('');
-  const [currentCaptionIndex, setCurrentCaptionIndex] = useState<number>(0);
-  const [totalCaptions, setTotalCaptions] = useState<number>(0);
   const [createdZipFile, setCreatedZipFile] = useState<File | null>(null);
   const [zipDownloadUrl, setZipDownloadUrl] = useState<string | null>(null);
 
@@ -500,149 +496,6 @@ export default function ImageTrainingTool() {
     setImageUrls(urls);
   }, []);
 
-  // Generate all captions for training with retry logic
-  const generateAllCaptionsForTraining = useCallback(async (): Promise<ImageWithDescription[]> => {
-    // Get current images state
-    setImages(currentImages => {
-      const imagesToProcess = currentImages.filter(img => !img.description);
-      setTotalCaptions(imagesToProcess.length);
-      setCurrentCaptionIndex(0);
-      return currentImages;
-    });
-    
-    // Use functional updates to always get latest state
-    let updatedImages = [...images];
-    const progressMap: Record<number, { status: 'pending' | 'generating' | 'completed' | 'failed'; description?: string; error?: string }> = {};
-    const retriesMap: Record<number, number> = {};
-    
-    // Initialize progress for all images
-    images.forEach((_, index) => {
-      if (!images[index].description) {
-        progressMap[index] = { status: 'pending' };
-      }
-    });
-    setCaptionProgress(progressMap);
-    
-    // Process each image
-    for (let i = 0; i < images.length; i++) {
-      // Get latest images state
-      setImages(currentImages => {
-        updatedImages = [...currentImages];
-        return currentImages;
-      });
-      
-      const image = updatedImages[i];
-      
-      // Skip if already has description
-      if (image.description) {
-        continue;
-      }
-      
-      setCurrentCaptionIndex(i + 1);
-      
-      // Update progress to generating
-      progressMap[i] = { status: 'generating' };
-      setCaptionProgress({ ...progressMap });
-      
-      // Update image loading state
-      updatedImages[i] = {
-        ...updatedImages[i],
-        descriptionLoading: true,
-        descriptionError: undefined,
-      };
-      setImages([...updatedImages]);
-      
-      let success = false;
-      const maxRetries = 3;
-      let attempt = 0;
-      
-      while (attempt < maxRetries && !success) {
-        try {
-          attempt++;
-          retriesMap[i] = attempt;
-          setCaptionRetries({ ...retriesMap });
-          
-          console.log(`[Training] Generating caption for image ${i + 1} (attempt ${attempt}/${maxRetries})`);
-          
-          const response = await generateImageDescription(image.file, {
-            caption: true,
-            context: 'describe the image styles and colors and contexts',
-            question: 'describe this image or images detail manner',
-            temperature: 1,
-            use_nucleus_sampling: false,
-          });
-          
-          if (response.success && response.description) {
-            // Get latest state before updating
-            setImages(currentImages => {
-              updatedImages = [...currentImages];
-              updatedImages[i] = {
-                ...updatedImages[i],
-                description: response.description,
-                descriptionLoading: false,
-                descriptionError: undefined,
-              };
-              return updatedImages;
-            });
-            
-            progressMap[i] = {
-              status: 'completed',
-              description: response.description,
-            };
-            
-            success = true;
-            console.log(`[Training] Successfully generated caption for image ${i + 1}`);
-          }
-        } catch (error: any) {
-          console.error(`[Training] Caption generation failed for image ${i + 1}, attempt ${attempt}:`, error);
-          
-          if (attempt >= maxRetries) {
-            // Max retries reached, use placeholder
-            setImages(currentImages => {
-              updatedImages = [...currentImages];
-              updatedImages[i] = {
-                ...updatedImages[i],
-                description: 'No description available',
-                descriptionLoading: false,
-                descriptionError: `Failed after ${maxRetries} attempts: ${error.message || 'Unknown error'}`,
-              };
-              return updatedImages;
-            });
-            
-            progressMap[i] = {
-              status: 'failed',
-              error: error.message || 'Failed to generate description',
-            };
-            
-            console.warn(`[Training] Using placeholder for image ${i + 1} after ${maxRetries} failed attempts`);
-          } else {
-            // Wait before retry
-            await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-          }
-        }
-        
-        // Update progress state
-        setCaptionProgress({ ...progressMap });
-      }
-      
-      // Small delay between images to avoid overwhelming the API
-      if (i < images.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 300));
-      }
-    }
-    
-    // Get final updated images state
-    return new Promise<ImageWithDescription[]>((resolve) => {
-      // Use setTimeout to ensure state updates are complete
-      setTimeout(() => {
-        setImages(currentImages => {
-          resolve([...currentImages]);
-          return currentImages;
-        });
-      }, 100);
-    });
-  }, [images]);
-
   // Create training dataset ZIP file
   const createTrainingDatasetZip = useCallback(async (imagesWithCaptions: ImageWithDescription[]): Promise<File> => {
     console.log('[Training] Creating dataset ZIP file...');
@@ -705,8 +558,6 @@ export default function ImageTrainingTool() {
     setPollingMessage('');
     setTrainingStep('idle');
     setStepMessage('');
-    setCaptionProgress({});
-    setCaptionRetries({});
     // Clean up previous ZIP download URL if exists
     if (zipDownloadUrl) {
       URL.revokeObjectURL(zipDownloadUrl);
@@ -741,33 +592,18 @@ export default function ImageTrainingTool() {
     }
 
     try {
-      // Step 1: Generate Captions
-      setTrainingStep('generating_captions');
-      setStepMessage(`Generating captions for ${images.length} image${images.length !== 1 ? 's' : ''}...`);
-      
-      const imagesWithCaptions = await generateAllCaptionsForTraining();
-      
-      // Update images state with captions
-      setImages(imagesWithCaptions);
-      
-      // Check if any captions failed
-      const failedCount = imagesWithCaptions.filter(img => img.descriptionError).length;
-      if (failedCount > 0) {
-        console.warn(`[Training] ${failedCount} caption(s) failed, continuing with placeholders`);
-      }
-      
-      // Step 2: Create ZIP
+      // Step 1: Create ZIP (use images as-is, captions are optional)
       setTrainingStep('creating_zip');
       setStepMessage('Creating dataset ZIP file...');
       
-      const zipFile = await createTrainingDatasetZip(imagesWithCaptions);
+      const zipFile = await createTrainingDatasetZip(images);
       
       // Create download URL for the ZIP file
       const downloadUrl = URL.createObjectURL(zipFile);
       setCreatedZipFile(zipFile);
       setZipDownloadUrl(downloadUrl);
       
-      // Step 3: Upload ZIP
+      // Step 2: Upload ZIP
       setTrainingStep('uploading');
       setStepMessage('Uploading dataset for training...');
       
@@ -783,7 +619,7 @@ export default function ImageTrainingTool() {
       });
       
       if (response.success && response.job_id) {
-        // Step 4: Training started
+        // Step 3: Training started
         setTrainingStep('training');
         setStepMessage('Training started...');
         setJobId(response.job_id);
@@ -898,7 +734,6 @@ export default function ImageTrainingTool() {
             disabled={loading}
             onUploadUrls={handleUploadUrls}
             trainingInProgress={trainingStep !== 'idle'}
-            captionProgress={captionProgress}
           />
           {/* Manual URL input fallback */}
           <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
@@ -984,35 +819,10 @@ export default function ImageTrainingTool() {
         {trainingStep !== 'idle' && (
           <div style={styles.progressContainer}>
             <div style={{ ...styles.progressText, marginBottom: '0.5rem', fontWeight: 600 }}>
-              {trainingStep === 'generating_captions' && '📝 Step 1: Generating Captions'}
-              {trainingStep === 'creating_zip' && '📦 Step 2: Creating Dataset ZIP'}
-              {trainingStep === 'uploading' && '☁️ Step 3: Uploading Dataset'}
-              {trainingStep === 'training' && '🚀 Step 4: Training Model'}
+              {trainingStep === 'creating_zip' && '📦 Step 1: Creating Dataset ZIP'}
+              {trainingStep === 'uploading' && '☁️ Step 2: Uploading Dataset'}
+              {trainingStep === 'training' && '🚀 Step 3: Training Model'}
             </div>
-            
-            {trainingStep === 'generating_captions' && (
-              <div style={{ marginBottom: '0.5rem' }}>
-                <div style={styles.progressText}>
-                  {stepMessage}
-                  {totalCaptions > 0 && (
-                    <span> ({currentCaptionIndex} / {totalCaptions})</span>
-                  )}
-                </div>
-                {totalCaptions > 0 && (
-                  <div style={styles.progressBarContainer}>
-                    <div style={{ 
-                      ...styles.progressBar, 
-                      width: `${Math.min((currentCaptionIndex / totalCaptions) * 100, 100)}%` 
-                    }} />
-                  </div>
-                )}
-                <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.5rem' }}>
-                  {Object.values(captionProgress).filter(p => p.status === 'completed').length} completed,{' '}
-                  {Object.values(captionProgress).filter(p => p.status === 'generating').length} generating,{' '}
-                  {Object.values(captionProgress).filter(p => p.status === 'failed').length} failed
-                </div>
-              </div>
-            )}
             
             {trainingStep === 'creating_zip' && (
               <div>
@@ -1105,8 +915,7 @@ export default function ImageTrainingTool() {
             ...(loading || !user || (images.length === 0 && imageUrls.filter(u => u.trim()).length === 0) || !triggerWord.trim() ? styles.submitButtonDisabled : {}),
           }}
         >
-          {loading && trainingStep === 'generating_captions' ? 'Generating Captions...' :
-           loading && trainingStep === 'creating_zip' ? 'Creating ZIP...' :
+          {loading && trainingStep === 'creating_zip' ? 'Creating ZIP...' :
            loading && trainingStep === 'uploading' ? 'Uploading...' :
            loading && trainingStep === 'training' ? 'Training...' :
            'Start Training'}
