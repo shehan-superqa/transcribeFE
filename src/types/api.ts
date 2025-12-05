@@ -406,3 +406,50 @@ export interface ImageTrainingJobStatusResponse {
   job?: ImageTrainingJob;
 }
 
+/**
+ * Video Dubbing Types
+ */
+export interface VideoDubJobRequest {
+  video: string; // Video URL
+  output_language: string; // e.g., "Spanish", "French", "German"
+}
+
+export interface VideoDubJobResponse {
+  success: boolean;
+  accepted: boolean;
+  job_id: string;
+  stream_url: string;
+}
+
+export interface VideoDubJobResult {
+  video_url: string;
+  video_path?: string;
+  output_language: string;
+  engine?: string;
+  model?: string;
+  job_id: string;
+}
+
+export interface VideoDubJob {
+  _id: string;
+  user_id: string;
+  job_type: 'video_dub';
+  video: string;
+  output_language: string;
+  status: JobStatus;
+  result?: VideoDubJobResult;
+  video_output_url?: string;
+  video_output_path?: string;
+  error?: string;
+  created_at: string;
+  started_at?: string;
+  finished_at?: string;
+  updated_at: string;
+}
+
+export interface VideoDubJobStatusResponse {
+  success: boolean;
+  job_id: string;
+  job?: VideoDubJob;
+}
+

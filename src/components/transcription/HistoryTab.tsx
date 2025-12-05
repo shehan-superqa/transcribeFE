@@ -323,14 +323,14 @@ export default function HistoryTab() {
                     />
                     <Box>
                       {job.status === 'completed' && job.result && (
-                        <IconButton
-                          onClick={() => handleViewJob(job._id)}
-                          sx={{ color: '#00c6ff' }}
-                          size="small"
+                          <IconButton
+                            onClick={() => handleViewJob(job._id)}
+                            sx={{ color: '#00c6ff' }}
+                            size="small"
                           title="View details"
-                        >
-                          <VisibilityIcon />
-                        </IconButton>
+                          >
+                            <VisibilityIcon />
+                          </IconButton>
                       )}
                       {['queued', 'processing', 'running'].includes(job.status) && (
                         <IconButton
