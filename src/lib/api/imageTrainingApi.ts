@@ -90,12 +90,28 @@ export interface UploadImagesResponse {
 }
 
 export async function uploadImagesForTraining(
-  images: File[]
+  images: File[],
+  options?: {
+    trigger_word?: string;
+    destination_model?: string;
+    lora_type?: 'subject' | 'style';
+  }
 ): Promise<UploadImagesResponse> {
   const formData = new FormData();
   images.forEach((file) => {
     formData.append('images', file);
   });
+
+  // Add optional parameters if provided
+  if (options?.trigger_word) {
+    formData.append('trigger_word', options.trigger_word);
+  }
+  if (options?.destination_model) {
+    formData.append('destination_model', options.destination_model);
+  }
+  if (options?.lora_type) {
+    formData.append('lora_type', options.lora_type);
+  }
 
   const response = await multipartApiClient.post<UploadImagesResponse>(
     '/api/image/train/upload',
@@ -468,5 +484,50 @@ export async function getImageTrainingJobStatus(jobId: string): Promise<ImageTra
  */
 export async function getImageCaptionJobStatus(jobId: string): Promise<ImageCaptionJobStatusResponse> {
   const response = await apiClient.get<ImageCaptionJobStatusResponse>(`/api/image/caption/jobs/${jobId}`);
+  return response.data;
+}
+
+/**
+ * LoRA Model from Replicate
+ */
+export interface LoRAModel {
+  id: string;
+  name: string;
+  owner: string;
+  description?: string;
+  visibility: 'public' | 'private';
+  github_url?: string;
+  paper_url?: string;
+  license_url?: string;
+  cover_image_url?: string;
+  default_example?: {
+    input?: any;
+    output?: string;
+  };
+  latest_version?: {
+    id: string;
+    created_at: string;
+    cog_version?: string;
+  };
+  created_at: string;
+  updated_at: string;
+  url?: string; // Full model URL like "owner/model-name"
+}
+
+/**
+ * Get LoRAs from Replicate
+ */
+export interface GetLoRAsResponse {
+  success: boolean;
+  loras?: LoRAModel[];
+  error?: string;
+  message?: string;
+}
+
+/**
+ * Fetch LoRAs from Replicate via backend
+ */
+export async function getLoRAsFromReplicate(): Promise<GetLoRAsResponse> {
+  const response = await apiClient.get<GetLoRAsResponse>('/api/image/train/loras');
   return response.data;
 }
