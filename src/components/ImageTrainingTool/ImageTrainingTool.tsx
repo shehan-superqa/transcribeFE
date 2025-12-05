@@ -3,8 +3,10 @@ import { useAuth } from '../../lib/auth';
 import { submitImageTrainingJob, getImageTrainingJobStatus, uploadImagesForTraining, getLoRAsFromReplicate, type ImageWithDescription, type LoRAModel } from '../../lib/api/imageTrainingApi';
 import { getUserJobs } from '../../lib/api/jobsApi';
 import { useSSE } from '../../hooks/useSSE';
-import type { ImageTrainingJobRequest, ImageTrainingJobResult, ImageTrainingJob, Job } from '../../types/api';
+import type { ImageTrainingJobRequest, ImageTrainingJobResult, ImageTrainingJob, ImageJob, Job } from '../../types/api';
 import ImageUploader from './ImageUploader';
+import ImageGenerationMode from './ImageGenerationMode';
+import ImageGalleryMode from './ImageGalleryMode';
 import './ImageTrainingTool.css';
 
 const styles = {
@@ -273,6 +275,27 @@ const styles = {
     color: '#93c5fd',
     marginBottom: '0.5rem',
   },
+  tabContainer: {
+    display: 'flex',
+    gap: '0.5rem',
+    marginBottom: '1.5rem',
+    borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+  },
+  tab: {
+    background: 'transparent',
+    border: 'none',
+    color: '#94a3b8',
+    padding: '0.75rem 1.5rem',
+    fontSize: '0.95rem',
+    fontWeight: 600,
+    cursor: 'pointer',
+    borderBottom: '2px solid transparent',
+    transition: 'all 0.2s ease',
+  },
+  tabActive: {
+    color: '#60a5fa',
+    borderBottomColor: '#60a5fa',
+  },
 };
 
 export default function ImageTrainingTool() {
@@ -306,6 +329,10 @@ export default function ImageTrainingTool() {
   const [lorasLoading, setLorasLoading] = useState(false);
   const [lorasError, setLorasError] = useState<string | null>(null);
   const [streamUrl, setStreamUrl] = useState<string | undefined>(undefined);
+  const [activeTab, setActiveTab] = useState<'training' | 'generation' | 'gallery'>('training');
+  const [imageHistory, setImageHistory] = useState<ImageJob[]>([]);
+  const [imageHistoryLoading, setImageHistoryLoading] = useState(false);
+  const [imageHistoryError, setImageHistoryError] = useState<string | null>(null);
   
   // Training workflow progress state
   const [trainingStep, setTrainingStep] = useState<'idle' | 'uploading_images' | 'training'>('idle');
@@ -346,6 +373,43 @@ export default function ImageTrainingTool() {
     fetchLoRAs();
   }, [user]);
 
+  // Fetch image generation history
+  const fetchImageHistory = useCallback(async () => {
+    if (!user) return;
+    
+    setImageHistoryLoading(true);
+    setImageHistoryError(null);
+    
+    try {
+      const response = await getUserJobs(user.id);
+      if (response.success && response.jobs) {
+        // Filter for image generation jobs only
+        const imageJobs = response.jobs.filter(
+          (job: Job) => (job as any).job_type === 'image'
+        ).map((job: Job) => job as unknown as ImageJob);
+        
+        // Sort by created_at (newest first)
+        imageJobs.sort((a, b) => {
+          const dateA = new Date(a.created_at).getTime();
+          const dateB = new Date(b.created_at).getTime();
+          return dateB - dateA;
+        });
+        
+        setImageHistory(imageJobs);
+      }
+    } catch (err: any) {
+      console.error('Error fetching image history:', err);
+      setImageHistoryError(err?.message || 'Failed to load image history');
+    } finally {
+      setImageHistoryLoading(false);
+    }
+  }, [user]);
+
+  // Fetch image history on mount
+  useEffect(() => {
+    fetchImageHistory();
+  }, [fetchImageHistory]);
+
   // Fetch training job history
   useEffect(() => {
     const fetchTrainingHistory = async () => {
@@ -382,14 +446,15 @@ export default function ImageTrainingTool() {
     fetchTrainingHistory();
   }, [user]);
 
-  // Refresh history when a job completes or status changes
+  // Refresh history and LoRAs when a job completes or status changes
   useEffect(() => {
     if (trainedModel && user) {
-      const fetchTrainingHistory = async () => {
+      const refreshData = async () => {
         try {
-          const response = await getUserJobs(user.id);
-          if (response.success && response.jobs) {
-            const trainingJobs = response.jobs.filter(
+          // Refresh training history
+          const historyResponse = await getUserJobs(user.id);
+          if (historyResponse.success && historyResponse.jobs) {
+            const trainingJobs = historyResponse.jobs.filter(
               (job: Job) => (job as any).job_type === 'image_training'
             ).map((job: Job) => job as unknown as ImageTrainingJob);
             
@@ -401,11 +466,22 @@ export default function ImageTrainingTool() {
             
             setTrainingHistory(trainingJobs);
           }
+
+          // Refresh LoRAs list
+          const lorasResponse = await getLoRAsFromReplicate();
+          if (lorasResponse.success && lorasResponse.loras) {
+            const sortedLoras = [...lorasResponse.loras].sort((a, b) => {
+              const dateA = new Date(a.updated_at || a.created_at).getTime();
+              const dateB = new Date(b.updated_at || b.created_at).getTime();
+              return dateB - dateA;
+            });
+            setLoras(sortedLoras);
+          }
         } catch (err) {
-          console.error('Error refreshing training history:', err);
+          console.error('Error refreshing data:', err);
         }
       };
-      fetchTrainingHistory();
+      refreshData();
     }
   }, [trainedModel, user]);
 
@@ -831,6 +907,46 @@ export default function ImageTrainingTool() {
   return (
     <div style={styles.container} className="image-training-tool-container">
       <div style={styles.formWrapper}>
+        {/* Tab Navigation */}
+        <div style={styles.tabContainer}>
+          <button
+            type="button"
+            onClick={() => setActiveTab('training')}
+            style={{
+              ...styles.tab,
+              ...(activeTab === 'training' ? styles.tabActive : {}),
+            }}
+          >
+            Training Mode
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('generation')}
+            style={{
+              ...styles.tab,
+              ...(activeTab === 'generation' ? styles.tabActive : {}),
+            }}
+          >
+            Generation Mode
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('gallery');
+              // Refresh gallery when switching to gallery tab
+              fetchImageHistory();
+            }}
+            style={{
+              ...styles.tab,
+              ...(activeTab === 'gallery' ? styles.tabActive : {}),
+            }}
+          >
+            Gallery
+          </button>
+        </div>
+
+        {/* Training Mode */}
+        {activeTab === 'training' && (
         <form onSubmit={handleSubmit} style={styles.form}>
         <div style={styles.infoBox}>
           <strong>Training Guide:</strong> {loraType === 'subject' 
@@ -1133,6 +1249,27 @@ export default function ImageTrainingTool() {
           </div>
         )}
       </form>
+        )}
+
+        {/* Generation Mode */}
+        {activeTab === 'generation' && (
+          <ImageGenerationMode
+            loras={loras}
+            lorasLoading={lorasLoading}
+            lorasError={lorasError}
+            onGenerationComplete={fetchImageHistory}
+          />
+        )}
+
+        {/* Gallery Mode */}
+        {activeTab === 'gallery' && (
+          <ImageGalleryMode
+            imageHistory={imageHistory}
+            historyLoading={imageHistoryLoading}
+            historyError={imageHistoryError}
+            onRefresh={fetchImageHistory}
+          />
+        )}
       </div>
 
       {/* Right Sidebar: Training Result + History */}
