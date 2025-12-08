@@ -266,7 +266,7 @@ export interface ImageJobRequest {
   guidance_scale?: number;
   num_inference_steps?: number;
   seed?: number;
-  model?: 'black-forest-labs/flux-dev' | 'black-forest-labs/flux-schnell' | 'stability-ai/sdxl' | 'stability-ai/stable-diffusion';
+  model?: 'black-forest-labs/flux-dev' | 'black-forest-labs/flux-schnell' | 'stability-ai/sdxl' | 'stability-ai/stable-diffusion' | string; // Allow custom LoRA URLs
   image?: string;
   mask?: string;
   strength?: number;
