@@ -25,6 +25,7 @@ import {
   IconButton,
   Chip,
   LinearProgress,
+  Snackbar,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
@@ -35,6 +36,8 @@ import ProgressBar from './common/ProgressBar';
 import StatusLabel from './common/StatusLabel';
 import HowToUse from '../../components/common/HowToUse';
 import { transcriptionStore } from '../../stores/transcriptionStore';
+import { jobStore } from '../../stores/jobStore';
+import { useAuth } from '../../lib/auth';
 import { useJobPolling } from '../../hooks/useJobPolling';
 import { getAvailableModels, submitTranscriptionJob } from '../../lib/api/transcriptionApi';
 import { cancelJob } from '../../lib/api/jobsApi';
@@ -66,14 +69,18 @@ export default function TranscribeTab() {
   const [isBatchProcessing, setIsBatchProcessing] = useState(false);
   const [batchProgress, setBatchProgress] = useState(0);
   const [batchError, setBatchError] = useState<string | null>(null);
+  const [copySuccess, setCopySuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const { user } = useAuth();
   const submitJob = transcriptionStore((state) => state.submitJob);
   const isProcessing = transcriptionStore((state) => state.isProcessing);
   const results = transcriptionStore((state) => state.results);
   const error = transcriptionStore((state) => state.error);
   const clearResults = transcriptionStore((state) => state.clearResults);
-  const { progress, message, result, status, error: pollingError, progressDetails, job } = useJobPolling(jobId);
+  const fetchJobs = jobStore((state) => state.fetchJobs);
+  const updateJob = jobStore((state) => state.updateJob);
+  const { progress, message, result, status, progressDetails, job } = useJobPolling(jobId);
 
   // Determine if we're in batch mode (multiple files) or single mode
   const isBatchMode = files.length > 1;
@@ -154,6 +161,9 @@ export default function TranscribeTab() {
   const setResults = transcriptionStore((state) => state.setResults);
   const setIsProcessing = transcriptionStore((state) => state.setIsProcessing);
   
+  // Track previous status to detect completion
+  const prevStatusRef = useRef<string>('');
+  
   useEffect(() => {
     // Update results when polling receives final result or when job completes
     if (result && results !== result) {
@@ -169,14 +179,41 @@ export default function TranscribeTab() {
         // Use result from polling hook if available
         setResults(result);
       }
+      // Update job in store to refresh history
+      if (job) {
+        updateJob(job);
+      }
+      // Refresh the full job list when status changes to completed
+      if (prevStatusRef.current !== 'completed' && user?.id) {
+        prevStatusRef.current = 'completed';
+        // Refresh immediately and again after a short delay to ensure backend has updated
+        fetchJobs(user.id);
+        setTimeout(() => {
+          fetchJobs(user.id);
+        }, 1000);
+      }
     } else if (status === 'error' || status === 'cancelled') {
       // Job failed or cancelled
       setIsProcessing(false);
+      // Update job in store to refresh history
+      if (job) {
+        updateJob(job);
+      }
+      // Refresh history when job fails or is cancelled
+      if (prevStatusRef.current !== status && user?.id) {
+        prevStatusRef.current = status;
+        fetchJobs(user.id);
+      }
     } else if (status === 'processing' || status === 'queued' || status === 'starting') {
       // Job is still processing
       setIsProcessing(true);
+      // Update job status in store periodically
+      if (job) {
+        updateJob(job);
+      }
+      prevStatusRef.current = status;
     }
-  }, [result, results, setResults, setIsProcessing, status, job]);
+  }, [result, results, setResults, setIsProcessing, status, job, updateJob, fetchJobs, user]);
 
   // Convert files array to batchFiles when switching to batch mode
   useEffect(() => {
@@ -224,11 +261,19 @@ export default function TranscribeTab() {
   };
 
   const handleRemoveFile = (index: number) => {
+    const fileToRemove = files[index];
     setFiles((prev) => prev.filter((_, i) => i !== index));
+    setBatchFiles((prev) => prev.filter((bf) => bf.file !== fileToRemove));
     if (files.length === 2) {
       // Switching from batch to single mode
       setBatchFiles([]);
     }
+    // If removing the file that's currently being processed, stop polling
+    if (fileToRemove === singleFile && jobId) {
+      setJobId(null);
+    }
+    clearResults();
+    setBatchError(null);
   };
 
   const handleStartTranscription = async () => {
@@ -251,8 +296,11 @@ export default function TranscribeTab() {
     } else {
       // Single file processing
       const submittedJobId = await submitJob(singleFile!, config);
-      if (submittedJobId) {
+      if (submittedJobId && user?.id) {
         setJobId(submittedJobId);
+        // Fetch job data immediately after getting API response
+        // This will update the store and trigger HistoryTab to re-render automatically
+        await fetchJobs(user.id);
       }
     }
   };
@@ -311,6 +359,12 @@ export default function TranscribeTab() {
       });
 
       const jobResults = await Promise.all(jobPromises);
+
+      // Immediately fetch jobs after getting API responses
+      // Await to ensure the store is updated before continuing
+      if (user?.id && jobResults.some(jr => jr.success)) {
+        await fetchJobs(user.id);
+      }
 
       setBatchFiles((prev) => {
         return prev.map((batchFile) => {
@@ -416,6 +470,12 @@ export default function TranscribeTab() {
         if (allCompleted) {
           setIsBatchProcessing(false);
           clearInterval(pollInterval);
+          // Refresh job history when all batch jobs complete
+          if (user?.id) {
+            setTimeout(() => {
+              fetchJobs(user.id);
+            }, 500);
+          }
         }
 
         return updated;
@@ -611,22 +671,37 @@ export default function TranscribeTab() {
                   <Typography variant="body2" sx={{ color: '#a0a0a0' }}>
                     {singleFile.name} • {(singleFile.size / (1024 * 1024)).toFixed(2)} MB • {singleFile.name.split('.').pop()?.toUpperCase()}
                   </Typography>
-                  <Button
-                    size="small"
-                    startIcon={<AddIcon />}
-                    onClick={() => {
-                      if (fileInputRef.current) {
-                        fileInputRef.current.click();
-                      }
-                    }}
-                    disabled={isProcessing || isBatchProcessing}
-                    sx={{ 
-                      color: '#00c6ff',
-                      '&:disabled': { color: '#666666' },
-                    }}
-                  >
-                    Add More Files
-                  </Button>
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <IconButton
+                      onClick={() => handleRemoveFile(0)}
+                      disabled={isProcessing || isBatchProcessing}
+                      sx={{ 
+                        color: '#f44336',
+                        '&:hover': { backgroundColor: 'rgba(244, 67, 54, 0.1)' },
+                        '&:disabled': { color: '#666666' },
+                      }}
+                      size="small"
+                      title="Remove file"
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                    <Button
+                      size="small"
+                      startIcon={<AddIcon />}
+                      onClick={() => {
+                        if (fileInputRef.current) {
+                          fileInputRef.current.click();
+                        }
+                      }}
+                      disabled={isProcessing || isBatchProcessing}
+                      sx={{ 
+                        color: '#00c6ff',
+                        '&:disabled': { color: '#666666' },
+                      }}
+                    >
+                      Add More Files
+                    </Button>
+                  </Box>
                 </Box>
                 
                 {/* Progress Details in File Upload Area */}
@@ -855,6 +930,7 @@ export default function TranscribeTab() {
               value={language} 
               onChange={(e) => setLanguage(e.target.value)}
               disabled={isProcessing || isBatchProcessing}
+              renderValue={(value) => typeof value === 'string' ? value.charAt(0).toUpperCase() + value.slice(1) : value}
               sx={{ 
                 color: '#e0e0e0',
                 backgroundColor: '#121212',
@@ -873,7 +949,7 @@ export default function TranscribeTab() {
             >
               {availableLanguages.map((lang) => (
                 <MenuItem key={lang} value={lang} sx={{ color: '#e0e0e0', '&:hover': { backgroundColor: '#2a2a2a' } }}>
-                  {lang}
+                  {lang.charAt(0).toUpperCase() + lang.slice(1)}
                 </MenuItem>
               ))}
             </Select>
@@ -885,6 +961,7 @@ export default function TranscribeTab() {
                 value={model || ''} 
                 onChange={(e) => setModel(e.target.value)} 
                 disabled={isProcessing || isBatchProcessing || availableModels.length === 0}
+                renderValue={(value) => typeof value === 'string' && value ? value.charAt(0).toUpperCase() + value.slice(1) : value}
                 MenuProps={{
                   PaperProps: {
                     style: {
@@ -914,7 +991,7 @@ export default function TranscribeTab() {
                       },
                     }}
                   >
-                    {m}
+                    {m.charAt(0).toUpperCase() + m.slice(1)}
                   </MenuItem>
                 ))}
               </Select>
@@ -1051,9 +1128,15 @@ export default function TranscribeTab() {
           <Box sx={{ display: 'flex', gap: 2 }}>
             <Button 
               variant="contained" 
-              onClick={() => {
+              onClick={async () => {
                 const text = results?.text || job?.result?.text || result?.text || '';
-                navigator.clipboard.writeText(text);
+                try {
+                  await navigator.clipboard.writeText(text);
+                  setCopySuccess(true);
+                  setTimeout(() => setCopySuccess(false), 3000);
+                } catch (err) {
+                  console.error('Failed to copy text:', err);
+                }
               }}
               sx={{
                 backgroundColor: '#00c6ff',
@@ -1065,7 +1148,15 @@ export default function TranscribeTab() {
             </Button>
             <Button 
               variant="outlined" 
-              onClick={clearResults}
+              onClick={() => {
+                clearResults();
+                setFiles([]);
+                setJobId(null);
+                setBatchFiles([]);
+                setBatchError(null);
+                setBatchProgress(0);
+                setIsBatchProcessing(false);
+              }}
               sx={{
                 borderColor: '#333333',
                 color: '#e0e0e0',
@@ -1075,6 +1166,24 @@ export default function TranscribeTab() {
               Clear
             </Button>
           </Box>
+          <Snackbar
+            open={copySuccess}
+            autoHideDuration={3000}
+            onClose={() => setCopySuccess(false)}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+          >
+            <Alert 
+              onClose={() => setCopySuccess(false)} 
+              severity="success"
+              sx={{ 
+                backgroundColor: '#4caf50',
+                color: '#fff',
+                '& .MuiAlert-icon': { color: '#fff' },
+              }}
+            >
+              Copied to clipboard!
+            </Alert>
+          </Snackbar>
         </Paper>
       )}
     </Box>

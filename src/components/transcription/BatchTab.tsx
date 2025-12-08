@@ -25,8 +25,10 @@ import FolderIcon from '@mui/icons-material/Folder';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
 import CancelIcon from '@mui/icons-material/Cancel';
-import { batchTranscription, getAvailableModels, submitTranscriptionJob } from '../../lib/api/transcriptionApi';
+import { getAvailableModels, submitTranscriptionJob } from '../../lib/api/transcriptionApi';
 import { cancelJob } from '../../lib/api/jobsApi';
+import { jobStore } from '../../stores/jobStore';
+import { useAuth } from '../../lib/auth';
 import type { TranscriptionConfig } from '../../types/api';
 import type { TranscriptionResult } from '../../types/api';
 
@@ -39,6 +41,9 @@ interface BatchFile {
 }
 
 export default function BatchTab() {
+  const { user } = useAuth();
+  const fetchJobs = jobStore((state) => state.fetchJobs);
+  const updateJob = jobStore((state) => state.updateJob);
   const [files, setFiles] = useState<BatchFile[]>([]);
   const [engine, setEngine] = useState('replicate');
   const [language, setLanguage] = useState('en');
@@ -206,6 +211,14 @@ export default function BatchTab() {
 
       const jobResults = await Promise.all(jobPromises);
 
+      // Fetch jobs after a short delay to ensure backend has created all job records
+      // The store will automatically update and trigger HistoryTab re-render
+      if (user?.id && jobResults.some(jr => jr.success)) {
+        setTimeout(async () => {
+          await fetchJobs(user.id);
+        }, 300);
+      }
+
       // Update files with job IDs
       setFiles((prev) => {
         return prev.map((batchFile, index) => {
@@ -286,6 +299,9 @@ export default function BatchTab() {
           }
 
           const job = status.job;
+          // Update job in store to refresh history
+          updateJob(job);
+          
           if (job.status === 'completed' && job.result) {
             return {
               ...batchFile,
@@ -307,6 +323,14 @@ export default function BatchTab() {
         if (allCompleted) {
           setIsProcessing(false);
           clearInterval(pollInterval);
+          // Refresh job history when all batch jobs complete
+          if (user?.id) {
+            // Refresh immediately and again after a delay to ensure backend has updated
+            fetchJobs(user.id);
+            setTimeout(() => {
+              fetchJobs(user.id);
+            }, 1000);
+          }
         }
 
         return updated;
@@ -453,6 +477,7 @@ export default function BatchTab() {
               ))}
             </Select>
           </FormControl>
+          )}
         </Box>
       </Paper>
 

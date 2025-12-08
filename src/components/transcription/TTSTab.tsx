@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { useMediaQuery, useTheme } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -17,23 +18,21 @@ import {
   MenuItem,
   Slider,
   Alert,
-  CircularProgress,
   Card,
   CardContent,
 } from '@mui/material';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import PauseIcon from '@mui/icons-material/Pause';
-import DownloadIcon from '@mui/icons-material/Download';
 import ProgressBar from './common/ProgressBar';
 import StatusLabel from './common/StatusLabel';
 import VoiceSelector from './tts/VoiceSelector';
 import AudioPlayer from './tts/AudioPlayer';
 import HowToUse from '../../components/common/HowToUse';
-import { submitTTSJob, getTTSJobStatus, getAvailableVoices, type TTSVoice, type TTSJobRequest } from '../../lib/api/ttsApi';
+import { submitTTSJob, getTTSJobStatus, getAvailableVoices, type Voice as TTSVoice, type TTSJobRequest } from '../../lib/api/ttsApi';
 
 export default function TTSTab() {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [text, setText] = useState('');
   const [selectedVoice, setSelectedVoice] = useState<string>('');
   const [language, setLanguage] = useState<string>('en');
@@ -72,7 +71,7 @@ export default function TTSTab() {
           setStatus(job.status);
 
           // Update progress based on status
-          if (job.status === 'queued' || job.status === 'starting') {
+          if (job.status === 'queued') {
             setProgress(10);
           } else if (job.status === 'processing') {
             setProgress(job.progress || 50);
@@ -173,7 +172,7 @@ export default function TTSTab() {
         text: text.trim(),
         voice: selectedVoice,
         language: language || 'en',
-        emotion: emotion || 'auto',
+        emotion: emotion || undefined, // Don't send 'auto' if emotion is empty, let backend handle default
         speed: speed,
         pitch: pitch,
         volume: volume,
@@ -271,7 +270,7 @@ export default function TTSTab() {
         <TextField
           fullWidth
           multiline
-          rows={{ xs: 4, md: 6 }}
+          rows={isMobile ? 4 : 6}
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Enter text to convert to speech..."
@@ -346,12 +345,16 @@ export default function TTSTab() {
                   },
                 }}
               >
-                <MenuItem value="">None</MenuItem>
+                <MenuItem value="">None (Auto)</MenuItem>
+                <MenuItem value="auto">Auto</MenuItem>
                 <MenuItem value="happy">Happy</MenuItem>
                 <MenuItem value="sad">Sad</MenuItem>
                 <MenuItem value="angry">Angry</MenuItem>
-                <MenuItem value="excited">Excited</MenuItem>
+                <MenuItem value="fearful">Fearful</MenuItem>
+                <MenuItem value="disgusted">Disgusted</MenuItem>
+                <MenuItem value="surprised">Surprised</MenuItem>
                 <MenuItem value="calm">Calm</MenuItem>
+                <MenuItem value="fluent">Fluent</MenuItem>
                 <MenuItem value="neutral">Neutral</MenuItem>
               </Select>
             </FormControl>
@@ -484,7 +487,7 @@ export default function TTSTab() {
             <Button
               variant="outlined"
               onClick={handleReset}
-              fullWidth={{ xs: true, sm: false }}
+              fullWidth={isMobile}
               sx={{
                 color: '#a0a0a0',
                 borderColor: '#333333',
@@ -507,7 +510,7 @@ export default function TTSTab() {
             }}
             disabled={!text.trim() || !selectedVoice || currentStatus === 'processing' || currentStatus === 'queued'}
             startIcon={<VolumeUpIcon />}
-            fullWidth={{ xs: true, sm: false }}
+            fullWidth={isMobile}
             sx={{
               bgcolor: '#00c6ff',
               color: '#000',
@@ -526,7 +529,7 @@ export default function TTSTab() {
       </Paper>
 
       {/* Progress and Status */}
-      {(currentStatus === 'processing' || currentStatus === 'queued' || currentStatus === 'starting') && (
+      {(currentStatus === 'processing' || currentStatus === 'queued') && (
         <Paper sx={{ 
           p: { xs: 1.5, sm: 2, md: 3 }, 
           mb: { xs: 2, md: 3 }, 
@@ -540,11 +543,9 @@ export default function TTSTab() {
             flexWrap: 'wrap'
           }}>
             <StatusLabel 
-              status={currentStatus === 'queued' || currentStatus === 'starting' ? 'ready' : 'processing'} 
+              status={currentStatus === 'queued' ? 'ready' : 'processing'} 
               message={
-                currentStatus === 'queued' ? 'Queued' : 
-                currentStatus === 'starting' ? 'Starting...' : 
-                'Processing...'
+                currentStatus === 'queued' ? 'Queued' : 'Processing...'
               } 
             />
           </Box>

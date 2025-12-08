@@ -108,7 +108,14 @@ export async function submitTTSJob(request: TTSJobRequest): Promise<TTSJobRespon
   };
 
   // Add optional fields only if provided, otherwise use defaults
-  requestBody.emotion = request.emotion || 'auto';
+  // Only include emotion if it's explicitly provided (not empty string)
+  if (request.emotion && request.emotion.trim() !== '') {
+    // Send emotion as-is (lowercase: happy, sad, angry, excited, calm, neutral)
+    requestBody.emotion = request.emotion.trim().toLowerCase();
+  } else {
+    // If emotion is not provided or empty, use 'auto' as default
+    requestBody.emotion = 'auto';
+  }
   requestBody.language = request.language || 'en';
   requestBody.speed = request.speed !== undefined ? request.speed : 1.0;
   requestBody.pitch = request.pitch !== undefined ? request.pitch : 1.0;

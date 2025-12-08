@@ -35,6 +35,7 @@ export const jobStore = create<JobState>((set, get) => ({
       );
 
       set({ jobs, activeJobs, isLoading: false });
+      console.log('Jobs fetched from API:', jobs.length);
     } catch (error: any) {
       const errorMessage = error.response?.data?.error || error.message || 'Failed to fetch jobs';
       set({ error: errorMessage, isLoading: false });
@@ -84,11 +85,18 @@ export const jobStore = create<JobState>((set, get) => ({
   },
 
   addJob: (job: Job) => {
-    const jobs = [job, ...get().jobs];
+    // Add job to the end of the array (bottom of list) since we sort oldest first
+    const currentJobs = get().jobs;
+    // Check if job already exists to avoid duplicates
+    if (currentJobs.some(j => j._id === job._id)) {
+      return;
+    }
+    const jobs = [...currentJobs, job];
     const activeJobs = jobs.filter(
       (job) => ['queued', 'starting', 'processing', 'running'].includes(job.status)
     );
     set({ jobs, activeJobs });
+    console.log('Job added to store:', job._id, 'Total jobs:', jobs.length);
   },
 }));
 

@@ -32,7 +32,7 @@ import DownloadIcon from '@mui/icons-material/Download';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { jobStore } from '../../stores/jobStore';
 import { useAuth } from '../../lib/auth';
-import { formatRelativeTime } from '../../utils/formatters';
+import { formatRelativeTime, formatTimestamp } from '../../utils/formatters';
 import type { Job } from '../../types/api';
 
 const ITEMS_PER_PAGE = 10;
@@ -75,6 +75,13 @@ export default function HistoryTab() {
     }
   }, [user, userRefreshed, fetchJobs]);
 
+  // Watch for jobs array changes - this ensures component re-renders when store updates
+  useEffect(() => {
+    // This effect runs whenever jobs array changes (length or content)
+    // It helps ensure the component re-renders when store updates
+    console.log('Jobs updated in HistoryTab:', jobs.length);
+  }, [jobs]);
+
   // Filter and search jobs
   const filteredJobs = useMemo(() => {
     let filtered = jobs;
@@ -84,21 +91,48 @@ export default function HistoryTab() {
       filtered = filtered.filter((job) => job.status === statusFilter);
     }
 
-    // Search by filename
+    // Search by filename or other identifying fields
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter((job) =>
-        job.file_info?.filename?.toLowerCase().includes(query) ||
-        (job as any).prompt?.toLowerCase().includes(query) ||
-        false
-      );
+      filtered = filtered.filter((job) => {
+        // Check file_info.filename (for audio/video transcription jobs)
+        const filename = job.file_info?.filename;
+        if (filename && typeof filename === 'string' && filename.toLowerCase().includes(query)) {
+          return true;
+        }
+        
+        // Check prompt field (for text-to-video/image jobs)
+        const prompt = (job as any).prompt;
+        if (prompt && typeof prompt === 'string' && prompt.toLowerCase().includes(query)) {
+          return true;
+        }
+        
+        // Check if file_info exists but filename might be in a different format
+        if (job.file_info && typeof job.file_info === 'object') {
+          const fileInfo = job.file_info as any;
+          // Check various possible filename fields
+          if ((fileInfo.name && typeof fileInfo.name === 'string' && fileInfo.name.toLowerCase().includes(query)) ||
+              (fileInfo.file_name && typeof fileInfo.file_name === 'string' && fileInfo.file_name.toLowerCase().includes(query)) ||
+              (fileInfo.original_filename && typeof fileInfo.original_filename === 'string' && fileInfo.original_filename.toLowerCase().includes(query))) {
+            return true;
+          }
+        }
+        
+        // Check the displayed text (what's actually shown in the UI)
+        const displayText = job.file_info?.filename || (job as any).prompt || `Job ${job._id}`;
+        if (displayText && typeof displayText === 'string' && displayText.toLowerCase().includes(query)) {
+          return true;
+        }
+        
+        return false;
+      });
     }
 
-    // Sort by created_at (newest first)
+    // Sort by created_at (oldest first, newest at bottom)
     filtered = [...filtered].sort((a, b) => {
       const dateA = new Date(a.created_at).getTime();
       const dateB = new Date(b.created_at).getTime();
-      return dateB - dateA;
+      return dateA - dateB;
     });
 
     return filtered;
@@ -421,16 +455,16 @@ export default function HistoryTab() {
             <DialogContent>
               <Box sx={{ mb: 3 }}>
                 <Typography variant="body2" sx={{ color: '#a0a0a0', mb: 1 }}>
-                  <strong>Created:</strong> {new Date(selectedJob.created_at).toLocaleString()}
+                  <strong>Created:</strong> {formatTimestamp(selectedJob.created_at)}
                 </Typography>
                 {selectedJob.started_at && (
                   <Typography variant="body2" sx={{ color: '#a0a0a0', mb: 1 }}>
-                    <strong>Started:</strong> {new Date(selectedJob.started_at).toLocaleString()}
+                    <strong>Started:</strong> {formatTimestamp(selectedJob.started_at)}
                   </Typography>
                 )}
                 {selectedJob.finished_at && (
                   <Typography variant="body2" sx={{ color: '#a0a0a0', mb: 1 }}>
-                    <strong>Finished:</strong> {new Date(selectedJob.finished_at).toLocaleString()}
+                    <strong>Finished:</strong> {formatTimestamp(selectedJob.finished_at)}
                   </Typography>
                 )}
                 <Typography variant="body2" sx={{ color: '#a0a0a0', mb: 1 }}>
