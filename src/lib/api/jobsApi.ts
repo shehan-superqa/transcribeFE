@@ -113,3 +113,11 @@ export async function cancelUserJobs(userId: string, jobId?: string): Promise<{ 
   return response.data;
 }
 
+/**
+ * Delete a specific job
+ */
+export async function deleteJob(jobId: string): Promise<{ success: boolean; deleted: number; message?: string }> {
+  const response = await apiClient.delete(`/api/jobs/${jobId}`);
+  return response.data;
+}
+

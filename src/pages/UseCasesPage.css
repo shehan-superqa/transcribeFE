@@ -1,0 +1,89 @@
+.use-cases-page {
+  min-height: calc(100vh - 80px);
+  background: linear-gradient(145deg, #0f172a, #1e293b);
+  width: 100%;
+}
+
+.use-cases-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 3rem 2rem;
+}
+
+.use-cases-header {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.use-cases-title {
+  color: #f8fafc;
+  font-weight: 700;
+  font-size: clamp(2rem, 5vw, 3rem);
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #00c6ff 0%, #4A90E2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  
+}
+
+.use-cases-subtitle {
+  color: #94a3b8;
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  max-width: none;
+  margin: 50px auto 0 auto;
+  line-height: 1.6;
+  text-align: center;
+  display: block;
+}
+
+.use-cases-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.use-case-card {
+  border-radius: 16px;
+  overflow: hidden;
+  height: 100%;
+  min-height: 180px;
+}
+
+.use-case-title {
+  color: #e0e0e0;
+  font-weight: 600;
+  font-size: 1.25rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.use-case-description {
+  color: #a0a0a0;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .use-cases-page {
+    padding: 2rem 1rem;
+  }
+
+  .use-cases-header {
+    margin-bottom: 2.5rem;
+  }
+
+  .use-cases-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .use-case-card {
+    min-height: 180px;
+    padding: 1.5rem;
+  }
+}
+

@@ -56,6 +56,43 @@ export default function BatchTab() {
   const [enginesData, setEnginesData] = useState<Array<{ name: string; models: string[] }>>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Language code to full name mapping
+  const getLanguageDisplayName = (code: string): string => {
+    const languageMap: Record<string, string> = {
+      'en': 'English',
+      'es': 'Spanish',
+      'fr': 'French',
+      'de': 'German',
+      'it': 'Italian',
+      'pt': 'Portuguese',
+      'ru': 'Russian',
+      'ja': 'Japanese',
+      'ko': 'Korean',
+      'zh': 'Chinese',
+      'ar': 'Arabic',
+      'hi': 'Hindi',
+      'nl': 'Dutch',
+      'pl': 'Polish',
+      'tr': 'Turkish',
+      'vi': 'Vietnamese',
+      'uk': 'Ukrainian',
+      'id': 'Indonesian',
+      'cs': 'Czech',
+      'da': 'Danish',
+      'fi': 'Finnish',
+      'el': 'Greek',
+      'he': 'Hebrew',
+      'hu': 'Hungarian',
+      'no': 'Norwegian',
+      'ro': 'Romanian',
+      'sv': 'Swedish',
+      'th': 'Thai',
+    };
+    const fullName = languageMap[code.toLowerCase()] || code.charAt(0).toUpperCase() + code.slice(1);
+    const codeUpper = code.toUpperCase();
+    return `${codeUpper}-${fullName}`;
+  };
+
   // Load available models and languages
   useEffect(() => {
     // Set default models initially so dropdown is visible
@@ -423,6 +460,7 @@ export default function BatchTab() {
               value={language} 
               onChange={(e) => setLanguage(e.target.value)}
               disabled={isProcessing}
+              renderValue={(value) => typeof value === 'string' ? getLanguageDisplayName(value) : value}
               sx={{ 
                 color: '#e0e0e0',
                 '& .MuiOutlinedInput-notchedOutline': { borderColor: '#333333' },
@@ -431,7 +469,7 @@ export default function BatchTab() {
             >
               {availableLanguages.map((lang) => (
                 <MenuItem key={lang} value={lang}>
-                  {lang}
+                  {getLanguageDisplayName(lang)}
                 </MenuItem>
               ))}
             </Select>

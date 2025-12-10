@@ -212,15 +212,9 @@ const ComplexDropdown = ({ isMobile }: { isMobile: boolean }) => {
         <HighlightedItem to="/pricing" title="Secure Comm." description="End-to-end encryption for all voice and data streams." />
         <div style={{ display: 'flex', flexDirection: 'column', marginTop: '0.5rem' }}>
           <DropdownSection title="CORE FEATURES">
-            <SectionItem to="/pricing" title="Voice Biometrics" description="Verify user identity using unique voice prints (IVR)" />
-            <SectionItem to="/pricing" title="Data Tokenization" description="Anonymize sensitive data in real-time conversations" />
-            <div style={{ padding: '0.5rem 1rem 0.25rem 1rem' }}>
-              <h3 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: '0.75rem', color: '#aaaaaa', textTransform: 'uppercase', margin: '0.5rem 0 0.25rem 0' }}>
-                USE CASES
-              </h3>
-            </div>
-            <SectionItem to="/pricing" title="Contact Center Security" description="Protect customer PII and meet compliance standards" />
-            <SectionItem to="/pricing" title="Remote Work Security" description="Secure virtual meetings and team collaborations" />
+            <SectionItem to="/images/generate" title="Image Generation" description="Generate high-quality images from text prompts using AI" />
+            <SectionItem to="/video-generation" title="Video Generation" description="Create videos from text descriptions with advanced AI models" />
+            <SectionItem to="/audio-generation" title="Audio Generation" description="Convert text to speech and generate audio content" />
           </DropdownSection>
         </div>
       </div>
@@ -232,15 +226,9 @@ const ComplexDropdown = ({ isMobile }: { isMobile: boolean }) => {
       <HighlightedItem to="/pricing" title="Secure Comm." description="End-to-end encryption for all voice and data streams." />
       <div style={{ display: 'flex', flexShrink: 0 }}>
         <DropdownSection title="CORE FEATURES">
-          <SectionItem to="/pricing" title="Voice Biometrics" description="Verify user identity using unique voice prints (IVR)" />
-          <SectionItem to="/pricing" title="Data Tokenization" description="Anonymize sensitive data in real-time conversations" />
-          <div style={{ padding: '0.5rem 1rem 0.25rem 1rem' }}>
-            <h3 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: '0.75rem', color: '#aaaaaa', textTransform: 'uppercase', margin: '0.5rem 0 0.25rem 0' }}>
-              USE CASES
-            </h3>
-          </div>
-          <SectionItem to="/pricing" title="Contact Center Security" description="Protect customer PII and meet compliance standards" />
-          <SectionItem to="/pricing" title="Remote Work Security" description="Secure virtual meetings and team collaborations" />
+          <SectionItem to="/image-generation" title="Image Generation" description="Generate high-quality images from text prompts using AI" />
+          <SectionItem to="/video-generation" title="Video Generation" description="Create videos from text descriptions with advanced AI models" />
+          <SectionItem to="/audio-generation" title="Audio Generation" description="Convert text to speech and generate audio content" />
         </DropdownSection>
       </div>
     </div>
@@ -419,8 +407,8 @@ export default function Header() {
               </NavLink>
               {toolsDropdownOpen && isDesktop && <div style={Object.keys(toolsDropdownPosition).length > 0 ? toolsDropdownPosition : styles.productDropdownMenu}><ToolsDropdown isMobile={false} /></div>}
             </div>
-            <NavLink to="/integrations">Integrations</NavLink>
-            <NavLink to="/cases">Cases</NavLink>
+  
+            <NavLink to="/use-cases">Use Cases</NavLink>
             <NavLink to="/academy">Academy</NavLink>
             <NavLink to="/pricing">Pricing</NavLink>
           </nav>
@@ -501,8 +489,8 @@ export default function Header() {
               </div>
             )}
           </div>
-          <NavLink to="/integrations">Integrations</NavLink>
-          <NavLink to="/cases">Cases</NavLink>
+          
+          <NavLink to="/use-cases">Use Cases</NavLink>
           <NavLink to="/academy">Academy</NavLink>
           <NavLink to="/pricing">Pricing</NavLink>
           {user ? (

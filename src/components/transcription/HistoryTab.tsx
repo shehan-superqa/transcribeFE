@@ -43,6 +43,7 @@ export default function HistoryTab() {
   const isLoading = jobStore((state) => state.isLoading);
   const fetchJobs = jobStore((state) => state.fetchJobs);
   const cancelJob = jobStore((state) => state.cancelJob);
+  const deleteJob = jobStore((state) => state.deleteJob);
   const getJob = jobStore((state) => state.getJob);
 
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
@@ -50,6 +51,8 @@ export default function HistoryTab() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [userRefreshed, setUserRefreshed] = useState(false);
+  const [deleteConfirmJob, setDeleteConfirmJob] = useState<Job | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Refresh user data when HistoryTab mounts (after login)
   useEffect(() => {
@@ -151,6 +154,45 @@ export default function HistoryTab() {
       await cancelJob(jobId);
     } catch (error) {
       console.error('Error cancelling job:', error);
+    }
+  };
+
+  const handleDelete = async (job: Job) => {
+    setDeleteConfirmJob(job);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteConfirmJob || !user) return;
+    
+    setIsDeleting(true);
+    try {
+      await deleteJob(deleteConfirmJob._id);
+      setDeleteConfirmJob(null);
+      // Refresh jobs list after deletion
+      await fetchJobs(user.id);
+      // Adjust page if current page becomes empty
+      const remainingJobs = jobs.filter(job => job._id !== deleteConfirmJob._id);
+      const filteredRemaining = remainingJobs.filter((job) => {
+        if (statusFilter !== 'all' && job.status !== statusFilter) return false;
+        // Apply search filter if any
+        if (searchQuery.trim()) {
+          const query = searchQuery.toLowerCase();
+          const filename = job.file_info?.filename;
+          const prompt = (job as any).prompt;
+          const displayText = filename || prompt || `Job ${job._id}`;
+          if (!displayText.toLowerCase().includes(query)) return false;
+        }
+        return true;
+      });
+      const totalPagesAfterDelete = Math.ceil(filteredRemaining.length / ITEMS_PER_PAGE);
+      if (currentPage > totalPagesAfterDelete && totalPagesAfterDelete > 0) {
+        setCurrentPage(totalPagesAfterDelete);
+      }
+    } catch (error) {
+      console.error('Error deleting job:', error);
+      alert('Failed to delete job. Please try again.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -355,7 +397,7 @@ export default function HistoryTab() {
                         </Typography>
                       }
                     />
-                    <Box>
+                    <Box sx={{ display: 'flex', gap: 0.5 }}>
                       {job.status === 'completed' && job.result && (
                           <IconButton
                             onClick={() => handleViewJob(job._id)}
@@ -376,6 +418,20 @@ export default function HistoryTab() {
                           <DeleteIcon />
                         </IconButton>
                       )}
+                      {/* Delete button for all jobs */}
+                      <IconButton
+                        onClick={() => handleDelete(job)}
+                        sx={{ 
+                          color: '#f44336',
+                          '&:hover': {
+                            backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                          },
+                        }}
+                        size="small"
+                        title="Delete job"
+                      >
+                        <DeleteIcon />
+                      </IconButton>
                     </Box>
                   </Box>
                   {['queued', 'processing', 'running', 'starting'].includes(job.status) && (
@@ -532,6 +588,78 @@ export default function HistoryTab() {
             </DialogActions>
           </>
         )}
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={!!deleteConfirmJob}
+        onClose={() => !isDeleting && setDeleteConfirmJob(null)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            backgroundColor: '#1e1e1e',
+            color: '#e0e0e0',
+          },
+        }}
+      >
+        <DialogTitle sx={{ color: '#e0e0e0', borderBottom: '1px solid #333333' }}>
+          Delete Job
+        </DialogTitle>
+        <DialogContent sx={{ pt: 2 }}>
+          <Typography sx={{ color: '#e0e0e0', mb: 2 }}>
+            Are you sure you want to delete this job? This action cannot be undone.
+          </Typography>
+          {deleteConfirmJob && (
+            <Box sx={{ 
+              backgroundColor: '#121212', 
+              p: 2, 
+              borderRadius: 1, 
+              border: '1px solid #333333' 
+            }}>
+              <Typography sx={{ color: '#a0a0a0', fontSize: '0.875rem', mb: 0.5 }}>
+                Job ID: {deleteConfirmJob._id}
+              </Typography>
+              <Typography sx={{ color: '#e0e0e0' }}>
+                {deleteConfirmJob.file_info?.filename || (deleteConfirmJob as any).prompt || `Job ${deleteConfirmJob._id}`}
+              </Typography>
+              <Chip
+                label={deleteConfirmJob.status}
+                size="small"
+                sx={{
+                  backgroundColor: getStatusColor(deleteConfirmJob.status),
+                  color: '#fff',
+                  fontSize: '0.7rem',
+                  mt: 1,
+                }}
+              />
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ borderTop: '1px solid #333333', p: 2 }}>
+          <Button
+            onClick={() => setDeleteConfirmJob(null)}
+            disabled={isDeleting}
+            sx={{
+              color: '#e0e0e0',
+              '&:hover': { backgroundColor: '#1a1a1a' },
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={confirmDelete}
+            disabled={isDeleting}
+            startIcon={isDeleting ? <CircularProgress size={16} /> : <DeleteIcon />}
+            sx={{
+              color: '#f44336',
+              '&:hover': { backgroundColor: 'rgba(244, 67, 54, 0.1)' },
+              '&:disabled': { color: '#666666' },
+            }}
+          >
+            {isDeleting ? 'Deleting...' : 'Delete'}
+          </Button>
+        </DialogActions>
       </Dialog>
     </Box>
   );

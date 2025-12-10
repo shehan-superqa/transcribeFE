@@ -765,7 +765,7 @@ export default function VideoDubberTool() {
                                 job.result?.video_url;
       if (completedVideoUrl) {
         // Make sure we're not using the input video URL
-        const inputVideoUrl = job.video_url || job.video;
+        const inputVideoUrl = job.video;
         if (completedVideoUrl !== inputVideoUrl) {
           setResultVideoUrl(completedVideoUrl);
           setJobId(job._id);

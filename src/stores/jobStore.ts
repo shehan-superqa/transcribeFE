@@ -4,7 +4,7 @@
 
 import { create } from 'zustand';
 import type { Job } from '../types/api';
-import { getUserJobs, getJobStatus, cancelJob } from '../lib/api/jobsApi';
+import { getUserJobs, getJobStatus, cancelJob, deleteJob } from '../lib/api/jobsApi';
 
 interface JobState {
   jobs: Job[];
@@ -14,6 +14,7 @@ interface JobState {
   fetchJobs: (userId: string) => Promise<void>;
   getJob: (jobId: string) => Promise<Job | null>;
   cancelJob: (jobId: string) => Promise<void>;
+  deleteJob: (jobId: string) => Promise<void>;
   updateJob: (job: Job) => void;
   addJob: (job: Job) => void;
 }
@@ -69,6 +70,22 @@ export const jobStore = create<JobState>((set, get) => ({
       set({ jobs, activeJobs });
     } catch (error: any) {
       const errorMessage = error.response?.data?.error || error.message || 'Failed to cancel job';
+      set({ error: errorMessage });
+      throw error;
+    }
+  },
+
+  deleteJob: async (jobId: string) => {
+    try {
+      await deleteJob(jobId);
+      // Remove job from local state
+      const jobs = get().jobs.filter((job) => job._id !== jobId);
+      const activeJobs = jobs.filter(
+        (job) => ['queued', 'starting', 'processing', 'running'].includes(job.status)
+      );
+      set({ jobs, activeJobs });
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || error.message || 'Failed to delete job';
       set({ error: errorMessage });
       throw error;
     }

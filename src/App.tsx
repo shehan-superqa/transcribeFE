@@ -13,6 +13,10 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import ToolsDashboard from "./pages/ToolsDashboard";
 import ImagesDashboard from "./pages/ImagesDashboard";
+import ImageGenerationLandingPage from "./pages/ImageGenerationLandingPage";
+import VideoGenerationLandingPage from "./pages/VideoGenerationLandingPage";
+import AudioGenerationLandingPage from "./pages/AudioGenerationLandingPage";
+import UseCasesPage from "./pages/UseCasesPage";
 import Pricing from "./pages/Pricing";
 import VerifyEmail from "./pages/VerifyEmail";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -50,6 +54,37 @@ function AppContent() {
               <Route path="/auth/validate-token" element={<ValidateToken />} />
 
               <Route path="/pricing" element={<Pricing />} />
+              <Route path="/use-cases" element={<UseCasesPage />} />
+
+              {/* Image Generation Landing Page */}
+              <Route
+                path="/image-generation"
+                element={
+                  <ProtectedRoute>
+                    <ImageGenerationLandingPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Video Generation Landing Page */}
+              <Route
+                path="/video-generation"
+                element={
+                  <ProtectedRoute>
+                    <VideoGenerationLandingPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Audio Generation Landing Page */}
+              <Route
+                path="/audio-generation"
+                element={
+                  <ProtectedRoute>
+                    <AudioGenerationLandingPage />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* Protected Routes - Voice (Audio) Tools */}
               <Route

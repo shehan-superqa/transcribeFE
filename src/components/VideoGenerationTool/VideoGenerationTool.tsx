@@ -537,9 +537,7 @@ export default function VideoGenerationTool() {
   };
 
   const handleRemoveReferenceImage = (index: number) => {
-    if (referenceImages.length > 1) {
-      setReferenceImages(referenceImages.filter((_, i) => i !== index));
-    }
+    setReferenceImages(referenceImages.filter((_, i) => i !== index));
   };
 
   const handleReferenceImageChange = (index: number, value: string) => {
@@ -781,16 +779,14 @@ export default function VideoGenerationTool() {
                   />
                 )}
               </div>
-              {referenceImages.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => handleRemoveReferenceImage(index)}
-                  style={styles.removeImageButton}
-                  disabled={loading}
-                >
-                  Remove
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => handleRemoveReferenceImage(index)}
+                style={styles.removeImageButton}
+                disabled={loading}
+              >
+                Remove
+              </button>
             </div>
           ))}
           {referenceImages.length < 3 && (
