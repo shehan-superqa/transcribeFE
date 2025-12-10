@@ -5,6 +5,7 @@ import Sidebar from '../components/Sidebar';
 import ImageGenerationPage from './tools/ImageGenerationPage';
 import ImageTrainingPage from './tools/ImageTrainingPage';
 import ImageCaptioningPage from './tools/ImageCaptioningPage';
+import ImageEditingPage from './tools/ImageEditingPage';
 import './ToolsDashboard.css';
 
 // Create Material-UI dark theme matching Dashboard colors
@@ -40,6 +41,7 @@ export default function ImagesDashboard() {
               <Route path="generate" element={<ImageGenerationPage />} />
               <Route path="train" element={<ImageTrainingPage />} />
               <Route path="caption" element={<ImageCaptioningPage />} />
+              <Route path="edit" element={<ImageEditingPage />} />
               <Route path="*" element={<Navigate to="/images/generate" replace />} />
             </Routes>
           </ThemeProvider>

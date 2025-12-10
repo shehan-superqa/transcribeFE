@@ -105,7 +105,7 @@ export interface ProgressEvent {
   status: JobStatus;
   progress: number;
   message: string;
-  result?: TranscriptionResult | VideoJobResult | ImageJobResult | ImageTrainingJobResult;
+  result?: TranscriptionResult | VideoJobResult | ImageJobResult | ImageTrainingJobResult | ImageEditJobResult;
   error?: string;
 }
 
@@ -452,5 +452,68 @@ export interface VideoDubJobStatusResponse {
   success: boolean;
   job_id: string;
   job?: VideoDubJob;
+}
+
+/**
+ * Image Editing Types
+ */
+export interface ImageEditJobRequest {
+  image?: File | string; // Single File object or image URL (for backward compatibility)
+  images?: (File | string)[]; // Array of File objects or image URLs (for multiple images)
+  prompt: string; // Combined editing prompt
+  modification_instruction?: string; // What to change
+  change_target?: string; // What to modify
+  preservation_requirements?: string; // What must stay the same
+  model?: string; // Optional model selection
+  strength?: number; // Edit strength (0-1)
+  guidance_scale?: number; // Guidance scale
+  num_inference_steps?: number; // Number of inference steps
+  seed?: number; // Random seed
+  job_id?: string; // Optional job ID
+}
+
+export interface ImageEditJobResponse {
+  success: boolean;
+  accepted: boolean;
+  job_id: string;
+  stream_url: string;
+  prompt_length?: number;
+  processing_time: {
+    total_seconds: number;
+    formatted: string;
+  };
+}
+
+export interface ImageEditJobResult {
+  image_url: string;
+  image_path?: string;
+  original_image_url?: string;
+  prompt: string;
+  engine?: string;
+  model?: string;
+  job_id: string;
+}
+
+export interface ImageEditJob {
+  _id: string;
+  user_id: string;
+  job_type: 'image_edit';
+  prompt: string;
+  original_image_url?: string;
+  status: JobStatus;
+  result?: ImageEditJobResult;
+  image_output_url?: string;
+  image_output_path?: string;
+  error?: string;
+  created_at: string;
+  started_at?: string;
+  finished_at?: string;
+  updated_at: string;
+}
+
+export interface ImageEditJobStatusResponse {
+  success: boolean;
+  job_id: string;
+  job?: ImageEditJob;
 }
 

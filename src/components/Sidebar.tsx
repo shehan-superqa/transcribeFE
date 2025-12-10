@@ -67,6 +67,7 @@ const menuItems: MenuItem[] = [
       { id: 'generate', label: 'Image Generation', path: '/images/generate' },
       { id: 'caption', label: 'Image Captioning', path: '/images/caption' },
       { id: 'train', label: 'Image Training (LoRA)', path: '/images/train' },
+      { id: 'edit', label: 'Image Editing', path: '/images/edit' },
     ]
   },
   { id: 'free-tools', label: 'Free Tools', icon: '🎁', path: '/voice/transcribe' },
