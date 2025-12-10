@@ -70,6 +70,13 @@ const menuItems: MenuItem[] = [
       { id: 'edit', label: 'Image Editing', path: '/images/edit' },
     ]
   },
+  { 
+    id: 'gpt5-tools', 
+    label: 'GPT-5', 
+    icon: '🤖', 
+    path: '/gpt5',
+    isExpandable: false,
+  },
   { id: 'free-tools', label: 'Free Tools', icon: '🎁', path: '/voice/transcribe' },
   { 
     id: 'real-time', 

@@ -13,6 +13,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import ToolsDashboard from "./pages/ToolsDashboard";
 import ImagesDashboard from "./pages/ImagesDashboard";
+import GPT5Dashboard from "./pages/GPT5Dashboard";
 import Pricing from "./pages/Pricing";
 import VerifyEmail from "./pages/VerifyEmail";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -77,6 +78,16 @@ function AppContent() {
                 element={
                   <ProtectedRoute>
                     <ImagesDashboard />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Protected Routes - GPT-5 Tools */}
+              <Route
+                path="/gpt5/*"
+                element={
+                  <ProtectedRoute>
+                    <GPT5Dashboard />
                   </ProtectedRoute>
                 }
               />
