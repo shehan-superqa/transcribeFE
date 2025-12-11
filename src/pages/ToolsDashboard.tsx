@@ -7,6 +7,7 @@ import VideoGenerationPage from './tools/VideoGenerationPage';
 import VideoDubberPage from './tools/VideoDubberPage';
 import VideoTranslatorPage from './tools/VideoTranslatorPage';
 import SubtitleGeneratorPage from './tools/SubtitleGeneratorPage';
+import VideoAdsPage from './tools/VideoAdsPage';
 import FreeToolsPage from './tools/FreeToolsPage';
 import LiveTranscribePage from './tools/LiveTranscribePage';
 import WebCaptionerPage from './tools/WebCaptionerPage';
@@ -46,6 +47,7 @@ export default function ToolsDashboard() {
               <Route path="/" element={<Navigate to="/video/text-to-video" replace />} />
               {/* Video Tools */}
               <Route path="text-to-video" element={<TextToVideoTab />} />
+              <Route path="ads" element={<VideoAdsPage />} />
               <Route path="to-text" element={<VideoToTextPage />} />
               <Route path="dubber" element={<VideoDubberPage />} />
               <Route path="translator" element={<VideoTranslatorPage />} />

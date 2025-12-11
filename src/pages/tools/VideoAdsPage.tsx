@@ -1,11 +1,11 @@
-import GPT5Tool from '../../components/GPT5Tool/GPT5Tool';
+import VideoAdsWizard from '../../components/VideoAdsAgent/VideoAdsWizard';
 import './FeaturePage.css';
 
-export default function GPT5Page() {
+export default function VideoAdsPage() {
   return (
     <div className="feature-page">
       <div className="feature-content">
-        <GPT5Tool />
+        <VideoAdsWizard />
       </div>
     </div>
   );

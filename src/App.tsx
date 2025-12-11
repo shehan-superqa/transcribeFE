@@ -19,6 +19,9 @@ import VerifyEmail from "./pages/VerifyEmail";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import ValidateToken from "./pages/ValidateToken";
+import PaymentPurchase from "./pages/PaymentPurchase";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentCancel from "./pages/PaymentCancel";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function AppContent() {
@@ -51,6 +54,32 @@ function AppContent() {
               <Route path="/auth/validate-token" element={<ValidateToken />} />
 
               <Route path="/pricing" element={<Pricing />} />
+
+              {/* Payment Routes - Protected */}
+              <Route
+                path="/payment/purchase"
+                element={
+                  <ProtectedRoute>
+                    <PaymentPurchase />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/payment/success"
+                element={
+                  <ProtectedRoute>
+                    <PaymentSuccess />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/payment/cancel"
+                element={
+                  <ProtectedRoute>
+                    <PaymentCancel />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* Protected Routes - Voice (Audio) Tools */}
               <Route

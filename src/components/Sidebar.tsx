@@ -51,6 +51,7 @@ const menuItems: MenuItem[] = [
     isExpandable: true,
     subItems: [
       { id: 'text-to-video', label: 'Text to Video', path: '/video/text-to-video' },
+      { id: 'ads', label: 'Video Ads Generator', path: '/video/ads' },
       { id: 'to-text', label: 'Video to Text', path: '/video/to-text' },
       { id: 'dubber', label: 'Video Dubber', path: '/video/dubber' },
       { id: 'translator', label: 'Video Translator', path: '/video/translator' },
