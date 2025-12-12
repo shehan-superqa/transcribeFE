@@ -4,15 +4,136 @@
   width: 100%;
 }
 
-.use-cases-content {
-  max-width: 1400px;
+.use-cases-layout {
+  display: flex;
+  gap: 2rem;
+  max-width: 1600px;
   margin: 0 auto;
-  padding: 3rem 2rem;
+  padding: 2rem;
+  align-items: flex-start;
+}
+
+/* Left Sidebar */
+.use-cases-sidebar {
+  width: 280px;
+  min-width: 280px;
+  background: rgba(30, 30, 30, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  position: sticky;
+  top: 2rem;
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex-shrink: 0;
+}
+
+.sidebar-search {
+  margin-bottom: 1.5rem;
+}
+
+.sidebar-navigation {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.sidebar-category {
+  margin-bottom: 0.25rem;
+}
+
+.sidebar-category-header {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  user-select: none;
+}
+
+.sidebar-category-header:hover {
+  background: rgba(0, 198, 255, 0.1);
+}
+
+.sidebar-category-header.active {
+  background: rgba(0, 198, 255, 0.15);
+  border-left: 3px solid #00c6ff;
+}
+
+.sidebar-submenu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  margin-top: 0.25rem;
+  margin-left: 0.5rem;
+  padding-left: 1rem;
+  border-left: 2px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.sidebar-subitem {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.sidebar-subitem:hover {
+  background: rgba(0, 198, 255, 0.08);
+}
+
+.sidebar-subitem.active {
+  background: rgba(0, 198, 255, 0.12);
+  border-left: 2px solid #00c6ff;
+  margin-left: -1rem;
+  padding-left: calc(0.75rem - 2px);
+}
+
+.sidebar-subsubmenu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  margin-top: 0.25rem;
+  margin-left: 0.5rem;
+  padding-left: 1rem;
+  border-left: 2px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.sidebar-subsubitem {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.sidebar-subsubitem:hover {
+  background: rgba(0, 198, 255, 0.06);
+}
+
+.sidebar-subsubitem.active {
+  background: rgba(0, 198, 255, 0.1);
+  border-left: 2px solid #00c6ff;
+  margin-left: -1rem;
+  padding-left: calc(0.75rem - 2px);
+}
+
+/* Main Content */
+.use-cases-content {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
 }
 
 .use-cases-header {
   text-align: center;
-  margin-bottom: 4rem;
+  margin-bottom: 3rem;
 }
 
 .use-cases-title {
@@ -24,14 +145,13 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  
 }
 
 .use-cases-subtitle {
   color: #94a3b8;
   font-size: clamp(1rem, 2vw, 1.25rem);
   max-width: none;
-  margin: 50px auto 0 auto;
+  margin: 1rem auto 0 auto;
   line-height: 1.6;
   text-align: center;
   display: block;
@@ -39,10 +159,8 @@
 
 .use-cases-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1.5rem;
-  max-width: 1200px;
-  margin: 0 auto;
 }
 
 .use-case-card {
@@ -66,14 +184,49 @@
   font-size: 0.95rem;
 }
 
+/* Scrollbar styling for sidebar */
+.use-cases-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.use-cases-sidebar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+.use-cases-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.use-cases-sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
 /* Responsive */
+@media (max-width: 1024px) {
+  .use-cases-layout {
+    flex-direction: column;
+    padding: 1.5rem;
+  }
+
+  .use-cases-sidebar {
+    width: 100%;
+    min-width: 100%;
+    position: relative;
+    top: 0;
+    max-height: none;
+    margin-bottom: 2rem;
+  }
+}
+
 @media (max-width: 768px) {
-  .use-cases-page {
-    padding: 2rem 1rem;
+  .use-cases-layout {
+    padding: 1rem;
   }
 
   .use-cases-header {
-    margin-bottom: 2.5rem;
+    margin-bottom: 2rem;
   }
 
   .use-cases-grid {
@@ -83,7 +236,10 @@
 
   .use-case-card {
     min-height: 180px;
-    padding: 1.5rem;
+  }
+
+  .use-cases-sidebar {
+    padding: 1rem;
   }
 }
 

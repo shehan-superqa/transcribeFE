@@ -1,0 +1,12 @@
+.use-case-detail-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+@media (max-width: 768px) {
+  .use-case-detail-container {
+    padding: 1rem;
+  }
+}
+
