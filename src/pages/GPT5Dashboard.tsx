@@ -2,10 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import Sidebar from '../components/Sidebar';
-import ImageGenerationPage from './tools/ImageGenerationPage';
-import ImageTrainingPage from './tools/ImageTrainingPage';
-import ImageCaptioningPage from './tools/ImageCaptioningPage';
-import ImageEditingPage from './tools/ImageEditingPage';
+import GPT5Page from './tools/GPT5Page';
 import './ToolsDashboard.css';
 
 // Create Material-UI dark theme matching Dashboard colors
@@ -27,7 +24,7 @@ const darkTheme = createTheme({
   },
 });
 
-export default function ImagesDashboard() {
+export default function GPT5Dashboard() {
   return (
     <div className="tools-dashboard">
       <div className="tools-dashboard-container">
@@ -36,13 +33,8 @@ export default function ImagesDashboard() {
           <ThemeProvider theme={darkTheme}>
             <CssBaseline />
             <Routes>
-              <Route path="/" element={<Navigate to="/images/generate" replace />} />
-              {/* Image Tools */}
-              <Route path="generate" element={<ImageGenerationPage />} />
-              <Route path="train" element={<ImageTrainingPage />} />
-              <Route path="caption" element={<ImageCaptioningPage />} />
-              <Route path="edit" element={<ImageEditingPage />} />
-              <Route path="*" element={<Navigate to="/images/generate" replace />} />
+              <Route path="/" element={<GPT5Page />} />
+              <Route path="*" element={<Navigate to="/gpt5" replace />} />
             </Routes>
           </ThemeProvider>
         </div>
@@ -50,4 +42,6 @@ export default function ImagesDashboard() {
     </div>
   );
 }
+
+
 

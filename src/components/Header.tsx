@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 import { FiMenu, FiX, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import { FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
+import EnergyPointsBalance from './common/EnergyPointsBalance';
 
 // -------------------------
 // 1. NavLink Component
@@ -418,10 +419,11 @@ export default function Header() {
         <div style={{ ...styles.rightAuthSection, display: isDesktop ? 'flex' : 'none' }}>
           {user ? (
             <>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginRight: '0.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginRight: '0.5rem', flexWrap: 'wrap' }}>
                 <span style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.85rem', color: '#ffffff', fontWeight: 500 }}>
                   Welcome, {user?.name || user?.email}
                 </span>
+                <EnergyPointsBalance showLabel={false} />
                 {user.isEmailVerified ? (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.75rem', backgroundColor: '#d4edda', borderRadius: '9999px' }}>
                     <FaCheckCircle style={{ color: '#155724', fontSize: '0.75rem' }} />
@@ -499,6 +501,7 @@ export default function Header() {
                 <span style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.85rem', color: '#ffffff', fontWeight: 500 }}>
                   Welcome, {user?.name || user?.email}
                 </span>
+                <EnergyPointsBalance showLabel={true} />
                 {user.isEmailVerified ? (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.75rem', backgroundColor: '#d4edda', borderRadius: '9999px', width: 'fit-content' }}>
                     <FaCheckCircle style={{ color: '#155724', fontSize: '0.75rem' }} />

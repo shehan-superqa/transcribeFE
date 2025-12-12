@@ -1,0 +1,115 @@
+.image-editing-tool-container {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.image-editing-tool-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.image-editing-tool-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.image-editing-tool-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.image-editing-tool-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Ensure images are properly sized and contained */
+.image-editing-tool-container img {
+  max-width: 100% !important;
+  width: 100% !important;
+  height: auto !important;
+  object-fit: contain !important;
+  box-sizing: border-box !important;
+}
+
+/* Specific rules for image preview */
+.image-preview-container {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+.image-preview {
+  max-width: 100% !important;
+  width: 100% !important;
+  height: auto !important;
+  object-fit: contain !important;
+  box-sizing: border-box !important;
+}
+
+/* Ensure form wrapper doesn't overflow */
+.image-editing-tool-container > div:first-child {
+  overflow: hidden !important;
+  max-width: 100% !important;
+  width: 100% !important;
+}
+
+/* Ensure form doesn't overflow */
+.image-editing-tool-container form {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+/* Ensure all input groups are constrained */
+.image-editing-tool-container > div:first-child > form > div {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+/* Specifically target image preview containers */
+.image-editing-tool-container > div:first-child > form > div > div {
+  max-width: 100% !important;
+  overflow: hidden !important;
+}
+
+/* Responsive styles for image containers */
+@media (max-width: 1200px) {
+  .image-editing-tool-container {
+    flex-direction: column !important;
+  }
+  
+  .image-editing-tool-container > div:last-child {
+    min-width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  .image-editing-tool-container > div:last-child > div {
+    position: static !important;
+    max-height: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .image-editing-tool-container {
+    padding: 1.5rem 1rem !important;
+    margin: 1rem auto !important;
+    gap: 1.25rem !important;
+  }
+  
+  .image-editing-tool-container img {
+    max-height: 200px !important;
+  }
+}
+
+/* Make image preview smaller */
+.image-preview {
+  max-height: 250px !important;
+}
+
+/* Make before/after images smaller */
+.image-editing-tool-container .image-wrapper img {
+  max-height: 300px !important;
+}
+

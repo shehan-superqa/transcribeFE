@@ -49,6 +49,7 @@ const menuItems: MenuItem[] = [
     isExpandable: true,
     subItems: [
       { id: 'text-to-video', label: 'Text to Video', path: '/video/text-to-video' },
+      { id: 'ads', label: 'Video Ads Generator', path: '/video/ads' },
       { id: 'to-text', label: 'Video to Text', path: '/video/to-text' },
       { id: 'dubber', label: 'Video Dubber', path: '/video/dubber' },
       { id: 'translator', label: 'Video Translator', path: '/video/translator' },
@@ -65,7 +66,15 @@ const menuItems: MenuItem[] = [
       { id: 'generate', label: 'Image Generation', path: '/images/generate' },
       { id: 'caption', label: 'Image Captioning', path: '/images/caption' },
       { id: 'train', label: 'Image Training (LoRA)', path: '/images/train' },
+      { id: 'edit', label: 'Image Editing', path: '/images/edit' },
     ]
+  },
+  { 
+    id: 'gpt5-tools', 
+    label: 'GPT-5', 
+    icon: '🤖', 
+    path: '/gpt5',
+    isExpandable: false,
   },
   { id: 'free-tools', label: 'Free Tools', icon: '🎁', path: '/voice/transcribe' },
   { 
