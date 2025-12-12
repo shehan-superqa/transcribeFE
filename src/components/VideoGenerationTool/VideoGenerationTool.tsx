@@ -1,8 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../../lib/auth';
 import { submitVideoJob, getVideoJobStatus } from '../../lib/api/videoApi';
 import { getUserJobs } from '../../lib/api/jobsApi';
 import { useSSE } from '../../hooks/useSSE';
+import { useAuthModal } from '../../contexts/AuthModalContext';
+import { checkAuthAndTriggerModal } from '../../lib/authCheck';
 import type { VideoJobRequest, VideoJobResult, VideoJob, Job } from '../../types/api';
 import HowToUse from '../../components/common/HowToUse';
 import './VideoGenerationTool.css';
@@ -308,6 +310,8 @@ const styles = {
 
 export default function VideoGenerationTool() {
   const { user } = useAuth();
+  const { openModal } = useAuthModal();
+  const performSubmission = useRef(false);
   const [prompt, setPrompt] = useState('');
   const [referenceImages, setReferenceImages] = useState<string[]>(['']);
   const [aspectRatio, setAspectRatio] = useState<'16:9' | '9:16' | '1:1' | '4:3' | '3:4'>('16:9');
@@ -585,8 +589,10 @@ export default function VideoGenerationTool() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const executeSubmission = async () => {
+    if (performSubmission.current) return;
+    performSubmission.current = true;
+
     setError(null);
     setVideoUrl(null);
     setLoading(true);
@@ -645,9 +651,43 @@ export default function VideoGenerationTool() {
         setLoading(false);
       }
     } catch (err: any) {
+      // Check if this is an authentication error
+      if (
+        err.message?.includes('not authenticated') ||
+        err.message?.includes('Please log in') ||
+        err.message?.includes('Authentication failed') ||
+        err.message?.includes('Authentication required') ||
+        err.response?.status === 401
+      ) {
+        // Show auth modal - will retry submission after successful auth
+        checkAuthAndTriggerModal(openModal, executeSubmission);
+        setLoading(false);
+        return;
+      }
+
       setError(err.message || 'Failed to submit video generation job');
       setLoading(false);
+    } finally {
+      performSubmission.current = false;
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!prompt.trim()) {
+      setError('Please enter a prompt');
+      return;
+    }
+
+    // Check authentication before proceeding
+    if (!checkAuthAndTriggerModal(openModal, executeSubmission)) {
+      // Auth modal was opened, stop here
+      return;
+    }
+
+    // User is authenticated, proceed with submission
+    await executeSubmission();
   };
 
   const handleDownload = () => {

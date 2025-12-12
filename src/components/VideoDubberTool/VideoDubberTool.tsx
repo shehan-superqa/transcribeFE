@@ -3,6 +3,8 @@ import { useAuth } from '../../lib/auth';
 import { submitVideoDubJob, getVideoDubJobStatus, downloadDubbedVideo, getDubLanguages, type DubLanguage } from '../../lib/api/videoApi';
 import { getUserJobs } from '../../lib/api/jobsApi';
 import { useSSE } from '../../hooks/useSSE';
+import { useAuthModal } from '../../contexts/AuthModalContext';
+import { checkAuthAndTriggerModal } from '../../lib/authCheck';
 import type { VideoDubJob, Job } from '../../types/api';
 import HowToUse from '../common/HowToUse';
 import './VideoDubberTool.css';
@@ -238,6 +240,8 @@ const SUPPORTED_LANGUAGES = [
 
 export default function VideoDubberTool() {
   const { user } = useAuth();
+  const { openModal } = useAuthModal();
+  const performSubmission = useRef(false);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoUrl, setVideoUrl] = useState<string>('');
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
@@ -627,8 +631,10 @@ export default function VideoDubberTool() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const executeSubmission = async () => {
+    if (performSubmission.current) return;
+    performSubmission.current = true;
+
     setError(null);
     setResultVideoUrl(null);
     setLoading(true);
@@ -637,18 +643,6 @@ export default function VideoDubberTool() {
     setPollingProgress(0);
     setPollingStatus('');
     setPollingMessage('');
-
-    if (!videoFile && !videoUrl.trim()) {
-      setError('Please upload a video file or provide a video URL');
-      setLoading(false);
-      return;
-    }
-
-    if (!outputLanguage) {
-      setError('Please select an output language');
-      setLoading(false);
-      return;
-    }
 
     try {
       // Verify we have a valid file or URL
@@ -699,6 +693,20 @@ export default function VideoDubberTool() {
         setLoading(false);
       }
     } catch (err: any) {
+      // Check if this is an authentication error
+      if (
+        err.message?.includes('not authenticated') ||
+        err.message?.includes('Please log in') ||
+        err.message?.includes('Authentication failed') ||
+        err.message?.includes('Authentication required') ||
+        err.response?.status === 401
+      ) {
+        // Show auth modal - will retry submission after successful auth
+        checkAuthAndTriggerModal(openModal, executeSubmission);
+        setLoading(false);
+        return;
+      }
+
       // Extract detailed error message
       let errorMessage = 'Failed to submit video dubbing job';
       
@@ -718,7 +726,32 @@ export default function VideoDubberTool() {
       
       setError(errorMessage);
       setLoading(false);
+    } finally {
+      performSubmission.current = false;
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!videoFile && !videoUrl.trim()) {
+      setError('Please upload a video file or provide a video URL');
+      return;
+    }
+
+    if (!outputLanguage) {
+      setError('Please select an output language');
+      return;
+    }
+
+    // Check authentication before proceeding
+    if (!checkAuthAndTriggerModal(openModal, executeSubmission)) {
+      // Auth modal was opened, stop here
+      return;
+    }
+
+    // User is authenticated, proceed with submission
+    await executeSubmission();
   };
 
   const handleDownload = async (downloadJobId?: string) => {

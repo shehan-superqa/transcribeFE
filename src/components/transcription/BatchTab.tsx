@@ -27,6 +27,8 @@ import DownloadIcon from '@mui/icons-material/Download';
 import CancelIcon from '@mui/icons-material/Cancel';
 import { batchTranscription, getAvailableModels, submitTranscriptionJob } from '../../lib/api/transcriptionApi';
 import { cancelJob } from '../../lib/api/jobsApi';
+import { useAuthModal } from '../../contexts/AuthModalContext';
+import { checkAuthAndTriggerModal } from '../../lib/authCheck';
 import type { TranscriptionConfig } from '../../types/api';
 import type { TranscriptionResult } from '../../types/api';
 
@@ -39,6 +41,7 @@ interface BatchFile {
 }
 
 export default function BatchTab() {
+  const { openModal } = useAuthModal();
   const [files, setFiles] = useState<BatchFile[]>([]);
   const [engine, setEngine] = useState('replicate');
   const [language, setLanguage] = useState('en');
@@ -157,98 +160,119 @@ export default function BatchTab() {
       return;
     }
 
-    setIsProcessing(true);
-    setProgress(0);
-    setError(null);
+    // Check authentication before proceeding
+    const executeBatch = async () => {
+      setIsProcessing(true);
+      setProgress(0);
+      setError(null);
 
-    const config: TranscriptionConfig = {
-      engine,
-      language,
-      model,
+      const config: TranscriptionConfig = {
+        engine,
+        language,
+        model,
+      };
+
+      // Submit files individually to track job IDs for cancellation
+      const pendingFiles = files.filter((f) => f.status === 'pending');
+      
+      // Update pending files to processing status
+      setFiles((prev) =>
+        prev.map((f) => (f.status === 'pending' ? { ...f, status: 'processing' as const } : f))
+      );
+
+      try {
+        // Submit each file individually to get job IDs
+        const jobPromises = pendingFiles.map(async (batchFile) => {
+          try {
+            const response = await submitTranscriptionJob(batchFile.file, config);
+            return {
+              index: files.indexOf(batchFile),
+              jobId: response.job_id,
+              success: true,
+            };
+          } catch (err: any) {
+            let errorMessage = err.response?.data?.error || err.message || 'Failed to submit job';
+            
+            // Handle authentication errors more gracefully
+            if (err.response?.status === 401 || errorMessage.includes('Authentication failed') ||
+                errorMessage.includes('not authenticated') || errorMessage.includes('Please log in')) {
+              // Show auth modal for first auth error
+              if (!error) {
+                checkAuthAndTriggerModal(openModal, executeBatch);
+              }
+              errorMessage = 'Authentication required';
+            } else if (errorMessage.includes('Authentication service unavailable')) {
+              errorMessage = 'Authentication service unavailable. Please try again later.';
+            }
+            
+            return {
+              index: files.indexOf(batchFile),
+              jobId: undefined,
+              success: false,
+              error: errorMessage,
+            };
+          }
+        });
+
+        const jobResults = await Promise.all(jobPromises);
+
+        // Update files with job IDs
+        setFiles((prev) => {
+          return prev.map((batchFile, index) => {
+            const jobResult = jobResults.find((jr) => jr.index === index);
+            if (jobResult) {
+              if (jobResult.success && jobResult.jobId) {
+                return {
+                  ...batchFile,
+                  status: 'processing' as const,
+                  jobId: jobResult.jobId,
+                };
+              } else {
+                return {
+                  ...batchFile,
+                  status: 'error' as const,
+                  error: jobResult.error,
+                };
+              }
+            }
+            return batchFile;
+          });
+        });
+
+        // Poll for job status updates
+        pollJobStatuses(jobResults.filter((jr) => jr.success && jr.jobId).map((jr) => jr.jobId!));
+      } catch (err: any) {
+        let errorMessage = err.response?.data?.error || err.message || 'Batch processing failed';
+        
+        // Handle authentication errors more gracefully
+        if (err.response?.status === 401 || errorMessage.includes('Authentication failed') ||
+            errorMessage.includes('not authenticated') || errorMessage.includes('Please log in')) {
+          // Show auth modal
+          checkAuthAndTriggerModal(openModal, executeBatch);
+          setIsProcessing(false);
+          return;
+        } else if (errorMessage.includes('Authentication service unavailable')) {
+          errorMessage = 'Authentication service unavailable. Please try again later.';
+        }
+        
+        setError(errorMessage);
+        setFiles((prev) =>
+          prev.map((f) =>
+            f.status === 'processing' ? { ...f, status: 'error' as const, error: errorMessage } : f
+          )
+        );
+        setIsProcessing(false);
+      }
     };
 
-    // Submit files individually to track job IDs for cancellation
-    const pendingFiles = files.filter((f) => f.status === 'pending');
-    
-    // Update pending files to processing status
-    setFiles((prev) =>
-      prev.map((f) => (f.status === 'pending' ? { ...f, status: 'processing' as const } : f))
-    );
-
-    try {
-      // Submit each file individually to get job IDs
-      const jobPromises = pendingFiles.map(async (batchFile) => {
-        try {
-          const response = await submitTranscriptionJob(batchFile.file, config);
-          return {
-            index: files.indexOf(batchFile),
-            jobId: response.job_id,
-            success: true,
-          };
-        } catch (err: any) {
-          let errorMessage = err.response?.data?.error || err.message || 'Failed to submit job';
-          
-          // Handle authentication errors more gracefully
-          if (err.response?.status === 401 || errorMessage.includes('Authentication failed')) {
-            errorMessage = 'Authentication failed. Please log in again.';
-          } else if (errorMessage.includes('Authentication service unavailable')) {
-            errorMessage = 'Authentication service unavailable. Please try again later.';
-          }
-          
-          return {
-            index: files.indexOf(batchFile),
-            jobId: undefined,
-            success: false,
-            error: errorMessage,
-          };
-        }
-      });
-
-      const jobResults = await Promise.all(jobPromises);
-
-      // Update files with job IDs
-      setFiles((prev) => {
-        return prev.map((batchFile, index) => {
-          const jobResult = jobResults.find((jr) => jr.index === index);
-          if (jobResult) {
-            if (jobResult.success && jobResult.jobId) {
-              return {
-                ...batchFile,
-                status: 'processing' as const,
-                jobId: jobResult.jobId,
-              };
-            } else {
-              return {
-                ...batchFile,
-                status: 'error' as const,
-                error: jobResult.error,
-              };
-            }
-          }
-          return batchFile;
-        });
-      });
-
-      // Poll for job status updates
-      pollJobStatuses(jobResults.filter((jr) => jr.success && jr.jobId).map((jr) => jr.jobId!));
-    } catch (err: any) {
-      let errorMessage = err.response?.data?.error || err.message || 'Batch processing failed';
-      
-      // Handle authentication errors more gracefully
-      if (err.response?.status === 401 || errorMessage.includes('Authentication failed')) {
-        errorMessage = 'Authentication failed. Please log in again.';
-      } else if (errorMessage.includes('Authentication service unavailable')) {
-        errorMessage = 'Authentication service unavailable. Please try again later.';
-      }
-      
-      setError(errorMessage);
-      setFiles((prev) =>
-        prev.map((f) =>
-          f.status === 'processing' ? { ...f, status: 'error' as const, error: errorMessage } : f
-        )
-      );
-      setIsProcessing(false);
+    // Check authentication before proceeding
+    if (!checkAuthAndTriggerModal(openModal, executeBatch)) {
+      // Auth modal was opened, stop here
+      return;
     }
+
+    // User is authenticated, proceed with batch processing
+    await executeBatch();
   };
 
   const pollJobStatuses = (jobIds: string[]) => {

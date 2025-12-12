@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { chatCompletion } from '../../lib/api/gpt5Api';
 import { useGPT5WebSocket } from '../../hooks/useGPT5WebSocket';
+import { useAuthModal } from '../../contexts/AuthModalContext';
+import { checkAuthAndTriggerModal } from '../../lib/authCheck';
 import type { GPT5ChatCompletionRequest, GPT5Message, ReasoningEffort, Verbosity } from '../../types/gpt5';
 import './GPT5Tool.css';
 
@@ -17,6 +19,7 @@ export default function ChatCompletionTool() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const { openModal } = useAuthModal();
 
   // Use WebSocket streaming when stream is enabled
   const wsStream = useGPT5WebSocket(stream && jobId ? jobId : null);
@@ -28,18 +31,11 @@ export default function ChatCompletionTool() {
     }
   }, [messages, wsStream.text]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!inputMessage.trim()) {
-      setError('Please enter a message');
-      return;
-    }
+  const performSubmission = useRef(false);
 
-    // Prevent duplicate submissions
-    if (isSubmitting) {
-      return;
-    }
+  const executeSubmission = async () => {
+    if (performSubmission.current) return;
+    performSubmission.current = true;
 
     setIsSubmitting(true);
     setError(null);
@@ -98,13 +94,26 @@ export default function ChatCompletionTool() {
     } catch (err: any) {
       console.error('Error in chat completion:', err);
       
+      // Check if it's an auth error
+      if (
+        err.message?.includes('not authenticated') ||
+        err.message?.includes('Please log in') ||
+        err.message?.includes('Authentication failed') ||
+        err.response?.status === 401
+      ) {
+        // Show auth modal - will retry submission after successful auth
+        checkAuthAndTriggerModal(openModal, executeSubmission);
+        setIsSubmitting(false);
+        // Re-add the user message to input
+        setInputMessage(messageContent);
+        return;
+      }
+      
       // Provide user-friendly error messages
       let errorMessage = err.message || 'Failed to complete chat. Please try again.';
       
       if (err.message?.includes('404') || err.message?.includes('not found')) {
         errorMessage = 'GPT-5 endpoint not available. Please ensure the backend service is running and the GPT-5 endpoints are configured.';
-      } else if (err.message?.includes('401') || err.message?.includes('Authentication')) {
-        errorMessage = 'Authentication failed. Please log in again.';
       } else if (err.message?.includes('Network') || err.message?.includes('fetch')) {
         errorMessage = 'Network error. Please check your connection and try again.';
       }
@@ -114,7 +123,32 @@ export default function ChatCompletionTool() {
       
       // Re-add the user message to input if request failed
       setInputMessage(messageContent);
+    } finally {
+      performSubmission.current = false;
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!inputMessage.trim()) {
+      setError('Please enter a message');
+      return;
+    }
+
+    // Prevent duplicate submissions
+    if (isSubmitting || performSubmission.current) {
+      return;
+    }
+
+    // Check authentication before proceeding
+    if (!checkAuthAndTriggerModal(openModal, executeSubmission)) {
+      // Auth modal was opened, stop here
+      return;
+    }
+
+    // User is authenticated, proceed with submission
+    await executeSubmission();
   };
 
   // Update messages when result is available from WebSocket

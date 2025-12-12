@@ -3,6 +3,8 @@ import { useAuth } from '../../lib/auth';
 import { submitImageEditJob, getImageEditJobStatus } from '../../lib/api/imageEditApi';
 import { getUserJobs } from '../../lib/api/jobsApi';
 import { useSSE } from '../../hooks/useSSE';
+import { useAuthModal } from '../../contexts/AuthModalContext';
+import { checkAuthAndTriggerModal } from '../../lib/authCheck';
 import type { ImageEditJobRequest, ImageEditJobResult, ImageEditJob, Job } from '../../types/api';
 import './ImageEditingTool.css';
 
@@ -356,6 +358,8 @@ interface ImageWithPreview {
 
 export default function ImageEditingTool() {
   const { user } = useAuth();
+  const { openModal } = useAuthModal();
+  const performSubmission = useRef(false);
   const [imageFiles, setImageFiles] = useState<ImageWithPreview[]>([]);
   const [modificationInstruction, setModificationInstruction] = useState('');
   const [changeTarget, setChangeTarget] = useState('');
@@ -658,8 +662,10 @@ export default function ImageEditingTool() {
     return parts.join(', ');
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const executeSubmission = async () => {
+    if (performSubmission.current) return;
+    performSubmission.current = true;
+
     setError(null);
     setLoading(true);
     setJobId(null);
@@ -747,9 +753,51 @@ export default function ImageEditingTool() {
       }
     } catch (err: any) {
       console.error('Error submitting edit job:', err);
+      
+      // Check if this is an authentication error
+      if (
+        err.message?.includes('not authenticated') ||
+        err.message?.includes('Please log in') ||
+        err.message?.includes('Authentication failed') ||
+        err.message?.includes('Authentication required') ||
+        err.response?.status === 401
+      ) {
+        // Show auth modal - will retry submission after successful auth
+        checkAuthAndTriggerModal(openModal, executeSubmission);
+        setLoading(false);
+        return;
+      }
+
       setError(err?.message || 'Failed to submit editing job. Please try again.');
       setLoading(false);
+    } finally {
+      performSubmission.current = false;
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Allow editing from either imageFiles or editedImageUrl
+    if (imageFiles.length === 0 && !editedImageUrl) {
+      setError('Please select at least one image to edit');
+      return;
+    }
+
+    const prompt = buildPrompt();
+    if (!prompt.trim()) {
+      setError('Please provide editing instructions');
+      return;
+    }
+
+    // Check authentication before proceeding
+    if (!checkAuthAndTriggerModal(openModal, executeSubmission)) {
+      // Auth modal was opened, stop here
+      return;
+    }
+
+    // User is authenticated, proceed with submission
+    await executeSubmission();
   };
 
   const handleDownload = (url: string) => {

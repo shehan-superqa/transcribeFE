@@ -1,8 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../../lib/auth';
 import { submitImageJob, getImageJobStatus } from '../../lib/api/imageApi';
 import { getUserJobs } from '../../lib/api/jobsApi';
 import { useSSE } from '../../hooks/useSSE';
+import { useAuthModal } from '../../contexts/AuthModalContext';
+import { checkAuthAndTriggerModal } from '../../lib/authCheck';
 import type { ImageJobRequest, ImageJobResult, ImageJob, Job } from '../../types/api';
 import './ImageGenerationTool.css';
 
@@ -274,6 +276,8 @@ const styles = {
 
 export default function ImageGenerationTool() {
   const { user } = useAuth();
+  const { openModal } = useAuthModal();
+  const performSubmission = useRef(false);
   const [prompt, setPrompt] = useState('');
   const [negativePrompt, setNegativePrompt] = useState('');
   const [width, setWidth] = useState(1024);
@@ -537,8 +541,10 @@ export default function ImageGenerationTool() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const executeSubmission = async () => {
+    if (performSubmission.current) return;
+    performSubmission.current = true;
+
     setError(null);
     setImageUrls([]);
     setLoading(true);
@@ -586,9 +592,43 @@ export default function ImageGenerationTool() {
         setLoading(false);
       }
     } catch (err: any) {
+      // Check if this is an authentication error
+      if (
+        err.message?.includes('not authenticated') ||
+        err.message?.includes('Please log in') ||
+        err.message?.includes('Authentication failed') ||
+        err.message?.includes('Authentication required') ||
+        err.response?.status === 401
+      ) {
+        // Show auth modal - will retry submission after successful auth
+        checkAuthAndTriggerModal(openModal, executeSubmission);
+        setLoading(false);
+        return;
+      }
+
       setError(err.message || 'Failed to submit image generation job');
       setLoading(false);
+    } finally {
+      performSubmission.current = false;
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!prompt.trim()) {
+      setError('Please enter a prompt');
+      return;
+    }
+
+    // Check authentication before proceeding
+    if (!checkAuthAndTriggerModal(openModal, executeSubmission)) {
+      // Auth modal was opened, stop here
+      return;
+    }
+
+    // User is authenticated, proceed with submission
+    await executeSubmission();
   };
 
   const handleDownload = (url: string, index: number) => {

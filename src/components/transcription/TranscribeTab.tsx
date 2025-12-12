@@ -38,6 +38,8 @@ import { transcriptionStore } from '../../stores/transcriptionStore';
 import { useJobPolling } from '../../hooks/useJobPolling';
 import { getAvailableModels, submitTranscriptionJob } from '../../lib/api/transcriptionApi';
 import { cancelJob } from '../../lib/api/jobsApi';
+import { useAuthModal } from '../../contexts/AuthModalContext';
+import { checkAuthAndTriggerModal } from '../../lib/authCheck';
 import type { TranscriptionConfig } from '../../types/api';
 import type { ProcessingMode } from '../../types/transcription';
 import type { TranscriptionResult } from '../../types/api';
@@ -51,6 +53,7 @@ interface BatchFile {
 }
 
 export default function TranscribeTab() {
+  const { openModal } = useAuthModal();
   const [files, setFiles] = useState<File[]>([]);
   const [batchFiles, setBatchFiles] = useState<BatchFile[]>([]);
   const [engine, setEngine] = useState('replicate');
@@ -236,25 +239,36 @@ export default function TranscribeTab() {
       return;
     }
 
-    const config: TranscriptionConfig = {
-      engine,
-      language,
-      model,
-      processing_mode: processingMode,
-      enable_punctuation: enablePunctuation,
-      enable_capitalization: enableCapitalization,
+    // Check authentication before proceeding
+    const executeTranscription = async () => {
+      const config: TranscriptionConfig = {
+        engine,
+        language,
+        model,
+        processing_mode: processingMode,
+        enable_punctuation: enablePunctuation,
+        enable_capitalization: enableCapitalization,
+      };
+
+      if (isBatchMode) {
+        // Batch processing
+        await handleStartBatch(config);
+      } else {
+        // Single file processing
+        const submittedJobId = await submitJob(singleFile!, config);
+        if (submittedJobId) {
+          setJobId(submittedJobId);
+        }
+      }
     };
 
-    if (isBatchMode) {
-      // Batch processing
-      await handleStartBatch(config);
-    } else {
-      // Single file processing
-      const submittedJobId = await submitJob(singleFile!, config);
-      if (submittedJobId) {
-        setJobId(submittedJobId);
-      }
+    if (!checkAuthAndTriggerModal(openModal, executeTranscription)) {
+      // Auth modal was opened, stop here
+      return;
     }
+
+    // User is authenticated, proceed with transcription
+    await executeTranscription();
   };
 
   const handleStartBatch = async (config: TranscriptionConfig) => {
@@ -296,8 +310,13 @@ export default function TranscribeTab() {
           };
         } catch (err: any) {
           let errorMessage = err.response?.data?.error || err.message || 'Failed to submit job';
-          if (err.response?.status === 401 || errorMessage.includes('Authentication failed')) {
-            errorMessage = 'Authentication failed. Please log in again.';
+          if (err.response?.status === 401 || errorMessage.includes('Authentication failed') || 
+              errorMessage.includes('not authenticated') || errorMessage.includes('Please log in')) {
+            // Show auth modal for first auth error
+            if (!batchError) {
+              checkAuthAndTriggerModal(openModal, () => handleStartBatch(config));
+            }
+            errorMessage = 'Authentication required';
           } else if (errorMessage.includes('Authentication service unavailable')) {
             errorMessage = 'Authentication service unavailable. Please try again later.';
           }
