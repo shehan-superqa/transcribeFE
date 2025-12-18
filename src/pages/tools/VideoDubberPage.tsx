@@ -1,11 +1,6 @@
-import VideoDubberTool from '../../components/VideoDubberTool/VideoDubberTool';
-import './FeaturePage.css';
+import VideoDubberTab from '../../components/video/VideoDubberTab';
 
 export default function VideoDubberPage() {
-  return (
-    <div className="feature-page">
-      <VideoDubberTool />
-    </div>
-  );
+  return <VideoDubberTab />;
 }
 

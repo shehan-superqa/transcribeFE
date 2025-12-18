@@ -5,6 +5,7 @@ import Sidebar from '../components/Sidebar';
 import VideoToTextPage from './tools/VideoToTextPage';
 import VideoGenerationPage from './tools/VideoGenerationPage';
 import VideoDubberPage from './tools/VideoDubberPage';
+import { DubHistory } from '../components/video/VideoDubberTab';
 import VideoTranslatorPage from './tools/VideoTranslatorPage';
 import SubtitleGeneratorPage from './tools/SubtitleGeneratorPage';
 import VideoAdsPage from './tools/VideoAdsPage';
@@ -38,6 +39,7 @@ const darkTheme = createTheme({
 export default function ToolsDashboard() {
   const location = useLocation();
   const isTextToVideoRoute = location.pathname.includes('text-to-video') || location.pathname === '/video' || location.pathname === '/video/';
+  const isDubberRoute = location.pathname.includes('dubber');
 
   return (
     <div className="dashboard-container">
@@ -69,6 +71,9 @@ export default function ToolsDashboard() {
           
           {/* Video History Section - Right Side (only for text-to-video route) */}
           {isTextToVideoRoute && <VideoHistory />}
+          
+          {/* Dubbing History Section - Right Side (only for dubber route) */}
+          {isDubberRoute && <DubHistory />}
         </div>
       </div>
     </div>

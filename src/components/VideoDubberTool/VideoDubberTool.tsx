@@ -1,43 +1,21 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useAuth } from '../../lib/auth';
-import { submitVideoDubJob, getVideoDubJobStatus, downloadDubbedVideo, getDubLanguages, type DubLanguage } from '../../lib/api/videoApi';
-import { getUserJobs } from '../../lib/api/jobsApi';
+import { submitVideoDubJob, getVideoDubJobStatus, getDubLanguages, type DubLanguage } from '../../lib/api/videoApi';
 import { useSSE } from '../../hooks/useSSE';
-import type { VideoDubJob, Job } from '../../types/api';
 import HowToUse from '../common/HowToUse';
 import '../common/HowToUse.css';
+import '../../pages/Dashboard.css';
 import './VideoDubberTool.css';
 
 const styles = {
-  container: {
-    display: 'flex',
-    flexDirection: 'row' as const,
-    gap: '2rem',
+  formContainer: {
     padding: '2rem',
     borderRadius: '1.25rem',
     background: 'linear-gradient(145deg, #0f172a, #1e293b)',
     color: '#f8fafc',
     boxShadow: '0 10px 25px rgba(0, 0, 0, 0.25)',
-    maxWidth: '1600px',
-    margin: '2rem auto',
     fontFamily: 'Inter, system-ui, sans-serif',
-    alignItems: 'flex-start' as const,
-  },
-  formWrapper: {
-    flex: '1',
-    minWidth: 0,
-    maxWidth: '600px',
-  },
-  rightSidebar: {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '2rem',
-    minWidth: '400px',
-    position: 'sticky' as const,
-    top: '2rem',
-    alignSelf: 'flex-start' as const,
-    maxHeight: 'calc(100vh - 4rem)',
-    overflowY: 'auto' as const,
+    maxWidth: '900px',
+    width: '100%',
   },
   form: {
     display: 'flex',
@@ -62,6 +40,7 @@ const styles = {
     color: '#f8fafc',
     outline: 'none',
     fontSize: '0.95rem',
+    width: '100%',
   },
   select: {
     padding: '0.75rem 1rem',
@@ -76,6 +55,7 @@ const styles = {
     appearance: 'none' as const,
     WebkitAppearance: 'none' as const,
     MozAppearance: 'none' as const,
+    width: '100%',
   },
   dropzone: {
     border: '2px dashed rgba(255, 255, 255, 0.3)',
@@ -85,6 +65,7 @@ const styles = {
     cursor: 'pointer',
     transition: 'all 0.2s ease',
     backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    width: '100%',
   },
   dropzoneActive: {
     borderColor: '#3b82f6',
@@ -110,6 +91,7 @@ const styles = {
     cursor: 'pointer',
     transition: 'all 0.2s ease',
     fontFamily: 'inherit',
+    width: '100%',
   },
   buttonPrimary: {
     background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
@@ -238,7 +220,6 @@ const SUPPORTED_LANGUAGES = [
 ];
 
 export default function VideoDubberTool() {
-  const { user } = useAuth();
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoUrl, setVideoUrl] = useState<string>('');
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
@@ -254,9 +235,6 @@ export default function VideoDubberTool() {
   const [pollingProgress, setPollingProgress] = useState<number>(0);
   const [pollingStatus, setPollingStatus] = useState<string>('');
   const [pollingMessage, setPollingMessage] = useState<string>('');
-  const [dubHistory, setDubHistory] = useState<VideoDubJob[]>([]);
-  const [historyLoading, setHistoryLoading] = useState(false);
-  const [historyError, setHistoryError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropzoneRef = useRef<HTMLDivElement>(null);
@@ -288,69 +266,6 @@ export default function VideoDubberTool() {
 
   // Use SSE hook for progress tracking
   const { progress, status, message, result, error: sseError, isConnected } = useSSE(jobId);
-
-  // Fetch video dubbing history
-  useEffect(() => {
-    const fetchDubHistory = async () => {
-      if (!user) return;
-      
-      setHistoryLoading(true);
-      setHistoryError(null);
-      
-      try {
-        const response = await getUserJobs(user.id);
-        if (response.success && response.jobs) {
-          // Filter for video dubbing jobs only
-          const dubJobs = response.jobs.filter(
-            (job: Job) => (job as any).job_type === 'video_dub'
-          ).map((job: Job) => job as unknown as VideoDubJob);
-          
-          // Sort by created_at (newest first)
-          dubJobs.sort((a, b) => {
-            const dateA = new Date(a.created_at).getTime();
-            const dateB = new Date(b.created_at).getTime();
-            return dateB - dateA;
-          });
-          
-          setDubHistory(dubJobs);
-        }
-      } catch (err: any) {
-        console.error('Error fetching dubbing history:', err);
-        setHistoryError(err?.message || 'Failed to load dubbing history');
-      } finally {
-        setHistoryLoading(false);
-      }
-    };
-
-    fetchDubHistory();
-  }, [user]);
-
-  // Refresh history when a job completes
-  useEffect(() => {
-    if (resultVideoUrl && user) {
-      const fetchDubHistory = async () => {
-        try {
-          const response = await getUserJobs(user.id);
-          if (response.success && response.jobs) {
-            const dubJobs = response.jobs.filter(
-              (job: Job) => (job as any).job_type === 'video_dub'
-            ).map((job: Job) => job as unknown as VideoDubJob);
-            
-            dubJobs.sort((a, b) => {
-              const dateA = new Date(a.created_at).getTime();
-              const dateB = new Date(b.created_at).getTime();
-              return dateB - dateA;
-            });
-            
-            setDubHistory(dubJobs);
-          }
-        } catch (err) {
-          console.error('Error refreshing dubbing history:', err);
-        }
-      };
-      fetchDubHistory();
-    }
-  }, [resultVideoUrl, user]);
 
   const startPolling = useCallback(() => {
     if (!jobId) return;
@@ -722,88 +637,6 @@ export default function VideoDubberTool() {
     }
   };
 
-  const handleDownload = async (downloadJobId?: string) => {
-    const targetJobId = downloadJobId || jobId;
-    
-    if (!targetJobId) {
-      setError('No job ID available for download');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Download the video file from backend
-      const blob = await downloadDubbedVideo(targetJobId);
-      
-      // Create download link
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `dubbed_video_${targetJobId}.mp4`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      // Clean up the blob URL
-      setTimeout(() => URL.revokeObjectURL(url), 100);
-      
-      setLoading(false);
-    } catch (err: any) {
-      console.error('Error downloading video:', err);
-      setError(err.message || 'Failed to download dubbed video');
-      setLoading(false);
-    }
-  };
-
-  const handleHistoryItemClick = (job: VideoDubJob) => {
-    if (job.status === 'completed') {
-      // Prioritize video_output_url (dubbed video) over result.video_url (might be input)
-      const completedVideoUrl = job.video_output_url || 
-                                (job.result as any)?.dubbed_video_url ||
-                                (job.result as any)?.output_video_url ||
-                                job.result?.video_url;
-      if (completedVideoUrl) {
-        // Make sure we're not using the input video URL
-        const inputVideoUrl = job.video;
-        if (completedVideoUrl !== inputVideoUrl) {
-          setResultVideoUrl(completedVideoUrl);
-          setJobId(job._id);
-        } else {
-          setError('This video appears to be the original input video, not the dubbed version. The dubbing may have failed.');
-        }
-      }
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "completed":
-        return "#4caf50";
-      case "processing":
-      case "starting":
-        return "#ff9800";
-      case "error":
-        return "#f44336";
-      case "queued":
-        return "#2196f3";
-      default:
-        return "#666666";
-    }
-  };
-
   // Use polling progress/status if SSE is not connected, otherwise use SSE data
   const currentStatus = loading ? (isConnected ? status : pollingStatus || 'queued') : '';
   const displayProgress = isConnected ? (progress || 0) : (pollingProgress || 0);
@@ -821,9 +654,23 @@ export default function VideoDubberTool() {
         subtitle="Add professional voiceovers and translations to your videos using AI"
         instructions="Upload a video file using drag & drop, paste from clipboard, or click to browse. You can also paste a video URL. Select the target language for dubbing. Click 'Dub Video' to start the process. The system will translate and dub your video with natural-sounding voice in the selected language."
       />
-      <div style={styles.container}>
-        <div style={styles.formWrapper}>
-          <form style={styles.form} onSubmit={handleSubmit} onPaste={handlePaste}>
+      <div style={styles.formContainer}>
+        {resultVideoUrl && (
+          <div style={styles.videoContainer}>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#f8fafc' }}>Dubbed Video</h3>
+            <video src={resultVideoUrl} controls style={styles.video}>
+              Your browser does not support the video tag.
+            </video>
+            <a
+              href={resultVideoUrl}
+              download={`dubbed_video_${jobId || 'output'}.mp4`}
+              style={styles.downloadButton}
+            >
+              Download Dubbed Video
+            </a>
+          </div>
+        )}
+        <form style={styles.form} onSubmit={handleSubmit} onPaste={handlePaste}>
             <div style={styles.inputGroup}>
               <label style={styles.label}>Video File *</label>
               <div
@@ -957,89 +804,6 @@ export default function VideoDubberTool() {
               {loading ? 'Dubbing Video...' : 'Dub Video'}
             </button>
           </form>
-        </div>
-
-        <div style={styles.rightSidebar}>
-          {resultVideoUrl && (
-            <div style={styles.videoContainer}>
-              <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#f8fafc' }}>Dubbed Video</h3>
-              <video src={resultVideoUrl} controls style={styles.video}>
-                Your browser does not support the video tag.
-              </video>
-              <a
-                href={resultVideoUrl}
-                download={`dubbed_video_${jobId || 'output'}.mp4`}
-                style={styles.downloadButton}
-              >
-                Download Dubbed Video
-              </a>
-            </div>
-          )}
-
-          <div>
-            <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem', fontWeight: 600 }}>
-              Dubbing History
-            </h3>
-            {historyLoading && <p style={{ color: '#cbd5e1' }}>Loading...</p>}
-            {historyError && (
-              <div style={styles.error}>
-                {historyError}
-              </div>
-            )}
-            {!historyLoading && !historyError && dubHistory.length === 0 && (
-              <p style={{ color: '#64748b', fontSize: '0.9rem' }}>
-                No dubbing history yet
-              </p>
-            )}
-            {!historyLoading &&
-              !historyError &&
-              dubHistory.map((job) => (
-                <div
-                  key={job._id}
-                  style={styles.historyItem}
-                  onClick={() => handleHistoryItemClick(job)}
-                  onMouseEnter={(e) => {
-                    if (job.status === 'completed') {
-                      e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.5)';
-                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (job.status === 'completed') {
-                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-                    }
-                  }}
-                >
-                  <div style={styles.historyItemHeader}>
-                    <span style={styles.historyItemTitle}>
-                      {job.output_language}
-                    </span>
-                    <span
-                      style={{
-                        ...styles.historyItemStatus,
-                        ...(job.status === 'completed'
-                          ? styles.statusCompleted
-                          : job.status === 'error'
-                          ? styles.statusError
-                          : styles.statusProcessing),
-                      }}
-                    >
-                      {job.status}
-                    </span>
-                  </div>
-                  <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.5rem' }}>
-                    {formatDate(job.created_at)}
-                  </div>
-                  {job.status === 'completed' && (job.video_output_url || job.result?.video_url) && (
-                    <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#4caf50' }}>
-                      ✓ Video available - Click to view
-                    </div>
-                  )}
-                </div>
-              ))}
-          </div>
-        </div>
       </div>
     </div>
   );
