@@ -7,38 +7,17 @@ import { useSSE } from '../../hooks/useSSE';
 import type { VideoJobRequest, VideoJobResult, VideoJob, Job } from '../../types/api';
 import HowToUse from '../../components/common/HowToUse';
 import '../../components/common/HowToUse.css';
+import '../../pages/Dashboard.css';
 import './VideoGenerationTool.css';
 
 const styles = {
-  container: {
-    display: 'flex',
-    flexDirection: 'row' as const,
-    gap: '2rem',
+  formContainer: {
     padding: '2rem',
     borderRadius: '1.25rem',
     background: 'linear-gradient(145deg, #0f172a, #1e293b)',
     color: '#f8fafc',
     boxShadow: '0 10px 25px rgba(0, 0, 0, 0.25)',
-    maxWidth: '1600px',
-    margin: '2rem auto',
     fontFamily: 'Inter, system-ui, sans-serif',
-    alignItems: 'flex-start' as const,
-  },
-  formWrapper: {
-    flex: '1',
-    minWidth: 0,
-    maxWidth: '600px',
-  },
-  rightSidebar: {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '2rem',
-    minWidth: '400px',
-    position: 'sticky' as const,
-    top: '2rem',
-    alignSelf: 'flex-start' as const,
-    maxHeight: 'calc(100vh - 4rem)',
-    overflowY: 'auto' as const,
   },
   form: {
     display: 'flex',
@@ -243,62 +222,6 @@ const styles = {
     alignSelf: 'flex-start',
     textDecoration: 'none',
     display: 'inline-block',
-  },
-  historyContainer: {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '1rem',
-    padding: '1.5rem',
-    background: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: '0.75rem',
-    minWidth: '350px',
-    maxWidth: '400px',
-    flexShrink: 0,
-    minHeight: 0,
-  },
-  historyTitle: {
-    margin: 0,
-    fontSize: '1.25rem',
-    fontWeight: 600,
-    color: '#f8fafc',
-  },
-  historyCard: {
-    padding: '1rem',
-    background: 'rgba(255, 255, 255, 0.03)',
-    borderRadius: '0.75rem',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-  },
-  historyCardHover: {
-    borderColor: 'rgba(99, 102, 241, 0.5)',
-    background: 'rgba(255, 255, 255, 0.05)',
-  },
-  historyCardHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '0.5rem',
-  },
-  historyCardPrompt: {
-    fontSize: '0.9rem',
-    color: '#cbd5e1',
-    marginBottom: '0.5rem',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap' as const,
-  },
-  historyCardMeta: {
-    fontSize: '0.75rem',
-    color: '#94a3b8',
-    display: 'flex',
-    gap: '0.5rem',
-    flexWrap: 'wrap' as const,
-  },
-  emptyHistory: {
-    textAlign: 'center' as const,
-    padding: '2rem',
-    color: '#94a3b8',
   },
   charCount: {
     fontSize: '0.75rem',
@@ -733,9 +656,23 @@ export default function VideoGenerationTool() {
         subtitle="Generate videos using AI with text prompts and reference images"
         instructions="Enter a detailed text prompt describing the video you want to generate. Optionally upload reference images to guide the video style (1-3 images, works with 16:9 aspect ratio and 8-second duration). Adjust settings like aspect ratio, duration, and model selection. Click 'Generate Video' to create your video. The process may take several minutes depending on the video length."
       />
-      <div style={styles.container} className="video-generation-tool-container">
-        <div style={styles.formWrapper}>
-          <form onSubmit={handleSubmit} style={styles.form}>
+      <div style={styles.formContainer}>
+              {videoUrl && (
+                <div style={styles.videoContainer}>
+                  <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#f8fafc' }}>Generated Video</h3>
+                  <video src={videoUrl} controls style={styles.video}>
+                    Your browser does not support the video tag.
+                  </video>
+                  <a
+                    href={videoUrl}
+                    download={`video-${jobId || 'output'}.mp4`}
+                    style={styles.downloadButton}
+                  >
+                    Download Video
+                  </a>
+                </div>
+              )}
+              <form onSubmit={handleSubmit} style={styles.form}>
         <div style={styles.inputGroup}>
           <label style={styles.label}>
             Prompt <span style={{ color: '#ef4444' }}>*</span>
@@ -941,100 +878,6 @@ export default function VideoGenerationTool() {
           </p>
         )}
       </form>
-      </div>
-
-      {/* Right Sidebar: Video Result + History */}
-      <div style={styles.rightSidebar}>
-        {videoUrl && (
-          <div style={styles.videoContainer}>
-            <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#f8fafc' }}>Generated Video</h3>
-            <video src={videoUrl} controls style={styles.video}>
-              Your browser does not support the video tag.
-            </video>
-            <a
-              href={videoUrl}
-              download={`video-${jobId || 'output'}.mp4`}
-              style={styles.downloadButton}
-            >
-              Download Video
-            </a>
-          </div>
-        )}
-
-        {/* Video History Section */}
-        <div style={styles.historyContainer}>
-        <h3 style={styles.historyTitle}>Video History</h3>
-        
-        {historyLoading ? (
-          <div style={styles.emptyHistory}>Loading history...</div>
-        ) : historyError ? (
-          <div style={{ ...styles.emptyHistory, color: '#f44336' }}>
-            {historyError}
-          </div>
-        ) : videoHistory.length === 0 ? (
-          <div style={styles.emptyHistory}>
-            <p>No video generations yet</p>
-            <p style={{ fontSize: '0.85rem', marginTop: '0.5rem' }}>
-              Start generating videos using the form on the left.
-            </p>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {videoHistory.map((job) => {
-              const hasVideo = !!(job.result?.video_url || job.video_output_url);
-              return (
-                <div
-                  key={job._id}
-                  style={{
-                    ...styles.historyCard,
-                    ...(hasVideo ? {} : { opacity: 0.7 }),
-                  }}
-                  onClick={() => hasVideo && handleVideoJobClick(job)}
-                  onMouseEnter={(e) => {
-                    if (hasVideo) {
-                      e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.5)';
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (hasVideo) {
-                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
-                    }
-                  }}
-                >
-                  <div style={styles.historyCardHeader}>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#f8fafc' }}>
-                      {job.prompt.length > 30 ? `${job.prompt.substring(0, 30)}...` : job.prompt}
-                    </span>
-                    <span
-                      style={{
-                        fontSize: '0.75rem',
-                        fontWeight: 600,
-                        color: getStatusColor(job.status),
-                        textTransform: 'uppercase',
-                      }}
-                    >
-                      {job.status}
-                    </span>
-                  </div>
-                  <div style={styles.historyCardMeta}>
-                    <span>{formatDate(job.created_at)}</span>
-                    {(job as any).duration && <span>• {(job as any).duration}s</span>}
-                    {(job as any).resolution && <span>• {(job as any).resolution}</span>}
-                  </div>
-                  {hasVideo && (
-                    <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#4caf50' }}>
-                      ✓ Video available - Click to view
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-        </div>
-      </div>
       </div>
     </div>
   );
