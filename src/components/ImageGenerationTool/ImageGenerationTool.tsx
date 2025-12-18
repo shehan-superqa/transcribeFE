@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../lib/auth';
+import { useRequireAuth } from '../../hooks/useRequireAuth';
 import { submitImageJob, getImageJobStatus } from '../../lib/api/imageApi';
 import { getUserJobs } from '../../lib/api/jobsApi';
 import { useSSE } from '../../hooks/useSSE';
@@ -274,6 +275,7 @@ const styles = {
 
 export default function ImageGenerationTool() {
   const { user } = useAuth();
+  const { requireAuth } = useRequireAuth();
   const [prompt, setPrompt] = useState('');
   const [negativePrompt, setNegativePrompt] = useState('');
   const [width, setWidth] = useState(1024);
@@ -539,6 +541,12 @@ export default function ImageGenerationTool() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check authentication before submitting
+    if (!requireAuth()) {
+      return;
+    }
+    
     setError(null);
     setImageUrls([]);
     setLoading(true);

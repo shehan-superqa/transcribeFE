@@ -21,6 +21,14 @@ const videoTools: VideoTool[] = [
     color: '#4A90E2',
   },
   {
+    id: 'ads',
+    title: 'Video Ads Generator',
+    description: 'Create high-converting video ads with AI-powered script generation and video creation',
+    icon: '📺',
+    path: '/video/ads',
+    color: '#E67E22',
+  },
+  {
     id: 'to-text',
     title: 'Video to Text',
     description: 'Extract text and transcriptions from video files',

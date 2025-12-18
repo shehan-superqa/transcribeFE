@@ -5,6 +5,7 @@ import { getUserJobs } from '../../lib/api/jobsApi';
 import { useSSE } from '../../hooks/useSSE';
 import type { VideoDubJob, Job } from '../../types/api';
 import HowToUse from '../common/HowToUse';
+import '../common/HowToUse.css';
 import './VideoDubberTool.css';
 
 const styles = {
@@ -812,8 +813,11 @@ export default function VideoDubberTool() {
 
   return (
     <div>
+      <div className="tool-sticky-title">
+        <h1>Video Dubber</h1>
+      </div>
       <HowToUse
-        title="Video Dubber"
+        title=""
         subtitle="Add professional voiceovers and translations to your videos using AI"
         instructions="Upload a video file using drag & drop, paste from clipboard, or click to browse. You can also paste a video URL. Select the target language for dubbing. Click 'Dub Video' to start the process. The system will translate and dub your video with natural-sounding voice in the selected language."
       />

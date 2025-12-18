@@ -35,9 +35,11 @@ import FileUploader from './common/FileUploader';
 import ProgressBar from './common/ProgressBar';
 import StatusLabel from './common/StatusLabel';
 import HowToUse from '../../components/common/HowToUse';
+import '../../components/common/HowToUse.css';
 import { transcriptionStore } from '../../stores/transcriptionStore';
 import { jobStore } from '../../stores/jobStore';
 import { useAuth } from '../../lib/auth';
+import { useRequireAuth } from '../../hooks/useRequireAuth';
 import { useJobPolling } from '../../hooks/useJobPolling';
 import { getAvailableModels, submitTranscriptionJob } from '../../lib/api/transcriptionApi';
 import { cancelJob } from '../../lib/api/jobsApi';
@@ -73,6 +75,7 @@ export default function TranscribeTab() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { user } = useAuth();
+  const { requireAuth } = useRequireAuth();
   const submitJob = transcriptionStore((state) => state.submitJob);
   const isProcessing = transcriptionStore((state) => state.isProcessing);
   const results = transcriptionStore((state) => state.results);
@@ -314,6 +317,11 @@ export default function TranscribeTab() {
   };
 
   const handleStartTranscription = async () => {
+    // Check authentication before starting transcription
+    if (!requireAuth()) {
+      return;
+    }
+
     if (files.length === 0) {
       return;
     }
@@ -580,8 +588,11 @@ export default function TranscribeTab() {
 
   return (
     <Box>
+      <div className="tool-sticky-title">
+        <h1>Audio to Text</h1>
+      </div>
       <HowToUse
-        title="Audio to Text"
+        title=""
         subtitle="Convert audio files to accurate text transcriptions"
         instructions="Upload audio files using drag & drop, paste from clipboard, or click to browse. You can also paste a YouTube link or record audio directly. Select your preferred engine and model, then click 'Transcribe' to start. The transcription will appear in your history once completed."
       />

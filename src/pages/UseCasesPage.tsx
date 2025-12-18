@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Box, Typography, Card, CardContent, CardActionArea, TextField, InputAdornment } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -37,10 +37,9 @@ const categories: Category[] = [
         subItems: [
           { id: 'meeting-notes', title: 'Turn meeting recordings into written notes' },
           { id: 'conference-calls', title: 'Convert conference call recordings to text' },
-          { id: 'team-discussions', title: 'Create records of team discussions' },
+          
           { id: 'voice-memos', title: 'Turn voice memos into written notes' },
-          { id: 'educational-audio', title: 'Create notes from educational audio' },
-          { id: 'class-discussions', title: 'Turn class discussions into written records' },
+         
           { id: 'lecture-recordings', title: 'Convert lecture recordings into study notes' },
           { id: 'important-conversations', title: 'Make written records of important conversations' },
           { id: 'batch-processing', title: 'Process multiple audio files at once' },
@@ -70,8 +69,7 @@ const categories: Category[] = [
           { id: 'audio-announcements', title: 'Make audio announcements' },
           { id: 'professional-voiceovers-ads', title: 'Create professional voiceovers for ads' },
           { id: 'audio-guides-courses', title: 'Create audio guides for courses' },
-          { id: 'listenable-study-materials', title: 'Make study materials you can listen to' },
-          { id: 'video-voiceovers-no-recording', title: 'Create voiceovers for videos without recording' },
+          
         ]
       },
       { 
@@ -423,6 +421,7 @@ export default function UseCasesPage() {
         category: getCategoryName(useCase.category),
         howItWorks: getHowItWorks(selectedUseCaseId, foundSubCategory, foundCategory),
         benefits: getBenefits(selectedUseCaseId, foundSubCategory, foundCategory),
+        subCategoryId: foundSubCategory || undefined,
       };
     }
 
@@ -439,6 +438,7 @@ export default function UseCasesPage() {
                 category: category.title,
                 howItWorks: getHowItWorks(selectedUseCaseId, subItem.id, category.id),
                 benefits: getBenefits(selectedUseCaseId, subItem.id, category.id),
+                subCategoryId: subItem.id,
               };
             }
           }
@@ -454,6 +454,16 @@ export default function UseCasesPage() {
     return category?.title || '';
   };
 
+  // Update document title when a use case is selected
+  useEffect(() => {
+    const useCaseDetail = getCurrentUseCaseDetail();
+    if (useCaseDetail) {
+      document.title = `${useCaseDetail.title} - Use Cases | VoiceScribe`;
+    } else {
+      document.title = 'Use Cases | VoiceScribe';
+    }
+  }, [selectedUseCaseId]);
+
   const getDescriptionForNavItem = (title: string): string => {
     // Generate a description based on the title
     return `Learn how to ${title.toLowerCase()} using our AI-powered tools. This feature helps you streamline your workflow and improve productivity.`;
@@ -467,7 +477,6 @@ export default function UseCasesPage() {
         case 'transcribe':
           return [
             'Upload your audio or video file using drag & drop, paste from clipboard, or click to browse',
-            'You can also paste a YouTube link or record audio directly',
             'Select your preferred transcription engine (Whisper, Google, etc.) and model',
             'Choose processing mode: Batch, Parallel Streaming, or Real-time Streaming',
             'Click "Transcribe" to start the process',
@@ -863,6 +872,8 @@ export default function UseCasesPage() {
               category={useCaseDetail.category}
               howItWorks={useCaseDetail.howItWorks}
               benefits={useCaseDetail.benefits}
+              useCaseId={selectedUseCaseId || undefined}
+              subCategoryId={useCaseDetail.subCategoryId}
               onBack={handleBackToList}
             />
           </Box>

@@ -1,5 +1,7 @@
 import { Box, Typography, Button, Paper } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import TranscriptionExample from './TranscriptionExample';
+import TTSExample from './TTSExample';
 import './UseCaseDetail.css';
 
 interface UseCaseDetailProps {
@@ -8,6 +10,8 @@ interface UseCaseDetailProps {
   category?: string;
   howItWorks?: string[];
   benefits?: string[];
+  useCaseId?: string;
+  subCategoryId?: string;
   onBack: () => void;
 }
 
@@ -17,33 +21,35 @@ export default function UseCaseDetail({
   category, 
   howItWorks = [],
   benefits = [],
+  useCaseId,
+  subCategoryId,
   onBack 
 }: UseCaseDetailProps) {
+  // Show example for all use cases under "Transcribe" category
+  const showTranscriptionExample = subCategoryId === 'transcribe';
+  // Show example for all use cases under "Text-to-Speech" category
+  const showTTSExample = subCategoryId === 'text-to-speech';
   return (
     <Box className="use-case-detail-container">
-      <Button
-        startIcon={<ArrowBackIcon />}
-        onClick={onBack}
-        sx={{
-          color: '#00c6ff',
-          mb: 3,
-          textTransform: 'none',
-          '&:hover': {
-            backgroundColor: 'rgba(0, 198, 255, 0.1)',
-          },
-        }}
-      >
-        Back to Use Cases
-      </Button>
+      {/* Fixed Header Section */}
+      <Box className="use-case-detail-header">
+        <Button
+          startIcon={<ArrowBackIcon />}
+          onClick={onBack}
+          sx={{
+            color: '#00c6ff',
+            mb: 1,
+            textTransform: 'none',
+            padding: 0,
+            minWidth: 'auto',
+            '&:hover': {
+              backgroundColor: 'transparent',
+            },
+          }}
+        >
+          Back to Use Cases
+        </Button>
 
-      <Paper
-        sx={{
-          p: 4,
-          background: 'linear-gradient(135deg, #000000 0%, #1a1a2e 50%,rgb(61, 66, 75) 100%)',
-          border: '1px solid rgba(74, 144, 226, 0.3)',
-          borderRadius: '16px',
-        }}
-      >
         {category && (
           <Typography
             variant="overline"
@@ -52,7 +58,7 @@ export default function UseCaseDetail({
               fontSize: '0.75rem',
               fontWeight: 600,
               letterSpacing: '1px',
-              mb: 2,
+              mb: 0.5,
               display: 'block',
             }}
           >
@@ -61,44 +67,32 @@ export default function UseCaseDetail({
         )}
 
         <Typography
-          variant="h3"
+          variant="h5"
           sx={{
             color: '#f8fafc',
             fontWeight: 700,
-            mb: 3,
+            fontSize: '1.25rem',
             background: 'linear-gradient(135deg, #00c6ff 0%, #4A90E2 100%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
+            mb: 1,
           }}
         >
           {title}
         </Typography>
+      </Box>
 
-        <Box sx={{ mb: 4 }}>
-          <Typography
-            variant="h6"
-            sx={{
-              color: '#cbd5e1',
-              fontWeight: 600,
-              mb: 2,
-            }}
-          >
-            Overview
-          </Typography>
-          <Typography
-            variant="body1"
-            sx={{
-              color: '#94a3b8',
-              lineHeight: 1.8,
-              fontSize: '1.1rem',
-            }}
-          >
-            {description}
-          </Typography>
-        </Box>
-
-        {howItWorks.length > 0 && (
+      {/* Scrollable Content Section */}
+      <Box className="use-case-detail-content">
+        <Paper
+          sx={{
+            p: 3,
+            background: 'linear-gradient(135deg, #000000 0%, #1a1a2e 50%,rgb(61, 66, 75) 100%)',
+            border: '1px solid rgba(74, 144, 226, 0.3)',
+            borderRadius: '16px',
+          }}
+        >
           <Box sx={{ mb: 4 }}>
             <Typography
               variant="h6"
@@ -108,58 +102,97 @@ export default function UseCaseDetail({
                 mb: 2,
               }}
             >
-              How It Works
+              Overview
             </Typography>
-            <Box
-              component="ul"
-              sx={{
-                color: '#94a3b8',
-                lineHeight: 2,
-                fontSize: '1rem',
-                pl: 3,
-                '& li': {
-                  mb: 1,
-                },
-              }}
-            >
-              {howItWorks.map((step, index) => (
-                <li key={index}>{step}</li>
-              ))}
-            </Box>
-          </Box>
-        )}
-
-        {benefits.length > 0 && (
-          <Box>
             <Typography
-              variant="h6"
-              sx={{
-                color: '#cbd5e1',
-                fontWeight: 600,
-                mb: 2,
-              }}
-            >
-              Benefits
-            </Typography>
-            <Box
-              component="ul"
+              variant="body1"
               sx={{
                 color: '#94a3b8',
-                lineHeight: 2,
-                fontSize: '1rem',
-                pl: 3,
-                '& li': {
-                  mb: 1,
-                },
+                lineHeight: 1.8,
+                fontSize: '1.1rem',
               }}
             >
-              {benefits.map((benefit, index) => (
-                <li key={index}>{benefit}</li>
-              ))}
-            </Box>
+              {description}
+            </Typography>
           </Box>
-        )}
-      </Paper>
+
+          {/* Example Section - For transcribe use cases */}
+          {showTranscriptionExample && (
+            <Box sx={{ mb: 4 }}>
+              <TranscriptionExample useCaseId={useCaseId} />
+            </Box>
+          )}
+
+          {/* Example Section - For text-to-speech use cases */}
+          {showTTSExample && (
+            <Box sx={{ mb: 4 }}>
+              <TTSExample useCaseId={useCaseId} />
+            </Box>
+          )}
+
+          {howItWorks.length > 0 && (
+            <Box sx={{ mb: 4 }}>
+              <Typography
+                variant="h6"
+                sx={{
+                  color: '#cbd5e1',
+                  fontWeight: 600,
+                  mb: 2,
+                }}
+              >
+                How It Works
+              </Typography>
+              <Box
+                component="ul"
+                sx={{
+                  color: '#94a3b8',
+                  lineHeight: 2,
+                  fontSize: '1rem',
+                  pl: 3,
+                  '& li': {
+                    mb: 1,
+                  },
+                }}
+              >
+                {howItWorks.map((step, index) => (
+                  <li key={index}>{step}</li>
+                ))}
+              </Box>
+            </Box>
+          )}
+
+          {benefits.length > 0 && (
+            <Box>
+              <Typography
+                variant="h6"
+                sx={{
+                  color: '#cbd5e1',
+                  fontWeight: 600,
+                  mb: 2,
+                }}
+              >
+                Benefits
+              </Typography>
+              <Box
+                component="ul"
+                sx={{
+                  color: '#94a3b8',
+                  lineHeight: 2,
+                  fontSize: '1rem',
+                  pl: 3,
+                  '& li': {
+                    mb: 1,
+                  },
+                }}
+              >
+                {benefits.map((benefit, index) => (
+                  <li key={index}>{benefit}</li>
+                ))}
+              </Box>
+            </Box>
+          )}
+        </Paper>
+      </Box>
     </Box>
   );
 }

@@ -1,8 +1,11 @@
 .dashboard-container {
-  min-height: 100vh;
+  height: 100vh;
   background-color: #121212;
   padding: 2rem 1rem;
   overflow-x: hidden;
+  overflow-y: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .dashboard-content-wrapper {
@@ -12,6 +15,9 @@
   gap: 2rem;
   align-items: flex-start;
   position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .dashboard-header {
@@ -89,34 +95,57 @@
   gap: 2rem;
   align-items: start;
   min-width: 0;
+  min-height: 0;
+  height: 100%;
+  max-height: calc(100vh - 4rem);
 }
 
 .tool-wrapper {
   display: flex;
   justify-content: flex-start;
+  height: 100%;
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .tool-container {
   width: 100%;
   max-width: none;
+  min-height: min-content;
 }
 
 .history-container {
   background-color: #1e1e1e;
   border-radius: 12px;
-  padding: 2rem;
+  padding: 0;
   border: 1px solid #333333;
   position: sticky;
-  top: 2rem;
+  top: 0;
   max-height: calc(100vh - 4rem);
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .history-title {
   color: #e0e0e0;
-  margin-bottom: 1.5rem;
+  margin: 0;
+  padding: 2rem 2rem 1.5rem 2rem;
   font-size: clamp(1.25rem, 3vw, 1.5rem);
   font-weight: 600;
+  position: sticky;
+  top: 0;
+  background-color: #1e1e1e;
+  z-index: 10;
+  border-bottom: 1px solid #333333;
+}
+
+.history-content {
+  padding: 0 2rem 2rem 2rem;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
 }
 
 .loading-state,
@@ -361,17 +390,38 @@
   .dashboard-main-layout {
     grid-template-columns: 1fr;
     gap: 2rem;
+    max-height: none;
+  }
+
+  .tool-wrapper {
+    max-height: none;
+    overflow-y: visible;
   }
 
   .history-container {
     position: static;
     max-height: none;
   }
+
+  .history-title {
+    position: static;
+  }
+
+  .history-content {
+    padding: 0 1.5rem 1.5rem 1.5rem;
+  }
 }
 
 @media (max-width: 768px) {
   .dashboard-container {
     padding: 1rem 0.5rem;
+    height: auto;
+    min-height: 100vh;
+    overflow-y: visible;
+  }
+
+  .dashboard-content-wrapper {
+    overflow: visible;
   }
 
   .dashboard-header {
@@ -380,6 +430,13 @@
 
   .dashboard-main-layout {
     gap: 1.5rem;
+    max-height: none;
+    height: auto;
+  }
+
+  .tool-wrapper {
+    max-height: none;
+    overflow-y: visible;
   }
 
   .verification-banner {
@@ -406,12 +463,17 @@
   }
 
   .history-container {
-    padding: 1.5rem 1rem;
     border-radius: 8px;
   }
 
   .history-title {
-    margin-bottom: 1rem;
+    padding: 1.5rem 1rem 1rem 1rem;
+    margin-bottom: 0;
+    position: static;
+  }
+
+  .history-content {
+    padding: 0 1rem 1.5rem 1rem;
   }
 
   .loading-state,

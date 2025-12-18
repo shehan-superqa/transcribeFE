@@ -10,6 +10,7 @@ import {
   getStoredUser,
   setStoredUser,
   clearAuthData,
+  refreshToken as apiRefreshToken,
   User,
 } from "../lib/api";
 
@@ -48,7 +49,22 @@ export const checkAuth = createAsyncThunk<User | null, void, { rejectValue: stri
           setStoredUser(freshUser.data);
           return freshUser.data;
         } else {
-          // Token is invalid or user data is missing, clear auth data
+          // Token is invalid or user data is missing, try to refresh token
+          if (refreshToken) {
+            try {
+              await apiRefreshToken();
+              // Retry getting user after refresh
+              const retryUser = await getCurrentUser();
+              if (retryUser.success && retryUser.data) {
+                setStoredUser(retryUser.data);
+                return retryUser.data;
+              }
+            } catch (refreshError) {
+              // Refresh failed, clear auth data
+              clearAuthData();
+              return null;
+            }
+          }
           clearAuthData();
           return null;
         }
@@ -56,7 +72,23 @@ export const checkAuth = createAsyncThunk<User | null, void, { rejectValue: stri
         // Check if it's a 401/403 error (invalid token)
         if (error.message?.includes('401') || error.message?.includes('403') || 
             error.message?.includes('Unauthorized') || error.message?.includes('Forbidden')) {
-          // Token is invalid, clear auth data
+          // Token is invalid, try to refresh
+          if (refreshToken) {
+            try {
+              await apiRefreshToken();
+              // Retry getting user after refresh
+              const retryUser = await getCurrentUser();
+              if (retryUser.success && retryUser.data) {
+                setStoredUser(retryUser.data);
+                return retryUser.data;
+              }
+            } catch (refreshError) {
+              // Refresh failed, clear auth data
+              clearAuthData();
+              return null;
+            }
+          }
+          // No refresh token available, clear auth data
           clearAuthData();
           return null;
         }

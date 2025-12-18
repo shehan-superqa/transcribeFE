@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../lib/auth';
+import { useRequireAuth } from '../../hooks/useRequireAuth';
 import { submitVideoJob, getVideoJobStatus } from '../../lib/api/videoApi';
 import { getUserJobs } from '../../lib/api/jobsApi';
 import { useSSE } from '../../hooks/useSSE';
 import type { VideoJobRequest, VideoJobResult, VideoJob, Job } from '../../types/api';
 import HowToUse from '../../components/common/HowToUse';
+import '../../components/common/HowToUse.css';
 import './VideoGenerationTool.css';
 
 const styles = {
@@ -308,6 +310,7 @@ const styles = {
 
 export default function VideoGenerationTool() {
   const { user } = useAuth();
+  const { requireAuth } = useRequireAuth();
   const [prompt, setPrompt] = useState('');
   const [referenceImages, setReferenceImages] = useState<string[]>(['']);
   const [aspectRatio, setAspectRatio] = useState<'16:9' | '9:16' | '1:1' | '4:3' | '3:4'>('16:9');
@@ -585,6 +588,12 @@ export default function VideoGenerationTool() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check authentication before submitting
+    if (!requireAuth()) {
+      return;
+    }
+    
     setError(null);
     setVideoUrl(null);
     setLoading(true);
@@ -716,8 +725,11 @@ export default function VideoGenerationTool() {
 
   return (
     <div>
+      <div className="tool-sticky-title">
+        <h1>Text to Video</h1>
+      </div>
       <HowToUse
-        title="Text to Video"
+        title=""
         subtitle="Generate videos using AI with text prompts and reference images"
         instructions="Enter a detailed text prompt describing the video you want to generate. Optionally upload reference images to guide the video style (1-3 images, works with 16:9 aspect ratio and 8-second duration). Adjust settings like aspect ratio, duration, and model selection. Click 'Generate Video' to create your video. The process may take several minutes depending on the video length."
       />

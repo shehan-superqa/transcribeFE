@@ -154,7 +154,7 @@ const ToolsDropdown = ({ isMobile }: { isMobile: boolean }) => {
   if (isMobile) {
     return (
       <div style={{ backgroundColor: '#0d0d0d', borderRadius: '8px', boxShadow: '0 8px 20px rgba(0,0,0,0.5)', overflow: 'hidden', padding: '0.5rem', width: '100%' }}>
-        <HighlightedItem to="/voice/transcribe" title="Audio to Text" description="Convert audio files to accurate text transcriptions" />
+        <HighlightedItem to="/voice/transcribe" title="Audio Tools" description="Convert audio files to accurate text transcriptions" />
         <div style={{ display: 'flex', flexDirection: 'column', marginTop: '0.5rem' }}>
           <DropdownSection title="VOICE (AUDIO) TOOLS">
             <SectionItem to="/voice/transcribe" title="Audio to Text" description="Convert audio files to text" />
@@ -169,6 +169,7 @@ const ToolsDropdown = ({ isMobile }: { isMobile: boolean }) => {
           </DropdownSection>
           <DropdownSection title="VIDEO TOOLS">
             <SectionItem to="/video/text-to-video" title="Text to Video" description="Generate videos from text prompts" />
+            <SectionItem to="/video/ads" title="Video Ads Generator" description="Create high-converting video ads with AI" />
             <SectionItem to="/video/to-text" title="Video to Text" description="Extract text from video files" />
             <SectionItem to="/video/dubber" title="Video Dubber" description="Dub videos with new audio" />
             <SectionItem to="/video/translator" title="Video Translator" description="Translate video content" />
@@ -181,7 +182,7 @@ const ToolsDropdown = ({ isMobile }: { isMobile: boolean }) => {
   
   return (
     <div className="tools-dropdown-scroll" style={{ display: 'flex', backgroundColor: '#0d0d0d', borderRadius: '8px', boxShadow: '0 8px 20px rgba(0,0,0,0.5)', overflowX: 'auto', overflowY: 'hidden', minWidth: '600px', maxWidth: '900px', padding: '0.5rem', scrollbarWidth: 'thin', scrollbarColor: '#333333 #0d0d0d' }}>
-      <HighlightedItem to="/voice/transcribe" title="Audio to Text" description="Convert audio files to accurate text transcriptions instantly." />
+      <HighlightedItem to="/voice/transcribe" title="Audio Tools" description="Convert audio files to accurate text transcriptions instantly." />
       <div style={{ display: 'flex', flexShrink: 0 }}>
         <DropdownSection title="VOICE (AUDIO) TOOLS">
           <SectionItem to="/voice/transcribe" title="Audio to Text" description="Convert audio files to text" />
@@ -196,6 +197,7 @@ const ToolsDropdown = ({ isMobile }: { isMobile: boolean }) => {
         </DropdownSection>
         <DropdownSection title="VIDEO TOOLS">
           <SectionItem to="/video/text-to-video" title="Text to Video" description="Generate videos from text prompts" />
+          <SectionItem to="/video/ads" title="Video Ads Generator" description="Create high-converting video ads with AI" />
           <SectionItem to="/video/to-text" title="Video to Text" description="Extract text from video files" />
           <SectionItem to="/video/dubber" title="Video Dubber" description="Dub videos with new audio" />
           <SectionItem to="/video/translator" title="Video Translator" description="Translate video content" />

@@ -23,6 +23,7 @@ import { useLiveTranscription } from '../../hooks/useLiveTranscription';
 import { useMicrophone } from '../../hooks/useMicrophone';
 import { useWaveformVisualization } from '../../hooks/useWaveformVisualization';
 import HowToUse from '../../components/common/HowToUse';
+import '../../components/common/HowToUse.css';
 
 export default function LiveMicTab() {
   const [model, setModel] = useState('base');
@@ -135,8 +136,11 @@ export default function LiveMicTab() {
 
   return (
     <Box>
+      <div className="live-mic-sticky-title">
+        <h1 className="live-mic-title">Live Mic VAD</h1>
+      </div>
       <HowToUse
-        title="Live Mic VAD"
+        title=""
         subtitle="Real-time speech-to-text transcription as you speak"
         instructions="Click 'Start Recording' to begin. Grant microphone permissions when prompted. Speak clearly into your microphone. The transcription will appear in real-time as you speak. Adjust the VAD (Voice Activity Detection) threshold to control sensitivity. Click 'Stop Recording' when finished. You can copy the transcription or save it to your history."
       />

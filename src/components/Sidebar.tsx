@@ -30,7 +30,7 @@ const menuItems: MenuItem[] = [
   },
   { 
     id: 'audio-to-text', 
-    label: 'Audio to Text', 
+    label: 'Audio Tools', 
     icon: '🎵', 
     path: '/voice/transcribe',
     isExpandable: true,

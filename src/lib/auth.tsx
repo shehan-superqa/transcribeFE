@@ -10,6 +10,7 @@ import {
   getStoredUser,
   setStoredUser,
   refreshToken,
+  getTokenExpiration,
   ApiError,
 } from "./api";
 
@@ -31,23 +32,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     initializeAuth();
     
-    // Set up automatic token refresh (refresh every 14 minutes)
-    const refreshInterval = setInterval(async () => {
+    // Function to check and refresh token if needed
+    const checkAndRefreshToken = async () => {
       const accessToken = getAccessToken();
       const refreshTokenValue = getRefreshToken();
       
-      if (accessToken && refreshTokenValue) {
-        try {
+      if (!accessToken || !refreshTokenValue) {
+        return;
+      }
+
+      try {
+        // Check if token is expiring soon (within 5 minutes)
+        const tokenExpiration = getTokenExpiration(accessToken);
+        const now = Date.now();
+        const fiveMinutes = 5 * 60 * 1000;
+        
+        // If token expires within 5 minutes, refresh it
+        if (tokenExpiration && (tokenExpiration - now < fiveMinutes)) {
           await refreshToken();
           // Refresh user data after token refresh
           await refreshUserData();
-        } catch (error) {
-          console.error("Auto token refresh failed:", error);
-          // If refresh fails, logout user
+        }
+      } catch (error) {
+        console.error("Auto token refresh failed:", error);
+        // Don't logout immediately - token might still be valid
+        // Only logout if we get a clear error that refresh token is invalid
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        if (errorMessage.includes('invalid') || errorMessage.includes('expired') || errorMessage.includes('401')) {
           await signOut();
         }
       }
-    }, 14 * 60 * 1000); // 14 minutes
+    };
+
+    // Check immediately
+    checkAndRefreshToken();
+    
+    // Set up automatic token refresh (check every 5 minutes)
+    const refreshInterval = setInterval(checkAndRefreshToken, 5 * 60 * 1000);
 
     return () => clearInterval(refreshInterval);
   }, []);
@@ -68,10 +89,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             logoutUser();
             setUser(null);
           }
-        } catch (error) {
-          // If backend is not available, try refreshing token
+        } catch (error: any) {
+          // If backend is not available or token expired, try refreshing token
           const refreshTokenValue = getRefreshToken();
-          if (refreshTokenValue) {
+          const isAuthError = error?.message?.includes('401') || 
+                             error?.message?.includes('403') || 
+                             error?.message?.includes('Unauthorized') || 
+                             error?.message?.includes('Forbidden');
+          
+          if (refreshTokenValue && (isAuthError || !error?.message?.includes('fetch'))) {
             try {
               await refreshToken();
               const userResponse = await getCurrentUser();
@@ -83,12 +109,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 setUser(null);
               }
             } catch (refreshError) {
-              console.warn("Token refresh failed, using stored user");
-              setUser(storedUser);
+              // If refresh also fails, check if it's a network error
+              const refreshErrorMsg = refreshError instanceof Error ? refreshError.message : String(refreshError);
+              if (refreshErrorMsg.includes('fetch') || refreshErrorMsg.includes('network')) {
+                // Network error - keep user logged in with stored data
+                console.warn("Token refresh failed due to network error, using stored user");
+                setUser(storedUser);
+              } else {
+                // Refresh token is invalid - logout
+                console.error("Token refresh failed - refresh token invalid");
+                logoutUser();
+                setUser(null);
+              }
             }
-          } else {
+          } else if (!refreshTokenValue) {
+            // No refresh token available
             logoutUser();
             setUser(null);
+          } else {
+            // Network error but we have stored user - keep them logged in
+            console.warn("Backend unavailable, using stored user");
+            setUser(storedUser);
           }
         }
       } else {

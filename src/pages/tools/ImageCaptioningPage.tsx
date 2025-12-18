@@ -1,12 +1,16 @@
 import ImageCaptioningTool from '../../components/ImageCaptioningTool/ImageCaptioningTool';
 import HowToUse from '../../components/common/HowToUse';
+import '../../components/common/HowToUse.css';
 import './FeaturePage.css';
 
 export default function ImageCaptioningPage() {
   return (
     <div style={{ padding: '1rem', background: '#121212', minHeight: '100vh' }}>
+      <div className="tool-sticky-title">
+        <h1>Image Captioning Tool</h1>
+      </div>
       <HowToUse
-        title="Image Captioning Tool"
+        title=""
         subtitle="Upload images and generate detailed captions automatically"
         instructions="Upload images using drag & drop, paste from clipboard, or click to browse. Then click 'Generate All Captions' to caption all images, or generate captions individually. Once captions are generated, you can view, edit, or download them. You can also export all captioned images as a ZIP file."
       />

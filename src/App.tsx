@@ -86,75 +86,26 @@ function AppContent() {
               />
               <Route path="/use-cases" element={<UseCasesPage />} />
 
-              {/* Image Generation Landing Page */}
-              <Route
-                path="/image-generation"
-                element={
-                  <ProtectedRoute>
-                    <ImageGenerationLandingPage />
-                  </ProtectedRoute>
-                }
-              />
+              {/* Image Generation Landing Page - Public */}
+              <Route path="/image-generation" element={<ImageGenerationLandingPage />} />
 
-              {/* Video Generation Landing Page */}
-              <Route
-                path="/video-generation"
-                element={
-                  <ProtectedRoute>
-                    <VideoGenerationLandingPage />
-                  </ProtectedRoute>
-                }
-              />
+              {/* Video Generation Landing Page - Public */}
+              <Route path="/video-generation" element={<VideoGenerationLandingPage />} />
 
-              {/* Audio Generation Landing Page */}
-              <Route
-                path="/audio-generation"
-                element={
-                  <ProtectedRoute>
-                    <AudioGenerationLandingPage />
-                  </ProtectedRoute>
-                }
-              />
+              {/* Audio Generation Landing Page - Public */}
+              <Route path="/audio-generation" element={<AudioGenerationLandingPage />} />
 
-              {/* Protected Routes - Voice (Audio) Tools */}
-              <Route
-                path="/voice/*"
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
+              {/* Voice (Audio) Tools - Public (login required for actions) */}
+              <Route path="/voice/*" element={<Dashboard />} />
 
-              {/* Protected Routes - Video Tools */}
-              <Route
-                path="/video/*"
-                element={
-                  <ProtectedRoute>
-                    <ToolsDashboard />
-                  </ProtectedRoute>
-                }
-              />
+              {/* Video Tools - Public (login required for actions) */}
+              <Route path="/video/*" element={<ToolsDashboard />} />
 
-              {/* Protected Routes - Image Tools */}
-              <Route
-                path="/images/*"
-                element={
-                  <ProtectedRoute>
-                    <ImagesDashboard />
-                  </ProtectedRoute>
-                }
-              />
+              {/* Image Tools - Public (login required for actions) */}
+              <Route path="/images/*" element={<ImagesDashboard />} />
 
-              {/* Protected Routes - GPT-5 Tools */}
-              <Route
-                path="/gpt5/*"
-                element={
-                  <ProtectedRoute>
-                    <GPT5Dashboard />
-                  </ProtectedRoute>
-                }
-              />
+              {/* GPT-5 Tools - Public (login required for actions) */}
+              <Route path="/gpt5/*" element={<GPT5Dashboard />} />
 
               {/* Legacy dashboard route - redirect to voice */}
               <Route

@@ -234,35 +234,35 @@ export default function Dashboard() {
 
           {/* Transcriptions History - Right Side */}
           <div className="history-container">
-          <h2 className="history-title">
-            Transcription History
-          </h2>
-
-          {loading ? (
-            <div className="loading-state">
-              Loading transcriptions...
-            </div>
-          ) : error && !error.includes('Authentication failed') && !error.includes('Authentication service unavailable') ? (
-            <div className="error-state">
-              Error: {error}
-            </div>
-          ) : error && (error.includes('Authentication failed') || error.includes('Authentication service unavailable')) ? (
-            <div className="error-state">
-              <p>Unable to load transcription history. Please refresh the page or log in again.</p>
-            </div>
-          ) : transcriptions.length === 0 ? (
-            <div className="empty-state">
-              <p className="empty-state-text">No transcriptions yet</p>
-              <p className="empty-state-subtext">
-                Start transcribing by uploading an audio or video file, pasting a YouTube link, or recording audio above.
-              </p>
-            </div>
-          ) : (
-            <div className="transcriptions-grid">
-              {transcriptions.map((t) => (
-                <div
-                  key={t.id}
-                  className="transcription-card"
+            <h2 className="history-title">
+              Transcription History
+            </h2>
+            <div className="history-content">
+              {loading ? (
+                <div className="loading-state">
+                  Loading transcriptions...
+                </div>
+              ) : error && !error.includes('Authentication failed') && !error.includes('Authentication service unavailable') ? (
+                <div className="error-state">
+                  Error: {error}
+                </div>
+              ) : error && (error.includes('Authentication failed') || error.includes('Authentication service unavailable')) ? (
+                <div className="error-state">
+                  <p>Unable to load transcription history. Please refresh the page or log in again.</p>
+                </div>
+              ) : transcriptions.length === 0 ? (
+                <div className="empty-state">
+                  <p className="empty-state-text">No transcriptions yet</p>
+                  <p className="empty-state-subtext">
+                    Start transcribing by uploading an audio or video file, pasting a YouTube link, or recording audio above.
+                  </p>
+                </div>
+              ) : (
+                <div className="transcriptions-grid">
+                  {transcriptions.map((t) => (
+                    <div
+                      key={t.id}
+                      className="transcription-card"
                   onClick={async () => {
                     setSelectedTranscription(t);
                     // Fetch full job details to get file download URL and additional info
@@ -343,10 +343,11 @@ export default function Dashboard() {
                       </span>
                     </div>
                   )}
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
-          )}
           </div>
         </div>
 

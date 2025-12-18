@@ -1,11 +1,15 @@
 import HowToUse from '../../components/common/HowToUse';
+import '../../components/common/HowToUse.css';
 import './FeaturePage.css';
 
 export default function VideoTranslatorPage() {
   return (
     <div className="feature-page">
+      <div className="tool-sticky-title">
+        <h1>Video Translator</h1>
+      </div>
       <HowToUse
-        title="Video Translator"
+        title=""
         subtitle="Translate video content into multiple languages"
         instructions="Upload video files using drag & drop, paste from clipboard, or click to browse. You can also paste a YouTube link. Select the source language and target language for translation. The system will extract audio, transcribe it, and translate both the audio and subtitles to your chosen language. Click 'Translate' to start."
       />

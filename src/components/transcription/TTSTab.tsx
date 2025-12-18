@@ -27,12 +27,15 @@ import StatusLabel from './common/StatusLabel';
 import VoiceSelector from './tts/VoiceSelector';
 import AudioPlayer from './tts/AudioPlayer';
 import HowToUse from '../../components/common/HowToUse';
+import '../../components/common/HowToUse.css';
 import { submitTTSJob, getTTSJobStatus, getAvailableVoices, type Voice as TTSVoice, type TTSJobRequest } from '../../lib/api/ttsApi';
+import { useRequireAuth } from '../../hooks/useRequireAuth';
 
 export default function TTSTab() {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { requireAuth } = useRequireAuth();
   const [text, setText] = useState('');
   const [selectedVoice, setSelectedVoice] = useState<string>('');
   const [language, setLanguage] = useState<string>('en');
@@ -152,6 +155,11 @@ export default function TTSTab() {
       e.nativeEvent.stopImmediatePropagation();
     }
 
+    // Check authentication before submitting
+    if (!requireAuth()) {
+      return;
+    }
+
     if (!text.trim()) {
       setError('Please enter text to convert to speech');
       return;
@@ -229,8 +237,11 @@ export default function TTSTab() {
 
   return (
     <Box sx={{ p: { xs: 1.5, sm: 2, md: 3 } }}>
+      <div className="tool-sticky-title">
+        <h1>Text-to-Speech</h1>
+      </div>
       <HowToUse
-        title="Text-to-Speech"
+        title=""
         subtitle="Convert text into natural-sounding speech with multiple voice options"
         instructions="Enter the text you want to convert to speech in the input field. Select a voice from over 300 available voices, or use the search to find a specific voice. Optionally adjust emotion, language, speed, pitch, and volume settings. Click 'Generate Speech' to create the audio. Once generated, you can play, pause, or download the audio file."
       />

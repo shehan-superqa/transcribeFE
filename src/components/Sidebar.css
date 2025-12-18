@@ -9,7 +9,7 @@
   height: fit-content;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
   position: sticky;
-  top: 2rem;
+  top: 0;
   max-height: calc(100vh - 4rem);
   align-self: flex-start;
   overflow-x: hidden;
@@ -29,6 +29,7 @@
   overflow-y: visible;
   flex: 1;
   min-height: 0;
+  padding-bottom: 0.5rem;
 }
 
 .sidebar-bottom {

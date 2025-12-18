@@ -21,6 +21,14 @@ const imageTools: ImageTool[] = [
     color: '#4A90E2',
   },
   {
+    id: 'edit',
+    title: 'Image Editing',
+    description: 'Transform existing images with precision using AI-powered editing prompts',
+    icon: '✏️',
+    path: '/images/edit',
+    color: '#9B59B6',
+  },
+  {
     id: 'caption',
     title: 'Image Captioning',
     description: 'Generate detailed descriptions and captions for your images using AI',

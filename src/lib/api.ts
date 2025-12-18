@@ -151,7 +151,7 @@ let refreshPromise: Promise<string | null> | null = null;
  * Decode JWT token to get expiration time
  * Returns expiration timestamp in milliseconds, or null if invalid
  */
-function getTokenExpiration(token: string): number | null {
+export function getTokenExpiration(token: string): number | null {
   try {
     const parts = token.split('.');
     if (parts.length !== 3) return null;
