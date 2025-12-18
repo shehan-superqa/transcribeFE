@@ -1,7 +1,11 @@
 .tools-dashboard {
-  min-height: 100vh;
+  height: 100vh;
   background: #121212;
-  padding: 2rem;
+  padding: 2rem 1rem;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .tools-dashboard-container {
@@ -10,31 +14,52 @@
   display: flex;
   gap: 2rem;
   align-items: flex-start;
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .tools-main-content {
   flex: 1;
   min-width: 0;
+  min-height: 0;
+  height: 100%;
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* Responsive */
 @media (max-width: 1024px) {
   .tools-dashboard-container {
     flex-direction: column;
+    overflow: visible;
   }
 
   .tools-main-content {
     width: 100%;
+    max-height: none;
+    overflow-y: visible;
   }
 }
 
 @media (max-width: 768px) {
   .tools-dashboard {
-    padding: 1rem;
+    padding: 1rem 0.5rem;
+    height: auto;
+    min-height: 100vh;
+    overflow-y: visible;
   }
 
   .tools-dashboard-container {
     gap: 1.5rem;
+    overflow: visible;
+  }
+
+  .tools-main-content {
+    max-height: none;
+    overflow-y: visible;
   }
 }
 
