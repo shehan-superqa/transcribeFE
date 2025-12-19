@@ -18,16 +18,11 @@ interface CaptioningSession {
 
 const styles = {
   container: {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '2rem',
     padding: '2rem',
     borderRadius: '1.25rem',
     background: 'linear-gradient(145deg, #0f172a, #1e293b)',
     color: '#f8fafc',
     boxShadow: '0 10px 25px rgba(0, 0, 0, 0.25)',
-    maxWidth: '1400px',
-    margin: '2rem auto',
     fontFamily: 'Inter, system-ui, sans-serif',
   },
   header: {
@@ -314,78 +309,6 @@ const styles = {
     opacity: 0.5,
     cursor: 'not-allowed',
   },
-  containerWithHistory: {
-    display: 'flex',
-    flexDirection: 'row' as const,
-    gap: '2rem',
-    alignItems: 'flex-start' as const,
-  },
-  mainContent: {
-    flex: '1',
-    minWidth: 0,
-  },
-  historySidebar: {
-    minWidth: '350px',
-    maxWidth: '400px',
-    position: 'sticky' as const,
-    top: '2rem',
-    alignSelf: 'flex-start' as const,
-    maxHeight: 'calc(100vh - 4rem)',
-    overflowY: 'auto' as const,
-  },
-  historyContainer: {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '1rem',
-    padding: '1.5rem',
-    background: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: '0.75rem',
-    minHeight: 0,
-  },
-  historyTitle: {
-    margin: 0,
-    fontSize: '1.25rem',
-    fontWeight: 600,
-    color: '#f8fafc',
-  },
-  historyCard: {
-    padding: '1rem',
-    background: 'rgba(255, 255, 255, 0.03)',
-    borderRadius: '0.75rem',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-    transition: 'all 0.2s ease',
-  },
-  historyCardHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '0.5rem',
-  },
-  historyCardMeta: {
-    fontSize: '0.75rem',
-    color: '#94a3b8',
-    display: 'flex',
-    gap: '0.5rem',
-    flexWrap: 'wrap' as const,
-    marginBottom: '0.75rem',
-  },
-  historyDownloadButton: {
-    background: 'rgba(16, 185, 129, 0.2)',
-    border: '1px solid rgba(16, 185, 129, 0.4)',
-    color: '#6ee7b7',
-    padding: '0.5rem 1rem',
-    borderRadius: '0.5rem',
-    cursor: 'pointer',
-    fontSize: '0.85rem',
-    fontWeight: 500,
-    width: '100%',
-    transition: 'all 0.2s ease',
-  },
-  emptyHistory: {
-    textAlign: 'center' as const,
-    padding: '2rem',
-    color: '#94a3b8',
-  },
 };
 
 const STORAGE_KEY = 'image_captioning_history';
@@ -396,8 +319,6 @@ export default function ImageCaptioningTool() {
   const [images, setImages] = useState<ImageWithDescription[]>([]);
   const [isGeneratingAll, setIsGeneratingAll] = useState(false);
   const [isCreatingZip, setIsCreatingZip] = useState(false);
-  const [history, setHistory] = useState<CaptioningSession[]>([]);
-  const [historyLoading, setHistoryLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
@@ -408,23 +329,6 @@ export default function ImageCaptioningTool() {
     imagesRef.current = images;
   }, [images]);
 
-  // Load history from localStorage on mount
-  useEffect(() => {
-    const loadHistory = () => {
-      try {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) {
-          const sessions = JSON.parse(stored) as CaptioningSession[];
-          // Sort by timestamp (newest first)
-          sessions.sort((a, b) => b.timestamp - a.timestamp);
-          setHistory(sessions);
-        }
-      } catch (error) {
-        console.error('Error loading captioning history:', error);
-      }
-    };
-    loadHistory();
-  }, []);
 
   // Convert File to base64 preview
   const fileToPreview = (file: File): Promise<string> => {
@@ -607,13 +511,28 @@ export default function ImageCaptioningTool() {
         ),
       };
 
-      const updatedHistory = [session, ...history].slice(0, 50); // Keep last 50 sessions
-      setHistory(updatedHistory);
+      // Load existing history
+      const existingHistory: CaptioningSession[] = (() => {
+        try {
+          const stored = localStorage.getItem(STORAGE_KEY);
+          if (stored) {
+            return JSON.parse(stored) as CaptioningSession[];
+          }
+        } catch (error) {
+          console.error('Error loading history:', error);
+        }
+        return [];
+      })();
+      
+      const updatedHistory = [session, ...existingHistory].slice(0, 50); // Keep last 50 sessions
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedHistory));
+      
+      // Dispatch custom event to notify history component
+      window.dispatchEvent(new Event('captioningHistoryUpdated'));
     } catch (error) {
       console.error('Error saving session to history:', error);
     }
-  }, [history]);
+  }, []);
 
   // Create ZIP file with images and caption text files
   const createZip = useCallback(async () => {
@@ -670,66 +589,7 @@ export default function ImageCaptioningTool() {
     }
   }, [images, saveSessionToHistory]);
 
-  // Download ZIP from history
-  const downloadZipFromHistory = useCallback(async (session: CaptioningSession) => {
-    setIsCreatingZip(true);
-    
-    try {
-      const zip = new JSZip();
 
-      // Add each image and its corresponding caption text file
-      for (const imageData of session.images) {
-        // Convert data URL back to blob
-        const response = await fetch(imageData.fileData);
-        const blob = await response.blob();
-        
-        // Get the base name without extension
-        const fileName = imageData.fileName;
-        const baseName = fileName.substring(0, fileName.lastIndexOf('.')) || fileName;
-        
-        // Add the image file
-        zip.file(fileName, blob);
-        
-        // Add the caption text file with the same base name
-        if (imageData.caption) {
-          const txtFileName = `${baseName}.txt`;
-          zip.file(txtFileName, imageData.caption);
-        }
-      }
-
-      // Generate ZIP file
-      const zipBlob = await zip.generateAsync({ type: 'blob' });
-      
-      // Create download link
-      const url = URL.createObjectURL(zipBlob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `image-captions-${session.timestamp}.zip`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      // Clean up the URL
-      setTimeout(() => URL.revokeObjectURL(url), 100);
-    } catch (error: any) {
-      console.error('Error creating ZIP from history:', error);
-      alert('Failed to create ZIP file: ' + (error.message || 'Unknown error'));
-    } finally {
-      setIsCreatingZip(false);
-    }
-  }, []);
-
-  // Format date for display
-  const formatDate = useCallback((timestamp: number) => {
-    const date = new Date(timestamp);
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  }, []);
 
   // Filter images by search query
   const filteredImages = useMemo(() => {
@@ -774,8 +634,6 @@ export default function ImageCaptioningTool() {
 
   return (
     <div style={styles.container}>
-      <div style={styles.containerWithHistory}>
-        <div style={styles.mainContent}>
 
       <div
         {...getRootProps()}
@@ -1022,63 +880,6 @@ export default function ImageCaptioningTool() {
           )}
         </>
       )}
-        </div>
-
-        {/* History Sidebar */}
-        <div style={styles.historySidebar}>
-          <div style={styles.historyContainer}>
-            <h3 style={styles.historyTitle}>Captioning History</h3>
-            
-            {historyLoading ? (
-              <div style={styles.emptyHistory}>Loading history...</div>
-            ) : history.length === 0 ? (
-              <div style={styles.emptyHistory}>
-                <p>No captioning history yet</p>
-                <p style={{ fontSize: '0.85rem', marginTop: '0.5rem' }}>
-                  Create and download a ZIP to save it to history.
-                </p>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                {history.map((session) => (
-                  <div key={session.id} style={styles.historyCard}>
-                    <div style={styles.historyCardHeader}>
-                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#f8fafc' }}>
-                        {session.captionedCount} Image{session.captionedCount !== 1 ? 's' : ''}
-                      </span>
-                    </div>
-                    <div style={styles.historyCardMeta}>
-                      <span>{formatDate(session.timestamp)}</span>
-                    </div>
-                    <button
-                      onClick={() => downloadZipFromHistory(session)}
-                      disabled={isCreatingZip}
-                      style={{
-                        ...styles.historyDownloadButton,
-                        ...(isCreatingZip ? { opacity: 0.5, cursor: 'not-allowed' } : {}),
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!isCreatingZip) {
-                          e.currentTarget.style.background = 'rgba(16, 185, 129, 0.3)';
-                          e.currentTarget.style.borderColor = 'rgba(16, 185, 129, 0.6)';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isCreatingZip) {
-                          e.currentTarget.style.background = 'rgba(16, 185, 129, 0.2)';
-                          e.currentTarget.style.borderColor = 'rgba(16, 185, 129, 0.4)';
-                        }
-                      }}
-                    >
-                      📥 Download ZIP
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

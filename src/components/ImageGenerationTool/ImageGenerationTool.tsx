@@ -2,41 +2,20 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../lib/auth';
 import { useRequireAuth } from '../../hooks/useRequireAuth';
 import { submitImageJob, getImageJobStatus } from '../../lib/api/imageApi';
-import { getUserJobs } from '../../lib/api/jobsApi';
 import { useSSE } from '../../hooks/useSSE';
-import type { ImageJobRequest, ImageJobResult, ImageJob, Job } from '../../types/api';
+import type { ImageJobRequest, ImageJobResult } from '../../types/api';
 import './ImageGenerationTool.css';
 
 const styles = {
-  container: {
-    display: 'flex',
-    flexDirection: 'row' as const,
-    gap: '2rem',
+  formContainer: {
     padding: '2rem',
     borderRadius: '1.25rem',
     background: 'linear-gradient(145deg, #0f172a, #1e293b)',
     color: '#f8fafc',
     boxShadow: '0 10px 25px rgba(0, 0, 0, 0.25)',
-    maxWidth: '1600px',
-    margin: '2rem auto',
     fontFamily: 'Inter, system-ui, sans-serif',
-    alignItems: 'flex-start' as const,
-  },
-  formWrapper: {
-    flex: '1',
-    minWidth: 0,
-    maxWidth: '600px',
-  },
-  rightSidebar: {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '2rem',
-    minWidth: '400px',
-    position: 'sticky' as const,
-    top: '2rem',
-    alignSelf: 'flex-start' as const,
-    maxHeight: 'calc(100vh - 4rem)',
-    overflowY: 'auto' as const,
+    maxWidth: '900px',
+    width: '100%',
   },
   form: {
     display: 'flex',
@@ -64,6 +43,7 @@ const styles = {
     fontSize: '0.95rem',
     resize: 'vertical' as const,
     minHeight: '120px',
+    width: '100%',
   },
   input: {
     padding: '0.75rem 1rem',
@@ -73,6 +53,7 @@ const styles = {
     color: '#f8fafc',
     outline: 'none',
     fontSize: '0.95rem',
+    width: '100%',
   },
   select: {
     padding: '0.75rem 1rem',
@@ -87,6 +68,7 @@ const styles = {
     appearance: 'none' as const,
     WebkitAppearance: 'none' as const,
     MozAppearance: 'none' as const,
+    width: '100%',
   },
   advancedToggle: {
     background: 'transparent',
@@ -141,6 +123,7 @@ const styles = {
     cursor: 'pointer',
     transition: 'all 0.25s ease',
     boxShadow: '0 4px 12px rgba(99, 102, 241, 0.4)',
+    width: '100%',
   },
   submitButtonDisabled: {
     opacity: 0.5,
@@ -213,58 +196,6 @@ const styles = {
     textDecoration: 'none',
     display: 'inline-block',
   },
-  historyContainer: {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '1rem',
-    padding: '1.5rem',
-    background: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: '0.75rem',
-    minWidth: '350px',
-    maxWidth: '400px',
-    flexShrink: 0,
-    minHeight: 0,
-  },
-  historyTitle: {
-    margin: 0,
-    fontSize: '1.25rem',
-    fontWeight: 600,
-    color: '#f8fafc',
-  },
-  historyCard: {
-    padding: '1rem',
-    background: 'rgba(255, 255, 255, 0.03)',
-    borderRadius: '0.75rem',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-  },
-  historyCardHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '0.5rem',
-  },
-  historyCardPrompt: {
-    fontSize: '0.9rem',
-    color: '#cbd5e1',
-    marginBottom: '0.5rem',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap' as const,
-  },
-  historyCardMeta: {
-    fontSize: '0.75rem',
-    color: '#94a3b8',
-    display: 'flex',
-    gap: '0.5rem',
-    flexWrap: 'wrap' as const,
-  },
-  emptyHistory: {
-    textAlign: 'center' as const,
-    padding: '2rem',
-    color: '#94a3b8',
-  },
   charCount: {
     fontSize: '0.75rem',
     color: '#cbd5e1',
@@ -298,75 +229,10 @@ export default function ImageGenerationTool() {
   const [pollingProgress, setPollingProgress] = useState<number>(0);
   const [pollingStatus, setPollingStatus] = useState<string>('');
   const [pollingMessage, setPollingMessage] = useState<string>('');
-  const [imageHistory, setImageHistory] = useState<ImageJob[]>([]);
-  const [historyLoading, setHistoryLoading] = useState(false);
-  const [historyError, setHistoryError] = useState<string | null>(null);
 
   // Use SSE hook for progress tracking
   const { progress, status, message, result, error: sseError, isConnected } = useSSE(jobId);
 
-  // Fetch image job history
-  useEffect(() => {
-    const fetchImageHistory = async () => {
-      if (!user) return;
-      
-      setHistoryLoading(true);
-      setHistoryError(null);
-      
-      try {
-        const response = await getUserJobs(user.id);
-        if (response.success && response.jobs) {
-          // Filter for image jobs only
-          const imageJobs = response.jobs.filter(
-            (job: Job) => (job as any).job_type === 'image'
-          ).map((job: Job) => job as unknown as ImageJob);
-          
-          // Sort by created_at (newest first)
-          imageJobs.sort((a, b) => {
-            const dateA = new Date(a.created_at).getTime();
-            const dateB = new Date(b.created_at).getTime();
-            return dateB - dateA;
-          });
-          
-          setImageHistory(imageJobs);
-        }
-      } catch (err: any) {
-        console.error('Error fetching image history:', err);
-        setHistoryError(err?.message || 'Failed to load image history');
-      } finally {
-        setHistoryLoading(false);
-      }
-    };
-
-    fetchImageHistory();
-  }, [user]);
-
-  // Refresh history when a job completes
-  useEffect(() => {
-    if (imageUrls.length > 0 && user) {
-      const fetchImageHistory = async () => {
-        try {
-          const response = await getUserJobs(user.id);
-          if (response.success && response.jobs) {
-            const imageJobs = response.jobs.filter(
-              (job: Job) => (job as any).job_type === 'image'
-            ).map((job: Job) => job as unknown as ImageJob);
-            
-            imageJobs.sort((a, b) => {
-              const dateA = new Date(a.created_at).getTime();
-              const dateB = new Date(b.created_at).getTime();
-              return dateB - dateA;
-            });
-            
-            setImageHistory(imageJobs);
-          }
-        } catch (err) {
-          console.error('Error refreshing image history:', err);
-        }
-      };
-      fetchImageHistory();
-    }
-  }, [imageUrls, user]);
 
   const startPolling = useCallback(() => {
     if (!jobId) return;
@@ -624,50 +490,11 @@ export default function ImageGenerationTool() {
     ? (message || (currentStatus === 'queued' ? 'Job queued...' : currentStatus === 'processing' ? 'Generating image...' : ''))
     : (pollingMessage || (currentStatus === 'queued' ? 'Job queued...' : currentStatus === 'processing' ? 'Generating image...' : currentStatus === 'starting' ? 'Starting image generation...' : ''));
 
-  // Helper functions
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "completed":
-        return "#4caf50";
-      case "processing":
-      case "starting":
-        return "#ff9800";
-      case "error":
-      case "cancelled":
-        return "#f44336";
-      case "queued":
-        return "#2196f3";
-      default:
-        return "#666666";
-    }
-  };
-
-  const handleImageJobClick = (job: ImageJob) => {
-    const urls = job.result?.image_urls || 
-                (job.result?.image_url ? [job.result.image_url] : []) ||
-                job.image_output_urls ||
-                (job.image_output_url ? [job.image_output_url] : []);
-    if (urls.length > 0) {
-      setImageUrls(urls);
-      setJobId(job._id);
-    }
-  };
 
   return (
-    <div style={styles.container} className="image-generation-tool-container">
-      <div style={styles.formWrapper}>
-        <form onSubmit={handleSubmit} style={styles.form}>
+    <div style={styles.formContainer}>
+      <form onSubmit={handleSubmit} style={styles.form}>
         <div style={styles.inputGroup}>
           <label style={styles.label}>
             Prompt <span style={{ color: '#ef4444' }}>*</span>
@@ -932,121 +759,39 @@ export default function ImageGenerationTool() {
           </div>
         )}
       </form>
-      </div>
 
-      {/* Right Sidebar: Image Result + History */}
-      <div style={styles.rightSidebar}>
-        {imageUrls.length > 0 && (
-          <div style={styles.imageContainer}>
-            <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#f8fafc' }}>Generated Image{imageUrls.length > 1 ? 's' : ''}</h3>
-            {imageUrls.length === 1 ? (
-              <>
-                <img src={imageUrls[0]} alt="Generated" style={styles.image} />
-                <button
-                  onClick={() => handleDownload(imageUrls[0], 0)}
-                  style={styles.downloadButton}
-                >
-                  Download Image
-                </button>
-              </>
-            ) : (
-              <>
-                <div style={styles.imageGrid}>
-                  {imageUrls.map((url, index) => (
-                    <div key={index} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                      <img src={url} alt={`Generated ${index + 1}`} style={{ ...styles.image, maxHeight: '200px' }} />
-                      <button
-                        onClick={() => handleDownload(url, index)}
-                        style={{ ...styles.downloadButton, fontSize: '0.85rem', padding: '0.5rem 1rem' }}
-                      >
-                        Download {index + 1}
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-        )}
-
-        {/* Image History Section */}
-        <div style={styles.historyContainer}>
-        <h3 style={styles.historyTitle}>Image History</h3>
-        
-        {historyLoading ? (
-          <div style={styles.emptyHistory}>Loading history...</div>
-        ) : historyError ? (
-          <div style={{ ...styles.emptyHistory, color: '#f44336' }}>
-            {historyError}
-          </div>
-        ) : imageHistory.length === 0 ? (
-          <div style={styles.emptyHistory}>
-            <p>No image generations yet</p>
-            <p style={{ fontSize: '0.85rem', marginTop: '0.5rem' }}>
-              Start generating images using the form on the left.
-            </p>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {imageHistory.map((job) => {
-              const urls = job.result?.image_urls || 
-                          (job.result?.image_url ? [job.result.image_url] : []) ||
-                          job.image_output_urls ||
-                          (job.image_output_url ? [job.image_output_url] : []);
-              const hasImage = urls.length > 0;
-              return (
-                <div
-                  key={job._id}
-                  style={{
-                    ...styles.historyCard,
-                    ...(hasImage ? {} : { opacity: 0.7 }),
-                  }}
-                  onClick={() => hasImage && handleImageJobClick(job)}
-                  onMouseEnter={(e) => {
-                    if (hasImage) {
-                      e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.5)';
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (hasImage) {
-                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
-                    }
-                  }}
-                >
-                  <div style={styles.historyCardHeader}>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#f8fafc' }}>
-                      {job.prompt.length > 30 ? `${job.prompt.substring(0, 30)}...` : job.prompt}
-                    </span>
-                    <span
-                      style={{
-                        fontSize: '0.75rem',
-                        fontWeight: 600,
-                        color: getStatusColor(job.status),
-                        textTransform: 'uppercase',
-                      }}
+      {imageUrls.length > 0 && (
+        <div style={styles.imageContainer}>
+          <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#f8fafc', marginBottom: '1rem' }}>Generated Image{imageUrls.length > 1 ? 's' : ''}</h3>
+          {imageUrls.length === 1 ? (
+            <>
+              <img src={imageUrls[0]} alt="Generated" style={styles.image} />
+              <button
+                onClick={() => handleDownload(imageUrls[0], 0)}
+                style={styles.downloadButton}
+              >
+                Download Image
+              </button>
+            </>
+          ) : (
+            <>
+              <div style={styles.imageGrid}>
+                {imageUrls.map((url, index) => (
+                  <div key={index} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <img src={url} alt={`Generated ${index + 1}`} style={{ ...styles.image, maxHeight: '200px' }} />
+                    <button
+                      onClick={() => handleDownload(url, index)}
+                      style={{ ...styles.downloadButton, fontSize: '0.85rem', padding: '0.5rem 1rem' }}
                     >
-                      {job.status}
-                    </span>
+                      Download {index + 1}
+                    </button>
                   </div>
-                  <div style={styles.historyCardMeta}>
-                    <span>{formatDate(job.created_at)}</span>
-                    {job.width && job.height && <span>• {job.width}x{job.height}</span>}
-                    {job.result?.model && <span>• {job.result.model.split('/').pop()}</span>}
-                  </div>
-                  {hasImage && (
-                    <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#4caf50' }}>
-                      ✓ Image available - Click to view
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
+                ))}
+              </div>
+            </>
+          )}
         </div>
-      </div>
+      )}
     </div>
   );
 }

@@ -1,42 +1,20 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../../lib/auth';
 import { submitImageEditJob, getImageEditJobStatus } from '../../lib/api/imageEditApi';
-import { getUserJobs } from '../../lib/api/jobsApi';
 import { useSSE } from '../../hooks/useSSE';
 import type { ImageEditJobRequest, ImageEditJobResult, ImageEditJob, Job } from '../../types/api';
 import './ImageEditingTool.css';
 
 const styles = {
   container: {
-    display: 'flex',
-    flexDirection: 'row' as const,
-    gap: '2rem',
     padding: '2rem',
     borderRadius: '1.25rem',
     background: 'linear-gradient(145deg, #0f172a, #1e293b)',
     color: '#f8fafc',
     boxShadow: '0 10px 25px rgba(0, 0, 0, 0.25)',
-    maxWidth: '1600px',
-    margin: '2rem auto',
     fontFamily: 'Inter, system-ui, sans-serif',
-    alignItems: 'flex-start' as const,
-  },
-  formWrapper: {
-    flex: '1',
-    minWidth: 0,
-    maxWidth: '700px',
-    overflow: 'hidden',
-  },
-  rightSidebar: {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '2rem',
-    minWidth: '400px',
-    position: 'sticky' as const,
-    top: '2rem',
-    alignSelf: 'flex-start' as const,
-    maxHeight: 'calc(100vh - 4rem)',
-    overflowY: 'auto' as const,
+    maxWidth: '900px',
+    width: '100%',
   },
   form: {
     display: 'flex',
@@ -241,53 +219,6 @@ const styles = {
     alignSelf: 'flex-start',
     marginTop: '0.5rem',
   },
-  historyContainer: {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '1rem',
-    padding: '1.5rem',
-    background: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: '0.75rem',
-    minWidth: '350px',
-    maxWidth: '400px',
-  },
-  historyTitle: {
-    margin: 0,
-    fontSize: '1.25rem',
-    fontWeight: 600,
-    color: '#f8fafc',
-  },
-  historyCard: {
-    padding: '1rem',
-    background: 'rgba(255, 255, 255, 0.03)',
-    borderRadius: '0.75rem',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-  },
-  historyCardHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '0.5rem',
-  },
-  historyCardPrompt: {
-    fontSize: '0.9rem',
-    color: '#cbd5e1',
-    marginBottom: '0.5rem',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap' as const,
-  },
-  historyCardMeta: {
-    fontSize: '0.75rem',
-    color: '#94a3b8',
-  },
-  emptyHistory: {
-    textAlign: 'center' as const,
-    padding: '2rem',
-    color: '#94a3b8',
-  },
 };
 
 type EditCategory = 'add' | 'remove' | 'modify' | 'text' | 'people' | 'camera' | 'background' | 'multi-step';
@@ -377,72 +308,12 @@ export default function ImageEditingTool() {
   const [pollingProgress, setPollingProgress] = useState<number>(0);
   const [pollingStatus, setPollingStatus] = useState<string>('');
   const [pollingMessage, setPollingMessage] = useState<string>('');
-  const [editHistory, setEditHistory] = useState<ImageEditJob[]>([]);
-  const [historyLoading, setHistoryLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Use SSE hook for progress tracking
   const { progress, status, message, result, error: sseError, isConnected } = useSSE(jobId, streamUrl);
 
-  // Fetch edit history
-  useEffect(() => {
-    const fetchEditHistory = async () => {
-      if (!user) return;
-      
-      setHistoryLoading(true);
-      
-      try {
-        const response = await getUserJobs(user.id);
-        if (response.success && response.jobs) {
-          const editJobs = response.jobs.filter(
-            (job: Job) => (job as any).job_type === 'image_edit'
-          ).map((job: Job) => job as unknown as ImageEditJob);
-          
-          editJobs.sort((a, b) => {
-            const dateA = new Date(a.created_at).getTime();
-            const dateB = new Date(b.created_at).getTime();
-            return dateB - dateA;
-          });
-          
-          setEditHistory(editJobs);
-        }
-      } catch (err: any) {
-        console.error('Error fetching edit history:', err);
-      } finally {
-        setHistoryLoading(false);
-      }
-    };
-
-    fetchEditHistory();
-  }, [user]);
-
-  // Refresh history when a job completes
-  useEffect(() => {
-    if (editedImageUrl && user) {
-      const fetchEditHistory = async () => {
-        try {
-          const response = await getUserJobs(user.id);
-          if (response.success && response.jobs) {
-            const editJobs = response.jobs.filter(
-              (job: Job) => (job as any).job_type === 'image_edit'
-            ).map((job: Job) => job as unknown as ImageEditJob);
-            
-            editJobs.sort((a, b) => {
-              const dateA = new Date(a.created_at).getTime();
-              const dateB = new Date(b.created_at).getTime();
-              return dateB - dateA;
-            });
-            
-            setEditHistory(editJobs);
-          }
-        } catch (err) {
-          console.error('Error refreshing edit history:', err);
-        }
-      };
-      fetchEditHistory();
-    }
-  }, [editedImageUrl, user]);
 
   const startPolling = useCallback(() => {
     if (!jobId) return;
@@ -797,50 +668,14 @@ export default function ImageEditingTool() {
     }
   };
 
-  const handleHistoryClick = (job: ImageEditJob) => {
-    if (job.result?.image_url) {
-      setEditedImageUrl(job.result.image_url);
-    }
-    if (job.original_image_url) {
-      setOriginalImageUrls([job.original_image_url]);
-      // Convert URL to file for editing
-      fetch(job.original_image_url)
-        .then(res => res.blob())
-        .then(blob => {
-          const file = new File([blob], `image-${Date.now()}.png`, { type: blob.type });
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            setImageFiles([{
-              file,
-              preview: reader.result as string,
-              id: `${Date.now()}-${Math.random()}`,
-            }]);
-          };
-          reader.readAsDataURL(file);
-        })
-        .catch(err => console.error('Error loading image:', err));
-    }
-    if (job.prompt) {
-      // Try to parse prompt back into components (basic attempt)
-      const parts = job.prompt.split(',');
-      if (parts.length >= 3) {
-        setModificationInstruction(parts[0].trim());
-        setChangeTarget(parts[1].trim());
-        setPreservationRequirements(parts.slice(2).join(',').trim());
-      } else {
-        setModificationInstruction(job.prompt);
-      }
-    }
-  };
 
   const currentProgress = isConnected ? progress : pollingProgress;
   const currentStatus = isConnected ? status : pollingStatus;
   const currentMessage = isConnected ? message : pollingMessage;
 
   return (
-    <div style={styles.container} className="image-editing-tool-container">
-      <div style={styles.formWrapper}>
-        <form onSubmit={handleSubmit} style={styles.form}>
+    <div style={styles.container}>
+      <form onSubmit={handleSubmit} style={styles.form}>
           {/* Image Upload */}
           <div style={styles.inputGroup}>
             <label style={styles.label}>
@@ -1133,13 +968,11 @@ export default function ImageEditingTool() {
             </p>
           )}
         </form>
-      </div>
 
-      {/* Right Sidebar: Results + History */}
-      <div style={styles.rightSidebar}>
+        {/* Before & After Section */}
         {(originalImageUrls.length > 0 || editedImageUrl) && (
-          <div style={styles.imageContainer}>
-            <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#f8fafc' }}>Before & After</h3>
+          <div style={{ marginTop: '2rem', padding: '1.5rem', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '0.75rem' }}>
+            <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem', color: '#f8fafc' }}>Before & After</h3>
             <div style={styles.beforeAfterContainer}>
               {originalImageUrls.length > 0 && (
                 <div style={styles.imageWrapper}>
@@ -1180,43 +1013,6 @@ export default function ImageEditingTool() {
             </div>
           </div>
         )}
-
-        {/* Edit History */}
-        <div style={styles.historyContainer}>
-          <h3 style={styles.historyTitle}>Edit History</h3>
-          {historyLoading ? (
-            <div style={styles.emptyHistory}>Loading history...</div>
-          ) : editHistory.length === 0 ? (
-            <div style={styles.emptyHistory}>No edit history yet</div>
-          ) : (
-            editHistory.map((job) => (
-              <div
-                key={job._id}
-                style={styles.historyCard}
-                onClick={() => handleHistoryClick(job)}
-              >
-                <div style={styles.historyCardHeader}>
-                  <span style={{ color: '#f8fafc', fontSize: '0.85rem', fontWeight: 600 }}>
-                    {new Date(job.created_at).toLocaleDateString()}
-                  </span>
-                  <span
-                    style={{
-                      color: job.status === 'completed' ? '#10b981' : job.status === 'error' ? '#ef4444' : '#94a3b8',
-                      fontSize: '0.75rem',
-                    }}
-                  >
-                    {job.status}
-                  </span>
-                </div>
-                <div style={styles.historyCardPrompt}>{job.prompt}</div>
-                <div style={styles.historyCardMeta}>
-                  {job.result?.image_url && '✓ Completed'}
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
     </div>
   );
 }
