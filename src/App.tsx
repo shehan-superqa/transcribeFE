@@ -35,7 +35,7 @@ function AuthModalWrapper() {
     <AuthModal
       isOpen={isOpen}
       onClose={closeModal}
-      onSuccess={onSuccessCallback || undefined}
+      onSuccess={typeof onSuccessCallback === 'function' ? onSuccessCallback : undefined}
       initialMode={mode}
     />
   );

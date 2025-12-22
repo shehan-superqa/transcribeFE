@@ -45,8 +45,10 @@ export default function AuthModal({ isOpen, onClose, onSuccess, initialMode = "l
     if (isAuthenticated && user && isOpen) {
       // Check if email is verified
       if (user.isEmailVerified) {
-        // Close modal and call success callback
-        onSuccess?.();
+        // Close modal and call success callback if it's a function
+        if (typeof onSuccess === 'function') {
+          onSuccess();
+        }
         onClose();
       } else {
         setShowEmailVerificationPrompt(true);
