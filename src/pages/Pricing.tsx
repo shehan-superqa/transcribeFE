@@ -1,33 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../lib/auth';
 import { useNavigate } from 'react-router-dom';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+import { useTheme } from '../contexts/ThemeContext';
 import { Box, Typography, Container, Grid } from '@mui/material';
 import PricingTabs from '../components/pricing/PricingTabs';
 import PricingCard from '../components/pricing/PricingCard';
 import BillingToggle from '../components/pricing/BillingToggle';
 import { pricingData, type ServiceType, type BillingPeriod } from '../data/pricingData';
 
-const darkTheme = createTheme({
-  palette: {
-    mode: 'dark',
-    primary: {
-      main: '#00c6ff',
-    },
-    background: {
-      default: '#0a0a0a',
-      paper: '#1a1a1a',
-    },
-    text: {
-      primary: '#e0e0e0',
-      secondary: '#a0a0a0',
-    },
-  },
-});
-
 export default function Pricing() {
   const { user } = useAuth();
+  const { theme } = useTheme();
   const navigate = useNavigate();
   const [currentService, setCurrentService] = useState<ServiceType>('transcription');
   const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('monthly');
@@ -69,7 +54,7 @@ export default function Pricing() {
     : 'Video Generation';
 
   return (
-    <ThemeProvider theme={darkTheme}>
+    <ThemeProvider theme={theme}>
       <CssBaseline />
       <Box
         sx={{

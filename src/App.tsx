@@ -1,9 +1,11 @@
 import { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Provider } from "react-redux";
+import { useTheme } from "./contexts/ThemeContext";
 import { AuthProvider } from "./lib/auth";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import { AuthModalProvider } from "./contexts/AuthModalContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
 import { store } from "./store";
 import { checkAuth } from "./store/authSlice";
 import "./App.css";
@@ -23,6 +25,8 @@ import ValidateToken from "./pages/ValidateToken";
 import PaymentPurchase from "./pages/PaymentPurchase";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancel from "./pages/PaymentCancel";
+import FinancialToolPage from "./pages/FinancialToolPage";
+import FinancialToolApp from "./pages/FinancialToolApp";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AuthModal from "./components/AuthModal/AuthModal";
 import { useAuthModal } from "./contexts/AuthModalContext";
@@ -41,21 +45,31 @@ function AuthModalWrapper() {
   );
 }
 
-function AppContent() {
+function AppContentInner() {
+  const { theme } = useTheme();
+  
   useEffect(() => {
     // Check authentication on app start
     store.dispatch(checkAuth());
   }, []);
 
+  const footerStyles = {
+    backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb',
+    color: theme.palette.mode === 'dark' ? '#ffffff' : '#111827',
+    padding: "2rem 1.5rem",
+    marginTop: "auto",
+    borderTop: theme.palette.mode === 'dark' ? '1px solid #333333' : '1px solid #e5e7eb',
+  };
+
   return (
     <NotificationProvider>
-    <AuthProvider>
-      <AuthModalProvider>
-        <Router>
-          <div style={styles.app}>
-            <Header />
-            <main style={styles.main}>
-              <Routes>
+      <AuthProvider>
+        <AuthModalProvider>
+          <Router>
+            <div style={styles.app}>
+              <Header />
+              <main style={styles.main}>
+                <Routes>
                 <Route path="/" element={<Home />} />
 
                 {/* Login/Signup handled in the same page */}
@@ -112,23 +126,37 @@ function AppContent() {
                 {/* Legacy tools route - redirect to video */}
                 <Route path="/tools/*" element={<Navigate to="/video/text-to-video" replace />} />
 
+                {/* Financial Documentation Tool - Public Route */}
+                <Route path="/financialtool" element={<FinancialToolPage />} />
+
+                {/* Financial Tool Application */}
+                <Route path="/financialtool/app" element={<FinancialToolApp />} />
+
                 {/* Fallback */}
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
-            </main>
-            <footer style={styles.footer}>
-              <div style={styles.footerContent}>
-                <p style={styles.footerText}>
-                  &copy; 2024 VoiceScribe. Transform voice to text instantly.
-                </p>
-              </div>
-            </footer>
-            <AuthModalWrapper />
-          </div>
-        </Router>
-      </AuthModalProvider>
-    </AuthProvider>
+              </main>
+              <footer style={footerStyles}>
+                <div style={styles.footerContent}>
+                  <p style={{ ...styles.footerText, opacity: theme.palette.mode === 'dark' ? 0.8 : 0.7 }}>
+                    &copy; 2024 VoiceScribe. Transform voice to text instantly.
+                  </p>
+                </div>
+              </footer>
+              <AuthModalWrapper />
+            </div>
+          </Router>
+        </AuthModalProvider>
+      </AuthProvider>
     </NotificationProvider>
+  );
+}
+
+function AppContent() {
+  return (
+    <ThemeProvider>
+      <AppContentInner />
+    </ThemeProvider>
   );
 }
 
@@ -149,12 +177,6 @@ const styles = {
   },
   main: {
     flex: 1,
-  },
-  footer: {
-    backgroundColor: "#1a1a1a",
-    color: "white",
-    padding: "2rem 1.5rem",
-    marginTop: "auto",
   },
   footerContent: {
     maxWidth: "1200px",

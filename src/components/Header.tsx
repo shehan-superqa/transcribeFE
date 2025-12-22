@@ -1,23 +1,28 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
+import { useTheme } from '../contexts/ThemeContext';
 import { FiMenu, FiX, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import { FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
+import { IconButton } from '@mui/material';
+import { Brightness4, Brightness7 } from '@mui/icons-material';
 import EnergyPointsBalance from './common/EnergyPointsBalance';
 
 // -------------------------
 // 1. NavLink Component
 // -------------------------
-const NavLink = ({ to, children, onClick }: { to?: string; children: React.ReactNode; onClick?: () => void }) => {
+const NavLink = ({ to, children, onClick, theme }: { to?: string; children: React.ReactNode; onClick?: () => void; theme?: any }) => {
   const [hover, setHover] = useState(false);
+  const textColor = theme?.palette?.mode === 'dark' ? '#ffffff' : '#111827';
+  const hoverBg = theme?.palette?.mode === 'dark' ? '#1a1a1a' : '#f3f4f6';
 
   const commonStyles = {
     fontFamily: "'Inter', sans-serif",
     fontWeight: 400,
     fontSize: '0.8rem',
     textDecoration: 'none',
-    color: '#ffffff',
-    backgroundColor: hover ? '#1a1a1a' : 'transparent',
+    color: textColor,
+    backgroundColor: hover ? hoverBg : 'transparent',
     padding: '0.4rem 0.6rem',
     borderRadius: '4px',
     transition: 'all 0.2s ease-in-out',
@@ -110,14 +115,19 @@ const SectionItem = ({ to, title, description }: { to: string; title: string; de
   );
 };
 
-const DropdownSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <div style={{ minWidth: '220px', flexShrink: 0, borderLeft: '1px solid #1a1a1a', padding: '0.5rem 0' }}>
-    <h3 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: '0.75rem', color: '#aaaaaa', textTransform: 'uppercase', padding: '0 1rem 0.5rem 1rem', margin: 0 }}>
-      {title}
-    </h3>
-    {children}
-  </div>
-);
+const DropdownSection = ({ title, children, theme }: { title: string; children: React.ReactNode; theme?: any }) => {
+  const borderColor = theme?.palette?.mode === 'dark' ? '#1a1a1a' : '#e5e7eb';
+  const textColor = theme?.palette?.mode === 'dark' ? '#aaaaaa' : '#6b7280';
+  
+  return (
+    <div style={{ minWidth: '220px', flexShrink: 0, borderLeft: `1px solid ${borderColor}`, padding: '0.5rem 0' }}>
+      <h3 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: '0.75rem', color: textColor, textTransform: 'uppercase', padding: '0 1rem 0.5rem 1rem', margin: 0 }}>
+        {title}
+      </h3>
+      {children}
+    </div>
+  );
+};
 
 const HighlightedItem = ({ to, title, description }: { to: string; title: string; description: string }) => {
   const [hover, setHover] = useState(false);
@@ -150,13 +160,18 @@ const HighlightedItem = ({ to, title, description }: { to: string; title: string
   );
 };
 
-const ToolsDropdown = ({ isMobile }: { isMobile: boolean }) => {
+const ToolsDropdown = ({ isMobile, theme }: { isMobile: boolean; theme?: any }) => {
+  const dropdownBg = theme?.palette?.mode === 'dark' ? '#0d0d0d' : '#ffffff';
+  const scrollbarTrack = theme?.palette?.mode === 'dark' ? '#0d0d0d' : '#f3f4f6';
+  const scrollbarThumb = theme?.palette?.mode === 'dark' ? '#333333' : '#d1d5db';
+  const scrollbarThumbHover = theme?.palette?.mode === 'dark' ? '#444444' : '#9ca3af';
+  
   if (isMobile) {
     return (
-      <div style={{ backgroundColor: '#0d0d0d', borderRadius: '8px', boxShadow: '0 8px 20px rgba(0,0,0,0.5)', overflow: 'hidden', padding: '0.5rem', width: '100%' }}>
+      <div style={{ backgroundColor: dropdownBg, borderRadius: '8px', boxShadow: theme?.palette?.mode === 'dark' ? '0 8px 20px rgba(0,0,0,0.5)' : '0 8px 20px rgba(0,0,0,0.1)', overflow: 'hidden', padding: '0.5rem', width: '100%' }}>
         <HighlightedItem to="/voice/transcribe" title="Audio to Text" description="Convert audio files to accurate text transcriptions" />
         <div style={{ display: 'flex', flexDirection: 'column', marginTop: '0.5rem' }}>
-          <DropdownSection title="VOICE (AUDIO) TOOLS">
+          <DropdownSection title="VOICE (AUDIO) TOOLS" theme={theme}>
             <SectionItem to="/voice/transcribe" title="Audio to Text" description="Convert audio files to text" />
             <SectionItem to="/voice/batch" title="Batch Processing" description="Process multiple audio files" />
             <SectionItem to="/voice/live" title="Live Transcription" description="Real-time speech-to-text" />
@@ -167,7 +182,7 @@ const ToolsDropdown = ({ isMobile }: { isMobile: boolean }) => {
             <SectionItem to="/voice/live-translator" title="Real-Time Translator" description="Translate speech in real-time" />
             <SectionItem to="/voice/live-voice-translator" title="Live Voice Translator" description="Translate voice conversations" />
           </DropdownSection>
-          <DropdownSection title="VIDEO TOOLS">
+          <DropdownSection title="VIDEO TOOLS" theme={theme}>
             <SectionItem to="/video/text-to-video" title="Text to Video" description="Generate videos from text prompts" />
             <SectionItem to="/video/to-text" title="Video to Text" description="Extract text from video files" />
             <SectionItem to="/video/dubber" title="Video Dubber" description="Dub videos with new audio" />
@@ -180,10 +195,10 @@ const ToolsDropdown = ({ isMobile }: { isMobile: boolean }) => {
   }
   
   return (
-    <div className="tools-dropdown-scroll" style={{ display: 'flex', backgroundColor: '#0d0d0d', borderRadius: '8px', boxShadow: '0 8px 20px rgba(0,0,0,0.5)', overflowX: 'auto', overflowY: 'hidden', minWidth: '600px', maxWidth: '900px', padding: '0.5rem', scrollbarWidth: 'thin', scrollbarColor: '#333333 #0d0d0d' }}>
+    <div className="tools-dropdown-scroll" style={{ display: 'flex', backgroundColor: dropdownBg, borderRadius: '8px', boxShadow: theme?.palette?.mode === 'dark' ? '0 8px 20px rgba(0,0,0,0.5)' : '0 8px 20px rgba(0,0,0,0.1)', overflowX: 'auto', overflowY: 'hidden', minWidth: '600px', maxWidth: '900px', padding: '0.5rem', scrollbarWidth: 'thin', scrollbarColor: `${scrollbarThumb} ${scrollbarTrack}` }}>
       <HighlightedItem to="/voice/transcribe" title="Audio to Text" description="Convert audio files to accurate text transcriptions instantly." />
       <div style={{ display: 'flex', flexShrink: 0 }}>
-        <DropdownSection title="VOICE (AUDIO) TOOLS">
+        <DropdownSection title="VOICE (AUDIO) TOOLS" theme={theme}>
           <SectionItem to="/voice/transcribe" title="Audio to Text" description="Convert audio files to text" />
           <SectionItem to="/voice/batch" title="Batch Processing" description="Process multiple audio files" />
           <SectionItem to="/voice/live" title="Live Transcription" description="Real-time speech-to-text" />
@@ -194,7 +209,7 @@ const ToolsDropdown = ({ isMobile }: { isMobile: boolean }) => {
           <SectionItem to="/voice/live-translator" title="Real-Time Translator" description="Translate speech in real-time" />
           <SectionItem to="/voice/live-voice-translator" title="Live Voice Translator" description="Translate voice conversations" />
         </DropdownSection>
-        <DropdownSection title="VIDEO TOOLS">
+        <DropdownSection title="VIDEO TOOLS" theme={theme}>
           <SectionItem to="/video/text-to-video" title="Text to Video" description="Generate videos from text prompts" />
           <SectionItem to="/video/to-text" title="Video to Text" description="Extract text from video files" />
           <SectionItem to="/video/dubber" title="Video Dubber" description="Dub videos with new audio" />
@@ -206,17 +221,22 @@ const ToolsDropdown = ({ isMobile }: { isMobile: boolean }) => {
   );
 };
 
-const ComplexDropdown = ({ isMobile }: { isMobile: boolean }) => {
+const ComplexDropdown = ({ isMobile, theme }: { isMobile: boolean; theme?: any }) => {
+  const dropdownBg = theme?.palette?.mode === 'dark' ? '#0d0d0d' : '#ffffff';
+  const scrollbarTrack = theme?.palette?.mode === 'dark' ? '#0d0d0d' : '#f3f4f6';
+  const scrollbarThumb = theme?.palette?.mode === 'dark' ? '#333333' : '#d1d5db';
+  const textColor = theme?.palette?.mode === 'dark' ? '#aaaaaa' : '#6b7280';
+  
   if (isMobile) {
     return (
-      <div style={{ backgroundColor: '#0d0d0d', borderRadius: '8px', boxShadow: '0 8px 20px rgba(0,0,0,0.5)', overflow: 'hidden', padding: '0.5rem', width: '100%' }}>
+      <div style={{ backgroundColor: dropdownBg, borderRadius: '8px', boxShadow: theme?.palette?.mode === 'dark' ? '0 8px 20px rgba(0,0,0,0.5)' : '0 8px 20px rgba(0,0,0,0.1)', overflow: 'hidden', padding: '0.5rem', width: '100%' }}>
         <HighlightedItem to="/pricing" title="Secure Comm." description="End-to-end encryption for all voice and data streams." />
         <div style={{ display: 'flex', flexDirection: 'column', marginTop: '0.5rem' }}>
-          <DropdownSection title="CORE FEATURES">
+          <DropdownSection title="CORE FEATURES" theme={theme}>
             <SectionItem to="/pricing" title="Voice Biometrics" description="Verify user identity using unique voice prints (IVR)" />
             <SectionItem to="/pricing" title="Data Tokenization" description="Anonymize sensitive data in real-time conversations" />
             <div style={{ padding: '0.5rem 1rem 0.25rem 1rem' }}>
-              <h3 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: '0.75rem', color: '#aaaaaa', textTransform: 'uppercase', margin: '0.5rem 0 0.25rem 0' }}>
+              <h3 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: '0.75rem', color: textColor, textTransform: 'uppercase', margin: '0.5rem 0 0.25rem 0' }}>
                 USE CASES
               </h3>
             </div>
@@ -229,14 +249,14 @@ const ComplexDropdown = ({ isMobile }: { isMobile: boolean }) => {
   }
   
   return (
-    <div className="tools-dropdown-scroll" style={{ display: 'flex', backgroundColor: '#0d0d0d', borderRadius: '8px', boxShadow: '0 8px 20px rgba(0,0,0,0.5)', overflowX: 'auto', overflowY: 'hidden', minWidth: '600px', maxWidth: '900px', padding: '0.5rem', scrollbarWidth: 'thin', scrollbarColor: '#333333 #0d0d0d' }}>
+    <div className="tools-dropdown-scroll" style={{ display: 'flex', backgroundColor: dropdownBg, borderRadius: '8px', boxShadow: theme?.palette?.mode === 'dark' ? '0 8px 20px rgba(0,0,0,0.5)' : '0 8px 20px rgba(0,0,0,0.1)', overflowX: 'auto', overflowY: 'hidden', minWidth: '600px', maxWidth: '900px', padding: '0.5rem', scrollbarWidth: 'thin', scrollbarColor: `${scrollbarThumb} ${scrollbarTrack}` }}>
       <HighlightedItem to="/pricing" title="Secure Comm." description="End-to-end encryption for all voice and data streams." />
       <div style={{ display: 'flex', flexShrink: 0 }}>
-        <DropdownSection title="CORE FEATURES">
+        <DropdownSection title="CORE FEATURES" theme={theme}>
           <SectionItem to="/pricing" title="Voice Biometrics" description="Verify user identity using unique voice prints (IVR)" />
           <SectionItem to="/pricing" title="Data Tokenization" description="Anonymize sensitive data in real-time conversations" />
           <div style={{ padding: '0.5rem 1rem 0.25rem 1rem' }}>
-            <h3 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: '0.75rem', color: '#aaaaaa', textTransform: 'uppercase', margin: '0.5rem 0 0.25rem 0' }}>
+            <h3 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: '0.75rem', color: textColor, textTransform: 'uppercase', margin: '0.5rem 0 0.25rem 0' }}>
               USE CASES
             </h3>
           </div>
@@ -252,6 +272,7 @@ const ComplexDropdown = ({ isMobile }: { isMobile: boolean }) => {
 // -------------------------
 export default function Header() {
   const { user, signOut, refreshUser } = useAuth();
+  const { mode, toggleTheme, theme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -348,6 +369,15 @@ export default function Header() {
   const handleCloseToolsDropdown = () => isDesktop && setToolsDropdownOpen(false);
   const handleToggleToolsDropdown = () => !isDesktop && setToolsDropdownOpen(!toolsDropdownOpen);
 
+  // Theme-aware styles - define before using
+  const headerBg = theme.palette.mode === 'dark' ? '#000' : '#ffffff';
+  const headerBorder = theme.palette.mode === 'dark' ? '#1a1a1a' : '#e5e7eb';
+  const textColor = theme.palette.mode === 'dark' ? '#ffffff' : '#111827';
+  const dropdownBg = theme.palette.mode === 'dark' ? '#0d0d0d' : '#ffffff';
+  const dropdownBorder = theme.palette.mode === 'dark' ? '#1a1a1a' : '#e5e7eb';
+  const hoverBg = theme.palette.mode === 'dark' ? '#1a1a1a' : '#f3f4f6';
+  const secondaryText = theme.palette.mode === 'dark' ? '#aaaaaa' : '#6b7280';
+
   const styles = {
     header: { backgroundColor: '#000', borderBottom: '1px solid #1a1a1a', position: 'sticky' as const, top: 0, zIndex: 200, padding: '0.75rem 2rem' },
     headerMobile: { backgroundColor: '#000', borderBottom: '1px solid #1a1a1a', position: 'sticky' as const, top: 0, zIndex: 200, padding: '0.75rem 1rem' },
@@ -375,15 +405,15 @@ export default function Header() {
           height: 8px;
         }
         .tools-dropdown-scroll::-webkit-scrollbar-track {
-          background: #0d0d0d;
+          background: ${theme.palette.mode === 'dark' ? '#0d0d0d' : '#f3f4f6'};
           border-radius: 4px;
         }
         .tools-dropdown-scroll::-webkit-scrollbar-thumb {
-          background: #333333;
+          background: ${theme.palette.mode === 'dark' ? '#333333' : '#d1d5db'};
           border-radius: 4px;
         }
         .tools-dropdown-scroll::-webkit-scrollbar-thumb:hover {
-          background: #444444;
+          background: ${theme.palette.mode === 'dark' ? '#444444' : '#9ca3af'};
         }
       `}</style>
       <header style={isMobile ? styles.headerMobile : styles.header}>
@@ -409,30 +439,44 @@ export default function Header() {
           {/* Desktop Nav */}
           <nav style={{ ...styles.desktopNavLinks, display: isDesktop ? 'flex' : 'none' }}>
             <div style={styles.productDropdownContainer} onMouseEnter={handleOpenProductDropdown} onMouseLeave={handleCloseProductDropdown}>
-              <NavLink onClick={handleToggleProductDropdown}>
+              <NavLink onClick={handleToggleProductDropdown} theme={theme}>
                 Product {productDropdownOpen ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
               </NavLink>
-              {productDropdownOpen && isDesktop && <div style={styles.productDropdownMenu}><ComplexDropdown isMobile={false} /></div>}
+              {productDropdownOpen && isDesktop && <div style={styles.productDropdownMenu}><ComplexDropdown isMobile={false} theme={theme} /></div>}
             </div>
             <div ref={toolsDropdownRef} style={styles.productDropdownContainer} onMouseEnter={handleOpenToolsDropdown} onMouseLeave={handleCloseToolsDropdown}>
-              <NavLink onClick={handleToggleToolsDropdown}>
+              <NavLink onClick={handleToggleToolsDropdown} theme={theme}>
                 Tools {toolsDropdownOpen ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
               </NavLink>
-              {toolsDropdownOpen && isDesktop && <div style={Object.keys(toolsDropdownPosition).length > 0 ? toolsDropdownPosition : styles.productDropdownMenu}><ToolsDropdown isMobile={false} /></div>}
+              {toolsDropdownOpen && isDesktop && <div style={Object.keys(toolsDropdownPosition).length > 0 ? toolsDropdownPosition : styles.productDropdownMenu}><ToolsDropdown isMobile={false} theme={theme} /></div>}
             </div>
-            <NavLink to="/integrations">Integrations</NavLink>
-            <NavLink to="/cases">Cases</NavLink>
-            <NavLink to="/academy">Academy</NavLink>
-            <NavLink to="/pricing">Pricing</NavLink>
+            <NavLink to="/integrations" theme={theme}>Integrations</NavLink>
+            <NavLink to="/cases" theme={theme}>Cases</NavLink>
+            <NavLink to="/academy" theme={theme}>Academy</NavLink>
+            <NavLink to="/pricing" theme={theme}>Pricing</NavLink>
           </nav>
         </div>
 
         {/* Right Section */}
         <div style={{ ...styles.rightAuthSection, display: isDesktop ? 'flex' : 'none' }}>
+          {/* Theme Switcher */}
+          <IconButton
+            onClick={toggleTheme}
+            sx={{
+              color: textColor,
+              '&:hover': {
+                backgroundColor: hoverBg,
+              },
+            }}
+            aria-label="toggle theme"
+          >
+            {mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
+          </IconButton>
+          
           {user ? (
             <>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginRight: '0.5rem', flexWrap: 'wrap' }}>
-                <span style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.85rem', color: '#ffffff', fontWeight: 500 }}>
+                <span style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.85rem', color: textColor, fontWeight: 500 }}>
                   Welcome, {user?.name || user?.email}
                 </span>
                 <EnergyPointsBalance showLabel={false} />
@@ -446,7 +490,7 @@ export default function Header() {
                 ) : (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.75rem', backgroundColor: '#fff3cd', borderRadius: '9999px' }}>
                     <FaExclamationTriangle style={{ color: '#856404', fontSize: '0.75rem' }} />
-                    <Link 
+                    <Link
                       to="/auth/verify-email"
                       style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.7rem', color: '#856404', fontWeight: 500, textDecoration: 'none' }}
                     >
@@ -455,7 +499,7 @@ export default function Header() {
                   </div>
                 )}
               </div>
-              <NavLink to="/voice/transcribe">Dashboard</NavLink>
+              <NavLink to="/voice/transcribe" theme={theme}>Dashboard</NavLink>
               <NavLink
   onClick={() => {
     signOut();

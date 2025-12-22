@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+import { useTheme } from '../contexts/ThemeContext';
 import Sidebar from '../components/Sidebar';
 import VideoToTextPage from './tools/VideoToTextPage';
 import VideoGenerationPage from './tools/VideoGenerationPage';
@@ -16,32 +17,15 @@ import LiveVoiceTranslatorPage from './tools/LiveVoiceTranslatorPage';
 import TextToVideoTab from '../components/video/TextToVideoTab';
 import './ToolsDashboard.css';
 
-// Create Material-UI dark theme matching Dashboard colors
-const darkTheme = createTheme({
-  palette: {
-    mode: 'dark',
-    primary: {
-      main: '#00c6ff',
-    },
-    background: {
-      default: '#121212',
-      paper: '#1e1e1e',
-    },
-    text: {
-      primary: '#e0e0e0',
-      secondary: '#a0a0a0',
-    },
-    divider: '#333333',
-  },
-});
-
 export default function ToolsDashboard() {
+  const { theme } = useTheme();
+  
   return (
     <div className="tools-dashboard">
       <div className="tools-dashboard-container">
         <Sidebar />
         <div className="tools-main-content">
-          <ThemeProvider theme={darkTheme}>
+          <ThemeProvider theme={theme}>
             <CssBaseline />
             <Routes>
               <Route path="/" element={<Navigate to="/video/text-to-video" replace />} />

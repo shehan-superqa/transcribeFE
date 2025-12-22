@@ -1,0 +1,110 @@
+.financial-tool-page {
+  min-height: calc(100vh - 80px);
+  background-color: #f9fafb;
+  padding: 2rem 0;
+}
+
+.financial-tool-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.page-title {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+.page-subtitle {
+  font-family: 'Inter', sans-serif;
+  color: #6b7280;
+  font-size: 1.125rem;
+}
+
+/* Two Column Layout */
+.two-column-layout {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.left-column {
+  flex: 0 0 60%;
+  min-width: 0;
+}
+
+.right-column {
+  flex: 0 0 40%;
+  min-width: 0;
+  position: sticky;
+  top: 20px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+}
+
+/* Material-UI Tab Customization */
+.financial-tool-page .MuiTabs-root {
+  border-bottom: 1px solid #e5e7eb;
+  background-color: #ffffff;
+}
+
+.financial-tool-page .MuiTab-root {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  text-transform: none;
+  color: #6b7280;
+  min-height: 48px;
+  background-color: #ffffff;
+}
+
+.financial-tool-page .MuiTab-root.Mui-selected {
+  color: #2563eb;
+  background-color: #ffffff;
+}
+
+.financial-tool-page .MuiTabs-indicator {
+  background-color: #2563eb;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .two-column-layout {
+    flex-direction: column;
+  }
+
+  .left-column {
+    flex: 1 1 100%;
+  }
+
+  .right-column {
+    flex: 1 1 100%;
+    position: relative;
+    top: 0;
+    max-height: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .financial-tool-page {
+    padding: 1rem 0;
+  }
+
+  .page-title {
+    font-size: 1.75rem;
+  }
+
+  .page-subtitle {
+    font-size: 1rem;
+  }
+
+  .two-column-layout {
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-title {
+    font-size: 1.5rem;
+  }
+}
