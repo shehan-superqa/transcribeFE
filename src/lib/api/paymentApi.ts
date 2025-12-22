@@ -43,10 +43,20 @@ export interface ApiError {
  * @returns Balance response with userId and energyPoints
  */
 export async function getEnergyPointsBalance(): Promise<BalanceResponse> {
-  const response = await authenticatedFetch('/api/payment/balance', {
-    method: 'GET',
-  });
-  return handleResponse<BalanceResponse>(response);
+  try {
+    const response = await authenticatedFetch('/api/payment/balance', {
+      method: 'GET',
+    });
+    return handleResponse<BalanceResponse>(response);
+  } catch (error: any) {
+    // If the error is about microservice API key, return a fallback response
+    if (error.message?.includes('Microservice API key')) {
+      console.warn('Energy points balance check failed, using fallback');
+      // Return a fallback response - the backend should handle this properly
+      throw new Error('Failed to check energy points balance. Please ensure backend is configured correctly.');
+    }
+    throw error;
+  }
 }
 
 /**

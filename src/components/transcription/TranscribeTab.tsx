@@ -1059,26 +1059,6 @@ export default function TranscribeTab() {
                 control={<Radio sx={{ color: '#00c6ff' }} />} 
                 label={<Typography sx={{ color: '#e0e0e0' }}>Batch Processing (Process entire file at once)</Typography>} 
               />
-              <FormControlLabel 
-                value="streaming" 
-                control={<Radio sx={{ color: '#00c6ff' }} />} 
-                label={<Typography sx={{ color: '#e0e0e0' }}>Parallel Streaming (Process all 5s chunks simultaneously)</Typography>} 
-              />
-              <FormControlLabel 
-                value="realtime" 
-                control={<Radio sx={{ color: '#00c6ff' }} />} 
-                label={<Typography sx={{ color: '#e0e0e0' }}>Real-time Streaming (Process 5s chunks with 5s delays)</Typography>} 
-              />
-              <FormControlLabel 
-                value="advanced" 
-                control={<Radio sx={{ color: '#00c6ff' }} />} 
-                label={<Typography sx={{ color: '#e0e0e0' }}>Advanced Streaming (Research-grade with Local Agreement Policy)</Typography>} 
-              />
-              <FormControlLabel 
-                value="vad" 
-                control={<Radio sx={{ color: '#00c6ff' }} />} 
-                label={<Typography sx={{ color: '#e0e0e0' }}>VAD-Enhanced Streaming (With Voice Activity Detection)</Typography>} 
-              />
             </RadioGroup>
           </Box>
         )}

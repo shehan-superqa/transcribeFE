@@ -224,6 +224,7 @@ export default function VideoDubberTool() {
   const [videoUrl, setVideoUrl] = useState<string>('');
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
   const [outputLanguage, setOutputLanguage] = useState<string>('Spanish');
+  const [addSubtitles, setAddSubtitles] = useState<boolean>(false);
   const [availableLanguages, setAvailableLanguages] = useState<DubLanguage[]>(SUPPORTED_LANGUAGES);
   const [languagesLoading, setLanguagesLoading] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -640,12 +641,14 @@ export default function VideoDubberTool() {
           size: videoFile.size,
           type: videoFile.type,
           outputLanguage,
+          addSubtitles,
           isFile: videoFile instanceof File,
         });
       } else if (videoUrl.trim()) {
         console.log('Submitting video URL:', {
           url: videoUrl.trim(),
           outputLanguage,
+          addSubtitles,
         });
       } else {
         setError('Please upload a video file or provide a video URL');
@@ -656,7 +659,8 @@ export default function VideoDubberTool() {
       // Submit job with either file or URL
       const response = await submitVideoDubJob(
         videoFile || videoUrl.trim(),
-        outputLanguage
+        outputLanguage,
+        addSubtitles
       );
       
       if (response.success && response.job_id) {
@@ -821,6 +825,26 @@ export default function VideoDubberTool() {
                   ⚠️ Failed to load languages from API. Using fallback languages.
                 </p>
               )}
+            </div>
+
+            <div style={styles.inputGroup}>
+              <label style={{ ...styles.label, display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={addSubtitles}
+                  onChange={(e) => setAddSubtitles(e.target.checked)}
+                  style={{
+                    width: '18px',
+                    height: '18px',
+                    cursor: 'pointer',
+                    accentColor: '#3b82f6',
+                  }}
+                />
+                <span>Add Subtitles</span>
+              </label>
+              <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginTop: '0.25rem', marginLeft: '1.75rem' }}>
+                Generate subtitles in the selected language and embed them in the video
+              </p>
             </div>
 
             {error && (

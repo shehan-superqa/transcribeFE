@@ -119,7 +119,8 @@ export async function getVideoJobStatus(jobId: string): Promise<VideoJobStatusRe
  */
 export async function submitVideoDubJob(
   video: File | string,
-  outputLanguage: string
+  outputLanguage: string,
+  addSubtitles: boolean = false
 ): Promise<VideoDubJobResponse> {
   const user = getStoredUser();
   if (!user || !user.id) {
@@ -138,6 +139,7 @@ export async function submitVideoDubJob(
     // Backend expects 'video_file' for file uploads
     formData.append('video_file', video, video.name);
     formData.append('output_language', outputLanguage);
+    formData.append('add_subtitles', addSubtitles.toString());
     formData.append('user_id', user.id); // Include user_id like transcription does
     
     // Debug: Log FormData contents (only in dev)
@@ -147,6 +149,7 @@ export async function submitVideoDubJob(
         fileSize: video.size,
         fileType: video.type,
         outputLanguage,
+        addSubtitles,
         formDataKeys: Array.from(formData.keys()),
         formDataEntries: Array.from(formData.entries()).map(([key, value]) => ({
           key,
@@ -171,6 +174,7 @@ export async function submitVideoDubJob(
     const request = {
       video_url: video,
       output_language: outputLanguage,
+      add_subtitles: addSubtitles,
     };
     
     try {

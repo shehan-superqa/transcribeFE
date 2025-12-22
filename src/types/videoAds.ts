@@ -2,11 +2,12 @@
  * Video Ads Generation Agent Types
  */
 
-export type PromotionType = 'product' | 'service' | 'app' | 'event';
+export type PromotionType = 'product' | 'service' | 'app' | 'event' | 'brand' | 'course' | 'podcast' | 'book' | 'restaurant' | 'real-estate' | 'fitness' | 'beauty' | 'fashion' | 'technology' | 'other';
 export type Platform = 'facebook' | 'instagram' | 'tiktok' | 'youtube' | 'tv' | 'other';
 export type AdLength = 6 | 15 | 30;
 export type AdTone = 'emotional' | 'trust-based' | 'high-energy' | 'luxury' | 'informative' | 'bold';
 export type VisualStyle = 'clean-modern' | 'bold-vibrant' | 'minimalist' | 'cinematic' | 'playful' | 'professional';
+export type AdStyle = 'cartoon' | 'happy' | 'sad' | 'professional' | 'cinematic' | 'playful' | 'dramatic' | 'minimalist' | 'vibrant' | 'elegant' | 'energetic' | 'calm' | 'funny' | 'serious' | 'inspiring';
 
 export interface TargetAudience {
   ageRange?: {
@@ -19,9 +20,15 @@ export interface TargetAudience {
 
 export interface OnboardingData {
   promotionType: PromotionType;
+  customPromotionType?: string;
   platform: Platform;
+  platformSize?: string;
+  platformDetails?: string;
   languages: string[];
   targetAudience: TargetAudience;
+  referenceImages?: Array<{ url: string; file?: File }>; // Array of base64 URLs and files
+  adStyle?: AdStyle[]; // Selected ad styles/themes
+  videoGenerationInstructions?: string; // Additional instructions for video generation
   productName?: string;
   productDescription?: string;
   differentiator?: string;

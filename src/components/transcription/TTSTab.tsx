@@ -236,10 +236,11 @@ export default function TTSTab() {
   const currentError = ttsJob?.error || error;
 
   return (
-    <Box sx={{ p: { xs: 1.5, sm: 2, md: 3 } }}>
+    <Box>
       <div className="tool-sticky-title">
         <h1>Text-to-Speech</h1>
       </div>
+      <Box sx={{ p: { xs: 1.5, sm: 2, md: 3 } }}>
       <HowToUse
         title=""
         subtitle="Convert text into natural-sounding speech with multiple voice options"
@@ -607,6 +608,7 @@ export default function TTSTab() {
           </CardContent>
         </Card>
       )}
+      </Box>
     </Box>
   );
 }

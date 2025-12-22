@@ -12,8 +12,6 @@ import UploadFileIcon from '@mui/icons-material/UploadFile';
 import FolderIcon from '@mui/icons-material/Folder';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import VideoFileIcon from '@mui/icons-material/VideoFile';
-import TranslateIcon from '@mui/icons-material/Translate';
-import SubtitlesIcon from '@mui/icons-material/Subtitles';
 import MovieIcon from '@mui/icons-material/Movie';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 
@@ -39,8 +37,6 @@ const videoTabs: TabConfig[] = [
   { label: 'Text to Video', icon: <AutoFixHighIcon />, path: '/video/text-to-video' },
   { label: 'Video to Text', icon: <VideoFileIcon />, path: '/video/to-text' },
   { label: 'Video Dubber', icon: <MovieIcon />, path: '/video/dubber' },
-  { label: 'Video Translator', icon: <TranslateIcon />, path: '/video/translator' },
-  { label: 'Subtitle Generator', icon: <SubtitlesIcon />, path: '/video/subtitle-generator' },
 ];
 
 interface ToolTabNavigationProps {

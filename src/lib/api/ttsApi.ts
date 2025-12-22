@@ -4,6 +4,7 @@
 
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { getAccessToken, getStoredUser, refreshAccessToken, clearAuthData, TRANSCRIBE_API_BASE_URL } from '../api';
+import { checkEnergyBalance, deductEnergyPoints } from './energyPointsApi';
 
 // TTS API uses port 5000 (same as transcription API)
 const TTS_API_BASE_URL = TRANSCRIBE_API_BASE_URL;
@@ -101,6 +102,22 @@ export async function submitTTSJob(request: TTSJobRequest): Promise<TTSJobRespon
     throw authError;
   }
 
+  // Check energy points balance before submitting
+  try {
+    const balanceCheck = await checkEnergyBalance('tts');
+    if (!balanceCheck.success || !balanceCheck.data.canProceed) {
+      const errorMsg = `Insufficient energy points. Required: ${balanceCheck.data.required}, Available: ${balanceCheck.data.available}. Please purchase more energy points.`;
+      throw new Error(errorMsg);
+    }
+  } catch (error: any) {
+    // If it's an insufficient balance error, throw it
+    if (error.message?.includes('Insufficient energy points')) {
+      throw error;
+    }
+    // If balance check API fails, log warning but continue (backend will handle deduction)
+    console.warn('Energy points balance check failed:', error.message);
+  }
+
   // Build request body matching backend API format
   const requestBody: any = {
     text: request.text,
@@ -121,7 +138,19 @@ export async function submitTTSJob(request: TTSJobRequest): Promise<TTSJobRespon
   requestBody.pitch = request.pitch !== undefined ? request.pitch : 1.0;
   requestBody.volume = request.volume !== undefined ? request.volume : 1.0;
 
+  // Submit TTS job
   const response = await apiClient.post<TTSJobResponse>('/api/tts', requestBody);
+
+  // Deduct energy points after successful job submission
+  if (response.data.success && response.data.job_id) {
+    try {
+      await deductEnergyPoints('tts', undefined, response.data.job_id, 'TTS job submission');
+    } catch (deductError: any) {
+      // Log error but don't fail the request - job is already submitted
+      console.error('Failed to deduct energy points:', deductError);
+      // Optionally, you could cancel the job here if deduction fails
+    }
+  }
 
   return response.data;
 }

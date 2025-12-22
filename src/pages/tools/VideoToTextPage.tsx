@@ -16,7 +16,7 @@ export default function VideoToTextPage() {
       </div>
       <HowToUse
         title=""
-        subtitle="Extract and transcribe audio from video files using the same transcription engine as audio-to-text"
+        subtitle="Extract and transcribe audio from video files"
         instructions="Upload video files using drag & drop, paste from clipboard, or click to browse. You can also paste a YouTube link. The system will automatically extract audio from the video and transcribe it. Select your preferred engine and model, then click 'Transcribe' to start."
       />
       <div className="feature-content">

@@ -22,6 +22,7 @@ import StopIcon from '@mui/icons-material/Stop';
 import { useLiveTranscription } from '../../hooks/useLiveTranscription';
 import { useMicrophone } from '../../hooks/useMicrophone';
 import { useWaveformVisualization } from '../../hooks/useWaveformVisualization';
+import { useRequireAuth } from '../../hooks/useRequireAuth';
 import HowToUse from '../../components/common/HowToUse';
 import '../../components/common/HowToUse.css';
 
@@ -30,6 +31,9 @@ export default function LiveMicTab() {
   const [language, setLanguage] = useState('en');
   const [vadThreshold, setVadThreshold] = useState(0.01);
   const [audioDevices, setAudioDevices] = useState<MediaDeviceInfo[]>([]);
+  const [localError, setLocalError] = useState<string | null>(null);
+  
+  const { requireAuth } = useRequireAuth();
 
   const {
     isActive,
@@ -113,6 +117,13 @@ export default function LiveMicTab() {
   }, [audioStream, startVisualization, stopVisualization]);
 
   const handleStart = async () => {
+    // Check authentication before starting
+    if (!requireAuth()) {
+      return;
+    }
+
+    setLocalError(null);
+    
     try {
       await start({
         engine: 'replicate',
@@ -120,9 +131,21 @@ export default function LiveMicTab() {
         model,
         vad_threshold: vadThreshold,
         chunkInterval: 2000, // 2 seconds
+        deviceId: selectedDeviceId || undefined,
       });
-    } catch (error) {
+    } catch (error: any) {
+      const errorMessage = error?.message || error?.toString() || 'Failed to start live transcription';
       console.error('Error starting live transcription:', error);
+      setLocalError(errorMessage);
+      
+      // If transcription fails, try to restart microphone for waveform preview
+      if (!audioStream && !isActive) {
+        try {
+          await startRecording();
+        } catch (micError) {
+          console.error('Error restarting microphone:', micError);
+        }
+      }
     }
   };
 
@@ -379,7 +402,7 @@ export default function LiveMicTab() {
           />
         </Box>
 
-        <Box sx={{ display: 'flex', gap: 2 }}>
+        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
           <Button
             variant="contained"
             startIcon={<MicIcon />}
@@ -390,6 +413,12 @@ export default function LiveMicTab() {
               color: '#fff',
               '&:hover': { backgroundColor: '#45a049' },
               '&:disabled': { backgroundColor: '#333333', color: '#666666' },
+              whiteSpace: 'nowrap',
+              padding: '8px 20px',
+              fontSize: '0.875rem',
+              minWidth: 'fit-content',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
             }}
           >
             Start Live Transcription
@@ -404,12 +433,31 @@ export default function LiveMicTab() {
               color: '#fff',
               '&:hover': { backgroundColor: '#da190b' },
               '&:disabled': { backgroundColor: '#333333', color: '#666666' },
+              whiteSpace: 'nowrap',
+              padding: '8px 20px',
+              fontSize: '0.875rem',
+              minWidth: 'fit-content',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
             }}
           >
             Stop Live Transcription
           </Button>
         </Box>
       </Paper>
+
+      {/* Error Display */}
+      {(error || localError) && (
+        <Alert 
+          severity="error" 
+          sx={{ mb: 3, backgroundColor: '#1e1e1e', border: '1px solid #f44336' }}
+          onClose={() => {
+            setLocalError(null);
+          }}
+        >
+          {error || localError}
+        </Alert>
+      )}
 
       {/* Results */}
       <Paper sx={{ p: 3, backgroundColor: '#1e1e1e', border: '1px solid #333333' }}>

@@ -21,16 +21,10 @@ import { getUserSettings, saveUserSettings, type UserSettings } from '../../lib/
 
 export default function SettingsTab() {
   const audio = settingsStore((state) => state.audio);
-  const output_dir = settingsStore((state) => state.output_dir);
-  const api_key = settingsStore((state) => state.api_key);
   const updateAudioSettings = settingsStore((state) => state.updateAudioSettings);
-  const updateOutputDir = settingsStore((state) => state.updateOutputDir);
-  const updateApiKey = settingsStore((state) => state.updateApiKey);
 
   const [sampleRate, setSampleRate] = useState(audio.sample_rate);
   const [channels, setChannels] = useState(audio.channels);
-  const [outputDir, setOutputDir] = useState(output_dir);
-  const [apiKey, setApiKey] = useState(api_key);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -52,21 +46,15 @@ export default function SettingsTab() {
         // or old structure where it's nested under audio
         const sampleRate = (response.data as any).sample_rate ?? response.data.audio?.sample_rate;
         const channels = response.data.audio?.channels ?? 1; // Default to mono if not provided
-        const outputDir = response.data.output_dir ?? '';
-        const apiKey = response.data.api_key ?? '';
         
         if (sampleRate !== undefined) {
           setSampleRate(sampleRate);
           setChannels(channels);
-          setOutputDir(outputDir);
-          setApiKey(apiKey);
           // Also update local store
           updateAudioSettings({
             sample_rate: sampleRate,
             channels: channels,
           });
-          updateOutputDir(outputDir);
-          updateApiKey(apiKey);
         }
       }
     } catch (error: any) {
@@ -92,16 +80,6 @@ export default function SettingsTab() {
       errors.channels = 'Channels must be 1 (mono) or 2 (stereo)';
     }
 
-    if (outputDir.trim() === '') {
-      errors.outputDir = 'Output directory is required';
-    }
-
-    // API key validation is optional - user might not have one yet
-    // But if provided, check basic format
-    if (apiKey.trim() !== '' && apiKey.length < 10) {
-      errors.apiKey = 'API key appears to be invalid';
-    }
-
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -122,8 +100,8 @@ export default function SettingsTab() {
           sample_rate: sampleRate,
           channels: channels,
         },
-        output_dir: outputDir.trim(),
-        api_key: apiKey.trim(),
+        output_dir: '', // Not used anymore
+        api_key: '', // Not used anymore
       };
 
       const response = await saveUserSettings(settings);
@@ -131,8 +109,6 @@ export default function SettingsTab() {
       if (response.success) {
         // Update local store
         updateAudioSettings(settings.audio);
-        updateOutputDir(settings.output_dir);
-        updateApiKey(settings.api_key);
         setSuccessMessage('Settings saved successfully!');
         // Clear success message after 3 seconds
         setTimeout(() => setSuccessMessage(null), 3000);
@@ -156,7 +132,7 @@ export default function SettingsTab() {
   }
 
   return (
-    <Box>
+    <Box sx={{ width: '100%', px: 2 }}>
       <Typography variant="h4" gutterBottom sx={{ color: '#e0e0e0', mb: 3 }}>
         Settings
       </Typography>
@@ -236,85 +212,6 @@ export default function SettingsTab() {
             )}
           </FormControl>
         </Box>
-      </Paper>
-
-      {/* Output Settings */}
-      <Paper sx={{ p: 3, mb: 3, backgroundColor: '#1e1e1e', border: '1px solid #333333' }}>
-        <Typography variant="h6" gutterBottom sx={{ color: '#e0e0e0', mb: 2 }}>
-          Output Settings
-        </Typography>
-        <TextField
-          fullWidth
-          label="Output Directory"
-          value={outputDir}
-          onChange={(e) => {
-            setOutputDir(e.target.value);
-            if (validationErrors.outputDir) {
-              setValidationErrors((prev) => {
-                const newErrors = { ...prev };
-                delete newErrors.outputDir;
-                return newErrors;
-              });
-            }
-          }}
-          error={!!validationErrors.outputDir}
-          helperText={validationErrors.outputDir || 'Path where transcription outputs will be saved'}
-          sx={{ 
-            mb: 2,
-            '& .MuiOutlinedInput-root': {
-              color: '#e0e0e0',
-              '& fieldset': { borderColor: '#333333' },
-              '&:hover fieldset': { borderColor: '#00c6ff' },
-            },
-            '& .MuiInputLabel-root': { color: '#a0a0a0' },
-            '& .MuiFormHelperText-root': { color: validationErrors.outputDir ? '#f44336' : '#a0a0a0' },
-          }}
-        />
-        <Button 
-          variant="outlined"
-          disabled
-          sx={{
-            borderColor: '#333333',
-            color: '#666666',
-            '&:disabled': { borderColor: '#333333', color: '#666666' },
-          }}
-        >
-          Browse (Coming Soon)
-        </Button>
-      </Paper>
-
-      {/* API Settings */}
-      <Paper sx={{ p: 3, mb: 3, backgroundColor: '#1e1e1e', border: '1px solid #333333' }}>
-        <Typography variant="h6" gutterBottom sx={{ color: '#e0e0e0', mb: 2 }}>
-          API Settings
-        </Typography>
-        <TextField
-          fullWidth
-          label="OpenAI API Key"
-          type="password"
-          value={apiKey}
-          onChange={(e) => {
-            setApiKey(e.target.value);
-            if (validationErrors.apiKey) {
-              setValidationErrors((prev) => {
-                const newErrors = { ...prev };
-                delete newErrors.apiKey;
-                return newErrors;
-              });
-            }
-          }}
-          error={!!validationErrors.apiKey}
-          helperText={validationErrors.apiKey || 'Optional: Your OpenAI API key for transcription'}
-          sx={{
-            '& .MuiOutlinedInput-root': {
-              color: '#e0e0e0',
-              '& fieldset': { borderColor: '#333333' },
-              '&:hover fieldset': { borderColor: '#00c6ff' },
-            },
-            '& .MuiInputLabel-root': { color: '#a0a0a0' },
-            '& .MuiFormHelperText-root': { color: validationErrors.apiKey ? '#f44336' : '#a0a0a0' },
-          }}
-        />
       </Paper>
 
       <Box sx={{ display: 'flex', gap: 2 }}>

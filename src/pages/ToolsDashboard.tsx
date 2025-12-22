@@ -6,8 +6,6 @@ import VideoToTextPage from './tools/VideoToTextPage';
 import VideoGenerationPage from './tools/VideoGenerationPage';
 import VideoDubberPage from './tools/VideoDubberPage';
 import { DubHistory } from '../components/video/VideoDubberTab';
-import VideoTranslatorPage from './tools/VideoTranslatorPage';
-import SubtitleGeneratorPage from './tools/SubtitleGeneratorPage';
 import VideoAdsPage from './tools/VideoAdsPage';
 import FreeToolsPage from './tools/FreeToolsPage';
 import LiveTranscribePage from './tools/LiveTranscribePage';
@@ -57,12 +55,9 @@ export default function ToolsDashboard() {
                   <Route path="ads" element={<VideoAdsPage />} />
                   <Route path="to-text" element={<VideoToTextPage />} />
                   <Route path="dubber" element={<VideoDubberPage />} />
-                  <Route path="translator" element={<VideoTranslatorPage />} />
-                  <Route path="subtitle-generator" element={<SubtitleGeneratorPage />} />
                   {/* Legacy routes - redirect to new paths */}
                   <Route path="video-generation" element={<Navigate to="/video/text-to-video" replace />} />
                   <Route path="video-dubber" element={<Navigate to="/video/dubber" replace />} />
-                  <Route path="video-translator" element={<Navigate to="/video/translator" replace />} />
                   <Route path="*" element={<Navigate to="/video/text-to-video" replace />} />
                 </Routes>
               </ThemeProvider>

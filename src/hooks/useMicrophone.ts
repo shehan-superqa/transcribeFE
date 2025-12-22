@@ -115,6 +115,38 @@ export function useMicrophone(): UseMicrophoneReturn {
   ) => {
     try {
       setError(null);
+      
+      // Stop existing recording if active
+      if (isRecordingRef.current || mediaStreamRef.current) {
+        isRecordingRef.current = false;
+        setIsRecording(false);
+        
+        // Clear interval timer
+        if (intervalIdRef.current !== null) {
+          clearInterval(intervalIdRef.current);
+          intervalIdRef.current = null;
+        }
+        
+        if (processorNodeRef.current) {
+          processorNodeRef.current.disconnect();
+          processorNodeRef.current = null;
+        }
+        
+        if (mediaStreamRef.current) {
+          mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+          mediaStreamRef.current = null;
+          setAudioStream(null);
+        }
+        
+        if (audioContextRef.current) {
+          audioContextRef.current.close();
+          audioContextRef.current = null;
+        }
+        
+        // Small delay to ensure cleanup
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      
       audioChunksRef.current = [];
       chunkCallbackRef.current = onChunkReady || null;
 

@@ -204,27 +204,6 @@ export default function VideoAdsWizard() {
           />
         )}
       </div>
-
-      <div className="wizard-footer">
-        <div className="step-indicator">
-          {['onboarding', 'strategy', 'script', 'builder', 'payment', 'generation', 'delivery'].map(
-            (step, index) => (
-              <div
-                key={step}
-                className={`step-dot ${
-                  currentStep === step
-                    ? 'active'
-                    : ['onboarding', 'strategy', 'script', 'builder', 'payment', 'generation', 'delivery'].indexOf(
-                        currentStep
-                      ) > index
-                    ? 'completed'
-                    : ''
-                }`}
-              />
-            )
-          )}
-        </div>
-      </div>
     </div>
   );
 }

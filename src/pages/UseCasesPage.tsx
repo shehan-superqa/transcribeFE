@@ -118,23 +118,6 @@ const categories: Category[] = [
           { id: 'local-language-videos', title: 'Make videos understandable in local languages' },
         ]
       },
-      { 
-        id: 'video-translator', 
-        title: 'Video Translator',
-        subItems: [
-          { id: 'translate-subtitles', title: 'Translate subtitles for international viewers' },
-          { id: 'multilingual-videos-understandable', title: 'Make videos understandable in other languages' },
-          { id: 'translate-video-descriptions', title: 'Translate video descriptions and titles' },
-        ]
-      },
-      { 
-        id: 'subtitle-generator', 
-        title: 'Subtitle Generator',
-        subItems: [
-          { id: 'social-media-subtitles', title: 'Create subtitles for social media videos' },
-          { id: 'educational-captions', title: 'Add captions to educational content' },
-        ]
-      },
     ]
   },
   { 
@@ -292,7 +275,7 @@ export default function UseCasesPage() {
   const [selectedSubSubCategory, setSelectedSubSubCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['audio-transcription', 'video-tools', 'image-tools']));
-  const [expandedSubCategories, setExpandedSubCategories] = useState<Set<string>>(new Set(['transcribe', 'live-mic-vad', 'text-to-speech', 'trainer', 'text-to-video', 'video-to-text', 'video-dubber', 'video-translator', 'subtitle-generator', 'image-generation', 'image-captioning', 'image-training']));
+  const [expandedSubCategories, setExpandedSubCategories] = useState<Set<string>>(new Set(['transcribe', 'live-mic-vad', 'text-to-speech', 'trainer', 'text-to-video', 'video-to-text', 'video-dubber', 'image-generation', 'image-captioning', 'image-training']));
   const [selectedUseCaseId, setSelectedUseCaseId] = useState<string | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -536,22 +519,6 @@ export default function UseCasesPage() {
             'The system will translate and dub your video with natural-sounding voice',
             'Download the dubbed video when complete'
           ];
-        case 'video-translator':
-          return [
-            'Upload your video file or paste a video URL',
-            'Select the source and target languages',
-            'Click "Translate" to start the translation process',
-            'The system will translate video content and subtitles',
-            'Download translated subtitles or video with translated content'
-          ];
-        case 'subtitle-generator':
-          return [
-            'Upload a video file or paste a YouTube link',
-            'The system will automatically generate synchronized captions',
-            'Select your preferred language and caption style',
-            'Captions will appear overlaid on your video',
-            'Download the captions in SRT or VTT format'
-          ];
         case 'image-generation':
           return [
             'Enter a detailed text prompt describing the image you want to generate',
@@ -659,24 +626,6 @@ export default function UseCasesPage() {
             'Maintain original video quality',
             'Faster and more cost-effective than traditional dubbing',
             'Scale to multiple languages easily'
-          ];
-        case 'video-translator':
-          return [
-            'Translate video content for international viewers',
-            'Make videos understandable in other languages',
-            'Translate subtitles and descriptions automatically',
-            'Reach global audiences',
-            'Improve accessibility for non-native speakers',
-            'Maintain original video while adding translations'
-          ];
-        case 'subtitle-generator':
-          return [
-            'Add captions automatically to any video',
-            'Make videos accessible to deaf and hard-of-hearing viewers',
-            'Improve video SEO with searchable text',
-            'Make videos watchable without sound',
-            'Support multiple languages',
-            'Professional subtitle formatting'
           ];
         case 'image-generation':
           return [

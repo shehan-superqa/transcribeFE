@@ -172,8 +172,6 @@ const ToolsDropdown = ({ isMobile }: { isMobile: boolean }) => {
             <SectionItem to="/video/ads" title="Video Ads Generator" description="Create high-converting video ads with AI" />
             <SectionItem to="/video/to-text" title="Video to Text" description="Extract text from video files" />
             <SectionItem to="/video/dubber" title="Video Dubber" description="Dub videos with new audio" />
-            <SectionItem to="/video/translator" title="Video Translator" description="Translate video content" />
-            <SectionItem to="/video/subtitle-generator" title="Subtitle Generator" description="Create subtitles for videos" />
           </DropdownSection>
         </div>
       </div>
@@ -201,7 +199,6 @@ const ToolsDropdown = ({ isMobile }: { isMobile: boolean }) => {
           <SectionItem to="/video/to-text" title="Video to Text" description="Extract text from video files" />
           <SectionItem to="/video/dubber" title="Video Dubber" description="Dub videos with new audio" />
           <SectionItem to="/video/translator" title="Video Translator" description="Translate video content" />
-          <SectionItem to="/video/subtitle-generator" title="Subtitle Generator" description="Create subtitles for videos" />
         </DropdownSection>
       </div>
     </div>

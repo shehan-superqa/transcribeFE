@@ -19,16 +19,6 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { 
-    id: 'audio', 
-    label: 'Audio', 
-    icon: '🔊', 
-    path: '/voice/transcribe',
-    isExpandable: true,
-    subItems: [
-      { id: 'audio-translator', label: 'Audio Translator', path: '/voice/translator' },
-    ]
-  },
-  { 
     id: 'audio-to-text', 
     label: 'Audio Tools', 
     icon: '🎵', 
@@ -38,6 +28,7 @@ const menuItems: MenuItem[] = [
       { id: 'transcribe', label: 'Transcribe (Single & Batch)', path: '/voice/transcribe' },
       { id: 'live', label: 'Live Mic VAD', path: '/voice/live' },
       { id: 'tts', label: 'Text-to-Speech', path: '/voice/tts' },
+      { id: 'audio-translator', label: 'Audio Translator', path: '/voice/translator' },
       { id: 'trainer', label: 'Trainer', path: '/voice/trainer' },
     ]
   },
@@ -52,8 +43,6 @@ const menuItems: MenuItem[] = [
       { id: 'ads', label: 'Video Ads Generator', path: '/video/ads' },
       { id: 'to-text', label: 'Video to Text', path: '/video/to-text' },
       { id: 'dubber', label: 'Video Dubber', path: '/video/dubber' },
-      { id: 'translator', label: 'Video Translator', path: '/video/translator' },
-      { id: 'subtitle-generator', label: 'Subtitle Generator', path: '/video/subtitle-generator' },
     ]
   },
   { 
@@ -106,7 +95,7 @@ export default function Sidebar({ onRealTimeExpand }: SidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [activeItem, setActiveItem] = useState<string>('');
-  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set(['real-time']));
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set()); // Default: all collapsed
   const [userCollapsedItems, setUserCollapsedItems] = useState<Set<string>>(new Set());
   const sidebarRef = useRef<HTMLDivElement>(null);
   const isManuallyTogglingRef = useRef<string | null>(null);

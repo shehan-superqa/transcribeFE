@@ -44,22 +44,6 @@ const videoTools: VideoTool[] = [
     path: '/video/dubber',
     color: '#F5A623',
   },
-  {
-    id: 'translator',
-    title: 'Video Translator',
-    description: 'Translate video content and subtitles to different languages',
-    icon: '🌐',
-    path: '/video/translator',
-    color: '#E94B3C',
-  },
-  {
-    id: 'subtitle-generator',
-    title: 'Subtitle Generator',
-    description: 'Create and generate subtitles for your videos automatically',
-    icon: '📄',
-    path: '/video/subtitle-generator',
-    color: '#9B59B6',
-  },
 ];
 
 export default function VideoGenerationLandingPage() {
