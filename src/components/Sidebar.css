@@ -1,13 +1,13 @@
 .sidebar {
-  background: #1e1e1e;
-  border: 1px solid #333333;
+  background: var(--bg-paper);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 1.5rem;
   min-width: 250px;
   max-width: 280px;
   width: 100%;
   height: fit-content;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 10px 25px var(--shadow);
   position: sticky;
   top: 2rem;
   max-height: calc(100vh - 4rem);
@@ -36,7 +36,7 @@
   transition: all 0.2s ease;
   text-align: left;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  color: #e0e0e0;
+  color: var(--text-primary);
   font-weight: 500;
   font-size: 0.95rem;
   width: 100%;
@@ -45,16 +45,16 @@
 }
 
 .sidebar-item:hover {
-  background: rgba(0, 198, 255, 0.1);
+  background: var(--hover-bg);
   transform: translateX(2px);
-  color: #00c6ff;
+  color: var(--primary-color);
 }
 
 .sidebar-item.active {
-  background: rgba(0, 198, 255, 0.15);
-  border-left: 3px solid #00c6ff;
+  background: var(--hover-bg);
+  border-left: 3px solid var(--primary-color);
   font-weight: 600;
-  color: #00c6ff;
+  color: var(--primary-color);
 }
 
 .sidebar-icon {
@@ -76,7 +76,7 @@
 
 .sidebar-chevron {
   font-size: 0.75rem;
-  color: #00c6ff;
+  color: var(--primary-color);
   transition: transform 0.2s ease;
 }
 
@@ -91,7 +91,7 @@
   margin-top: 0.5rem;
   margin-left: 2rem;
   padding-left: 0.5rem;
-  border-left: 2px solid #333333;
+  border-left: 2px solid var(--border-color);
   overflow: hidden;
   min-width: 0;
 }
@@ -107,7 +107,7 @@
   transition: all 0.2s ease;
   text-align: left;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  color: #a0a0a0;
+  color: var(--text-secondary);
   font-weight: 400;
   font-size: 0.875rem;
   width: 100%;
@@ -118,15 +118,15 @@
 }
 
 .sidebar-subitem:hover {
-  background: rgba(0, 198, 255, 0.08);
-  color: #00c6ff;
+  background: var(--hover-bg);
+  color: var(--primary-color);
 }
 
 .sidebar-subitem.active {
-  background: rgba(0, 198, 255, 0.12);
-  color: #00c6ff;
+  background: var(--hover-bg);
+  color: var(--primary-color);
   font-weight: 500;
-  border-left: 2px solid #00c6ff;
+  border-left: 2px solid var(--primary-color);
   margin-left: -0.5rem;
   padding-left: calc(0.875rem - 2px);
 }

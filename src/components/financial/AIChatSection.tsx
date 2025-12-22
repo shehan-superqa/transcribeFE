@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Box, Paper, Typography, TextField, Button, List, ListItem, Avatar } from '@mui/material';
 import { Send, SmartToy, Person } from '@mui/icons-material';
+import { useTheme } from '../../contexts/ThemeContext';
 import { sendAIChat } from '../../lib/api/financialApi';
 import { AIChatResponse } from '../../types/financial';
 
@@ -11,6 +12,7 @@ interface Message {
 }
 
 export default function AIChatSection() {
+  const { theme } = useTheme();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -49,14 +51,14 @@ export default function AIChatSection() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <Paper elevation={1} sx={{ p: 2, mb: 2, backgroundColor: '#ffffff' }}>
-        <Typography variant="h6" sx={{ color: '#111827' }}>AI Financial Assistant</Typography>
+      <Paper elevation={1} sx={{ p: 2, mb: 2, backgroundColor: theme.palette.background.paper }}>
+        <Typography variant="h6" sx={{ color: theme.palette.text.primary }}>AI Financial Assistant</Typography>
         <Typography variant="body2" color="text.secondary">
           Ask questions about your finances
         </Typography>
       </Paper>
 
-      <Paper elevation={1} sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', backgroundColor: '#ffffff' }}>
+      <Paper elevation={1} sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', backgroundColor: theme.palette.background.paper }}>
         <List sx={{ flex: 1, overflow: 'auto', p: 2 }}>
           {messages.length === 0 && (
             <ListItem>
@@ -75,7 +77,7 @@ export default function AIChatSection() {
                 gap: 2,
               }}
             >
-              <Avatar sx={{ bgcolor: message.role === 'user' ? '#3b82f6' : '#10b981' }}>
+              <Avatar sx={{ bgcolor: message.role === 'user' ? theme.palette.primary.main : theme.palette.secondary.main }}>
                 {message.role === 'user' ? <Person /> : <SmartToy />}
               </Avatar>
               <Box
@@ -83,8 +85,8 @@ export default function AIChatSection() {
                   maxWidth: '70%',
                   p: 2,
                   borderRadius: 2,
-                  bgcolor: message.role === 'user' ? '#2563eb' : '#f3f4f6',
-                  color: message.role === 'user' ? 'white' : '#111827',
+                  bgcolor: message.role === 'user' ? theme.palette.primary.main : (theme.palette.mode === 'dark' ? '#2a2a2a' : '#f3f4f6'),
+                  color: message.role === 'user' ? (theme.palette.mode === 'dark' ? '#000000' : 'white') : theme.palette.text.primary,
                 }}
               >
                 <Typography variant="body1">{message.content}</Typography>
@@ -107,7 +109,7 @@ export default function AIChatSection() {
           ))}
           {loading && (
             <ListItem>
-              <Avatar sx={{ bgcolor: '#10b981' }}>
+              <Avatar sx={{ bgcolor: theme.palette.secondary.main }}>
                 <SmartToy />
               </Avatar>
               <Typography variant="body2" color="text.secondary" sx={{ ml: 2 }}>
@@ -117,7 +119,7 @@ export default function AIChatSection() {
           )}
           <div ref={messagesEndRef} />
         </List>
-        <Box sx={{ p: 2, borderTop: '1px solid #e5e7eb', display: 'flex', gap: 1 }}>
+        <Box sx={{ p: 2, borderTop: `1px solid ${theme.palette.divider}`, display: 'flex', gap: 1 }}>
           <TextField
             fullWidth
             size="small"

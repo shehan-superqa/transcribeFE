@@ -26,6 +26,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { updateTransaction, deleteTransaction, mergeTransaction } from '../../lib/api/financialApi';
 import { Transaction, Merchant, Category } from '../../types/financial';
 import { useAuth } from '../../lib/auth';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface TransactionsSectionProps {
   transactions: Transaction[];
@@ -50,6 +51,7 @@ export default function TransactionsSection({
   onFiltersChange,
 }: TransactionsSectionProps) {
   const { user } = useAuth();
+  const { theme } = useTheme();
   const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
   const [filters, setFilters] = useState<TransactionFilters>({});
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -169,10 +171,10 @@ export default function TransactionsSection({
   return (
     <Box>
       {/* Filters */}
-      <Paper elevation={1} sx={{ p: 2, mb: 2, backgroundColor: '#ffffff' }}>
+      <Paper elevation={1} sx={{ p: 2, mb: 2, backgroundColor: theme.palette.background.paper }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-          <FilterList sx={{ color: '#6b7280' }} />
-          <Typography variant="h6" sx={{ color: '#111827' }}>Filters</Typography>
+          <FilterList sx={{ color: theme.palette.text.secondary }} />
+          <Typography variant="h6" sx={{ color: theme.palette.text.primary }}>Filters</Typography>
           {hasFilters && (
             <Button size="small" onClick={clearFilters}>
               Clear
@@ -230,18 +232,18 @@ export default function TransactionsSection({
       {/* Transactions List */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {paginatedTransactions.length === 0 ? (
-          <Paper elevation={1} sx={{ p: 4, textAlign: 'center', backgroundColor: '#ffffff' }}>
+          <Paper elevation={1} sx={{ p: 4, textAlign: 'center', backgroundColor: theme.palette.background.paper }}>
             <Typography variant="body1" color="text.secondary">
               No transactions found
             </Typography>
           </Paper>
         ) : (
           paginatedTransactions.map((transaction) => (
-            <Card key={transaction._id} elevation={1} sx={{ backgroundColor: '#ffffff' }}>
+            <Card key={transaction._id} elevation={1} sx={{ backgroundColor: theme.palette.background.paper }}>
               <CardContent>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                   <Box sx={{ flex: 1 }}>
-                    <Typography variant="h6" gutterBottom sx={{ color: '#111827' }}>
+                    <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary }}>
                       Rs. {transaction.amount.toFixed(2)}
                     </Typography>
                     <Typography variant="body2" color="text.secondary" gutterBottom>

@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Box, Paper, Typography, Button, TextField, LinearProgress, Alert } from '@mui/material';
 import { CloudUpload, CameraAlt, CheckCircle, ContentPaste } from '@mui/icons-material';
+import { useTheme } from '../../contexts/ThemeContext';
 import { uploadBill, getBillStatus } from '../../lib/api/financialApi';
 import { Transaction } from '../../types/financial';
 import CameraCapture from './CameraCapture';
@@ -11,6 +12,7 @@ interface BillUploadSectionProps {
 }
 
 export default function BillUploadSection({ onTransactionCreated }: BillUploadSectionProps) {
+  const { theme } = useTheme();
   const [uploading, setUploading] = useState(false);
   const [jobId, setJobId] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
@@ -188,8 +190,8 @@ export default function BillUploadSection({ onTransactionCreated }: BillUploadSe
         />
       )}
 
-      <Paper elevation={1} sx={{ p: 3, backgroundColor: '#ffffff' }}>
-        <Typography variant="h6" gutterBottom sx={{ color: '#111827' }}>
+      <Paper elevation={1} sx={{ p: 3, backgroundColor: theme.palette.background.paper }}>
+        <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary }}>
           Upload Bill
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
@@ -227,11 +229,11 @@ export default function BillUploadSection({ onTransactionCreated }: BillUploadSe
             sx={{ 
               flex: '1 1 auto', 
               minWidth: '120px',
-              borderColor: '#d1d5db',
-              color: '#111827',
+              borderColor: theme.palette.divider,
+              color: theme.palette.text.primary,
               '&:hover': {
-                borderColor: '#2563eb',
-                backgroundColor: '#f0f9ff',
+                borderColor: theme.palette.primary.main,
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(0, 198, 255, 0.1)' : '#f0f9ff',
               },
             }}
           >
@@ -266,11 +268,11 @@ export default function BillUploadSection({ onTransactionCreated }: BillUploadSe
             sx={{ 
               flex: '1 1 auto', 
               minWidth: '120px',
-              borderColor: '#d1d5db',
-              color: '#111827',
+              borderColor: theme.palette.divider,
+              color: theme.palette.text.primary,
               '&:hover': {
-                borderColor: '#2563eb',
-                backgroundColor: '#f0f9ff',
+                borderColor: theme.palette.primary.main,
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(0, 198, 255, 0.1)' : '#f0f9ff',
               },
             }}
           >
@@ -281,22 +283,24 @@ export default function BillUploadSection({ onTransactionCreated }: BillUploadSe
             sx={{
               flex: 1,
               border: '2px dashed',
-              borderColor: isDragActive ? '#2563eb' : '#d1d5db',
+              borderColor: isDragActive ? theme.palette.primary.main : theme.palette.divider,
               borderRadius: '8px',
               padding: '24px',
               textAlign: 'center',
               cursor: uploading ? 'not-allowed' : 'pointer',
-              backgroundColor: isDragActive ? '#f0f9ff' : '#f9fafb',
+              backgroundColor: isDragActive 
+                ? (theme.palette.mode === 'dark' ? 'rgba(0, 198, 255, 0.1)' : '#f0f9ff')
+                : theme.palette.background.default,
               transition: 'all 0.2s ease',
               '&:hover': {
-                borderColor: '#2563eb',
-                backgroundColor: '#f0f9ff',
+                borderColor: theme.palette.primary.main,
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(0, 198, 255, 0.1)' : '#f0f9ff',
               },
             }}
           >
             <input {...getInputProps()} />
-            <CloudUpload sx={{ fontSize: 48, color: '#6b7280', mb: 1 }} />
-            <Typography variant="body1" gutterBottom sx={{ color: '#111827' }}>
+            <CloudUpload sx={{ fontSize: 48, color: theme.palette.text.secondary, mb: 1 }} />
+            <Typography variant="body1" gutterBottom sx={{ color: theme.palette.text.primary }}>
               {isDragActive ? 'Drop file here' : 'Drag & drop file here'}
             </Typography>
             <Typography variant="body2" color="text.secondary">

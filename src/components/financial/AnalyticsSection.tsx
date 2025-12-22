@@ -11,6 +11,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import { useTheme } from '../../contexts/ThemeContext';
 import { getSpendingSummary, getSpendingTrends, getAnomalies } from '../../lib/api/financialApi';
 import { SpendingSummaryResponse, SpendingTrendsResponse, AnomaliesResponse } from '../../types/financial';
 
@@ -26,6 +27,7 @@ ChartJS.register(
 );
 
 export default function AnalyticsSection() {
+  const { theme } = useTheme();
   const [period, setPeriod] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('monthly');
   const [summary, setSummary] = useState<SpendingSummaryResponse | null>(null);
   const [trends, setTrends] = useState<SpendingTrendsResponse | null>(null);
@@ -89,9 +91,9 @@ export default function AnalyticsSection() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Paper elevation={1} sx={{ p: 2, backgroundColor: '#ffffff' }}>
+      <Paper elevation={1} sx={{ p: 2, backgroundColor: theme.palette.background.paper }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h6" sx={{ color: '#111827' }}>Analytics</Typography>
+          <Typography variant="h6" sx={{ color: theme.palette.text.primary }}>Analytics</Typography>
           <FormControl size="small" sx={{ minWidth: 150 }}>
             <InputLabel>Period</InputLabel>
             <Select value={period} onChange={(e) => setPeriod(e.target.value as any)} label="Period">
@@ -105,8 +107,8 @@ export default function AnalyticsSection() {
       </Paper>
 
       {summary && (
-        <Paper elevation={1} sx={{ p: 2, backgroundColor: '#ffffff' }}>
-          <Typography variant="h6" gutterBottom sx={{ color: '#111827' }}>
+        <Paper elevation={1} sx={{ p: 2, backgroundColor: theme.palette.background.paper }}>
+          <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary }}>
             Spending Summary
           </Typography>
           <Typography variant="body1" gutterBottom>
@@ -133,10 +135,10 @@ export default function AnalyticsSection() {
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ backgroundColor: '#f9fafb', color: '#111827', fontWeight: 600 }}>Category</TableCell>
-                  <TableCell align="right" sx={{ backgroundColor: '#f9fafb', color: '#111827', fontWeight: 600 }}>Amount</TableCell>
-                  <TableCell align="right" sx={{ backgroundColor: '#f9fafb', color: '#111827', fontWeight: 600 }}>Count</TableCell>
-                  <TableCell align="right" sx={{ backgroundColor: '#f9fafb', color: '#111827', fontWeight: 600 }}>Percentage</TableCell>
+                  <TableCell sx={{ backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', color: theme.palette.text.primary, fontWeight: 600 }}>Category</TableCell>
+                  <TableCell align="right" sx={{ backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', color: theme.palette.text.primary, fontWeight: 600 }}>Amount</TableCell>
+                  <TableCell align="right" sx={{ backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', color: theme.palette.text.primary, fontWeight: 600 }}>Count</TableCell>
+                  <TableCell align="right" sx={{ backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', color: theme.palette.text.primary, fontWeight: 600 }}>Percentage</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -155,8 +157,8 @@ export default function AnalyticsSection() {
       )}
 
       {trends && (
-        <Paper elevation={1} sx={{ p: 2, backgroundColor: '#ffffff' }}>
-          <Typography variant="h6" gutterBottom sx={{ color: '#111827' }}>
+        <Paper elevation={1} sx={{ p: 2, backgroundColor: theme.palette.background.paper }}>
+          <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary }}>
             Spending Trends
           </Typography>
           <Typography variant="body2" color="text.secondary" gutterBottom>
@@ -188,13 +190,13 @@ export default function AnalyticsSection() {
       )}
 
       {anomalies && anomalies.anomalies.length > 0 && (
-        <Paper elevation={1} sx={{ p: 2, backgroundColor: '#ffffff' }}>
-          <Typography variant="h6" gutterBottom sx={{ color: '#111827' }}>
+        <Paper elevation={1} sx={{ p: 2, backgroundColor: theme.palette.background.paper }}>
+          <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary }}>
             Anomalies ({anomalies.count})
           </Typography>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 2 }}>
             {anomalies.anomalies.map((anomaly) => (
-              <Card key={anomaly._id} elevation={0} sx={{ border: '1px solid #e5e7eb', backgroundColor: '#ffffff' }}>
+              <Card key={anomaly._id} elevation={0} sx={{ border: `1px solid ${theme.palette.divider}`, backgroundColor: theme.palette.background.paper }}>
                 <CardContent>
                   <Typography variant="subtitle2">
                     Rs. {anomaly.amount.toFixed(2)}

@@ -1,6 +1,6 @@
 .dashboard-container {
   min-height: 100vh;
-  background-color: #121212;
+  background-color: var(--bg-primary);
   padding: 2rem 1rem;
 }
 
@@ -24,7 +24,7 @@
 }
 
 .dashboard-title {
-  color: #e0e0e0;
+  color: var(--text-primary);
   font-size: clamp(1.5rem, 4vw, 2rem);
   margin: 0;
   font-weight: 700;
@@ -100,10 +100,10 @@
 }
 
 .history-container {
-  background-color: #1e1e1e;
+  background-color: var(--bg-paper);
   border-radius: 12px;
   padding: 2rem;
-  border: 1px solid #333333;
+  border: 1px solid var(--border-color);
   position: sticky;
   top: 2rem;
   max-height: calc(100vh - 4rem);
@@ -111,7 +111,7 @@
 }
 
 .history-title {
-  color: #e0e0e0;
+  color: var(--text-primary);
   margin-bottom: 1.5rem;
   font-size: clamp(1.25rem, 3vw, 1.5rem);
   font-weight: 600;
@@ -121,7 +121,7 @@
 .error-state {
   padding: 2rem;
   text-align: center;
-  color: #a0a0a0;
+  color: var(--text-secondary);
 }
 
 .error-state {
@@ -131,7 +131,7 @@
 .empty-state {
   padding: 3rem;
   text-align: center;
-  color: #a0a0a0;
+  color: var(--text-secondary);
 }
 
 .empty-state-text {
@@ -149,17 +149,17 @@
 }
 
 .transcription-card {
-  border: 1px solid #333333;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 1rem;
   cursor: pointer;
-  background-color: #121212;
+  background-color: var(--bg-primary);
   transition: all 0.2s;
 }
 
 .transcription-card:hover {
-  border-color: #00c6ff;
-  background-color: #1a1a1a;
+  border-color: var(--primary-color);
+  background-color: var(--hover-bg);
 }
 
 .transcription-header {
@@ -185,7 +185,7 @@
 }
 
 .transcription-name {
-  color: #e0e0e0;
+  color: var(--text-primary);
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;

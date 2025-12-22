@@ -1,6 +1,7 @@
 import { useMemo, useCallback } from 'react';
 import { Box, Paper, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton } from '@mui/material';
 import { Download, ContentCopy, Clear } from '@mui/icons-material';
+import { useTheme } from '../../contexts/ThemeContext';
 import { Transaction, Merchant, Category } from '../../types/financial';
 import { Pie, Bar } from 'react-chartjs-2';
 import {
@@ -43,6 +44,7 @@ export default function RightPanel({
   onClearFilters,
   hasFilters = false,
 }: RightPanelProps) {
+  const { theme } = useTheme();
   const getMerchantName = useCallback((merchantId: string) => {
     const merchant = merchants.find((m) => m._id === merchantId);
     return merchant?.merchant_name || merchantId || 'Unknown';
@@ -145,9 +147,9 @@ export default function RightPanel({
   return (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
       {/* Header with actions */}
-      <Paper elevation={1} sx={{ p: 2, backgroundColor: '#ffffff' }}>
+      <Paper elevation={1} sx={{ p: 2, backgroundColor: theme.palette.background.paper }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-          <Typography variant="h6" sx={{ color: '#111827' }}>Transactions Data</Typography>
+          <Typography variant="h6" sx={{ color: theme.palette.text.primary }}>Transactions Data</Typography>
           <Box sx={{ display: 'flex', gap: 1 }}>
             {hasFilters && onClearFilters && (
               <Button
@@ -156,11 +158,11 @@ export default function RightPanel({
                 onClick={onClearFilters}
                 variant="outlined"
                 sx={{
-                  borderColor: '#d1d5db',
-                  color: '#111827',
+                  borderColor: theme.palette.divider,
+                  color: theme.palette.text.primary,
                   '&:hover': {
-                    borderColor: '#2563eb',
-                    backgroundColor: '#f0f9ff',
+                    borderColor: theme.palette.primary.main,
+                    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(0, 198, 255, 0.1)' : '#f0f9ff',
                   },
                 }}
               >
@@ -174,14 +176,14 @@ export default function RightPanel({
               variant="contained"
               disabled={transactions.length === 0}
               sx={{
-                backgroundColor: '#2563eb',
-                color: '#ffffff',
+                backgroundColor: theme.palette.primary.main,
+                color: theme.palette.mode === 'dark' ? '#000000' : '#ffffff',
                 '&:hover': {
-                  backgroundColor: '#1d4ed8',
+                  backgroundColor: theme.palette.primary.dark,
                 },
                 '&:disabled': {
-                  backgroundColor: '#e5e7eb',
-                  color: '#9ca3af',
+                  backgroundColor: theme.palette.action.disabledBackground,
+                  color: theme.palette.action.disabled,
                 },
               }}
             >
@@ -192,12 +194,12 @@ export default function RightPanel({
               onClick={handleCopyToClipboard}
               disabled={transactions.length === 0}
               sx={{
-                color: '#2563eb',
+                color: theme.palette.primary.main,
                 '&:hover': {
-                  backgroundColor: '#f0f9ff',
+                  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(0, 198, 255, 0.1)' : '#f0f9ff',
                 },
                 '&:disabled': {
-                  color: '#9ca3af',
+                  color: theme.palette.action.disabled,
                 },
               }}
             >
@@ -212,23 +214,23 @@ export default function RightPanel({
       </Paper>
 
       {/* CSV Table View */}
-      <Paper elevation={1} sx={{ flex: 1, overflow: 'auto', backgroundColor: '#ffffff' }}>
+      <Paper elevation={1} sx={{ flex: 1, overflow: 'auto', backgroundColor: theme.palette.background.paper }}>
         <TableContainer sx={{ maxHeight: '40vh' }}>
           <Table stickyHeader size="small">
             <TableHead>
               <TableRow>
-                <TableCell sx={{ backgroundColor: '#f9fafb', color: '#111827', fontWeight: 600 }}>Date</TableCell>
-                <TableCell sx={{ backgroundColor: '#f9fafb', color: '#111827', fontWeight: 600 }}>Merchant</TableCell>
-                <TableCell sx={{ backgroundColor: '#f9fafb', color: '#111827', fontWeight: 600 }}>Category</TableCell>
-                <TableCell align="right" sx={{ backgroundColor: '#f9fafb', color: '#111827', fontWeight: 600 }}>Amount</TableCell>
-                <TableCell sx={{ backgroundColor: '#f9fafb', color: '#111827', fontWeight: 600 }}>Status</TableCell>
-                <TableCell align="right" sx={{ backgroundColor: '#f9fafb', color: '#111827', fontWeight: 600 }}>Confidence</TableCell>
+                <TableCell sx={{ backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', color: theme.palette.text.primary, fontWeight: 600 }}>Date</TableCell>
+                <TableCell sx={{ backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', color: theme.palette.text.primary, fontWeight: 600 }}>Merchant</TableCell>
+                <TableCell sx={{ backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', color: theme.palette.text.primary, fontWeight: 600 }}>Category</TableCell>
+                <TableCell align="right" sx={{ backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', color: theme.palette.text.primary, fontWeight: 600 }}>Amount</TableCell>
+                <TableCell sx={{ backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', color: theme.palette.text.primary, fontWeight: 600 }}>Status</TableCell>
+                <TableCell align="right" sx={{ backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', color: theme.palette.text.primary, fontWeight: 600 }}>Confidence</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {transactions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ backgroundColor: '#ffffff' }}>
+                  <TableCell colSpan={6} align="center" sx={{ backgroundColor: theme.palette.background.paper }}>
                     <Typography variant="body2" color="text.secondary" sx={{ py: 4 }}>
                       No transactions to display
                     </Typography>
@@ -240,16 +242,16 @@ export default function RightPanel({
                     key={txn._id} 
                     hover
                     sx={{ 
-                      backgroundColor: index % 2 === 0 ? '#ffffff' : '#f9fafb',
+                      backgroundColor: index % 2 === 0 ? theme.palette.background.paper : (theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb'),
                       '&:hover': {
-                        backgroundColor: '#f3f4f6',
+                        backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f3f4f6',
                       },
                     }}
                   >
-                    <TableCell sx={{ color: '#111827' }}>{new Date(txn.date).toLocaleDateString()}</TableCell>
-                    <TableCell sx={{ color: '#111827' }}>{getMerchantName(txn.merchant_id)}</TableCell>
-                    <TableCell sx={{ color: '#111827' }}>{getCategoryName(txn.category_id)}</TableCell>
-                    <TableCell align="right" sx={{ color: '#111827', fontWeight: 500 }}>Rs. {txn.amount.toFixed(2)}</TableCell>
+                    <TableCell sx={{ color: theme.palette.text.primary }}>{new Date(txn.date).toLocaleDateString()}</TableCell>
+                    <TableCell sx={{ color: theme.palette.text.primary }}>{getMerchantName(txn.merchant_id)}</TableCell>
+                    <TableCell sx={{ color: theme.palette.text.primary }}>{getCategoryName(txn.category_id)}</TableCell>
+                    <TableCell align="right" sx={{ color: theme.palette.text.primary, fontWeight: 500 }}>Rs. {txn.amount.toFixed(2)}</TableCell>
                     <TableCell>
                       <Typography
                         variant="body2"
@@ -266,7 +268,7 @@ export default function RightPanel({
                         {txn.status}
                       </Typography>
                     </TableCell>
-                    <TableCell align="right" sx={{ color: '#111827' }}>
+                    <TableCell align="right" sx={{ color: theme.palette.text.primary }}>
                       {(txn.confidence_category * 100).toFixed(1)}%
                     </TableCell>
                   </TableRow>
@@ -280,8 +282,8 @@ export default function RightPanel({
       {/* Charts */}
       {activeSection === 'transactions' && spendingByCategory.length > 0 && (
         <>
-          <Paper elevation={1} sx={{ p: 2, backgroundColor: '#ffffff' }}>
-            <Typography variant="h6" gutterBottom sx={{ color: '#111827' }}>
+          <Paper elevation={1} sx={{ p: 2, backgroundColor: theme.palette.background.paper }}>
+            <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary }}>
               Spending by Category
             </Typography>
             <Box sx={{ height: '300px' }}>
@@ -301,8 +303,8 @@ export default function RightPanel({
             </Box>
           </Paper>
 
-          <Paper elevation={1} sx={{ p: 2, backgroundColor: '#ffffff' }}>
-            <Typography variant="h6" gutterBottom sx={{ color: '#111827' }}>
+          <Paper elevation={1} sx={{ p: 2, backgroundColor: theme.palette.background.paper }}>
+            <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary }}>
               Top Categories
             </Typography>
             <Box sx={{ height: '300px' }}>

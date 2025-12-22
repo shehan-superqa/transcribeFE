@@ -90,25 +90,29 @@ const PrimaryButton = ({ onClick, children }: { onClick?: () => void; children: 
 // -------------------------
 // 3. Dropdown Components
 // -------------------------
-const SectionItem = ({ to, title, description }: { to: string; title: string; description: string }) => {
+const SectionItem = ({ to, title, description, theme }: { to: string; title: string; description: string; theme?: any }) => {
   const [hover, setHover] = useState(false);
+  const hoverBg = theme?.palette?.mode === 'dark' ? '#1a1a1a' : '#f3f4f6';
+  const textColor = theme?.palette?.mode === 'dark' ? '#ffffff' : '#111827';
+  const secondaryText = theme?.palette?.mode === 'dark' ? '#aaaaaa' : '#6b7280';
+  
   return (
     <Link
       to={to}
       style={{
         textDecoration: 'none',
         padding: '0.6rem 1rem',
-        backgroundColor: hover ? '#1a1a1a' : 'transparent',
+        backgroundColor: hover ? hoverBg : 'transparent',
         transition: 'background-color 0.2s ease-in-out',
         display: 'block',
       }}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
-      <h4 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: '0.85rem', color: '#ffffff', margin: 0 }}>
+      <h4 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: '0.85rem', color: textColor, margin: 0 }}>
         {title}
       </h4>
-      <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: '0.7rem', color: '#aaaaaa', margin: '0.2rem 0 0 0' }}>
+      <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: '0.7rem', color: secondaryText, margin: '0.2rem 0 0 0' }}>
         {description}
       </p>
     </Link>
@@ -172,22 +176,22 @@ const ToolsDropdown = ({ isMobile, theme }: { isMobile: boolean; theme?: any }) 
         <HighlightedItem to="/voice/transcribe" title="Audio to Text" description="Convert audio files to accurate text transcriptions" />
         <div style={{ display: 'flex', flexDirection: 'column', marginTop: '0.5rem' }}>
           <DropdownSection title="VOICE (AUDIO) TOOLS" theme={theme}>
-            <SectionItem to="/voice/transcribe" title="Audio to Text" description="Convert audio files to text" />
-            <SectionItem to="/voice/batch" title="Batch Processing" description="Process multiple audio files" />
-            <SectionItem to="/voice/live" title="Live Transcription" description="Real-time speech-to-text" />
-            <SectionItem to="/voice/tts" title="Text to Speech" description="Convert text to audio" />
-            <SectionItem to="/voice/translator" title="Audio Translator" description="Translate audio content" />
-            <SectionItem to="/voice/live-transcribe" title="Live Transcribe" description="Real-time transcription" />
-            <SectionItem to="/voice/live-captioner" title="Web Captioner" description="Generate live captions" />
-            <SectionItem to="/voice/live-translator" title="Real-Time Translator" description="Translate speech in real-time" />
-            <SectionItem to="/voice/live-voice-translator" title="Live Voice Translator" description="Translate voice conversations" />
+            <SectionItem to="/voice/transcribe" title="Audio to Text" description="Convert audio files to text" theme={theme} />
+            <SectionItem to="/voice/batch" title="Batch Processing" description="Process multiple audio files" theme={theme} />
+            <SectionItem to="/voice/live" title="Live Transcription" description="Real-time speech-to-text" theme={theme} />
+            <SectionItem to="/voice/tts" title="Text to Speech" description="Convert text to audio" theme={theme} />
+            <SectionItem to="/voice/translator" title="Audio Translator" description="Translate audio content" theme={theme} />
+            <SectionItem to="/voice/live-transcribe" title="Live Transcribe" description="Real-time transcription" theme={theme} />
+            <SectionItem to="/voice/live-captioner" title="Web Captioner" description="Generate live captions" theme={theme} />
+            <SectionItem to="/voice/live-translator" title="Real-Time Translator" description="Translate speech in real-time" theme={theme} />
+            <SectionItem to="/voice/live-voice-translator" title="Live Voice Translator" description="Translate voice conversations" theme={theme} />
           </DropdownSection>
           <DropdownSection title="VIDEO TOOLS" theme={theme}>
-            <SectionItem to="/video/text-to-video" title="Text to Video" description="Generate videos from text prompts" />
-            <SectionItem to="/video/to-text" title="Video to Text" description="Extract text from video files" />
-            <SectionItem to="/video/dubber" title="Video Dubber" description="Dub videos with new audio" />
-            <SectionItem to="/video/translator" title="Video Translator" description="Translate video content" />
-            <SectionItem to="/video/subtitle-generator" title="Subtitle Generator" description="Create subtitles for videos" />
+            <SectionItem to="/video/text-to-video" title="Text to Video" description="Generate videos from text prompts" theme={theme} />
+            <SectionItem to="/video/to-text" title="Video to Text" description="Extract text from video files" theme={theme} />
+            <SectionItem to="/video/dubber" title="Video Dubber" description="Dub videos with new audio" theme={theme} />
+            <SectionItem to="/video/translator" title="Video Translator" description="Translate video content" theme={theme} />
+            <SectionItem to="/video/subtitle-generator" title="Subtitle Generator" description="Create subtitles for videos" theme={theme} />
           </DropdownSection>
         </div>
       </div>
@@ -233,15 +237,15 @@ const ComplexDropdown = ({ isMobile, theme }: { isMobile: boolean; theme?: any }
         <HighlightedItem to="/pricing" title="Secure Comm." description="End-to-end encryption for all voice and data streams." />
         <div style={{ display: 'flex', flexDirection: 'column', marginTop: '0.5rem' }}>
           <DropdownSection title="CORE FEATURES" theme={theme}>
-            <SectionItem to="/pricing" title="Voice Biometrics" description="Verify user identity using unique voice prints (IVR)" />
-            <SectionItem to="/pricing" title="Data Tokenization" description="Anonymize sensitive data in real-time conversations" />
+            <SectionItem to="/pricing" title="Voice Biometrics" description="Verify user identity using unique voice prints (IVR)" theme={theme} />
+            <SectionItem to="/pricing" title="Data Tokenization" description="Anonymize sensitive data in real-time conversations" theme={theme} />
             <div style={{ padding: '0.5rem 1rem 0.25rem 1rem' }}>
               <h3 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: '0.75rem', color: textColor, textTransform: 'uppercase', margin: '0.5rem 0 0.25rem 0' }}>
                 USE CASES
               </h3>
             </div>
-            <SectionItem to="/pricing" title="Contact Center Security" description="Protect customer PII and meet compliance standards" />
-            <SectionItem to="/pricing" title="Remote Work Security" description="Secure virtual meetings and team collaborations" />
+            <SectionItem to="/pricing" title="Contact Center Security" description="Protect customer PII and meet compliance standards" theme={theme} />
+            <SectionItem to="/pricing" title="Remote Work Security" description="Secure virtual meetings and team collaborations" theme={theme} />
           </DropdownSection>
         </div>
       </div>
@@ -379,23 +383,23 @@ export default function Header() {
   const secondaryText = theme.palette.mode === 'dark' ? '#aaaaaa' : '#6b7280';
 
   const styles = {
-    header: { backgroundColor: '#000', borderBottom: '1px solid #1a1a1a', position: 'sticky' as const, top: 0, zIndex: 200, padding: '0.75rem 2rem' },
-    headerMobile: { backgroundColor: '#000', borderBottom: '1px solid #1a1a1a', position: 'sticky' as const, top: 0, zIndex: 200, padding: '0.75rem 1rem' },
+    header: { backgroundColor: headerBg, borderBottom: `1px solid ${headerBorder}`, position: 'sticky' as const, top: 0, zIndex: 200, padding: '0.75rem 2rem' },
+    headerMobile: { backgroundColor: headerBg, borderBottom: `1px solid ${headerBorder}`, position: 'sticky' as const, top: 0, zIndex: 200, padding: '0.75rem 1rem' },
     container: { maxWidth: '1448px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' },
     leftNavSection: { display: 'flex', alignItems: 'center', gap: '2.5rem' },
     logo: { display: 'flex', alignItems: 'center', textDecoration: 'none' },
     logoSvgContainer: { marginRight: '0.75rem' },
-    logoText: { fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: '1.2rem', color: '#fff', letterSpacing: '0.5px' },
+    logoText: { fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: '1.2rem', color: textColor, letterSpacing: '0.5px' },
     desktopNavLinks: { display: 'flex', alignItems: 'baseline' as const, gap: '1.25rem' },
     productDropdownContainer: { position: 'relative' as const, marginBottom: '-4px' },
     productDropdownMenu: { position: 'absolute' as const, top: '100%', left: '0', paddingTop: '4px', zIndex: 201, overflow: 'visible' },
     productDropdownMenuMobile: { position: 'absolute' as const, top: '100%', left: '0', paddingTop: '4px', zIndex: 201, width: '100%' },
     rightAuthSection: { display: 'flex', alignItems: 'center', gap: '0.75rem' },
     mobileMenuIcon: { cursor: 'pointer' },
-    mobileMenu: { display: 'flex', flexDirection: 'column' as const, gap: '0.6rem', backgroundColor: '#000', padding: '1rem 2rem', borderTop: '1px solid #1a1a1a' },
+    mobileMenu: { display: 'flex', flexDirection: 'column' as const, gap: '0.6rem', backgroundColor: headerBg, padding: '1rem 2rem', borderTop: `1px solid ${headerBorder}` },
     mobileDropdownContainer: { position: 'relative' as const, width: '100%' },
-    mobileDropdownMenu: { backgroundColor: '#0d0d0d', borderRadius: '4px', padding: '0.5rem 0', marginTop: '0.5rem', display: 'flex', flexDirection: 'column' as const, gap: '0' },
-    simpleDropdownItem: { fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: '0.8rem', textDecoration: 'none', color: '#fff', backgroundColor: 'transparent', padding: '0.4rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+    mobileDropdownMenu: { backgroundColor: dropdownBg, borderRadius: '4px', padding: '0.5rem 0', marginTop: '0.5rem', display: 'flex', flexDirection: 'column' as const, gap: '0' },
+    simpleDropdownItem: { fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: '0.8rem', textDecoration: 'none', color: textColor, backgroundColor: 'transparent', padding: '0.4rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
   };
 
   return (

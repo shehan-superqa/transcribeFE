@@ -9,6 +9,7 @@ interface MerchantsCategoriesSectionProps {
 }
 
 export default function MerchantsCategoriesSection({ onDataChange }: MerchantsCategoriesSectionProps) {
+  const { theme } = useTheme();
   const [tabValue, setTabValue] = useState(0);
   const [merchants, setMerchants] = useState<Merchant[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -76,7 +77,7 @@ export default function MerchantsCategoriesSection({ onDataChange }: MerchantsCa
 
   return (
     <Box>
-      <Paper elevation={1} sx={{ mb: 2, backgroundColor: '#ffffff' }}>
+      <Paper elevation={1} sx={{ mb: 2, backgroundColor: theme.palette.background.paper }}>
         <Tabs value={tabValue} onChange={(_, v) => setTabValue(v)}>
           <Tab label="Merchants" />
           <Tab label="Categories" />
@@ -86,15 +87,15 @@ export default function MerchantsCategoriesSection({ onDataChange }: MerchantsCa
       {tabValue === 0 && (
         <Box>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-            <Typography variant="h6" sx={{ color: '#111827' }}>Merchants</Typography>
+            <Typography variant="h6" sx={{ color: theme.palette.text.primary }}>Merchants</Typography>
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {merchants.map((merchant) => (
-              <Card key={merchant._id} elevation={1} sx={{ backgroundColor: '#ffffff' }}>
+              <Card key={merchant._id} elevation={1} sx={{ backgroundColor: theme.palette.background.paper }}>
                 <CardContent>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                     <Box sx={{ flex: 1 }}>
-                      <Typography variant="h6" gutterBottom sx={{ color: '#111827' }}>
+                      <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary }}>
                         {merchant.merchant_name}
                       </Typography>
                       {merchant.aliases.length > 0 && (

@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Box, Paper, Typography, Button, Card, CardContent, LinearProgress, Alert } from '@mui/material';
 import { Refresh, PlayArrow } from '@mui/icons-material';
+import { useTheme } from '../../contexts/ThemeContext';
 import { getModelStatus, reloadModel, triggerRetraining } from '../../lib/api/financialApi';
 import { ModelStatusResponse } from '../../types/financial';
 
 export default function ModelStatusSection() {
+  const { theme } = useTheme();
   const [modelStatus, setModelStatus] = useState<ModelStatusResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [reloading, setReloading] = useState(false);
@@ -61,17 +63,17 @@ export default function ModelStatusSection() {
 
   if (loading) {
     return (
-      <Paper elevation={1} sx={{ p: 3, backgroundColor: '#ffffff' }}>
-        <Typography sx={{ color: '#111827' }}>Loading model status...</Typography>
+      <Paper elevation={1} sx={{ p: 3, backgroundColor: theme.palette.background.paper }}>
+        <Typography sx={{ color: theme.palette.text.primary }}>Loading model status...</Typography>
       </Paper>
     );
   }
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      <Paper elevation={1} sx={{ p: 2, backgroundColor: '#ffffff' }}>
+      <Paper elevation={1} sx={{ p: 2, backgroundColor: theme.palette.background.paper }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h6" sx={{ color: '#111827' }}>Model Status</Typography>
+          <Typography variant="h6" sx={{ color: theme.palette.text.primary }}>Model Status</Typography>
           <Button startIcon={<Refresh />} onClick={loadModelStatus} size="small">
             Refresh
           </Button>
@@ -89,9 +91,9 @@ export default function ModelStatusSection() {
       </Paper>
 
       {modelStatus?.model_info && (
-        <Card elevation={1} sx={{ backgroundColor: '#ffffff' }}>
+        <Card elevation={1} sx={{ backgroundColor: theme.palette.background.paper }}>
           <CardContent>
-            <Typography variant="h6" gutterBottom sx={{ color: '#111827' }}>
+            <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary }}>
               Model Information
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -125,8 +127,8 @@ export default function ModelStatusSection() {
         </Card>
       )}
 
-      <Paper elevation={1} sx={{ p: 2, backgroundColor: '#ffffff' }}>
-        <Typography variant="h6" gutterBottom sx={{ color: '#111827' }}>
+      <Paper elevation={1} sx={{ p: 2, backgroundColor: theme.palette.background.paper }}>
+        <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary }}>
           Model Actions
         </Typography>
         <Box sx={{ display: 'flex', gap: 2 }}>

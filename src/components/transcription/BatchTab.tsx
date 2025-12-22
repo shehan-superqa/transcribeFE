@@ -28,6 +28,7 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import { batchTranscription, getAvailableModels, submitTranscriptionJob } from '../../lib/api/transcriptionApi';
 import { cancelJob } from '../../lib/api/jobsApi';
 import { useAuthModal } from '../../contexts/AuthModalContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { checkAuthAndTriggerModal } from '../../lib/authCheck';
 import type { TranscriptionConfig } from '../../types/api';
 import type { TranscriptionResult } from '../../types/api';
@@ -42,6 +43,7 @@ interface BatchFile {
 
 export default function BatchTab() {
   const { openModal } = useAuthModal();
+  const { theme } = useTheme();
   const [files, setFiles] = useState<BatchFile[]>([]);
   const [engine, setEngine] = useState('replicate');
   const [language, setLanguage] = useState('en');
@@ -389,26 +391,26 @@ export default function BatchTab() {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom sx={{ color: '#e0e0e0', mb: 3 }}>
+      <Typography variant="h4" gutterBottom sx={{ color: theme.palette.text.primary, mb: 3 }}>
         Batch Processing (Audio & Video)
       </Typography>
 
       {/* Settings */}
-      <Paper sx={{ p: 3, mb: 3, backgroundColor: '#1e1e1e', border: '1px solid #333333' }}>
-        <Typography variant="h6" gutterBottom sx={{ color: '#e0e0e0', mb: 2 }}>
+      <Paper sx={{ p: 3, mb: 3, backgroundColor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}` }}>
+        <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary, mb: 2 }}>
           Transcription Settings
         </Typography>
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2 }}>
           <FormControl fullWidth>
-            <InputLabel sx={{ color: '#a0a0a0' }}>Engine</InputLabel>
+            <InputLabel sx={{ color: theme.palette.text.secondary }}>Engine</InputLabel>
             <Select 
               value={engine} 
               onChange={(e) => setEngine(e.target.value)}
               disabled={isProcessing}
               sx={{ 
-                color: '#e0e0e0',
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#333333' },
-                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#00c6ff' },
+                color: theme.palette.text.primary,
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: theme.palette.divider },
+                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: theme.palette.primary.main },
               }}
             >
               <MenuItem value="whisper">Whisper</MenuItem>
