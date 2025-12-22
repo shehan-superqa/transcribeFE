@@ -1,5 +1,5 @@
-import { useMemo, useCallback } from 'react';
-import { Box, Paper, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton } from '@mui/material';
+import { useMemo, useCallback, useState } from 'react';
+import { Box, Paper, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton, Snackbar, Alert } from '@mui/material';
 import { Download, ContentCopy, Clear } from '@mui/icons-material';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Transaction, Merchant, Category } from '../../types/financial';
@@ -45,6 +45,11 @@ export default function RightPanel({
   hasFilters = false,
 }: RightPanelProps) {
   const { theme } = useTheme();
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' | 'info' | 'warning' }>({
+    open: false,
+    message: '',
+    severity: 'info',
+  });
   const getMerchantName = useCallback((merchantId: string) => {
     const merchant = merchants.find((m) => m._id === merchantId);
     return merchant?.merchant_name || merchantId || 'Unknown';
@@ -88,10 +93,10 @@ export default function RightPanel({
   const handleCopyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(csvString);
-      alert('CSV data copied to clipboard!');
+      setSnackbar({ open: true, message: 'CSV data copied to clipboard!', severity: 'success' });
     } catch (err) {
       console.error('Failed to copy:', err);
-      alert('Failed to copy to clipboard');
+      setSnackbar({ open: true, message: 'Failed to copy to clipboard', severity: 'error' });
     }
   };
 
@@ -135,7 +140,7 @@ export default function RightPanel({
       {
         label: 'Amount (Rs.)',
         data: spendingByCategory.map((item) => item.amount),
-        backgroundColor: '#3b82f6',
+        backgroundColor: theme.palette.primary.main,
       },
     ],
   };
@@ -335,6 +340,22 @@ export default function RightPanel({
           </Paper>
         </>
       )}
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

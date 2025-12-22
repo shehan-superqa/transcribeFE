@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Box, Button, IconButton } from '@mui/material';
+import { Box, Button, IconButton, Snackbar, Alert } from '@mui/material';
 import { CameraAlt, Close, Check } from '@mui/icons-material';
 
 interface CameraCaptureProps {
@@ -13,6 +13,11 @@ export default function CameraCapture({ onCapture, onClose }: CameraCaptureProps
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' | 'info' | 'warning' }>({
+    open: false,
+    message: '',
+    severity: 'info',
+  });
 
   useEffect(() => {
     // Check if mobile device
@@ -44,7 +49,7 @@ export default function CameraCapture({ onCapture, onClose }: CameraCaptureProps
       }
     } catch (error) {
       console.error('Error accessing camera:', error);
-      alert('Unable to access camera. Please check permissions.');
+      setSnackbar({ open: true, message: 'Unable to access camera. Please check permissions.', severity: 'error' });
     }
   };
 
@@ -241,6 +246,22 @@ export default function CameraCapture({ onCapture, onClose }: CameraCaptureProps
       )}
 
       <canvas ref={canvasRef} style={{ display: 'none' }} />
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

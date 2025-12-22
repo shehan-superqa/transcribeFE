@@ -140,8 +140,8 @@ export default function QuickStatsBar({ onStatClick }: QuickStatsBarProps) {
             ) : (
               <InsightCard
                 title="Avg per Transaction"
-                value={transactionCount > 0 ? totalSpending / transactionCount : 0}
-                subtitle="This month"
+                value={transactionCount > 0 ? (totalSpending / transactionCount) : 0}
+                subtitle={transactionCount > 0 ? "This month" : "No transactions"}
                 type="info"
               />
             )}

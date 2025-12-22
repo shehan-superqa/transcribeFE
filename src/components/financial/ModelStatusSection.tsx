@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Box, Paper, Typography, Button, Card, CardContent, LinearProgress, Alert } from '@mui/material';
+import { Box, Paper, Typography, Button, Card, CardContent, LinearProgress, Alert, Snackbar, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { Refresh, PlayArrow } from '@mui/icons-material';
 import { useTheme } from '../../contexts/ThemeContext';
 import { getModelStatus, reloadModel, triggerRetraining } from '../../lib/api/financialApi';
@@ -11,6 +11,12 @@ export default function ModelStatusSection() {
   const [loading, setLoading] = useState(false);
   const [reloading, setReloading] = useState(false);
   const [retraining, setRetraining] = useState(false);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' | 'info' | 'warning' }>({
+    open: false,
+    message: '',
+    severity: 'info',
+  });
 
   useEffect(() => {
     loadModelStatus();
@@ -35,27 +41,33 @@ export default function ModelStatusSection() {
     try {
       await reloadModel();
       await loadModelStatus();
-      alert('Model reloaded successfully!');
+      setSnackbar({ open: true, message: 'Model reloaded successfully!', severity: 'success' });
     } catch (error: any) {
-      alert('Failed to reload model: ' + error.message);
+      setSnackbar({ open: true, message: 'Failed to reload model: ' + error.message, severity: 'error' });
     } finally {
       setReloading(false);
     }
   };
 
   const handleRetrain = async () => {
-    if (!confirm('Trigger model retraining? This may take some time.')) return;
+    setConfirmDialogOpen(true);
+  };
+
+  const confirmRetrain = async () => {
+    setConfirmDialogOpen(false);
     setRetraining(true);
     try {
       const response = await triggerRetraining({ days_back: 30, min_samples: 50 });
       if (response.success && response.results) {
-        alert(
-          `Retraining completed!\nAccuracy: ${(response.results.accuracy * 100).toFixed(2)}%\nModel Version: ${response.results.model_version}`
-        );
+        setSnackbar({
+          open: true,
+          message: `Retraining completed! Accuracy: ${(response.results.accuracy * 100).toFixed(2)}%, Model Version: ${response.results.model_version}`,
+          severity: 'success',
+        });
         await loadModelStatus();
       }
     } catch (error: any) {
-      alert('Failed to trigger retraining: ' + error.message);
+      setSnackbar({ open: true, message: 'Failed to trigger retraining: ' + error.message, severity: 'error' });
     } finally {
       setRetraining(false);
     }
@@ -150,6 +162,36 @@ export default function ModelStatusSection() {
           </Button>
         </Box>
       </Paper>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={confirmDialogOpen} onClose={() => setConfirmDialogOpen(false)}>
+        <DialogTitle>Confirm Retraining</DialogTitle>
+        <DialogContent>
+          <Typography>Trigger model retraining? This may take some time.</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmDialogOpen(false)}>Cancel</Button>
+          <Button onClick={confirmRetrain} variant="contained" color="primary">
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

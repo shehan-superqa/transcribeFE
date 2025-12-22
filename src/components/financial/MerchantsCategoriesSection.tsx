@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Box, Paper, Typography, TextField, Button, Card, CardContent, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Tabs, Tab, Chip, List, ListItem, ListItemText } from '@mui/material';
+import { Box, Paper, Typography, TextField, Button, Card, CardContent, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Tabs, Tab, Chip, List, ListItem, ListItemText, Snackbar, Alert } from '@mui/material';
 import { Edit, Add } from '@mui/icons-material';
+import { useTheme } from '../../contexts/ThemeContext';
 import { listMerchants, updateMerchant, listCategories, createCategory } from '../../lib/api/financialApi';
 import { Merchant, Category } from '../../types/financial';
 
@@ -18,6 +19,11 @@ export default function MerchantsCategoriesSection({ onDataChange }: MerchantsCa
   const [selectedMerchant, setSelectedMerchant] = useState<Merchant | null>(null);
   const [merchantForm, setMerchantForm] = useState({ aliases: '', category: '' });
   const [categoryForm, setCategoryForm] = useState({ name: '', parent: '' });
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' | 'info' | 'warning' }>({
+    open: false,
+    message: '',
+    severity: 'info',
+  });
 
   useEffect(() => {
     loadData();
@@ -53,10 +59,11 @@ export default function MerchantsCategoriesSection({ onDataChange }: MerchantsCa
         merchant_category: merchantForm.category || undefined,
       });
       setEditMerchantDialog(false);
+      setSnackbar({ open: true, message: 'Merchant updated successfully', severity: 'success' });
       loadData();
       onDataChange?.();
     } catch (error: any) {
-      alert('Failed to update merchant: ' + error.message);
+      setSnackbar({ open: true, message: 'Failed to update merchant: ' + error.message, severity: 'error' });
     }
   };
 
@@ -68,10 +75,11 @@ export default function MerchantsCategoriesSection({ onDataChange }: MerchantsCa
       });
       setCreateCategoryDialog(false);
       setCategoryForm({ name: '', parent: '' });
+      setSnackbar({ open: true, message: 'Category created successfully', severity: 'success' });
       loadData();
       onDataChange?.();
     } catch (error: any) {
-      alert('Failed to create category: ' + error.message);
+      setSnackbar({ open: true, message: 'Failed to create category: ' + error.message, severity: 'error' });
     }
   };
 
@@ -123,7 +131,7 @@ export default function MerchantsCategoriesSection({ onDataChange }: MerchantsCa
       {tabValue === 1 && (
         <Box>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-            <Typography variant="h6" sx={{ color: '#111827' }}>Categories</Typography>
+            <Typography variant="h6" sx={{ color: theme.palette.text.primary }}>Categories</Typography>
             <Button startIcon={<Add />} variant="contained" onClick={() => setCreateCategoryDialog(true)}>
               Create Category
             </Button>
@@ -194,8 +202,24 @@ export default function MerchantsCategoriesSection({ onDataChange }: MerchantsCa
           <Button onClick={handleCreateCategory} variant="contained">
             Create
           </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
-  );
-}
+          </DialogActions>
+        </Dialog>
+
+        {/* Snackbar for notifications */}
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={6000}
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        >
+          <Alert
+            onClose={() => setSnackbar({ ...snackbar, open: false })}
+            severity={snackbar.severity}
+            sx={{ width: '100%' }}
+          >
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
+      </Box>
+    );
+  }

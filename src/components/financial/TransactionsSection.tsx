@@ -18,6 +18,8 @@ import {
   InputLabel,
   Chip,
   Pagination,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import { Edit, Delete, MergeType, FilterList, CloudUpload } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -67,7 +69,24 @@ export default function TransactionsSection({
   const [mergeWithId, setMergeWithId] = useState('');
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' | 'info' | 'warning' }>({
+    open: false,
+    message: '',
+    severity: 'info',
+  });
   const itemsPerPage = 10;
+
+  const getMerchantName = (merchantId: string | null) => {
+    if (!merchantId) return 'Unknown Merchant';
+    const merchant = merchants.find((m) => m._id === merchantId);
+    return merchant?.merchant_name || merchantId;
+  };
+
+  const getCategoryName = (categoryId: string | null) => {
+    if (!categoryId) return 'Unknown Category';
+    const category = categories.find((c) => c._id === categoryId);
+    return category?.category_name || categoryId;
+  };
 
   useEffect(() => {
     setTransactions(initialTransactions);
@@ -131,9 +150,10 @@ export default function TransactionsSection({
         date: editForm.date?.toISOString() || undefined,
       });
       setEditDialogOpen(false);
+      setSnackbar({ open: true, message: 'Transaction updated successfully', severity: 'success' });
       onTransactionsChange();
     } catch (error: any) {
-      alert('Failed to update transaction: ' + error.message);
+      setSnackbar({ open: true, message: 'Failed to update transaction: ' + error.message, severity: 'error' });
     }
   };
 
@@ -143,9 +163,10 @@ export default function TransactionsSection({
     try {
       await deleteTransaction(selectedTransaction._id);
       setDeleteDialogOpen(false);
+      setSnackbar({ open: true, message: 'Transaction deleted successfully', severity: 'success' });
       onTransactionsChange();
     } catch (error: any) {
-      alert('Failed to delete transaction: ' + error.message);
+      setSnackbar({ open: true, message: 'Failed to delete transaction: ' + error.message, severity: 'error' });
     }
   };
 
@@ -155,9 +176,10 @@ export default function TransactionsSection({
     try {
       await mergeTransaction(selectedTransaction._id, { merge_with: mergeWithId });
       setMergeDialogOpen(false);
+      setSnackbar({ open: true, message: 'Transactions merged successfully', severity: 'success' });
       onTransactionsChange();
     } catch (error: any) {
-      alert('Failed to merge transactions: ' + error.message);
+      setSnackbar({ open: true, message: 'Failed to merge transactions: ' + error.message, severity: 'error' });
     }
   };
 
@@ -302,12 +324,12 @@ export default function TransactionsSection({
                     </Typography>
                     <Box sx={{ display: 'flex', gap: 1, mt: 1, flexWrap: 'wrap' }}>
                       <Chip
-                        label={transaction.merchant_id || 'Unknown Merchant'}
+                        label={getMerchantName(transaction.merchant_id)}
                         size="small"
                         variant="outlined"
                       />
                       <Chip
-                        label={transaction.category_id || 'Unknown Category'}
+                        label={getCategoryName(transaction.category_id)}
                         size="small"
                         variant="outlined"
                       />
@@ -478,8 +500,24 @@ export default function TransactionsSection({
           <Button onClick={handleMerge} variant="contained" disabled={!mergeWithId}>
             Merge
           </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
-  );
-}
+          </DialogActions>
+        </Dialog>
+
+        {/* Snackbar for notifications */}
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={6000}
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        >
+          <Alert
+            onClose={() => setSnackbar({ ...snackbar, open: false })}
+            severity={snackbar.severity}
+            sx={{ width: '100%' }}
+          >
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
+      </Box>
+    );
+  }

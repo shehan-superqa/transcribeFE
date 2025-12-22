@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Box, Paper, Typography, FormControl, InputLabel, Select, MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Card, CardContent } from '@mui/material';
+import { Box, Paper, Typography, FormControl, InputLabel, Select, MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Card, CardContent, Alert, CircularProgress } from '@mui/material';
 import { Bar, Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -33,6 +33,7 @@ export default function AnalyticsSection() {
   const [trends, setTrends] = useState<SpendingTrendsResponse | null>(null);
   const [anomalies, setAnomalies] = useState<AnomaliesResponse | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadAnalytics();
@@ -40,6 +41,7 @@ export default function AnalyticsSection() {
 
   const loadAnalytics = async () => {
     setLoading(true);
+    setError(null);
     try {
       const [summaryRes, trendsRes, anomaliesRes] = await Promise.all([
         getSpendingSummary({ period }),
@@ -49,8 +51,9 @@ export default function AnalyticsSection() {
       if (summaryRes.success) setSummary(summaryRes);
       if (trendsRes.success) setTrends(trendsRes);
       if (anomaliesRes.success) setAnomalies(anomaliesRes);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to load analytics:', error);
+      setError(error.message || 'Failed to load analytics data');
     } finally {
       setLoading(false);
     }
@@ -63,7 +66,7 @@ export default function AnalyticsSection() {
           {
             label: 'Amount (Rs.)',
             data: summary.summary.by_category.map((item) => item.amount),
-            backgroundColor: '#3b82f6',
+            backgroundColor: theme.palette.primary.main,
           },
         ],
       }
@@ -76,14 +79,18 @@ export default function AnalyticsSection() {
           {
             label: 'Current',
             data: trends.trends.comparisons.map((item) => item.current_total),
-            borderColor: '#3b82f6',
-            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            borderColor: theme.palette.primary.main,
+            backgroundColor: theme.palette.mode === 'dark' 
+              ? 'rgba(59, 130, 246, 0.1)' 
+              : 'rgba(59, 130, 246, 0.1)',
           },
           {
             label: 'Previous',
             data: trends.trends.comparisons.map((item) => item.previous_total),
-            borderColor: '#10b981',
-            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            borderColor: theme.palette.success.main,
+            backgroundColor: theme.palette.mode === 'dark'
+              ? 'rgba(16, 185, 129, 0.1)'
+              : 'rgba(16, 185, 129, 0.1)',
           },
         ],
       }
@@ -91,6 +98,16 @@ export default function AnalyticsSection() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      {error && (
+        <Alert severity="error" onClose={() => setError(null)}>
+          {error}
+        </Alert>
+      )}
+      {loading && !summary && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+          <CircularProgress />
+        </Box>
+      )}
       <Paper elevation={2} sx={{ p: 3, backgroundColor: theme.palette.background.paper }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Box>
