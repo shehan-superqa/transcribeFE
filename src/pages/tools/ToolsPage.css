@@ -37,21 +37,21 @@
 }
 
 .tool-card {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
   border-radius: 12px;
   padding: 1.5rem;
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: left;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 8px var(--shadow-light);
 }
 
 .tool-card:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--hover-bg);
   transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(0, 198, 255, 0.2);
-  border-color: rgba(0, 198, 255, 0.3);
+  box-shadow: 0 8px 16px var(--shadow);
+  border-color: var(--primary-color);
 }
 
 .tool-card-title {
@@ -64,7 +64,7 @@
 .tool-card-description {
   font-size: 0.9rem;
   margin: 0;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-secondary);
   line-height: 1.5;
 }
 

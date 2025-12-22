@@ -4,21 +4,22 @@ import { submitVideoJob, getVideoJobStatus } from '../../lib/api/videoApi';
 import { getUserJobs } from '../../lib/api/jobsApi';
 import { useSSE } from '../../hooks/useSSE';
 import { useAuthModal } from '../../contexts/AuthModalContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { checkAuthAndTriggerModal } from '../../lib/authCheck';
 import type { VideoJobRequest, VideoJobResult, VideoJob, Job } from '../../types/api';
 import HowToUse from '../../components/common/HowToUse';
 import './VideoGenerationTool.css';
 
-const styles = {
+const getStyles = () => ({
   container: {
     display: 'flex',
     flexDirection: 'row' as const,
     gap: '2rem',
     padding: '2rem',
     borderRadius: '1.25rem',
-    background: 'linear-gradient(145deg, #0f172a, #1e293b)',
-    color: '#f8fafc',
-    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.25)',
+    background: 'linear-gradient(145deg, var(--gradient-start), var(--gradient-end))',
+    color: 'var(--text-primary)',
+    boxShadow: '0 10px 25px var(--shadow)',
     maxWidth: '1600px',
     margin: '2rem auto',
     fontFamily: 'Inter, system-ui, sans-serif',
@@ -103,7 +104,7 @@ const styles = {
   advancedToggle: {
     background: 'transparent',
     border: 'none',
-    color: '#60a5fa',
+    color: 'var(--primary-color)',
     cursor: 'pointer',
     fontSize: '0.9rem',
     padding: '0.5rem 0',
@@ -117,7 +118,7 @@ const styles = {
     flexDirection: 'column' as const,
     gap: '1rem',
     padding: '1rem',
-    background: 'rgba(255, 255, 255, 0.03)',
+    background: 'var(--bg-secondary)',
     borderRadius: '0.75rem',
     marginTop: '0.5rem',
   },
@@ -131,7 +132,7 @@ const styles = {
     maxHeight: '150px',
     borderRadius: '0.5rem',
     marginTop: '0.5rem',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
+    border: '1px solid var(--border-color)',
   },
   imageInputWrapper: {
     display: 'flex',
@@ -140,7 +141,7 @@ const styles = {
   },
   fileInputLabel: {
     fontSize: '0.85rem',
-    color: '#cbd5e1',
+    color: 'var(--text-secondary)',
     cursor: 'pointer',
     textDecoration: 'underline',
   },
@@ -148,9 +149,9 @@ const styles = {
     display: 'none',
   },
   addImageButton: {
-    background: 'rgba(99, 102, 241, 0.2)',
-    border: '1px solid rgba(99, 102, 241, 0.4)',
-    color: '#a5b4fc',
+    background: 'var(--bg-secondary)',
+    border: '1px solid var(--primary-color)',
+    color: 'var(--primary-color)',
     padding: '0.5rem 1rem',
     borderRadius: '0.5rem',
     cursor: 'pointer',
@@ -159,9 +160,9 @@ const styles = {
     alignSelf: 'flex-start',
   },
   removeImageButton: {
-    background: 'rgba(239, 68, 68, 0.2)',
-    border: '1px solid rgba(239, 68, 68, 0.4)',
-    color: '#fca5a5',
+    background: 'rgba(239, 68, 68, 0.1)',
+    border: '1px solid rgba(239, 68, 68, 0.3)',
+    color: '#f44336',
     padding: '0.25rem 0.5rem',
     borderRadius: '0.5rem',
     cursor: 'pointer',
@@ -169,8 +170,8 @@ const styles = {
     marginTop: '0.25rem',
   },
   submitButton: {
-    background: 'linear-gradient(90deg, #6366f1, #3b82f6)',
-    color: '#f8fafc',
+    background: 'linear-gradient(90deg, var(--primary-color), var(--primary-hover))',
+    color: 'var(--text-primary)',
     border: 'none',
     borderRadius: '0.75rem',
     padding: '0.875rem 1.5rem',
@@ -178,7 +179,7 @@ const styles = {
     fontSize: '1rem',
     cursor: 'pointer',
     transition: 'all 0.25s ease',
-    boxShadow: '0 4px 12px rgba(99, 102, 241, 0.4)',
+    boxShadow: '0 4px 12px var(--shadow)',
   },
   submitButtonDisabled: {
     opacity: 0.5,
@@ -187,7 +188,7 @@ const styles = {
   error: {
     background: 'rgba(239, 68, 68, 0.1)',
     border: '1px solid rgba(239, 68, 68, 0.3)',
-    color: '#fca5a5',
+    color: '#f44336',
     padding: '0.75rem 1rem',
     borderRadius: '0.75rem',
     fontSize: '0.9rem',
@@ -197,30 +198,30 @@ const styles = {
     flexDirection: 'column' as const,
     gap: '0.75rem',
     padding: '1rem',
-    background: 'rgba(255, 255, 255, 0.05)',
+    background: 'var(--bg-secondary)',
     borderRadius: '0.75rem',
   },
   progressBarContainer: {
-    background: 'rgba(255, 255, 255, 0.1)',
+    background: 'var(--bg-secondary)',
     borderRadius: '1rem',
     height: '0.5rem',
     overflow: 'hidden',
   },
   progressBar: {
     height: '100%',
-    background: 'linear-gradient(90deg, #22d3ee, #3b82f6)',
+    background: 'linear-gradient(90deg, var(--primary-color), var(--primary-hover))',
     transition: 'width 0.3s ease',
   },
   progressText: {
     fontSize: '0.85rem',
-    color: '#cbd5e1',
+    color: 'var(--text-secondary)',
   },
   videoContainer: {
     display: 'flex',
     flexDirection: 'column' as const,
     gap: '1rem',
     padding: '1.5rem',
-    background: 'rgba(255, 255, 255, 0.05)',
+    background: 'var(--bg-secondary)',
     borderRadius: '0.75rem',
     minWidth: '400px',
     maxWidth: '500px',
@@ -302,15 +303,17 @@ const styles = {
   },
   charCount: {
     fontSize: '0.75rem',
-    color: '#cbd5e1',
+    color: 'var(--text-secondary)',
     textAlign: 'right' as const,
     marginTop: '0.25rem',
   },
-};
+});
 
 export default function VideoGenerationTool() {
   const { user } = useAuth();
+  const { theme } = useTheme();
   const { openModal } = useAuthModal();
+  const styles = getStyles();
   const performSubmission = useRef(false);
   const [prompt, setPrompt] = useState('');
   const [referenceImages, setReferenceImages] = useState<string[]>(['']);
@@ -732,17 +735,17 @@ export default function VideoGenerationTool() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "completed":
-        return "#4caf50";
+        return theme.palette.success.main;
       case "processing":
       case "starting":
-        return "#ff9800";
+        return theme.palette.warning.main;
       case "error":
       case "cancelled":
-        return "#f44336";
+        return theme.palette.error.main;
       case "queued":
-        return "#2196f3";
+        return theme.palette.info.main;
       default:
-        return "#666666";
+        return theme.palette.text.secondary;
     }
   };
 
@@ -783,7 +786,7 @@ export default function VideoGenerationTool() {
 
         <div style={styles.inputGroup}>
           <label style={styles.label}>Reference Images (Optional, 1-3 images)</label>
-          <p style={{ fontSize: '0.85rem', color: '#cbd5e1', margin: '0 0 0.5rem 0' }}>
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: '0 0 0.5rem 0' }}>
             Paste images from clipboard, upload files, or provide image URLs. Only works with 16:9 aspect ratio and 8-second duration.
           </p>
           {referenceImages.map((imageUrl, index) => (
@@ -968,8 +971,8 @@ export default function VideoGenerationTool() {
         </button>
 
         {!user && (
-          <p style={{ textAlign: 'center', color: '#cbd5e1', fontSize: '0.9rem' }}>
-            Please <a href="/auth/login" style={{ color: '#60a5fa' }}>sign in</a> to generate videos
+          <p style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+            Please <a href="/auth/login" style={{ color: 'var(--primary-color)' }}>sign in</a> to generate videos
           </p>
         )}
       </form>
@@ -979,7 +982,7 @@ export default function VideoGenerationTool() {
       <div style={styles.rightSidebar}>
         {videoUrl && (
           <div style={styles.videoContainer}>
-            <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#f8fafc' }}>Generated Video</h3>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-primary)' }}>Generated Video</h3>
             <video src={videoUrl} controls style={styles.video}>
               Your browser does not support the video tag.
             </video>
@@ -1000,7 +1003,7 @@ export default function VideoGenerationTool() {
         {historyLoading ? (
           <div style={styles.emptyHistory}>Loading history...</div>
         ) : historyError ? (
-          <div style={{ ...styles.emptyHistory, color: '#f44336' }}>
+          <div style={{ ...styles.emptyHistory, color: theme.palette.error.main }}>
             {historyError}
           </div>
         ) : videoHistory.length === 0 ? (
@@ -1024,19 +1027,19 @@ export default function VideoGenerationTool() {
                   onClick={() => hasVideo && handleVideoJobClick(job)}
                   onMouseEnter={(e) => {
                     if (hasVideo) {
-                      e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.5)';
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                      e.currentTarget.style.borderColor = 'var(--primary-color)';
+                      e.currentTarget.style.background = 'var(--hover-bg)';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (hasVideo) {
-                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                      e.currentTarget.style.borderColor = 'var(--border-color)';
+                      e.currentTarget.style.background = 'var(--bg-paper)';
                     }
                   }}
                 >
                   <div style={styles.historyCardHeader}>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#f8fafc' }}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                       {job.prompt.length > 30 ? `${job.prompt.substring(0, 30)}...` : job.prompt}
                     </span>
                     <span
@@ -1056,7 +1059,7 @@ export default function VideoGenerationTool() {
                     {(job as any).resolution && <span>• {(job as any).resolution}</span>}
                   </div>
                   {hasVideo && (
-                    <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#4caf50' }}>
+                    <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: theme.palette.success.main }}>
                       ✓ Video available - Click to view
                     </div>
                   )}

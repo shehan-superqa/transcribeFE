@@ -4,20 +4,21 @@ import { submitVideoDubJob, getVideoDubJobStatus, downloadDubbedVideo, getDubLan
 import { getUserJobs } from '../../lib/api/jobsApi';
 import { useSSE } from '../../hooks/useSSE';
 import { useAuthModal } from '../../contexts/AuthModalContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { checkAuthAndTriggerModal } from '../../lib/authCheck';
 import type { VideoDubJob, Job } from '../../types/api';
 import HowToUse from '../common/HowToUse';
 import './VideoDubberTool.css';
 
-const styles = {
+const getStyles = () => ({
   container: {
     display: 'flex',
     flexDirection: 'row' as const,
     gap: '2rem',
     padding: '2rem',
     borderRadius: '1.25rem',
-    background: 'linear-gradient(145deg, #0f172a, #1e293b)',
-    color: '#f8fafc',
+    background: 'linear-gradient(145deg, var(--gradient-start), var(--gradient-end))',
+    color: 'var(--text-primary)',
     boxShadow: '0 10px 25px rgba(0, 0, 0, 0.25)',
     maxWidth: '1600px',
     margin: '2rem auto',
@@ -53,24 +54,24 @@ const styles = {
   label: {
     fontWeight: 600,
     fontSize: '0.95rem',
-    color: '#f8fafc',
+    color: 'var(--text-primary)',
   },
   input: {
     padding: '0.75rem 1rem',
     borderRadius: '0.75rem',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-    background: 'rgba(255, 255, 255, 0.05)',
-    color: '#f8fafc',
+    border: '1px solid var(--border-color)',
+    background: 'var(--bg-primary)',
+    color: 'var(--text-primary)',
     outline: 'none',
     fontSize: '0.95rem',
   },
   select: {
     padding: '0.75rem 1rem',
     borderRadius: '0.75rem',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-    background: 'rgba(255, 255, 255, 0.05)',
-    backgroundColor: 'rgba(30, 41, 59, 0.8)',
-    color: '#f8fafc',
+    border: '1px solid var(--border-color)',
+    background: 'var(--bg-primary)',
+    backgroundColor: 'var(--bg-paper)',
+    color: 'var(--text-primary)',
     outline: 'none',
     fontSize: '0.95rem',
     cursor: 'pointer',
@@ -79,20 +80,20 @@ const styles = {
     MozAppearance: 'none' as const,
   },
   dropzone: {
-    border: '2px dashed rgba(255, 255, 255, 0.3)',
+    border: '2px dashed var(--border-color)',
     borderRadius: '0.75rem',
     padding: '2rem',
     textAlign: 'center' as const,
     cursor: 'pointer',
     transition: 'all 0.2s ease',
-    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    backgroundColor: 'var(--bg-secondary)',
   },
   dropzoneActive: {
-    borderColor: '#3b82f6',
-    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+    borderColor: 'var(--primary-color)',
+    backgroundColor: 'var(--hover-bg)',
   },
   dropzoneText: {
-    color: '#cbd5e1',
+    color: 'var(--text-secondary)',
     fontSize: '0.9rem',
     marginTop: '0.5rem',
   },
@@ -113,25 +114,25 @@ const styles = {
     fontFamily: 'inherit',
   },
   buttonPrimary: {
-    background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-    color: '#ffffff',
+    background: 'linear-gradient(135deg, var(--primary-color), var(--primary-hover))',
+    color: 'var(--text-primary)',
   },
   buttonDisabled: {
-    background: 'rgba(255, 255, 255, 0.1)',
-    color: 'rgba(255, 255, 255, 0.5)',
+    background: 'var(--bg-secondary)',
+    color: 'var(--text-tertiary)',
     cursor: 'not-allowed',
   },
   progressBar: {
     width: '100%',
     height: '8px',
     borderRadius: '4px',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'var(--bg-secondary)',
     overflow: 'hidden' as const,
     marginTop: '0.5rem',
   },
   progressFill: {
     height: '100%',
-    background: 'linear-gradient(90deg, #3b82f6, #8b5cf6)',
+    background: 'linear-gradient(90deg, var(--primary-color), var(--primary-hover))',
     transition: 'width 0.3s ease',
   },
   error: {
@@ -139,7 +140,7 @@ const styles = {
     borderRadius: '0.75rem',
     backgroundColor: 'rgba(239, 68, 68, 0.1)',
     border: '1px solid rgba(239, 68, 68, 0.3)',
-    color: '#fca5a5',
+    color: '#f44336',
     fontSize: '0.9rem',
   },
   success: {
@@ -147,14 +148,14 @@ const styles = {
     borderRadius: '0.75rem',
     backgroundColor: 'rgba(34, 197, 94, 0.1)',
     border: '1px solid rgba(34, 197, 94, 0.3)',
-    color: '#86efac',
+    color: '#4caf50',
     fontSize: '0.9rem',
   },
   historyItem: {
     padding: '1rem',
     borderRadius: '0.75rem',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'var(--bg-paper)',
+    border: '1px solid var(--border-color)',
     marginBottom: '0.75rem',
     cursor: 'pointer',
     transition: 'all 0.2s ease',
@@ -168,7 +169,7 @@ const styles = {
   historyItemTitle: {
     fontWeight: 600,
     fontSize: '0.9rem',
-    color: '#f8fafc',
+    color: 'var(--text-primary)',
   },
   historyItemStatus: {
     fontSize: '0.75rem',
@@ -178,22 +179,22 @@ const styles = {
   },
   statusCompleted: {
     backgroundColor: 'rgba(34, 197, 94, 0.2)',
-    color: '#86efac',
+    color: '#4caf50',
   },
   statusProcessing: {
     backgroundColor: 'rgba(59, 130, 246, 0.2)',
-    color: '#93c5fd',
+    color: 'var(--primary-color)',
   },
   statusError: {
     backgroundColor: 'rgba(239, 68, 68, 0.2)',
-    color: '#fca5a5',
+    color: '#f44336',
   },
   videoContainer: {
     display: 'flex',
     flexDirection: 'column' as const,
     gap: '1rem',
     padding: '1.5rem',
-    background: 'rgba(255, 255, 255, 0.05)',
+    background: 'var(--bg-secondary)',
     borderRadius: '0.75rem',
     minWidth: '400px',
     maxWidth: '500px',
@@ -205,8 +206,8 @@ const styles = {
     maxHeight: '500px',
   },
   downloadButton: {
-    background: 'linear-gradient(90deg, #10b981, #059669)',
-    color: '#f8fafc',
+    background: 'linear-gradient(90deg, var(--primary-color), var(--primary-hover))',
+    color: 'var(--text-primary)',
     border: 'none',
     borderRadius: '0.75rem',
     padding: '0.75rem 1.5rem',
@@ -217,7 +218,7 @@ const styles = {
     textDecoration: 'none',
     display: 'inline-block',
   },
-};
+});
 
 // Supported languages for video dubbing
 const SUPPORTED_LANGUAGES = [
@@ -240,7 +241,9 @@ const SUPPORTED_LANGUAGES = [
 
 export default function VideoDubberTool() {
   const { user } = useAuth();
+  const { theme } = useTheme();
   const { openModal } = useAuthModal();
+  const styles = getStyles();
   const performSubmission = useRef(false);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoUrl, setVideoUrl] = useState<string>('');
@@ -823,16 +826,16 @@ export default function VideoDubberTool() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "completed":
-        return "#4caf50";
+        return theme.palette.success.main;
       case "processing":
       case "starting":
-        return "#ff9800";
+        return theme.palette.warning.main;
       case "error":
-        return "#f44336";
+        return theme.palette.error.main;
       case "queued":
-        return "#2196f3";
+        return theme.palette.info.main;
       default:
-        return "#666666";
+        return theme.palette.text.secondary;
     }
   };
 
@@ -882,7 +885,7 @@ export default function VideoDubberTool() {
                       fill="none"
                       stroke="currentColor"
                       strokeWidth="2"
-                      style={{ color: '#64748b', margin: '0 auto' }}
+                      style={{ color: 'var(--text-tertiary)', margin: '0 auto' }}
                     >
                       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                       <polyline points="14 2 14 8 20 8" />
@@ -922,7 +925,7 @@ export default function VideoDubberTool() {
                 }}
                 style={styles.input}
               />
-              <p style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '0.25rem' }}>
                 Alternatively, enter a publicly accessible video URL
               </p>
             </div>
@@ -963,7 +966,7 @@ export default function VideoDubberTool() {
                     }}
                   />
                 </div>
-                <p style={{ color: '#cbd5e1', fontSize: '0.85rem', marginTop: '0.5rem' }}>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '0.5rem' }}>
                   {displayMessage || 'Processing...'}
                 </p>
               </div>
@@ -991,7 +994,7 @@ export default function VideoDubberTool() {
         <div style={styles.rightSidebar}>
           {resultVideoUrl && (
             <div style={styles.videoContainer}>
-              <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#f8fafc' }}>Dubbed Video</h3>
+              <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-primary)' }}>Dubbed Video</h3>
               <video src={resultVideoUrl} controls style={styles.video}>
                 Your browser does not support the video tag.
               </video>
@@ -1029,14 +1032,14 @@ export default function VideoDubberTool() {
                   onClick={() => handleHistoryItemClick(job)}
                   onMouseEnter={(e) => {
                     if (job.status === 'completed') {
-                      e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.5)';
-                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+                      e.currentTarget.style.borderColor = 'var(--primary-color)';
+                      e.currentTarget.style.backgroundColor = 'var(--hover-bg)';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (job.status === 'completed') {
-                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                      e.currentTarget.style.borderColor = 'var(--border-color)';
+                      e.currentTarget.style.backgroundColor = 'var(--bg-paper)';
                     }
                   }}
                 >
@@ -1057,11 +1060,11 @@ export default function VideoDubberTool() {
                       {job.status}
                     </span>
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.5rem' }}>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '0.5rem' }}>
                     {formatDate(job.created_at)}
                   </div>
                   {job.status === 'completed' && (job.video_output_url || job.result?.video_url) && (
-                    <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#4caf50' }}>
+                    <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: theme.palette.success.main }}>
                       ✓ Video available - Click to view
                     </div>
                   )}
