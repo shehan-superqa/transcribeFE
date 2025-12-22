@@ -245,15 +245,74 @@ export default function VideoDubberTool() {
       try {
         setLanguagesLoading(true);
         const response = await getDubLanguages();
-        if (response.success && response.languages && response.languages.length > 0) {
-          setAvailableLanguages(response.languages);
-          // Set default language to first available language if current default is not in the list
-          if (!response.languages.find(lang => lang.code === outputLanguage)) {
-            setOutputLanguage(response.languages[0].code);
+        
+        // Log the raw response for debugging
+        console.log('🔍 Languages API raw response:', response);
+        console.log('🔍 Response type:', typeof response);
+        console.log('🔍 Is array?', Array.isArray(response));
+        
+        // Handle different response structures
+        let languages: DubLanguage[] = [];
+        
+        if (response) {
+          // Case 1: Response is directly an array of languages
+          if (Array.isArray(response)) {
+            languages = response;
+            console.log('✅ Found languages as direct array:', languages.length);
+          } 
+          // Case 2: Response has languages property (with or without success)
+          else if (response.languages && Array.isArray(response.languages)) {
+            languages = response.languages;
+            console.log('✅ Found languages in response.languages:', languages.length);
+          }
+          // Case 3: Response has data property containing languages
+          else if ((response as any).data && Array.isArray((response as any).data)) {
+            languages = (response as any).data;
+            console.log('✅ Found languages in response.data:', languages.length);
+          }
+          // Case 4: Response has data.languages
+          else if ((response as any).data?.languages && Array.isArray((response as any).data.languages)) {
+            languages = (response as any).data.languages;
+            console.log('✅ Found languages in response.data.languages:', languages.length);
+          }
+          // Case 5: Response has success and languages
+          else if (response.success && response.languages && Array.isArray(response.languages)) {
+            languages = response.languages;
+            console.log('✅ Found languages in response.success.languages:', languages.length);
           }
         }
-      } catch (err) {
-        console.error('Error fetching dubbing languages:', err);
+        
+        // Log extracted languages
+        console.log('📋 Extracted languages:', languages);
+        console.log('📊 Total languages found:', languages.length);
+        
+        // Validate language structure
+        if (languages.length > 0) {
+          const validLanguages = languages.filter(lang => lang && lang.code && lang.label);
+          console.log('✅ Valid languages:', validLanguages.length);
+          
+          if (validLanguages.length > 0) {
+            setAvailableLanguages(validLanguages);
+            // Set default language to first available language if current default is not in the list
+            if (!validLanguages.find(lang => lang.code === outputLanguage)) {
+              setOutputLanguage(validLanguages[0].code);
+            }
+            console.log('✅ Languages set successfully:', validLanguages.length);
+          } else {
+            console.warn('⚠️ No valid languages found in response, using fallback');
+            setAvailableLanguages(SUPPORTED_LANGUAGES);
+          }
+        } else {
+          console.warn('⚠️ No languages received from API, using fallback languages');
+          setAvailableLanguages(SUPPORTED_LANGUAGES);
+        }
+      } catch (err: any) {
+        console.error('❌ Error fetching dubbing languages:', err);
+        console.error('❌ Error details:', {
+          message: err.message,
+          response: err.response?.data,
+          status: err.response?.status,
+        });
         // Keep using the hardcoded fallback languages
         setAvailableLanguages(SUPPORTED_LANGUAGES);
       } finally {
@@ -655,21 +714,6 @@ export default function VideoDubberTool() {
         instructions="Upload a video file using drag & drop, paste from clipboard, or click to browse. You can also paste a video URL. Select the target language for dubbing. Click 'Dub Video' to start the process. The system will translate and dub your video with natural-sounding voice in the selected language."
       />
       <div style={styles.formContainer}>
-        {resultVideoUrl && (
-          <div style={styles.videoContainer}>
-            <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#f8fafc' }}>Dubbed Video</h3>
-            <video src={resultVideoUrl} controls style={styles.video}>
-              Your browser does not support the video tag.
-            </video>
-            <a
-              href={resultVideoUrl}
-              download={`dubbed_video_${jobId || 'output'}.mp4`}
-              style={styles.downloadButton}
-            >
-              Download Dubbed Video
-            </a>
-          </div>
-        )}
         <form style={styles.form} onSubmit={handleSubmit} onPaste={handlePaste}>
             <div style={styles.inputGroup}>
               <label style={styles.label}>Video File *</label>
@@ -746,7 +790,14 @@ export default function VideoDubberTool() {
             </div>
 
             <div style={styles.inputGroup}>
-              <label style={styles.label}>Output Language</label>
+              <label style={styles.label}>
+                Output Language
+                {!languagesLoading && availableLanguages.length > 0 && (
+                  <span style={{ fontSize: '0.75rem', fontWeight: 400, color: '#94a3b8', marginLeft: '0.5rem' }}>
+                    ({availableLanguages.length} available)
+                  </span>
+                )}
+              </label>
               <select
                 value={outputLanguage}
                 onChange={(e) => setOutputLanguage(e.target.value)}
@@ -755,14 +806,21 @@ export default function VideoDubberTool() {
               >
                 {languagesLoading ? (
                   <option>Loading languages...</option>
+                ) : availableLanguages.length === 0 ? (
+                  <option>No languages available</option>
                 ) : (
                   availableLanguages.map((lang) => (
                     <option key={lang.code} value={lang.code}>
-                      {lang.label}
+                      {lang.label || lang.code}
                     </option>
                   ))
                 )}
               </select>
+              {!languagesLoading && availableLanguages.length === 0 && (
+                <p style={{ fontSize: '0.75rem', color: '#fca5a5', marginTop: '0.25rem' }}>
+                  ⚠️ Failed to load languages from API. Using fallback languages.
+                </p>
+              )}
             </div>
 
             {error && (
@@ -804,6 +862,21 @@ export default function VideoDubberTool() {
               {loading ? 'Dubbing Video...' : 'Dub Video'}
             </button>
           </form>
+        {resultVideoUrl && (
+          <div style={styles.videoContainer}>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#f8fafc' }}>Dubbed Video</h3>
+            <video src={resultVideoUrl} controls style={styles.video}>
+              Your browser does not support the video tag.
+            </video>
+            <a
+              href={resultVideoUrl}
+              download={`dubbed_video_${jobId || 'output'}.mp4`}
+              style={styles.downloadButton}
+            >
+              Download Dubbed Video
+            </a>
+          </div>
+        )}
       </div>
     </div>
   );
