@@ -1,26 +1,9 @@
 import { useState } from 'react';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Box, Container, Tabs, Tab, Paper, Typography } from '@mui/material';
+import { useTheme } from '../contexts/ThemeContext';
 import './FinancialToolPage.css';
-
-// Create light Material-UI theme
-const lightTheme = createTheme({
-  palette: {
-    mode: 'light',
-    primary: {
-      main: '#2563eb',
-    },
-    background: {
-      default: '#ffffff',
-      paper: '#ffffff',
-    },
-    text: {
-      primary: '#111827',
-      secondary: '#6b7280',
-    },
-  },
-});
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -172,6 +155,7 @@ function EndpointSection({
 }
 
 export default function FinancialToolPage() {
+  const { theme } = useTheme();
   const [value, setValue] = useState(0);
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -179,7 +163,7 @@ export default function FinancialToolPage() {
   };
 
   return (
-    <ThemeProvider theme={lightTheme}>
+    <ThemeProvider theme={theme}>
       <CssBaseline />
       <Box className="financial-tool-page">
         <Container maxWidth="xl">

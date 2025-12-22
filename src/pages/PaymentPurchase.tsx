@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../lib/auth';
 import { useNavigate } from 'react-router-dom';
 import { initiatePurchase, PurchaseRequest } from '../lib/api/paymentApi';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+import { useTheme } from '../contexts/ThemeContext';
 import {
   Box,
   Typography,
@@ -17,27 +18,11 @@ import {
   Alert,
 } from '@mui/material';
 
-const darkTheme = createTheme({
-  palette: {
-    mode: 'dark',
-    primary: {
-      main: '#00c6ff',
-    },
-    background: {
-      default: '#0a0a0a',
-      paper: '#1a1a1a',
-    },
-    text: {
-      primary: '#e0e0e0',
-      secondary: '#a0a0a0',
-    },
-  },
-});
-
 const PREDEFINED_AMOUNTS = [500, 1000, 2000, 5000];
 
 export default function PaymentPurchase() {
   const { user } = useAuth();
+  const { theme } = useTheme();
   const navigate = useNavigate();
   const [selectedAmount, setSelectedAmount] = useState<number>(1000);
   const [customAmount, setCustomAmount] = useState<string>('');
@@ -129,13 +114,13 @@ export default function PaymentPurchase() {
   const pointsEquivalent = currentAmount; // 1 LKR = 1 energy point
 
   return (
-    <ThemeProvider theme={darkTheme}>
+    <ThemeProvider theme={theme}>
       <CssBaseline />
       <Box
         sx={{
           minHeight: 'calc(100vh - 80px)',
-          backgroundColor: '#0a0a0a',
-          color: '#ffffff',
+          backgroundColor: theme.palette.background.default,
+          color: theme.palette.text.primary,
           paddingTop: '2rem',
           paddingBottom: '2rem',
         }}
@@ -147,14 +132,14 @@ export default function PaymentPurchase() {
               sx={{
                 fontWeight: 700,
                 mb: 1,
-                background: 'linear-gradient(90deg, #00c6ff, #ffffff)',
+                background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.mode === 'dark' ? '#ffffff' : theme.palette.text.primary})`,
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
               }}
             >
               Purchase Energy Points
             </Typography>
-            <Typography variant="body1" sx={{ color: '#a0a0a0' }}>
+            <Typography variant="body1" sx={{ color: theme.palette.text.secondary }}>
               Buy energy points to use our transcription and video generation tools
             </Typography>
           </Box>
@@ -168,7 +153,7 @@ export default function PaymentPurchase() {
           <Grid container spacing={3}>
             {/* Amount Selection */}
             <Grid item xs={12}>
-              <Card sx={{ backgroundColor: '#1a1a1a', border: '1px solid #333333' }}>
+              <Card sx={{ backgroundColor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}` }}>
                 <CardContent>
                   <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
                     Select Purchase Amount
@@ -184,14 +169,18 @@ export default function PaymentPurchase() {
                           disabled={loading}
                           sx={{
                             py: 1.5,
-                            borderColor: '#333333',
-                            color: selectedAmount === amount && !useCustomAmount ? '#000' : '#fff',
+                            borderColor: theme.palette.divider,
+                            color: selectedAmount === amount && !useCustomAmount 
+                              ? (theme.palette.mode === 'dark' ? '#000000' : '#ffffff')
+                              : theme.palette.text.primary,
                             backgroundColor:
-                              selectedAmount === amount && !useCustomAmount ? '#00c6ff' : 'transparent',
+                              selectedAmount === amount && !useCustomAmount ? theme.palette.primary.main : 'transparent',
                             '&:hover': {
-                              borderColor: '#00c6ff',
+                              borderColor: theme.palette.primary.main,
                               backgroundColor:
-                                selectedAmount === amount && !useCustomAmount ? '#00b8e6' : 'rgba(0, 198, 255, 0.1)',
+                                selectedAmount === amount && !useCustomAmount 
+                                  ? theme.palette.primary.dark 
+                                  : (theme.palette.mode === 'dark' ? 'rgba(0, 198, 255, 0.1)' : 'rgba(37, 99, 235, 0.1)'),
                             },
                           }}
                         >
@@ -201,7 +190,7 @@ export default function PaymentPurchase() {
                     ))}
                   </Grid>
 
-                  <Typography variant="body2" sx={{ mb: 1, color: '#a0a0a0' }}>
+                  <Typography variant="body2" sx={{ mb: 1, color: theme.palette.text.secondary }}>
                     Or enter custom amount:
                   </Typography>
                   <TextField
@@ -214,15 +203,15 @@ export default function PaymentPurchase() {
                     inputProps={{ min: 1, step: 1 }}
                     sx={{
                       '& .MuiOutlinedInput-root': {
-                        color: '#fff',
+                        color: theme.palette.text.primary,
                         '& fieldset': {
-                          borderColor: '#333333',
+                          borderColor: theme.palette.divider,
                         },
                         '&:hover fieldset': {
-                          borderColor: '#00c6ff',
+                          borderColor: theme.palette.primary.main,
                         },
                         '&.Mui-focused fieldset': {
-                          borderColor: '#00c6ff',
+                          borderColor: theme.palette.primary.main,
                         },
                       },
                     }}
@@ -233,23 +222,23 @@ export default function PaymentPurchase() {
 
             {/* Points Equivalent Display */}
             <Grid item xs={12}>
-              <Card sx={{ backgroundColor: '#1a1a1a', border: '1px solid #333333' }}>
+              <Card sx={{ backgroundColor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}` }}>
                 <CardContent>
                   <Box sx={{ textAlign: 'center' }}>
-                    <Typography variant="body2" sx={{ color: '#a0a0a0', mb: 1 }}>
+                    <Typography variant="body2" sx={{ color: theme.palette.text.secondary, mb: 1 }}>
                       You will receive
                     </Typography>
                     <Typography
                       variant="h4"
                       sx={{
                         fontWeight: 700,
-                        color: '#00c6ff',
+                        color: theme.palette.primary.main,
                         mb: 1,
                       }}
                     >
                       {pointsEquivalent.toLocaleString()} Energy Points
                     </Typography>
-                    <Typography variant="body2" sx={{ color: '#a0a0a0' }}>
+                    <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
                       for {currentAmount.toLocaleString()} LKR
                     </Typography>
                   </Box>
@@ -259,12 +248,12 @@ export default function PaymentPurchase() {
 
             {/* Optional User Information */}
             <Grid item xs={12}>
-              <Card sx={{ backgroundColor: '#1a1a1a', border: '1px solid #333333' }}>
+              <Card sx={{ backgroundColor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}` }}>
                 <CardContent>
                   <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
                     Optional Information
                   </Typography>
-                  <Typography variant="body2" sx={{ color: '#a0a0a0', mb: 2 }}>
+                  <Typography variant="body2" sx={{ color: theme.palette.text.secondary, mb: 2 }}>
                     Provide additional details to speed up your checkout process
                   </Typography>
 
@@ -278,19 +267,19 @@ export default function PaymentPurchase() {
                         disabled={loading}
                         sx={{
                           '& .MuiOutlinedInput-root': {
-                            color: '#fff',
+                            color: theme.palette.text.primary,
                             '& fieldset': {
-                              borderColor: '#333333',
+                              borderColor: theme.palette.divider,
                             },
                             '&:hover fieldset': {
-                              borderColor: '#00c6ff',
+                              borderColor: theme.palette.primary.main,
                             },
                             '&.Mui-focused fieldset': {
-                              borderColor: '#00c6ff',
+                              borderColor: theme.palette.primary.main,
                             },
                           },
                           '& .MuiInputLabel-root': {
-                            color: '#a0a0a0',
+                            color: theme.palette.text.secondary,
                           },
                         }}
                       />
@@ -304,19 +293,19 @@ export default function PaymentPurchase() {
                         disabled={loading}
                         sx={{
                           '& .MuiOutlinedInput-root': {
-                            color: '#fff',
+                            color: theme.palette.text.primary,
                             '& fieldset': {
-                              borderColor: '#333333',
+                              borderColor: theme.palette.divider,
                             },
                             '&:hover fieldset': {
-                              borderColor: '#00c6ff',
+                              borderColor: theme.palette.primary.main,
                             },
                             '&.Mui-focused fieldset': {
-                              borderColor: '#00c6ff',
+                              borderColor: theme.palette.primary.main,
                             },
                           },
                           '& .MuiInputLabel-root': {
-                            color: '#a0a0a0',
+                            color: theme.palette.text.secondary,
                           },
                         }}
                       />
@@ -330,19 +319,19 @@ export default function PaymentPurchase() {
                         disabled={loading}
                         sx={{
                           '& .MuiOutlinedInput-root': {
-                            color: '#fff',
+                            color: theme.palette.text.primary,
                             '& fieldset': {
-                              borderColor: '#333333',
+                              borderColor: theme.palette.divider,
                             },
                             '&:hover fieldset': {
-                              borderColor: '#00c6ff',
+                              borderColor: theme.palette.primary.main,
                             },
                             '&.Mui-focused fieldset': {
-                              borderColor: '#00c6ff',
+                              borderColor: theme.palette.primary.main,
                             },
                           },
                           '& .MuiInputLabel-root': {
-                            color: '#a0a0a0',
+                            color: theme.palette.text.secondary,
                           },
                         }}
                       />
@@ -356,19 +345,19 @@ export default function PaymentPurchase() {
                         disabled={loading}
                         sx={{
                           '& .MuiOutlinedInput-root': {
-                            color: '#fff',
+                            color: theme.palette.text.primary,
                             '& fieldset': {
-                              borderColor: '#333333',
+                              borderColor: theme.palette.divider,
                             },
                             '&:hover fieldset': {
-                              borderColor: '#00c6ff',
+                              borderColor: theme.palette.primary.main,
                             },
                             '&.Mui-focused fieldset': {
-                              borderColor: '#00c6ff',
+                              borderColor: theme.palette.primary.main,
                             },
                           },
                           '& .MuiInputLabel-root': {
-                            color: '#a0a0a0',
+                            color: theme.palette.text.secondary,
                           },
                         }}
                       />
@@ -384,19 +373,19 @@ export default function PaymentPurchase() {
                         rows={2}
                         sx={{
                           '& .MuiOutlinedInput-root': {
-                            color: '#fff',
+                            color: theme.palette.text.primary,
                             '& fieldset': {
-                              borderColor: '#333333',
+                              borderColor: theme.palette.divider,
                             },
                             '&:hover fieldset': {
-                              borderColor: '#00c6ff',
+                              borderColor: theme.palette.primary.main,
                             },
                             '&.Mui-focused fieldset': {
-                              borderColor: '#00c6ff',
+                              borderColor: theme.palette.primary.main,
                             },
                           },
                           '& .MuiInputLabel-root': {
-                            color: '#a0a0a0',
+                            color: theme.palette.text.secondary,
                           },
                         }}
                       />
@@ -410,19 +399,19 @@ export default function PaymentPurchase() {
                         disabled={loading}
                         sx={{
                           '& .MuiOutlinedInput-root': {
-                            color: '#fff',
+                            color: theme.palette.text.primary,
                             '& fieldset': {
-                              borderColor: '#333333',
+                              borderColor: theme.palette.divider,
                             },
                             '&:hover fieldset': {
-                              borderColor: '#00c6ff',
+                              borderColor: theme.palette.primary.main,
                             },
                             '&.Mui-focused fieldset': {
-                              borderColor: '#00c6ff',
+                              borderColor: theme.palette.primary.main,
                             },
                           },
                           '& .MuiInputLabel-root': {
-                            color: '#a0a0a0',
+                            color: theme.palette.text.secondary,
                           },
                         }}
                       />
@@ -443,20 +432,20 @@ export default function PaymentPurchase() {
                   py: 1.5,
                   fontSize: '1.1rem',
                   fontWeight: 600,
-                  backgroundColor: '#00c6ff',
-                  color: '#000',
+                  backgroundColor: theme.palette.primary.main,
+                  color: theme.palette.mode === 'dark' ? '#000000' : '#ffffff',
                   '&:hover': {
-                    backgroundColor: '#00b8e6',
+                    backgroundColor: theme.palette.primary.dark,
                   },
                   '&:disabled': {
-                    backgroundColor: '#333333',
-                    color: '#666666',
+                    backgroundColor: theme.palette.action.disabledBackground,
+                    color: theme.palette.action.disabled,
                   },
                 }}
               >
                 {loading ? (
                   <>
-                    <CircularProgress size={20} sx={{ mr: 1, color: '#000' }} />
+                    <CircularProgress size={20} sx={{ mr: 1, color: theme.palette.mode === 'dark' ? '#000000' : '#ffffff' }} />
                     Processing...
                   </>
                 ) : (

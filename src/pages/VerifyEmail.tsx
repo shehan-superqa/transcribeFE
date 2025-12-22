@@ -120,7 +120,7 @@ export default function VerifyEmail() {
                 style={{
                   background: "none",
                   border: "none",
-                  color: "var(--color-primary)",
+                  color: "var(--primary-color)",
                   cursor: "pointer",
                   textDecoration: "underline",
                 }}
@@ -170,7 +170,7 @@ export default function VerifyEmail() {
                 style={{
                   background: "none",
                   border: "none",
-                  color: "var(--color-primary)",
+                  color: "var(--primary-color)",
                   cursor: "pointer",
                   textDecoration: "underline",
                 }}

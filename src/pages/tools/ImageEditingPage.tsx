@@ -4,7 +4,7 @@ import './FeaturePage.css';
 
 export default function ImageEditingPage() {
   return (
-    <div style={{ padding: '1rem', background: '#121212', minHeight: '100vh' }}>
+    <div style={{ padding: '1rem', background: 'var(--bg-primary)', minHeight: '100vh' }}>
       <HowToUse
         title="Image Editing"
         subtitle="Transform existing images with precision using AI-powered editing prompts"

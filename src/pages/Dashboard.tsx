@@ -89,13 +89,13 @@ export default function Dashboard() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "completed":
-        return "#4caf50";
+        return theme.palette.success.main;
       case "processing":
-        return "#ff9800";
+        return theme.palette.warning.main;
       case "failed":
-        return "#f44336";
+        return theme.palette.error.main;
       default:
-        return "#757575";
+        return theme.palette.text.secondary;
     }
   };
 
@@ -321,7 +321,7 @@ export default function Dashboard() {
                   )}
                   {t.error && (
                     <div className="transcription-error">
-                      <span style={{ color: '#f44336', fontSize: '0.875rem' }}>
+                      <span style={{ color: theme.palette.error.main, fontSize: '0.875rem' }}>
                         Error: {t.error}
                       </span>
                     </div>
@@ -499,7 +499,7 @@ export default function Dashboard() {
                 {selectedTranscription.error && (
                   <div className="modal-detail-item">
                     <span className="modal-detail-label">Error: </span>
-                    <span className="modal-detail-value" style={{ color: '#f44336' }}>{selectedTranscription.error}</span>
+                    <span className="modal-detail-value" style={{ color: theme.palette.error.main }}>{selectedTranscription.error}</span>
                   </div>
                 )}
               </div>

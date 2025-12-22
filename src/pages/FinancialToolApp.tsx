@@ -203,7 +203,7 @@ export default function FinancialToolApp() {
           <Box className="two-column-layout">
             {/* Left Column - Tools */}
             <Box className="left-column">
-              <Paper elevation={1} sx={{ mb: 2, backgroundColor: '#ffffff' }}>
+              <Paper elevation={1} sx={{ mb: 2, backgroundColor: theme.palette.background.paper }}>
                 <Tabs
                   value={value}
                   onChange={handleChange}
@@ -211,13 +211,13 @@ export default function FinancialToolApp() {
                   variant="scrollable"
                   scrollButtons="auto"
                   sx={{
-                    backgroundColor: '#ffffff',
+                    backgroundColor: theme.palette.background.paper,
                     '& .MuiTab-root': {
-                      backgroundColor: '#ffffff',
-                      color: '#6b7280',
+                      backgroundColor: theme.palette.background.paper,
+                      color: theme.palette.text.secondary,
                       '&.Mui-selected': {
-                        color: '#2563eb',
-                        backgroundColor: '#ffffff',
+                        color: theme.palette.primary.main,
+                        backgroundColor: theme.palette.background.paper,
                       },
                     },
                   }}

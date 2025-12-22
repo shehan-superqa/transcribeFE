@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+import { useTheme } from '../contexts/ThemeContext';
 import {
   Box,
   Typography,
@@ -11,24 +12,8 @@ import {
 } from '@mui/material';
 import CancelIcon from '@mui/icons-material/Cancel';
 
-const darkTheme = createTheme({
-  palette: {
-    mode: 'dark',
-    primary: {
-      main: '#00c6ff',
-    },
-    background: {
-      default: '#0a0a0a',
-      paper: '#1a1a1a',
-    },
-    text: {
-      primary: '#e0e0e0',
-      secondary: '#a0a0a0',
-    },
-  },
-});
-
 export default function PaymentCancel() {
+  const { theme } = useTheme();
   const navigate = useNavigate();
 
   const handleTryAgain = () => {
@@ -40,13 +25,13 @@ export default function PaymentCancel() {
   };
 
   return (
-    <ThemeProvider theme={darkTheme}>
+    <ThemeProvider theme={theme}>
       <CssBaseline />
       <Box
         sx={{
           minHeight: 'calc(100vh - 80px)',
-          backgroundColor: '#0a0a0a',
-          color: '#ffffff',
+          backgroundColor: theme.palette.background.default,
+          color: theme.palette.text.primary,
           paddingTop: '4rem',
           paddingBottom: '2rem',
           display: 'flex',
@@ -55,12 +40,12 @@ export default function PaymentCancel() {
         }}
       >
         <Container maxWidth="sm">
-          <Card sx={{ backgroundColor: '#1a1a1a', border: '1px solid #333333' }}>
+          <Card sx={{ backgroundColor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}` }}>
             <CardContent sx={{ textAlign: 'center', py: 4 }}>
               <CancelIcon
                 sx={{
                   fontSize: 80,
-                  color: '#ff9800',
+                  color: theme.palette.warning.main,
                   mb: 2,
                 }}
               />
@@ -69,25 +54,25 @@ export default function PaymentCancel() {
                 sx={{
                   fontWeight: 700,
                   mb: 1,
-                  color: '#ffffff',
+                  color: theme.palette.text.primary,
                 }}
               >
                 Payment Cancelled
               </Typography>
-              <Typography variant="body1" sx={{ mb: 3, color: '#a0a0a0' }}>
+              <Typography variant="body1" sx={{ mb: 3, color: theme.palette.text.secondary }}>
                 Your payment was cancelled and no charges were made to your account.
               </Typography>
 
               <Box
                 sx={{
-                  backgroundColor: '#0d0d0d',
+                  backgroundColor: theme.palette.background.default,
                   borderRadius: '8px',
                   padding: 2,
                   mb: 3,
-                  border: '1px solid #333333',
+                  border: `1px solid ${theme.palette.divider}`,
                 }}
               >
-                <Typography variant="body2" sx={{ color: '#a0a0a0' }}>
+                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
                   No energy points were deducted from your account. You can try purchasing again at any time.
                 </Typography>
               </Box>
@@ -101,10 +86,10 @@ export default function PaymentCancel() {
                     py: 1.5,
                     fontSize: '1rem',
                     fontWeight: 600,
-                    backgroundColor: '#00c6ff',
-                    color: '#000',
+                    backgroundColor: theme.palette.primary.main,
+                    color: theme.palette.mode === 'dark' ? '#000000' : '#ffffff',
                     '&:hover': {
-                      backgroundColor: '#00b8e6',
+                      backgroundColor: theme.palette.primary.dark,
                     },
                   }}
                 >
@@ -118,11 +103,11 @@ export default function PaymentCancel() {
                     py: 1.5,
                     fontSize: '1rem',
                     fontWeight: 600,
-                    borderColor: '#333333',
-                    color: '#ffffff',
+                    borderColor: theme.palette.divider,
+                    color: theme.palette.text.primary,
                     '&:hover': {
-                      borderColor: '#00c6ff',
-                      backgroundColor: 'rgba(0, 198, 255, 0.1)',
+                      borderColor: theme.palette.primary.main,
+                      backgroundColor: theme.palette.mode === 'dark' ? 'rgba(0, 198, 255, 0.1)' : 'rgba(37, 99, 235, 0.1)',
                     },
                   }}
                 >

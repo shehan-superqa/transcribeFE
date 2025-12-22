@@ -134,7 +134,7 @@ export default function Home() {
 
       {/* FEATURES SECTION */}
       <section className="features-section">
-        <h2 style={{ textAlign: 'center', marginBottom: '3rem' }}>Why Choose VoiceScribe?</h2>
+        <h2 style={{ textAlign: 'center', marginBottom: '3rem', color: 'var(--text-primary)' }}>Why Choose VoiceScribe?</h2>
         <div className="features-grid">
           {/* Feature cards */}
           <div className="feature-card">

@@ -1,33 +1,33 @@
 .feature-page {
-  background: #1e1e1e;
+  background: var(--bg-paper);
   border-radius: 12px;
   padding: 2rem;
   min-height: 600px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-  border: 1px solid #333333;
+  box-shadow: 0 10px 25px var(--shadow);
+  border: 1px solid var(--border-color);
 }
 
 .feature-header {
-  background: linear-gradient(135deg, #00c6ff 0%, #0072ff 50%, #9b5de5 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 50%, var(--primary-hover) 100%);
   border-radius: 12px;
   padding: 2rem;
   margin-bottom: 2rem;
-  color: white;
-  box-shadow: 0 8px 20px rgba(0, 198, 255, 0.3);
+  color: var(--text-primary);
+  box-shadow: 0 8px 20px var(--shadow);
 }
 
 .feature-title {
   font-size: 2rem;
   font-weight: 700;
   margin: 0 0 0.5rem 0;
-  color: white;
+  color: var(--text-primary);
 }
 
 .feature-subtitle {
   font-size: 1rem;
   margin: 0;
   opacity: 0.95;
-  color: white;
+  color: var(--text-primary);
 }
 
 .feature-content {
@@ -37,19 +37,19 @@
 .coming-soon {
   padding: 3rem;
   text-align: center;
-  color: #a0a0a0;
+  color: var(--text-secondary);
 }
 
 .coming-soon p {
   margin: 0.5rem 0;
   font-size: 1rem;
-  color: #a0a0a0;
+  color: var(--text-secondary);
 }
 
 .coming-soon p:first-child {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #00c6ff;
+  color: var(--primary-color);
   margin-bottom: 1rem;
 }
 

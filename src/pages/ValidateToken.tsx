@@ -108,16 +108,17 @@ export default function ValidateToken() {
                 </div>
                 {result.data.user && (
                   <div style={{
-                    backgroundColor: "#ffffff",
+                    backgroundColor: "var(--bg-paper)",
                     padding: "1rem",
                     borderRadius: "6px",
                     marginTop: "1rem",
+                    border: "1px solid var(--border-color)",
                   }}>
                     <h3 style={{
                       margin: "0 0 0.75rem 0",
                       fontSize: "0.95rem",
                       fontWeight: 600,
-                      color: "#155724",
+                      color: "var(--text-primary)",
                     }}>
                       User Information:
                     </h3>
@@ -125,7 +126,7 @@ export default function ValidateToken() {
                       display: "grid",
                       gap: "0.5rem",
                       fontSize: "0.875rem",
-                      color: "#155724",
+                      color: "var(--text-primary)",
                     }}>
                       <div>
                         <strong>ID:</strong> {result.data.user.id}
@@ -180,16 +181,17 @@ export default function ValidateToken() {
         <div style={{
           marginTop: "2rem",
           padding: "1rem",
-          backgroundColor: "#1a1a1a",
+          backgroundColor: "var(--bg-paper)",
           borderRadius: "8px",
           fontSize: "0.875rem",
-          color: "#a0a0a0",
+          color: "var(--text-secondary)",
+          border: "1px solid var(--border-color)",
         }}>
           <h3 style={{
             margin: "0 0 0.75rem 0",
             fontSize: "0.95rem",
             fontWeight: 600,
-            color: "#e0e0e0",
+            color: "var(--text-primary)",
           }}>
             API Usage for Other Services:
           </h3>
@@ -202,10 +204,10 @@ export default function ValidateToken() {
           <code style={{
             display: "block",
             padding: "0.75rem",
-            backgroundColor: "#121212",
+            backgroundColor: "var(--bg-primary)",
             borderRadius: "4px",
             fontSize: "0.8rem",
-            color: "#00c6ff",
+            color: "var(--primary-color)",
             overflowX: "auto",
             marginTop: "0.5rem",
             whiteSpace: "pre-wrap",
