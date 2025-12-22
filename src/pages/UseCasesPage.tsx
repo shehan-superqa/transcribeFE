@@ -477,7 +477,7 @@ export default function UseCasesPage() {
         case 'transcribe':
           return [
             'Upload your audio or video file using drag & drop, paste from clipboard, or click to browse',
-            'Select your preferred transcription engine (Whisper, Google, etc.) and model',
+           
             'Choose processing mode: Batch, Parallel Streaming, or Real-time Streaming',
             'Click "Transcribe" to start the process',
             'Monitor progress in real-time and view the transcription when complete',

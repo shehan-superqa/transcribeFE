@@ -1,21 +1,29 @@
 import HowToUse from '../../components/common/HowToUse';
-import './FeaturePage.css';
+import '../../components/common/HowToUse.css';
+import '../../pages/Dashboard.css';
 
 export default function AudioTranslatorPage() {
   return (
-    <div className="feature-page">
+    <>
+      <div className="tool-sticky-title">
+        <h1>Audio Translator</h1>
+      </div>
       <HowToUse
-        title="Audio Translator"
+        title=""
         subtitle="Translate audio content into different languages"
         instructions="Upload audio files using drag & drop, paste from clipboard, or click to browse. Select the source language and target language for translation. The system will transcribe the audio and translate it to your chosen language. Click 'Translate' to start the process."
       />
-      <div className="feature-content">
-        <div className="coming-soon">
-          <p>Audio translation feature coming soon!</p>
-          <p>This tool will translate audio files and provide transcriptions in multiple languages.</p>
+      <div className="tool-wrapper">
+        <div className="tool-container">
+          <div className="dashboard-empty-state">
+            <p className="empty-state-text">Audio translation feature coming soon!</p>
+            <p className="empty-state-subtext">
+              This tool will translate audio files and provide transcriptions in multiple languages.
+            </p>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 

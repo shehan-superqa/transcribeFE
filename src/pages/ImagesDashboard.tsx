@@ -9,6 +9,7 @@ import ImageEditingPage from './tools/ImageEditingPage';
 import { ImageHistory } from '../components/image/ImageHistory';
 import { CaptioningHistory } from '../components/image/CaptioningHistory';
 import { EditHistory } from '../components/image/EditHistory';
+import { TrainingHistory } from '../components/image/TrainingHistory';
 import '../pages/Dashboard.css';
 
 // Create Material-UI dark theme matching Dashboard colors
@@ -35,6 +36,7 @@ export default function ImagesDashboard() {
   const isImageGenerationRoute = location.pathname.includes('generate') || location.pathname === '/images' || location.pathname === '/images/';
   const isCaptioningRoute = location.pathname.includes('caption');
   const isEditingRoute = location.pathname.includes('edit');
+  const isTrainingRoute = location.pathname.includes('train');
 
   return (
     <div className="dashboard-container">
@@ -66,6 +68,9 @@ export default function ImagesDashboard() {
           
           {/* Edit History Section - Right Side (only for editing route) */}
           {isEditingRoute && <EditHistory />}
+          
+          {/* Training History Section - Right Side (only for training route) */}
+          {isTrainingRoute && <TrainingHistory />}
         </div>
       </div>
     </div>

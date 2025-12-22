@@ -45,7 +45,7 @@ export default function BatchTab() {
   const fetchJobs = jobStore((state) => state.fetchJobs);
   const updateJob = jobStore((state) => state.updateJob);
   const [files, setFiles] = useState<BatchFile[]>([]);
-  const [engine, setEngine] = useState('replicate');
+  const [engine] = useState('replicate');
   const [language, setLanguage] = useState('en');
   const [model, setModel] = useState('base');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -435,25 +435,7 @@ export default function BatchTab() {
         <Typography variant="h6" gutterBottom sx={{ color: '#e0e0e0', mb: 2 }}>
           Transcription Settings
         </Typography>
-        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2 }}>
-          <FormControl fullWidth>
-            <InputLabel sx={{ color: '#a0a0a0' }}>Engine</InputLabel>
-            <Select 
-              value={engine} 
-              onChange={(e) => setEngine(e.target.value)}
-              disabled={isProcessing}
-              sx={{ 
-                color: '#e0e0e0',
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#333333' },
-                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#00c6ff' },
-              }}
-            >
-              <MenuItem value="whisper">Whisper</MenuItem>
-              <MenuItem value="google">Google</MenuItem>
-              <MenuItem value="openai">OpenAI</MenuItem>
-              <MenuItem value="replicate">Replicate</MenuItem>
-            </Select>
-          </FormControl>
+        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2 }}>
           <FormControl fullWidth>
             <InputLabel sx={{ color: '#a0a0a0' }}>Language</InputLabel>
             <Select 

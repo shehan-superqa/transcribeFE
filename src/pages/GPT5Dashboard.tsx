@@ -3,7 +3,7 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import Sidebar from '../components/Sidebar';
 import GPT5Page from './tools/GPT5Page';
-import './ToolsDashboard.css';
+import '../pages/Dashboard.css';
 
 // Create Material-UI dark theme matching Dashboard colors
 const darkTheme = createTheme({
@@ -26,17 +26,21 @@ const darkTheme = createTheme({
 
 export default function GPT5Dashboard() {
   return (
-    <div className="tools-dashboard">
-      <div className="tools-dashboard-container">
+    <div className="dashboard-container">
+      <div className="dashboard-content-wrapper full-width">
         <Sidebar />
-        <div className="tools-main-content">
-          <ThemeProvider theme={darkTheme}>
-            <CssBaseline />
-            <Routes>
-              <Route path="/" element={<GPT5Page />} />
-              <Route path="*" element={<Navigate to="/gpt5" replace />} />
-            </Routes>
-          </ThemeProvider>
+        <div className="dashboard-main-layout" style={{ gridTemplateColumns: '1fr' }}>
+          <div className="tool-wrapper">
+            <div className="tool-container">
+              <ThemeProvider theme={darkTheme}>
+                <CssBaseline />
+                <Routes>
+                  <Route path="/" element={<GPT5Page />} />
+                  <Route path="*" element={<Navigate to="/gpt5" replace />} />
+                </Routes>
+              </ThemeProvider>
+            </div>
+          </div>
         </div>
       </div>
     </div>

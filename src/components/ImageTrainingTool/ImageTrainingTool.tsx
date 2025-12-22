@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../lib/auth';
 import { submitImageTrainingJob, getImageTrainingJobStatus, uploadImagesForTraining, getLoRAsFromReplicate, type ImageWithDescription, type LoRAModel } from '../../lib/api/imageTrainingApi';
-import { getUserJobs } from '../../lib/api/jobsApi';
 import { useSSE } from '../../hooks/useSSE';
 import type { ImageTrainingJobRequest, ImageTrainingJobResult, ImageTrainingJob, ImageJob, Job } from '../../types/api';
 import ImageUploader from './ImageUploader';
@@ -11,34 +10,14 @@ import './ImageTrainingTool.css';
 
 const styles = {
   container: {
-    display: 'flex',
-    flexDirection: 'row' as const,
-    gap: '2rem',
     padding: '2rem',
     borderRadius: '1.25rem',
     background: 'linear-gradient(145deg, #0f172a, #1e293b)',
     color: '#f8fafc',
     boxShadow: '0 10px 25px rgba(0, 0, 0, 0.25)',
-    maxWidth: '1600px',
-    margin: '2rem auto',
     fontFamily: 'Inter, system-ui, sans-serif',
-    alignItems: 'flex-start' as const,
-  },
-  formWrapper: {
-    flex: '1',
-    minWidth: 0,
-    maxWidth: '600px',
-  },
-  rightSidebar: {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '2rem',
-    minWidth: '400px',
-    position: 'sticky' as const,
-    top: '2rem',
-    alignSelf: 'flex-start' as const,
-    maxHeight: 'calc(100vh - 4rem)',
-    overflowY: 'auto' as const,
+    maxWidth: '900px',
+    width: '100%',
   },
   form: {
     display: 'flex',
@@ -322,17 +301,14 @@ export default function ImageTrainingTool() {
   const [pollingProgress, setPollingProgress] = useState<number>(0);
   const [pollingStatus, setPollingStatus] = useState<string>('');
   const [pollingMessage, setPollingMessage] = useState<string>('');
-  const [trainingHistory, setTrainingHistory] = useState<ImageTrainingJob[]>([]);
-  const [historyLoading, setHistoryLoading] = useState(false);
-  const [historyError, setHistoryError] = useState<string | null>(null);
-  const [loras, setLoras] = useState<LoRAModel[]>([]);
-  const [lorasLoading, setLorasLoading] = useState(false);
-  const [lorasError, setLorasError] = useState<string | null>(null);
   const [streamUrl, setStreamUrl] = useState<string | undefined>(undefined);
   const [activeTab, setActiveTab] = useState<'training' | 'generation' | 'gallery'>('training');
   const [imageHistory, setImageHistory] = useState<ImageJob[]>([]);
   const [imageHistoryLoading, setImageHistoryLoading] = useState(false);
   const [imageHistoryError, setImageHistoryError] = useState<string | null>(null);
+  const [loras, setLoras] = useState<LoRAModel[]>([]);
+  const [lorasLoading, setLorasLoading] = useState(false);
+  const [lorasError, setLorasError] = useState<string | null>(null);
   
   // Training workflow progress state
   const [trainingStep, setTrainingStep] = useState<'idle' | 'uploading_images' | 'training'>('idle');
@@ -341,7 +317,7 @@ export default function ImageTrainingTool() {
   // Use SSE hook for progress tracking
   const { progress, status, message, result, error: sseError, isConnected } = useSSE(jobId, streamUrl);
 
-  // Fetch LoRAs from Replicate
+  // Fetch LoRAs from Replicate (needed for ImageGenerationMode)
   useEffect(() => {
     const fetchLoRAs = async () => {
       if (!user) return;
@@ -372,6 +348,7 @@ export default function ImageTrainingTool() {
 
     fetchLoRAs();
   }, [user]);
+
 
   // Fetch image generation history
   const fetchImageHistory = useCallback(async () => {
@@ -410,108 +387,6 @@ export default function ImageTrainingTool() {
     fetchImageHistory();
   }, [fetchImageHistory]);
 
-  // Fetch training job history
-  useEffect(() => {
-    const fetchTrainingHistory = async () => {
-      if (!user) return;
-      
-      setHistoryLoading(true);
-      setHistoryError(null);
-      
-      try {
-        const response = await getUserJobs(user.id);
-        if (response.success && response.jobs) {
-          // Filter for image training jobs only
-          const trainingJobs = response.jobs.filter(
-            (job: Job) => (job as any).job_type === 'image_training'
-          ).map((job: Job) => job as unknown as ImageTrainingJob);
-          
-          // Sort by created_at (newest first)
-          trainingJobs.sort((a, b) => {
-            const dateA = new Date(a.created_at).getTime();
-            const dateB = new Date(b.created_at).getTime();
-            return dateB - dateA;
-          });
-          
-          setTrainingHistory(trainingJobs);
-        }
-      } catch (err: any) {
-        console.error('Error fetching training history:', err);
-        setHistoryError(err?.message || 'Failed to load training history');
-      } finally {
-        setHistoryLoading(false);
-      }
-    };
-
-    fetchTrainingHistory();
-  }, [user]);
-
-  // Refresh history and LoRAs when a job completes or status changes
-  useEffect(() => {
-    if (trainedModel && user) {
-      const refreshData = async () => {
-        try {
-          // Refresh training history
-          const historyResponse = await getUserJobs(user.id);
-          if (historyResponse.success && historyResponse.jobs) {
-            const trainingJobs = historyResponse.jobs.filter(
-              (job: Job) => (job as any).job_type === 'image_training'
-            ).map((job: Job) => job as unknown as ImageTrainingJob);
-            
-            trainingJobs.sort((a, b) => {
-              const dateA = new Date(a.created_at).getTime();
-              const dateB = new Date(b.created_at).getTime();
-              return dateB - dateA;
-            });
-            
-            setTrainingHistory(trainingJobs);
-          }
-
-          // Refresh LoRAs list
-          const lorasResponse = await getLoRAsFromReplicate();
-          if (lorasResponse.success && lorasResponse.loras) {
-            const sortedLoras = [...lorasResponse.loras].sort((a, b) => {
-              const dateA = new Date(a.updated_at || a.created_at).getTime();
-              const dateB = new Date(b.updated_at || b.created_at).getTime();
-              return dateB - dateA;
-            });
-            setLoras(sortedLoras);
-          }
-        } catch (err) {
-          console.error('Error refreshing data:', err);
-        }
-      };
-      refreshData();
-    }
-  }, [trainedModel, user]);
-
-  // Also refresh history periodically when there's an active job
-  useEffect(() => {
-    if (!jobId || !user) return;
-    
-    const refreshInterval = setInterval(async () => {
-      try {
-        const response = await getUserJobs(user.id);
-        if (response.success && response.jobs) {
-          const trainingJobs = response.jobs.filter(
-            (job: Job) => (job as any).job_type === 'image_training'
-          ).map((job: Job) => job as unknown as ImageTrainingJob);
-          
-          trainingJobs.sort((a, b) => {
-            const dateA = new Date(a.created_at).getTime();
-            const dateB = new Date(b.created_at).getTime();
-            return dateB - dateA;
-          });
-          
-          setTrainingHistory(trainingJobs);
-        }
-      } catch (err) {
-        console.error('Error refreshing training history:', err);
-      }
-    }, 30000); // Refresh every 30 seconds
-    
-    return () => clearInterval(refreshInterval);
-  }, [jobId, user]);
 
   const startPolling = useCallback(() => {
     if (!jobId) return;
@@ -570,30 +445,6 @@ export default function ImageTrainingTool() {
             setPollingStatus('completed');
             setPollingMessage('Training completed!');
             
-            // Refresh history when job completes
-            if (user) {
-              const refreshHistory = async () => {
-                try {
-                  const historyResponse = await getUserJobs(user.id);
-                  if (historyResponse.success && historyResponse.jobs) {
-                    const trainingJobs = historyResponse.jobs.filter(
-                      (job: Job) => (job as any).job_type === 'image_training'
-                    ).map((job: Job) => job as unknown as ImageTrainingJob);
-                    
-                    trainingJobs.sort((a, b) => {
-                      const dateA = new Date(a.created_at).getTime();
-                      const dateB = new Date(b.created_at).getTime();
-                      return dateB - dateA;
-                    });
-                    
-                    setTrainingHistory(trainingJobs);
-                  }
-                } catch (err) {
-                  console.error('Error refreshing training history:', err);
-                }
-              };
-              refreshHistory();
-            }
             
             // Stop polling after a short delay to ensure final status is captured
             setTimeout(() => {
@@ -897,16 +748,9 @@ export default function ImageTrainingTool() {
     }
   };
 
-  const handleTrainingJobClick = (job: ImageTrainingJob) => {
-    if (job.trained_model) {
-      setTrainedModel(job.trained_model);
-      setJobId(job._id);
-    }
-  };
 
   return (
-    <div style={styles.container} className="image-training-tool-container">
-      <div style={styles.formWrapper}>
+    <div style={styles.container}>
         {/* Tab Navigation */}
         <div style={styles.tabContainer}>
           <button
@@ -1270,179 +1114,26 @@ export default function ImageTrainingTool() {
             onRefresh={fetchImageHistory}
           />
         )}
-      </div>
 
-      {/* Right Sidebar: Training Result + History */}
-      <div style={styles.rightSidebar}>
-        {trainedModel && (
-          <div style={styles.resultContainer}>
-            <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#f8fafc' }}>Training Completed!</h3>
-            <div style={styles.modelInfo}>
-              <div>Your trained model is ready to use:</div>
-              <div style={styles.modelId}>{trainedModel}</div>
-              <button
-                onClick={handleCopyModelId}
-                style={styles.copyButton}
-              >
-                Copy Model ID
-              </button>
-              <div style={{ marginTop: '1rem', fontSize: '0.85rem', color: '#cbd5e1' }}>
-                <strong>How to use:</strong> When generating images, set the model to this ID and include your trigger word in the prompt.
-              </div>
+      {/* Training Completed Message */}
+      {trainedModel && (
+        <div style={styles.resultContainer}>
+          <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#f8fafc' }}>Training Completed!</h3>
+          <div style={styles.modelInfo}>
+            <div>Your trained model is ready to use:</div>
+            <div style={styles.modelId}>{trainedModel}</div>
+            <button
+              onClick={handleCopyModelId}
+              style={styles.copyButton}
+            >
+              Copy Model ID
+            </button>
+            <div style={{ marginTop: '1rem', fontSize: '0.85rem', color: '#cbd5e1' }}>
+              <strong>How to use:</strong> When generating images, set the model to this ID and include your trigger word in the prompt.
             </div>
           </div>
-        )}
-
-        {/* LoRAs from Replicate Section */}
-        <div style={styles.historyContainer}>
-        <h3 style={styles.historyTitle}>My LoRAs</h3>
-        
-        {lorasLoading ? (
-          <div style={styles.emptyHistory}>Loading LoRAs...</div>
-        ) : lorasError ? (
-          <div style={{ ...styles.emptyHistory, color: '#f44336' }}>
-            {lorasError}
-          </div>
-        ) : loras.length === 0 ? (
-          <div style={styles.emptyHistory}>
-            <p>No LoRAs found</p>
-            <p style={{ fontSize: '0.85rem', marginTop: '0.5rem' }}>
-              Train a model to create your first LoRA.
-            </p>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {loras.map((lora) => {
-              const loraUrl = lora.url || `${lora.owner}/${lora.name}`;
-              return (
-                <div
-                  key={lora.id}
-                  style={styles.historyCard}
-                  onClick={() => {
-                    setTrainedModel(loraUrl);
-                    navigator.clipboard.writeText(loraUrl);
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.5)';
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
-                  }}
-                >
-                  <div style={styles.historyCardHeader}>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#f8fafc' }}>
-                      {lora.name}
-                    </span>
-                    <span
-                      style={{
-                        fontSize: '0.75rem',
-                        fontWeight: 600,
-                        color: lora.visibility === 'public' ? '#4caf50' : '#ff9800',
-                        textTransform: 'uppercase',
-                      }}
-                    >
-                      {lora.visibility}
-                    </span>
-                  </div>
-                  {lora.description && (
-                    <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '0.5rem' }}>
-                      {lora.description.length > 60 
-                        ? `${lora.description.substring(0, 60)}...` 
-                        : lora.description}
-                    </div>
-                  )}
-                  <div style={styles.historyCardMeta}>
-                    <span>{formatDate(lora.updated_at || lora.created_at)}</span>
-                    {lora.owner && <span>• {lora.owner}</span>}
-                  </div>
-                  <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#60a5fa' }}>
-                    {loraUrl} - Click to copy
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
         </div>
-
-        {/* Training History Section */}
-        <div style={styles.historyContainer}>
-        <h3 style={styles.historyTitle}>Training History</h3>
-        
-        {historyLoading ? (
-          <div style={styles.emptyHistory}>Loading history...</div>
-        ) : historyError ? (
-          <div style={{ ...styles.emptyHistory, color: '#f44336' }}>
-            {historyError}
-          </div>
-        ) : trainingHistory.length === 0 ? (
-          <div style={styles.emptyHistory}>
-            <p>No training jobs yet</p>
-            <p style={{ fontSize: '0.85rem', marginTop: '0.5rem' }}>
-              Start training a model using the form on the left.
-            </p>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {trainingHistory.map((job) => {
-              const hasModel = !!job.trained_model;
-              // Determine actual status: if model exists, it's completed regardless of status field
-              const actualStatus = hasModel ? 'completed' : (job.status || 'unknown');
-              return (
-                <div
-                  key={job._id}
-                  style={{
-                    ...styles.historyCard,
-                    ...(hasModel ? {} : { opacity: 0.7 }),
-                  }}
-                  onClick={() => hasModel && handleTrainingJobClick(job)}
-                  onMouseEnter={(e) => {
-                    if (hasModel) {
-                      e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.5)';
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (hasModel) {
-                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
-                    }
-                  }}
-                >
-                  <div style={styles.historyCardHeader}>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#f8fafc' }}>
-                      {job.trigger_word}
-                    </span>
-                    <span
-                      style={{
-                        fontSize: '0.75rem',
-                        fontWeight: 600,
-                        color: getStatusColor(actualStatus),
-                        textTransform: 'uppercase',
-                      }}
-                    >
-                      {actualStatus}
-                    </span>
-                  </div>
-                  <div style={styles.historyCardMeta}>
-                    <span>{formatDate(job.created_at)}</span>
-                    {job.lora_type && <span>• {job.lora_type}</span>}
-                    {job.image_urls && <span>• {job.image_urls.length} images</span>}
-                  </div>
-                  {hasModel && (
-                    <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#4caf50' }}>
-                      ✓ Model ready - Click to view
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-        </div>
-      </div>
+      )}
     </div>
   );
 }

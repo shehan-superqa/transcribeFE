@@ -58,7 +58,7 @@ interface BatchFile {
 export default function TranscribeTab() {
   const [files, setFiles] = useState<File[]>([]);
   const [batchFiles, setBatchFiles] = useState<BatchFile[]>([]);
-  const [engine, setEngine] = useState('replicate');
+  const [engine] = useState('replicate');
   const [language, setLanguage] = useState('en');
   const [model, setModel] = useState('base');
   const [processingMode, setProcessingMode] = useState<ProcessingMode>('batch');
@@ -594,7 +594,7 @@ export default function TranscribeTab() {
       <HowToUse
         title=""
         subtitle="Convert audio files to accurate text transcriptions"
-        instructions="Upload audio files using drag & drop, paste from clipboard, or click to browse. You can also paste a YouTube link or record audio directly. Select your preferred engine and model, then click 'Transcribe' to start. The transcription will appear in your history once completed."
+        instructions="Upload audio files using drag & drop, paste from clipboard, or click to browse. You can also paste a YouTube link or record audio directly. Select your preferred language and model, then click 'Transcribe' to start. The transcription will appear in your history once completed."
       />
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" sx={{ color: '#e0e0e0' }}>
@@ -944,34 +944,6 @@ export default function TranscribeTab() {
           Transcription Settings
         </Typography>
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2, mb: 2 }}>
-          <FormControl fullWidth>
-            <InputLabel sx={{ color: '#a0a0a0' }}>Engine</InputLabel>
-            <Select 
-              value={engine} 
-              onChange={(e) => setEngine(e.target.value)}
-              disabled={isProcessing || isBatchProcessing}
-              sx={{ 
-                color: '#e0e0e0',
-                backgroundColor: '#121212',
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#333333' },
-                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#00c6ff' },
-                '& .MuiSelect-icon': { color: '#e0e0e0' },
-              }}
-              MenuProps={{
-                PaperProps: {
-                  style: {
-                    backgroundColor: '#1e1e1e',
-                    color: '#e0e0e0',
-                  },
-                },
-              }}
-            >
-              <MenuItem value="whisper" sx={{ color: '#e0e0e0', '&:hover': { backgroundColor: '#2a2a2a' } }}>Whisper</MenuItem>
-              <MenuItem value="google" sx={{ color: '#e0e0e0', '&:hover': { backgroundColor: '#2a2a2a' } }}>Google</MenuItem>
-              <MenuItem value="openai" sx={{ color: '#e0e0e0', '&:hover': { backgroundColor: '#2a2a2a' } }}>OpenAI</MenuItem>
-              <MenuItem value="replicate" sx={{ color: '#e0e0e0', '&:hover': { backgroundColor: '#2a2a2a' } }}>Replicate</MenuItem>
-            </Select>
-          </FormControl>
           <FormControl fullWidth>
             <InputLabel sx={{ color: '#a0a0a0' }}>Language</InputLabel>
             <Select 
