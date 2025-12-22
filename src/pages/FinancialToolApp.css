@@ -67,6 +67,19 @@
   background-color: var(--primary-color);
 }
 
+/* Visual Hierarchy Improvements */
+.financial-tool-header {
+  margin-bottom: 1.5rem;
+}
+
+.page-title {
+  font-size: 2.5rem;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) {
   .two-column-layout {
@@ -95,11 +108,15 @@
   }
 
   .page-subtitle {
-    font-size: 1rem;
+    font-size: 0.9rem;
   }
 
   .two-column-layout {
     gap: 1rem;
+  }
+
+  .financial-tool-header {
+    margin-bottom: 1rem;
   }
 }
 
@@ -107,4 +124,19 @@
   .page-title {
     font-size: 1.5rem;
   }
+
+  .page-subtitle {
+    font-size: 0.85rem;
+  }
+}
+
+/* Accessibility Improvements */
+.financial-tool-page *:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Smooth Transitions */
+.financial-tool-page {
+  transition: all 0.3s ease;
 }

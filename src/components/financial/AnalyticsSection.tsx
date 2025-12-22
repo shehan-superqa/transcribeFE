@@ -91,12 +91,25 @@ export default function AnalyticsSection() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Paper elevation={1} sx={{ p: 2, backgroundColor: theme.palette.background.paper }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h6" sx={{ color: theme.palette.text.primary }}>Analytics</Typography>
+      <Paper elevation={2} sx={{ p: 3, backgroundColor: theme.palette.background.paper }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Box>
+            <Typography variant="h5" sx={{ color: theme.palette.text.primary, fontWeight: 600, mb: 0.5 }}>
+              Spending Analytics
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Detailed breakdown of your spending patterns
+            </Typography>
+          </Box>
           <FormControl size="small" sx={{ minWidth: 150 }}>
-            <InputLabel>Period</InputLabel>
-            <Select value={period} onChange={(e) => setPeriod(e.target.value as any)} label="Period">
+            <InputLabel id="period-select-label">Period</InputLabel>
+            <Select
+              labelId="period-select-label"
+              value={period}
+              onChange={(e) => setPeriod(e.target.value as any)}
+              label="Period"
+              aria-label="Select time period for analytics"
+            >
               <MenuItem value="daily">Daily</MenuItem>
               <MenuItem value="weekly">Weekly</MenuItem>
               <MenuItem value="monthly">Monthly</MenuItem>
@@ -107,93 +120,193 @@ export default function AnalyticsSection() {
       </Paper>
 
       {summary && (
-        <Paper elevation={1} sx={{ p: 2, backgroundColor: theme.palette.background.paper }}>
-          <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary }}>
-            Spending Summary
-          </Typography>
-          <Typography variant="body1" gutterBottom>
-            Total: Rs. {summary.summary.total.toFixed(2)} ({summary.summary.transaction_count} transactions)
-          </Typography>
+        <Paper elevation={2} sx={{ p: 3, backgroundColor: theme.palette.background.paper }}>
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary, fontWeight: 600 }}>
+              Spending Summary
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap', mb: 2 }}>
+              <Box>
+                <Typography variant="h3" sx={{ color: theme.palette.text.primary, fontWeight: 700 }}>
+                  Rs. {summary.summary.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Total spending ({period})
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="h4" sx={{ color: theme.palette.text.primary, fontWeight: 600 }}>
+                  {summary.summary.transaction_count}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Transactions
+                </Typography>
+              </Box>
+              {summary.summary.transaction_count > 0 && (
+                <Box>
+                  <Typography variant="h4" sx={{ color: theme.palette.text.primary, fontWeight: 600 }}>
+                    Rs. {(summary.summary.total / summary.summary.transaction_count).toFixed(2)}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Average per transaction
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontStyle: 'italic' }}>
+              This shows your total spending and transaction count for the selected period. Use the chart below to see category breakdown.
+            </Typography>
+          </Box>
           {summaryChartData && (
-            <Box sx={{ height: '400px', mt: 2 }}>
-              <Bar 
-                data={summaryChartData} 
-                options={{ 
-                  maintainAspectRatio: false,
-                  responsive: true,
-                  plugins: {
-                    legend: {
-                      display: true,
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ fontWeight: 600 }}>
+                Spending by Category
+              </Typography>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
+                Visual breakdown showing how much you spent in each category
+              </Typography>
+              <Box sx={{ height: '400px' }}>
+                <Bar 
+                  data={summaryChartData} 
+                  options={{ 
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    plugins: {
+                      legend: {
+                        display: false,
+                      },
+                      tooltip: {
+                        callbacks: {
+                          label: (context) => `Rs. ${context.parsed.y.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+                        },
+                      },
                     },
-                  },
-                }}
-                key={`summary-${period}`}
-              />
+                  }}
+                  key={`summary-${period}`}
+                  aria-label="Bar chart showing spending by category"
+                />
+              </Box>
             </Box>
           )}
-          <TableContainer sx={{ mt: 2 }}>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', color: theme.palette.text.primary, fontWeight: 600 }}>Category</TableCell>
-                  <TableCell align="right" sx={{ backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', color: theme.palette.text.primary, fontWeight: 600 }}>Amount</TableCell>
-                  <TableCell align="right" sx={{ backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', color: theme.palette.text.primary, fontWeight: 600 }}>Count</TableCell>
-                  <TableCell align="right" sx={{ backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', color: theme.palette.text.primary, fontWeight: 600 }}>Percentage</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {summary.summary.by_category.map((item) => (
-                  <TableRow key={item.category_id}>
-                    <TableCell>{item.category_name}</TableCell>
-                    <TableCell align="right">Rs. {item.amount.toFixed(2)}</TableCell>
-                    <TableCell align="right">{item.count}</TableCell>
-                    <TableCell align="right">{item.percentage.toFixed(1)}%</TableCell>
+          <Box sx={{ mt: 3 }}>
+            <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ fontWeight: 600 }}>
+              Category Breakdown
+            </Typography>
+            <TableContainer>
+              <Table size="small" aria-label="Spending breakdown by category">
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', color: theme.palette.text.primary, fontWeight: 600 }}>Category</TableCell>
+                    <TableCell align="right" sx={{ backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', color: theme.palette.text.primary, fontWeight: 600 }}>Amount</TableCell>
+                    <TableCell align="right" sx={{ backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', color: theme.palette.text.primary, fontWeight: 600 }}>Count</TableCell>
+                    <TableCell align="right" sx={{ backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', color: theme.palette.text.primary, fontWeight: 600 }}>Percentage</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                </TableHead>
+                <TableBody>
+                  {summary.summary.by_category.map((item) => (
+                    <TableRow key={item.category_id}>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Box
+                            sx={{
+                              width: 12,
+                              height: 12,
+                              borderRadius: '50%',
+                              backgroundColor: summaryChartData?.datasets[0].backgroundColor[
+                                summary.summary.by_category.indexOf(item) % (summaryChartData?.datasets[0].backgroundColor.length || 1)
+                              ] || theme.palette.primary.main,
+                            }}
+                          />
+                          {item.category_name}
+                        </Box>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          Rs. {item.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="right">{item.count}</TableCell>
+                      <TableCell align="right">
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          {item.percentage.toFixed(1)}%
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Box>
         </Paper>
       )}
 
       {trends && (
-        <Paper elevation={1} sx={{ p: 2, backgroundColor: theme.palette.background.paper }}>
-          <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary }}>
-            Spending Trends
-          </Typography>
-          <Typography variant="body2" color="text.secondary" gutterBottom>
-            Overall Growth Rate: {trends.trends.overall_growth_rate.toFixed(2)}%
-          </Typography>
+        <Paper elevation={2} sx={{ p: 3, backgroundColor: theme.palette.background.paper }}>
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary, fontWeight: 600 }}>
+              Spending Trends
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+              <Typography variant="h5" sx={{ color: theme.palette.text.primary, fontWeight: 700 }}>
+                {trends.trends.overall_growth_rate >= 0 ? '+' : ''}
+                {trends.trends.overall_growth_rate.toFixed(2)}%
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Overall growth rate
+              </Typography>
+            </Box>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontStyle: 'italic' }}>
+              Compare your spending across different time periods to identify trends and patterns.
+            </Typography>
+          </Box>
           {trendsChartData && (
-            <Box sx={{ height: '400px', mt: 2 }}>
-              <Line 
-                data={trendsChartData} 
-                options={{ 
-                  maintainAspectRatio: false,
-                  responsive: true,
-                  plugins: {
-                    legend: {
-                      display: true,
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ fontWeight: 600 }}>
+                Month-over-Month Comparison
+              </Typography>
+              <Box sx={{ height: '400px' }}>
+                <Line 
+                  data={trendsChartData} 
+                  options={{ 
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    plugins: {
+                      legend: {
+                        display: true,
+                        position: 'top',
+                      },
+                      tooltip: {
+                        callbacks: {
+                          label: (context) => `${context.dataset.label}: Rs. ${context.parsed.y.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+                        },
+                      },
                     },
-                  },
-                  elements: {
-                    point: {
-                      radius: 4,
+                    elements: {
+                      point: {
+                        radius: 5,
+                        hoverRadius: 7,
+                      },
                     },
-                  },
-                }}
-                key="trends-chart"
-              />
+                  }}
+                  key="trends-chart"
+                  aria-label="Line chart showing spending trends over time"
+                />
+              </Box>
             </Box>
           )}
         </Paper>
       )}
 
       {anomalies && anomalies.anomalies.length > 0 && (
-        <Paper elevation={1} sx={{ p: 2, backgroundColor: theme.palette.background.paper }}>
-          <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary }}>
-            Anomalies ({anomalies.count})
-          </Typography>
+        <Paper elevation={2} sx={{ p: 3, backgroundColor: theme.palette.background.paper }}>
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary, fontWeight: 600 }}>
+              Unusual Transactions ({anomalies.count})
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+              These transactions appear unusual compared to your normal spending patterns. Review them to ensure accuracy.
+            </Typography>
+          </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 2 }}>
             {anomalies.anomalies.map((anomaly) => (
               <Card key={anomaly._id} elevation={0} sx={{ border: `1px solid ${theme.palette.divider}`, backgroundColor: theme.palette.background.paper }}>

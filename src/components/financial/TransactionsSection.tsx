@@ -19,7 +19,7 @@ import {
   Chip,
   Pagination,
 } from '@mui/material';
-import { Edit, Delete, MergeType, FilterList } from '@mui/icons-material';
+import { Edit, Delete, MergeType, FilterList, CloudUpload } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -232,10 +232,61 @@ export default function TransactionsSection({
       {/* Transactions List */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {paginatedTransactions.length === 0 ? (
-          <Paper elevation={1} sx={{ p: 4, textAlign: 'center', backgroundColor: theme.palette.background.paper }}>
-            <Typography variant="body1" color="text.secondary">
-              No transactions found
-            </Typography>
+          <Paper
+            elevation={2}
+            sx={{
+              p: 6,
+              textAlign: 'center',
+              backgroundColor: theme.palette.background.paper,
+              border: `2px dashed ${theme.palette.divider}`,
+              borderRadius: 3,
+            }}
+            role="status"
+            aria-live="polite"
+          >
+            {transactions.length === 0 ? (
+              <>
+                <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary, fontWeight: 600, mb: 2 }}>
+                  No Transactions Yet
+                </Typography>
+                <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+                  Get started by uploading your first bill or receipt. We'll automatically extract the details and track your spending.
+                </Typography>
+                <Button
+                  variant="contained"
+                  size="large"
+                  startIcon={<CloudUpload />}
+                  onClick={() => {
+                    // Scroll to top where upload section would be
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    // Dispatch custom event that parent can listen to
+                    window.dispatchEvent(new CustomEvent('financial:openUpload'));
+                  }}
+                  aria-label="Upload your first bill"
+                >
+                  Upload Your First Bill
+                </Button>
+              </>
+            ) : (
+              <>
+                <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary, fontWeight: 600, mb: 2 }}>
+                  No Transactions Match Your Filters
+                </Typography>
+                <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+                  Try adjusting your filters to see more transactions.
+                </Typography>
+                <Button
+                  variant="outlined"
+                  onClick={() => {
+                    setFilters({});
+                    onFiltersChange({});
+                  }}
+                  aria-label="Clear all filters"
+                >
+                  Clear Filters
+                </Button>
+              </>
+            )}
           </Paper>
         ) : (
           paginatedTransactions.map((transaction) => (

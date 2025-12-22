@@ -190,14 +190,26 @@ export default function BillUploadSection({ onTransactionCreated }: BillUploadSe
         />
       )}
 
-      <Paper elevation={1} sx={{ p: 3, backgroundColor: theme.palette.background.paper }}>
-        <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary }}>
-          Upload Bill
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-          Upload a bill image or PDF for AI processing. Supports JPG, PNG, WEBP, and PDF formats.
-          You can also paste an image from your clipboard (Ctrl+V / Cmd+V).
-        </Typography>
+      <Paper 
+        elevation={2} 
+        sx={{ 
+          p: 4, 
+          backgroundColor: theme.palette.background.paper,
+          border: `2px solid ${theme.palette.primary.main}`,
+          borderRadius: 3,
+        }}
+      >
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="h5" gutterBottom sx={{ color: theme.palette.text.primary, fontWeight: 600 }}>
+            Upload Bill or Receipt
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Upload a bill image or PDF for automatic processing. We'll extract the details and categorize it for you.
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+            Supports: JPG, PNG, WEBP, PDF • You can also paste an image (Ctrl+V / Cmd+V)
+          </Typography>
+        </Box>
 
         {/* Optional Overrides */}
         <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
@@ -282,29 +294,31 @@ export default function BillUploadSection({ onTransactionCreated }: BillUploadSe
             {...getRootProps()}
             sx={{
               flex: 1,
-              border: '2px dashed',
-              borderColor: isDragActive ? theme.palette.primary.main : theme.palette.divider,
-              borderRadius: '8px',
-              padding: '24px',
+              border: `3px dashed ${isDragActive ? theme.palette.primary.main : theme.palette.divider}`,
+              borderRadius: 3,
+              padding: '40px 24px',
               textAlign: 'center',
               cursor: uploading ? 'not-allowed' : 'pointer',
               backgroundColor: isDragActive 
-                ? (theme.palette.mode === 'dark' ? 'rgba(0, 198, 255, 0.1)' : '#f0f9ff')
+                ? (theme.palette.mode === 'dark' ? 'rgba(0, 198, 255, 0.15)' : '#f0f9ff')
                 : theme.palette.background.default,
-              transition: 'all 0.2s ease',
+              transition: 'all 0.3s ease',
+              position: 'relative',
               '&:hover': {
                 borderColor: theme.palette.primary.main,
                 backgroundColor: theme.palette.mode === 'dark' ? 'rgba(0, 198, 255, 0.1)' : '#f0f9ff',
+                transform: 'scale(1.02)',
               },
             }}
+            aria-label="Upload bill or receipt by dragging and dropping or clicking to select"
           >
-            <input {...getInputProps()} />
-            <CloudUpload sx={{ fontSize: 48, color: theme.palette.text.secondary, mb: 1 }} />
-            <Typography variant="body1" gutterBottom sx={{ color: theme.palette.text.primary }}>
+            <input {...getInputProps()} aria-label="File input for bill upload" />
+            <CloudUpload sx={{ fontSize: 64, color: isDragActive ? theme.palette.primary.main : theme.palette.text.secondary, mb: 2 }} />
+            <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary, fontWeight: 600 }}>
               {isDragActive ? 'Drop file here' : 'Drag & drop file here'}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              or click to select
+              or click to browse files
             </Typography>
           </Box>
         </Box>
@@ -334,19 +348,32 @@ export default function BillUploadSection({ onTransactionCreated }: BillUploadSe
             icon={<CheckCircle />}
             sx={{ mb: 2 }}
             onClose={reset}
+            role="alert"
+            aria-live="polite"
           >
-            <Typography variant="subtitle2" gutterBottom>
+            <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
               Transaction Created Successfully!
             </Typography>
-            <Typography variant="body2">
-              Amount: Rs. {transaction.amount.toFixed(2)}
-              <br />
-              Merchant: {transaction.merchant_id || 'Unknown'}
-              <br />
-              Category: {transaction.category_id || 'Unknown'}
-              <br />
-              Confidence: {(transaction.confidence_category * 100).toFixed(1)}%
-            </Typography>
+            <Box sx={{ mt: 1 }}>
+              <Typography variant="body2" component="div">
+                <strong>Amount:</strong> Rs. {transaction.amount.toFixed(2)}
+              </Typography>
+              <Typography variant="body2" component="div">
+                <strong>Merchant:</strong> {transaction.merchant_id || 'Unknown'}
+              </Typography>
+              <Typography variant="body2" component="div">
+                <strong>Category:</strong> {transaction.category_id || 'Unknown'}
+              </Typography>
+              <Typography variant="body2" component="div" sx={{ mt: 1 }}>
+                <strong>Confidence:</strong>{' '}
+                <Chip
+                  label={`${(transaction.confidence_category * 100).toFixed(1)}%`}
+                  size="small"
+                  color={transaction.confidence_category > 0.9 ? 'success' : transaction.confidence_category > 0.7 ? 'warning' : 'error'}
+                  sx={{ ml: 0.5 }}
+                />
+              </Typography>
+            </Box>
           </Alert>
         )}
       </Paper>

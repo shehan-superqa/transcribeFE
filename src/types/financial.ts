@@ -247,3 +247,127 @@ export interface RetrainResponse {
     model_version: string;
   };
 }
+
+// Budget Management Types
+
+export interface Budget {
+  _id: string;
+  user_id: string;
+  name: string;
+  category_id: string | null;
+  amount: number;
+  period: 'monthly' | 'yearly' | 'weekly';
+  start_date: string;
+  end_date: string | null;
+  alert_thresholds: {
+    warning: number; // percentage (0-100)
+    critical: number; // percentage (0-100)
+  };
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BudgetStatus {
+  budget: Budget;
+  status: {
+    current_spending: number;
+    budget_amount: number;
+    remaining: number;
+    percentage_used: number;
+    days_remaining: number;
+    projected_spending?: number;
+    projected_over_budget?: boolean;
+    alert_level: 'ok' | 'warning' | 'critical' | 'exceeded';
+    alerts: Array<{
+      type: 'warning' | 'critical' | 'exceeded';
+      message: string;
+      triggered_at: string;
+    }>;
+    on_track: boolean;
+    recommendations: string[];
+  };
+}
+
+export interface CategoryCap {
+  _id: string;
+  user_id: string;
+  category_id: string;
+  monthly_limit: number;
+  alert_at_percentage: number;
+  current_spending?: number;
+  remaining?: number;
+  alert_triggered?: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BudgetAlert {
+  _id: string;
+  user_id: string;
+  type: 'budget_warning' | 'budget_critical' | 'budget_exceeded' | 'category_cap_warning' | 'category_cap_exceeded';
+  severity: 'warning' | 'critical' | 'exceeded';
+  title: string;
+  message: string;
+  budget_id?: string;
+  category_id?: string;
+  amount?: number;
+  threshold?: number;
+  read: boolean;
+  created_at: string;
+}
+
+export interface CreateBudgetRequest {
+  name: string;
+  category_id?: string | null;
+  amount: number;
+  period: 'monthly' | 'yearly' | 'weekly';
+  start_date: string;
+  end_date?: string | null;
+  alert_thresholds: {
+    warning: number;
+    critical: number;
+  };
+}
+
+export interface UpdateBudgetRequest {
+  name?: string;
+  amount?: number;
+  alert_thresholds?: {
+    warning?: number;
+    critical?: number;
+  };
+}
+
+export interface CreateCategoryCapRequest {
+  category_id: string;
+  monthly_limit: number;
+  alert_at_percentage: number;
+}
+
+export interface BudgetsListResponse {
+  success: boolean;
+  budgets: Budget[];
+  total: number;
+}
+
+export interface BudgetStatusResponse {
+  success: boolean;
+  budget: Budget;
+  status: BudgetStatus['status'];
+}
+
+export interface CategoryCapsResponse {
+  success: boolean;
+  caps: Array<CategoryCap & {
+    category_name: string;
+    current_spending: number;
+    remaining: number;
+    alert_triggered: boolean;
+  }>;
+}
+
+export interface AlertsResponse {
+  success: boolean;
+  alerts: BudgetAlert[];
+  unread_count: number;
+}

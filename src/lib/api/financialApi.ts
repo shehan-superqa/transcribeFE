@@ -22,6 +22,16 @@ import {
   ReloadModelResponse,
   RetrainRequest,
   RetrainResponse,
+  Budget,
+  BudgetStatusResponse,
+  BudgetsListResponse,
+  CreateBudgetRequest,
+  UpdateBudgetRequest,
+  CategoryCap,
+  CategoryCapsResponse,
+  CreateCategoryCapRequest,
+  BudgetAlert,
+  AlertsResponse,
 } from '../../types/financial';
 
 const FINANCIAL_API_BASE_URL = 'http://localhost:5000';
@@ -326,4 +336,191 @@ export async function triggerRetraining(
     FINANCIAL_API_BASE_URL
   );
   return handleResponse<RetrainResponse>(response);
+}
+
+// Budget Management
+
+export async function createBudget(request: CreateBudgetRequest): Promise<{ success: boolean; budget: Budget }> {
+  const response = await authenticatedFetch(
+    '/api/financial/budgets',
+    {
+      method: 'POST',
+      body: JSON.stringify(request),
+    },
+    true,
+    FINANCIAL_API_BASE_URL
+  );
+  return handleResponse<{ success: boolean; budget: Budget }>(response);
+}
+
+export async function listBudgets(params?: {
+  active_only?: boolean;
+  category_id?: string;
+}): Promise<BudgetsListResponse> {
+  const queryParams = new URLSearchParams();
+  if (params?.active_only) queryParams.append('active_only', 'true');
+  if (params?.category_id) queryParams.append('category_id', params.category_id);
+
+  const queryString = queryParams.toString();
+  const endpoint = `/api/financial/budgets${queryString ? `?${queryString}` : ''}`;
+
+  const response = await authenticatedFetch(
+    endpoint,
+    { method: 'GET' },
+    true,
+    FINANCIAL_API_BASE_URL
+  );
+  return handleResponse<BudgetsListResponse>(response);
+}
+
+export async function getBudgetStatus(budgetId: string): Promise<BudgetStatusResponse> {
+  const response = await authenticatedFetch(
+    `/api/financial/budgets/${budgetId}/status`,
+    { method: 'GET' },
+    true,
+    FINANCIAL_API_BASE_URL
+  );
+  return handleResponse<BudgetStatusResponse>(response);
+}
+
+export async function updateBudget(
+  budgetId: string,
+  request: UpdateBudgetRequest
+): Promise<{ success: boolean; budget: Budget }> {
+  const response = await authenticatedFetch(
+    `/api/financial/budgets/${budgetId}`,
+    {
+      method: 'PUT',
+      body: JSON.stringify(request),
+    },
+    true,
+    FINANCIAL_API_BASE_URL
+  );
+  return handleResponse<{ success: boolean; budget: Budget }>(response);
+}
+
+export async function deleteBudget(budgetId: string): Promise<{ success: boolean; message: string }> {
+  const response = await authenticatedFetch(
+    `/api/financial/budgets/${budgetId}`,
+    { method: 'DELETE' },
+    true,
+    FINANCIAL_API_BASE_URL
+  );
+  return handleResponse<{ success: boolean; message: string }>(response);
+}
+
+// Category Spending Caps
+
+export async function createCategoryCap(request: CreateCategoryCapRequest): Promise<{ success: boolean; cap: CategoryCap }> {
+  const response = await authenticatedFetch(
+    '/api/financial/budgets/category-caps',
+    {
+      method: 'POST',
+      body: JSON.stringify(request),
+    },
+    true,
+    FINANCIAL_API_BASE_URL
+  );
+  return handleResponse<{ success: boolean; cap: CategoryCap }>(response);
+}
+
+export async function getCategoryCaps(): Promise<CategoryCapsResponse> {
+  const response = await authenticatedFetch(
+    '/api/financial/budgets/category-caps',
+    { method: 'GET' },
+    true,
+    FINANCIAL_API_BASE_URL
+  );
+  return handleResponse<CategoryCapsResponse>(response);
+}
+
+// Alerts
+
+export async function getAlerts(params?: {
+  unread_only?: boolean;
+  severity?: 'warning' | 'critical' | 'exceeded';
+}): Promise<AlertsResponse> {
+  const queryParams = new URLSearchParams();
+  if (params?.unread_only) queryParams.append('unread_only', 'true');
+  if (params?.severity) queryParams.append('severity', params.severity);
+
+  const queryString = queryParams.toString();
+  const endpoint = `/api/financial/budgets/alerts${queryString ? `?${queryString}` : ''}`;
+
+  const response = await authenticatedFetch(
+    endpoint,
+    { method: 'GET' },
+    true,
+    FINANCIAL_API_BASE_URL
+  );
+  return handleResponse<AlertsResponse>(response);
+}
+
+export async function markAlertRead(alertId: string): Promise<{ success: boolean; alert: BudgetAlert }> {
+  const response = await authenticatedFetch(
+    `/api/financial/budgets/alerts/${alertId}/read`,
+    { method: 'PUT' },
+    true,
+    FINANCIAL_API_BASE_URL
+  );
+  return handleResponse<{ success: boolean; alert: BudgetAlert }>(response);
+}
+
+export async function markAllAlertsRead(): Promise<{ success: boolean; updated_count: number }> {
+  const response = await authenticatedFetch(
+    '/api/financial/budgets/alerts/read-all',
+    { method: 'PUT' },
+    true,
+    FINANCIAL_API_BASE_URL
+  );
+  return handleResponse<{ success: boolean; updated_count: number }>(response);
+}
+
+// Real-time Budget Updates (SSE Stream)
+
+export function subscribeToBudgetUpdates(
+  onUpdate: (data: { event: string; budgets?: BudgetStatusResponse[]; alert?: BudgetAlert }) => void,
+  onError?: (error: Error) => void
+): () => void {
+  let eventSource: EventSource | null = null;
+
+  try {
+    const token = getAccessToken();
+    if (!token) {
+      throw new Error('Authentication required');
+    }
+
+    // Note: EventSource doesn't support custom headers, so we may need to use a different approach
+    // For now, we'll use a query parameter or implement WebSocket alternative
+    const url = `${FINANCIAL_API_BASE_URL}/api/financial/budgets/status-stream?token=${encodeURIComponent(token)}`;
+    
+    eventSource = new EventSource(url);
+
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        onUpdate(data);
+      } catch (error) {
+        console.error('Failed to parse SSE message:', error);
+        onError?.(error as Error);
+      }
+    };
+
+    eventSource.onerror = (error) => {
+      console.error('SSE connection error:', error);
+      onError?.(new Error('Failed to connect to budget updates stream'));
+      eventSource?.close();
+    };
+
+    // Return cleanup function
+    return () => {
+      if (eventSource) {
+        eventSource.close();
+        eventSource = null;
+      }
+    };
+  } catch (error) {
+    onError?.(error as Error);
+    return () => {}; // Return no-op cleanup function
+  }
 }
