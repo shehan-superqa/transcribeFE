@@ -38,13 +38,36 @@ export function useAdStrategy(): UseAdStrategyReturn {
         verbosity: 'low',
       });
 
-      if (response.success && response.job_id) {
-        setJobId(response.job_id);
-        // Strategy will be parsed when job completes via polling
+      // Handle both response formats:
+      // 1. Job-based: { success, job_id } - poll for completion
+      // 2. Direct: { success, job_id: 'direct-...', _directResponse: '...' } - use immediately
+      if (response.success) {
+        const responseData = response as any;
+        
+        // Check if this is a direct response (marked with 'direct-' prefix)
+        if (response.job_id && response.job_id.startsWith('direct-') && responseData._directResponse) {
+          // Direct response received - parse immediately
+          try {
+            const parsedStrategy = parseStrategyResponse(responseData._directResponse);
+            setStrategy(parsedStrategy as AdStrategy);
+            setLoading(false);
+          } catch (parseError: any) {
+            console.error('Error parsing strategy response:', parseError);
+            throw new Error('Failed to parse strategy response: ' + parseError.message);
+          }
+        } else if (response.job_id && !response.job_id.startsWith('direct-')) {
+          // Job-based response - poll for completion
+          setJobId(response.job_id);
+          // Strategy will be parsed when job completes via polling
+        } else {
+          throw new Error('Invalid response format: missing job_id or response data');
+        }
       } else {
-        throw new Error('Failed to start strategy generation');
+        const errorData = response as any;
+        throw new Error('Failed to start strategy generation: ' + (errorData?.error || 'Unknown error'));
       }
     } catch (err: any) {
+      console.error('Strategy generation error:', err);
       setError(err.message || 'Failed to generate strategy');
       setLoading(false);
     }

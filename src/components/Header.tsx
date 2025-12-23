@@ -14,11 +14,11 @@ const NavLink = ({ to, children, onClick }: { to?: string; children: React.React
   const commonStyles = {
     fontFamily: "'Inter', sans-serif",
     fontWeight: 400,
-    fontSize: '0.8rem',
+    fontSize: 'clamp(0.75rem, 2vw, 0.8rem)',
     textDecoration: 'none',
     color: '#ffffff',
     backgroundColor: hover ? '#1a1a1a' : 'transparent',
-    padding: '0.4rem 0.6rem',
+    padding: 'clamp(0.35rem, 1vw, 0.4rem) clamp(0.5rem, 1.5vw, 0.6rem)',
     borderRadius: '4px',
     transition: 'all 0.2s ease-in-out',
     display: 'flex',
@@ -62,8 +62,10 @@ const PrimaryButton = ({ onClick, children }: { onClick?: () => void; children: 
       style={{
         fontFamily: "'Inter', sans-serif",
         fontWeight: 500,
-        fontSize: '0.85rem',
-        padding: '0.5rem 1.1rem',
+        fontSize: 'clamp(0.8rem, 2vw, 0.85rem)',
+        padding: 'clamp(0.5rem, 1.5vw, 0.625rem) clamp(1rem, 2.5vw, 1.1rem)',
+        minHeight: '44px',
+        touchAction: 'manipulation',
         backgroundColor: hover ? '#e0e0e0' : '#ffffff',
         color: '#000000',
         border: 'none',
@@ -92,7 +94,9 @@ const SectionItem = ({ to, title, description }: { to: string; title: string; de
       to={to}
       style={{
         textDecoration: 'none',
-        padding: '0.6rem 1rem',
+        padding: 'clamp(0.5rem, 1.5vw, 0.6rem) clamp(0.875rem, 2vw, 1rem)',
+        minHeight: '44px',
+        touchAction: 'manipulation',
         backgroundColor: hover ? '#1a1a1a' : 'transparent',
         transition: 'background-color 0.2s ease-in-out',
         display: 'block',
@@ -100,10 +104,10 @@ const SectionItem = ({ to, title, description }: { to: string; title: string; de
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
-      <h4 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: '0.85rem', color: '#ffffff', margin: 0 }}>
+      <h4 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: 'clamp(0.8rem, 2vw, 0.85rem)', color: '#ffffff', margin: 0 }}>
         {title}
       </h4>
-      <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: '0.7rem', color: '#aaaaaa', margin: '0.2rem 0 0 0' }}>
+      <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 'clamp(0.65rem, 1.8vw, 0.7rem)', color: '#aaaaaa', margin: '0.2rem 0 0 0' }}>
         {description}
       </p>
     </Link>
@@ -111,8 +115,8 @@ const SectionItem = ({ to, title, description }: { to: string; title: string; de
 };
 
 const DropdownSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <div style={{ minWidth: '220px', flexShrink: 0, borderLeft: '1px solid #1a1a1a', padding: '0.5rem 0' }}>
-    <h3 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: '0.75rem', color: '#aaaaaa', textTransform: 'uppercase', padding: '0 1rem 0.5rem 1rem', margin: 0 }}>
+  <div style={{ minWidth: 'clamp(180px, 25vw, 220px)', flexShrink: 0, borderLeft: '1px solid #1a1a1a', padding: '0.5rem 0' }}>
+    <h3 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 'clamp(0.7rem, 1.8vw, 0.75rem)', color: '#aaaaaa', textTransform: 'uppercase', padding: '0 clamp(0.75rem, 2vw, 1rem) 0.5rem clamp(0.75rem, 2vw, 1rem)', margin: 0 }}>
       {title}
     </h3>
     {children}
@@ -132,9 +136,9 @@ const HighlightedItem = ({ to, title, description }: { to: string; title: string
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'flex-end',
-        width: '180px',
-        minHeight: '180px',
-        padding: '1.25rem',
+        width: 'clamp(150px, 20vw, 180px)',
+        minHeight: 'clamp(140px, 18vw, 180px)',
+        padding: 'clamp(1rem, 2.5vw, 1.25rem)',
         borderRadius: '8px',
         background: hover ? HOVER_GRADIENT : MODERN_GRADIENT,
         boxShadow: hover ? '0 4px 20px rgba(0, 119, 182, 0.7)' : '0 4px 10px rgba(0,0,0,0.5)',
@@ -144,8 +148,8 @@ const HighlightedItem = ({ to, title, description }: { to: string; title: string
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
-      <h3 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: '1.1rem', color: '#ffffff', margin: '0 0 0.5rem 0' }}>{title}</h3>
-      <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: '0.75rem', color: '#e0e0e0', margin: 0 }}>{description}</p>
+      <h3 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 'clamp(0.95rem, 2.5vw, 1.1rem)', color: '#ffffff', margin: '0 0 0.5rem 0' }}>{title}</h3>
+      <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 'clamp(0.7rem, 1.8vw, 0.75rem)', color: '#e0e0e0', margin: 0 }}>{description}</p>
     </Link>
   );
 };
@@ -179,7 +183,7 @@ const ToolsDropdown = ({ isMobile }: { isMobile: boolean }) => {
   }
   
   return (
-    <div className="tools-dropdown-scroll" style={{ display: 'flex', backgroundColor: '#0d0d0d', borderRadius: '8px', boxShadow: '0 8px 20px rgba(0,0,0,0.5)', overflowX: 'auto', overflowY: 'hidden', minWidth: '600px', maxWidth: '900px', padding: '0.5rem', scrollbarWidth: 'thin', scrollbarColor: '#333333 #0d0d0d' }}>
+    <div className="tools-dropdown-scroll" style={{ display: 'flex', backgroundColor: '#0d0d0d', borderRadius: '8px', boxShadow: '0 8px 20px rgba(0,0,0,0.5)', overflowX: 'auto', overflowY: 'hidden', minWidth: 'clamp(280px, 80vw, 600px)', maxWidth: 'clamp(90vw, 900px, 95vw)', padding: '0.5rem', scrollbarWidth: 'thin', scrollbarColor: '#333333 #0d0d0d' }}>
       <HighlightedItem to="/voice/transcribe" title="Audio Tools" description="Convert audio files to accurate text transcriptions instantly." />
       <div style={{ display: 'flex', flexShrink: 0 }}>
         <DropdownSection title="VOICE (AUDIO) TOOLS">
@@ -222,7 +226,7 @@ const ComplexDropdown = ({ isMobile }: { isMobile: boolean }) => {
   }
   
   return (
-    <div className="tools-dropdown-scroll" style={{ display: 'flex', backgroundColor: '#0d0d0d', borderRadius: '8px', boxShadow: '0 8px 20px rgba(0,0,0,0.5)', overflowX: 'auto', overflowY: 'hidden', minWidth: '600px', maxWidth: '900px', padding: '0.5rem', scrollbarWidth: 'thin', scrollbarColor: '#333333 #0d0d0d' }}>
+    <div className="tools-dropdown-scroll" style={{ display: 'flex', backgroundColor: '#0d0d0d', borderRadius: '8px', boxShadow: '0 8px 20px rgba(0,0,0,0.5)', overflowX: 'auto', overflowY: 'hidden', minWidth: 'clamp(280px, 80vw, 600px)', maxWidth: 'clamp(90vw, 900px, 95vw)', padding: '0.5rem', scrollbarWidth: 'thin', scrollbarColor: '#333333 #0d0d0d' }}>
       <HighlightedItem to="/pricing" title="Secure Comm." description="End-to-end encryption for all voice and data streams." />
       <div style={{ display: 'flex', flexShrink: 0 }}>
         <DropdownSection title="CORE FEATURES">
@@ -336,14 +340,14 @@ export default function Header() {
   const handleToggleToolsDropdown = () => !isDesktop && setToolsDropdownOpen(!toolsDropdownOpen);
 
   const styles = {
-    header: { backgroundColor: '#000', borderBottom: '1px solid #1a1a1a', position: 'sticky' as const, top: 0, zIndex: 200, padding: '0.75rem 2rem' },
-    headerMobile: { backgroundColor: '#000', borderBottom: '1px solid #1a1a1a', position: 'sticky' as const, top: 0, zIndex: 200, padding: '0.75rem 1rem' },
-    container: { maxWidth: '1448px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' },
-    leftNavSection: { display: 'flex', alignItems: 'center', gap: '2.5rem' },
+    header: { backgroundColor: '#000', borderBottom: '1px solid #1a1a1a', position: 'sticky' as const, top: 0, zIndex: 200, padding: 'clamp(0.5rem, 1.5vw, 0.75rem) clamp(1rem, 3vw, 2rem)' },
+    headerMobile: { backgroundColor: '#000', borderBottom: '1px solid #1a1a1a', position: 'sticky' as const, top: 0, zIndex: 200, padding: 'clamp(0.5rem, 1.5vw, 0.75rem) clamp(0.75rem, 2vw, 1rem)' },
+    container: { maxWidth: '100%', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '0 clamp(0.5rem, 2vw, 1rem)' },
+    leftNavSection: { display: 'flex', alignItems: 'center', gap: 'clamp(1rem, 3vw, 2.5rem)', flexWrap: 'wrap' as const },
     logo: { display: 'flex', alignItems: 'center', textDecoration: 'none' },
     logoSvgContainer: { marginRight: '0.75rem' },
-    logoText: { fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: '1.2rem', color: '#fff', letterSpacing: '0.5px' },
-    desktopNavLinks: { display: 'flex', alignItems: 'baseline' as const, gap: '1.25rem' },
+    logoText: { fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 'clamp(1rem, 3vw, 1.2rem)', color: '#fff', letterSpacing: '0.5px' },
+    desktopNavLinks: { display: 'flex', alignItems: 'baseline' as const, gap: 'clamp(0.75rem, 2vw, 1.25rem)', flexWrap: 'wrap' as const },
     productDropdownContainer: { position: 'relative' as const, marginBottom: '-4px' },
     productDropdownMenu: { position: 'absolute' as const, top: '100%', left: '0', paddingTop: '4px', zIndex: 201, overflow: 'visible' },
     productDropdownMenuMobile: { position: 'absolute' as const, top: '100%', left: '0', paddingTop: '4px', zIndex: 201, width: '100%' },

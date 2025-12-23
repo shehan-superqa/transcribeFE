@@ -169,11 +169,14 @@ export default function TrainerTab() {
   return (
     <Box>
       <div className="tool-sticky-title">
-        <h1>Custom Language Model Trainer</h1>
+        <h1>
+          <span>Custom Language Model Trainer</span>
+          <span className="title-subtitle"> - Train custom transcription models for specific languages or domains</span>
+        </h1>
       </div>
       <HowToUse
         title=""
-        subtitle="Train custom transcription models for specific languages or domains"
+        subtitle=""
         instructions="Select the language you want to train a model for. Upload audio files either by selecting files directly or providing a directory path. Upload a transcriptions file (JSON or text format) that matches your audio files. The transcriptions file should contain the text corresponding to each audio file. Click 'Start Training' to begin the training process. Monitor the progress and logs in real-time. Once training is complete, you can use your custom model for transcriptions."
       />
 

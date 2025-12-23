@@ -238,12 +238,15 @@ export default function TTSTab() {
   return (
     <Box>
       <div className="tool-sticky-title">
-        <h1>Text-to-Speech</h1>
+        <h1>
+          <span>Text-to-Speech</span>
+          <span className="title-subtitle"> - Convert text into natural-sounding speech with multiple voice options</span>
+        </h1>
       </div>
       <Box sx={{ p: { xs: 1.5, sm: 2, md: 3 } }}>
       <HowToUse
         title=""
-        subtitle="Convert text into natural-sounding speech with multiple voice options"
+        subtitle=""
         instructions="Enter the text you want to convert to speech in the input field. Select a voice from over 300 available voices, or use the search to find a specific voice. Optionally adjust emotion, language, speed, pitch, and volume settings. Click 'Generate Speech' to create the audio. Once generated, you can play, pause, or download the audio file."
       />
 

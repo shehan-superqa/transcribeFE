@@ -82,10 +82,11 @@ const styles = {
     boxSizing: 'border-box' as const,
   },
   categoryButtons: {
-    display: 'flex',
-    flexWrap: 'wrap' as const,
-    gap: '0.5rem',
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+    gap: '0.75rem',
     marginBottom: '1rem',
+    width: '100%',
   },
   categoryButton: {
     padding: '0.5rem 1rem',

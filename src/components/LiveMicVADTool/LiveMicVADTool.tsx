@@ -252,11 +252,14 @@ export default function LiveMicVADTool() {
   return (
     <Box>
       <div className="live-mic-sticky-title">
-        <h1 className="live-mic-title">Live Mic VAD Tool</h1>
+        <h1 className="live-mic-title">
+          <span>Live Mic VAD Tool</span>
+          <span className="title-subtitle"> - Real-time Voice Activity Detection - Detect when someone is speaking</span>
+        </h1>
       </div>
       <HowToUse
         title=""
-        subtitle="Real-time Voice Activity Detection - Detect when someone is speaking"
+        subtitle=""
         instructions="Click 'Start VAD' to begin voice activity detection. Grant microphone permissions when prompted. Speak into your microphone and watch the VAD status change between 'Speaking' and 'Silent'. Adjust the VAD threshold to control sensitivity. View real-time statistics and audio visualization. Click 'Stop VAD' when finished."
       />
       

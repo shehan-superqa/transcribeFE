@@ -649,11 +649,14 @@ export default function VideoGenerationTool() {
   return (
     <div>
       <div className="tool-sticky-title">
-        <h1>Text to Video</h1>
+        <h1>
+          <span>Text to Video</span>
+          <span className="title-subtitle"> - Generate videos using AI with text prompts and reference images</span>
+        </h1>
       </div>
       <HowToUse
         title=""
-        subtitle="Generate videos using AI with text prompts and reference images"
+        subtitle=""
         instructions="Enter a detailed text prompt describing the video you want to generate. Optionally upload reference images to guide the video style (1-3 images, works with 16:9 aspect ratio and 8-second duration). Adjust settings like aspect ratio, duration, and model selection. Click 'Generate Video' to create your video. The process may take several minutes depending on the video length."
       />
       <div style={styles.formContainer}>

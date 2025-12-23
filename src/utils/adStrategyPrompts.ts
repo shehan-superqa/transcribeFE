@@ -85,11 +85,49 @@ export function parseStrategyResponse(response: string): {
   platformOptimizations: Record<string, any>;
 } {
   try {
-    // Try to extract JSON from markdown code blocks if present
-    const jsonMatch = response.match(/```json\s*([\s\S]*?)\s*```/) || response.match(/```\s*([\s\S]*?)\s*```/);
-    const jsonStr = jsonMatch ? jsonMatch[1] : response;
+    // Try multiple strategies to extract JSON from the response
     
-    const parsed = JSON.parse(jsonStr.trim());
+    // Strategy 1: Extract from markdown code blocks
+    let jsonStr = response;
+    const codeBlockMatch = response.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (codeBlockMatch) {
+      jsonStr = codeBlockMatch[1];
+    } else {
+      // Strategy 2: Find JSON object in the text (look for { ... })
+      const jsonObjectMatch = response.match(/\{[\s\S]*\}/);
+      if (jsonObjectMatch) {
+        jsonStr = jsonObjectMatch[0];
+      }
+    }
+    
+    // Clean up the JSON string - remove any leading/trailing whitespace
+    jsonStr = jsonStr.trim();
+    
+    // Strategy 3: If there's text after the JSON, try to extract just the JSON part
+    // Look for the first complete JSON object
+    let braceCount = 0;
+    let jsonStart = -1;
+    let jsonEnd = -1;
+    
+    for (let i = 0; i < jsonStr.length; i++) {
+      if (jsonStr[i] === '{') {
+        if (jsonStart === -1) jsonStart = i;
+        braceCount++;
+      } else if (jsonStr[i] === '}') {
+        braceCount--;
+        if (braceCount === 0 && jsonStart !== -1) {
+          jsonEnd = i + 1;
+          break;
+        }
+      }
+    }
+    
+    // If we found a complete JSON object, use just that part
+    if (jsonStart !== -1 && jsonEnd !== -1) {
+      jsonStr = jsonStr.substring(jsonStart, jsonEnd);
+    }
+    
+    const parsed = JSON.parse(jsonStr);
     
     return {
       adLength: parsed.adLength || 15,
@@ -102,6 +140,7 @@ export function parseStrategyResponse(response: string): {
     };
   } catch (error) {
     console.error('Failed to parse strategy response:', error);
+    console.error('Response text:', response.substring(0, 500));
     // Return default strategy
     return {
       adLength: 15,

@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { generateText } from '../../lib/api/gpt5Api';
 import { useGPT5WebSocket } from '../../hooks/useGPT5WebSocket';
+import { useRequireAuth } from '../../hooks/useRequireAuth';
 import type { GPT5TextGenerationRequest, ReasoningEffort, Verbosity } from '../../types/gpt5';
 import './GPT5Tool.css';
 
 export default function TextGenerationTool() {
+  const { requireAuth, isAuthenticated } = useRequireAuth();
   const [prompt, setPrompt] = useState('');
   const [model, setModel] = useState('');
   const [reasoningEffort, setReasoningEffort] = useState<ReasoningEffort>('medium');
@@ -19,6 +21,11 @@ export default function TextGenerationTool() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check authentication before submitting
+    if (!requireAuth()) {
+      return;
+    }
     
     if (!prompt.trim()) {
       setError('Please enter a prompt');
@@ -201,7 +208,7 @@ export default function TextGenerationTool() {
             <button
               type="submit"
               className="gpt5-button gpt5-button-primary"
-              disabled={isLoading || !prompt.trim()}
+              disabled={!isAuthenticated || isLoading || !prompt.trim()}
             >
               {isLoading ? 'Generating...' : 'Generate Text'}
             </button>

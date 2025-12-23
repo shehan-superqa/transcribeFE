@@ -1,5 +1,13 @@
 import { useState } from 'react';
+import { useRequireAuth } from '../../../hooks/useRequireAuth';
+import { getAccessToken } from '../../../lib/api';
+import axios from 'axios';
 import type { OnboardingData, PromotionType, Platform, AdStyle } from '../../../types/videoAds';
+
+// Use environment variable for API URL, defaulting to port 5000
+// This ensures the backend URL can be configured via environment variables
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 import './Steps.css';
 
 interface OnboardingStepProps {
@@ -9,10 +17,13 @@ interface OnboardingStepProps {
 }
 
 export default function OnboardingStep({ data, onUpdate, onNext }: OnboardingStepProps) {
+  const { requireAuth } = useRequireAuth();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [imagePreviews, setImagePreviews] = useState<Array<{ url: string; file?: File }>>(data.referenceImages || []);
   const [isGenerating, setIsGenerating] = useState(false);
   const [processingTime, setProcessingTime] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const [jobId, setJobId] = useState<string | null>(null);
 
   const promotionTypeOptions = [
     { value: 'product', label: 'Product', icon: '📦' },
@@ -156,6 +167,13 @@ export default function OnboardingStep({ data, onUpdate, onNext }: OnboardingSte
       updates.customPromotionType = '';
     }
     onUpdate(updates);
+    
+    // Automatically advance to next question after a short delay
+    if (currentQuestion < questions.length - 1) {
+      setTimeout(() => setCurrentQuestion(currentQuestion + 1), 300);
+    } else {
+      setTimeout(onNext, 300);
+    }
   };
 
   const handleCustomPromotionTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -401,27 +419,227 @@ export default function OnboardingStep({ data, onUpdate, onNext }: OnboardingSte
     }
   };
 
-  const handleGenerateAd = () => {
+  const handleGenerateAd = async () => {
+    // Check authentication before generating
+    if (!requireAuth()) {
+      return;
+    }
+    
     setIsGenerating(true);
     setProcessingTime(0);
+    setError(null);
+    setJobId(null);
     
     // Start processing timer
     const timer = setInterval(() => {
       setProcessingTime((prev) => prev + 1);
     }, 1000);
 
-    // Show alert after a short delay
-    setTimeout(() => {
-      alert('Stay tuned! Ad is generating...');
-    }, 500);
+    try {
+      // Build comprehensive prompt from onboarding data
+      const prompt = buildAdGenerationPrompt(data);
+      
+      // Show alert after a short delay
+      setTimeout(() => {
+        alert('Stay tuned! Ad is generating...');
+      }, 500);
 
-    // Simulate processing time (you can adjust this)
-    setTimeout(() => {
+      // Build user message with all onboarding data
+      const userMessageContent = `${prompt}\n\n**Raw Data (JSON):**\n\`\`\`json\n${JSON.stringify(data, null, 2)}\n\`\`\``;
+
+      // Build context object with all onboarding data
+      const context = {
+        onboardingData: data,
+        promotionType: data.promotionType,
+        customPromotionType: data.customPromotionType,
+        platform: data.platform,
+        platformSize: data.platformSize,
+        platformDetails: data.platformDetails,
+        languages: data.languages,
+        targetAudience: data.targetAudience,
+        adStyle: data.adStyle,
+        videoGenerationInstructions: data.videoGenerationInstructions,
+        referenceImagesCount: data.referenceImages?.length || 0,
+        productName: data.productName,
+        productDescription: data.productDescription,
+        differentiator: data.differentiator,
+      };
+
+      // Build message content - this will be validated for non-empty
+      const messageContent = `You are an expert video ad generation assistant. Generate creative, engaging video ad concepts based on user requirements.\n\n${userMessageContent}`;
+      
+      // Validate message is non-empty - throw error if empty to prevent 400 BAD REQUEST
+      // Backend requires a non-empty message field, so we validate before sending
+      if (!messageContent || messageContent.trim().length === 0) {
+        const errorMsg = 'Message cannot be empty. Please provide valid input.';
+        setError(errorMsg);
+        setIsGenerating(false);
+        clearInterval(timer);
+        throw new Error(errorMsg);
+      }
+
+      // Get authorization token
+      const token = getAccessToken();
+      
+      // Build request body with all required fields
+      // Always include message, context, and model to ensure valid JSON structure
+      // Using defaults prevents undefined/null values that cause 400 errors
+      const requestBody = {
+        message: messageContent.trim(), // Non-empty, validated above
+        context: context || {}, // Default to empty object if not provided - prevents undefined/null
+        model: undefined, // Will be omitted if undefined, backend uses default
+      };
+
+      // Remove undefined fields to ensure clean JSON serialization
+      // This prevents sending "model": null or "model": undefined which can cause parsing errors
+      const cleanRequestBody: {
+        message: string;
+        context: Record<string, any>;
+        model?: string;
+      } = {
+        message: requestBody.message,
+        context: requestBody.context,
+      };
+      
+      // Only include model if it has a value (not undefined/null)
+      // Backend will use its default model if not provided
+      
+      console.log('Sending GPT-5 request:', {
+        message: cleanRequestBody.message.substring(0, 200) + '...',
+        context: cleanRequestBody.context,
+        hasToken: !!token,
+      });
+
+      // Build headers - always set Content-Type to application/json
+      // This ensures Axios serializes the body as JSON and backend parses it correctly
+      // Without explicit Content-Type, backend may not recognize the request as JSON, causing 400 errors
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      
+      // Only include Authorization header if token is provided
+      // Sending empty Bearer token can cause authentication errors
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      // Make Axios POST request with proper JSON handling
+      // Why these changes prevent 400 errors:
+      // 1. Non-empty message validation prevents backend rejection of empty messages
+      // 2. Default context (empty object) prevents undefined/null which backend can't parse
+      // 3. Explicit Content-Type ensures backend knows to parse as JSON
+      // 4. Clean request body (no undefined fields) ensures valid JSON serialization
+      // 5. Proper Authorization header format prevents malformed auth errors
+      // 6. Using environment variable ensures correct backend URL configuration
+      const response = await axios.post(
+        `${API_URL}/api/gpt5/chat`,
+        cleanRequestBody,
+        {
+          headers,
+        }
+      );
+
+      // Backend returns { success, response, model } format
+      if (response.data && response.data.success) {
+        const responseText = response.data.response || 'Ad concept generated successfully';
+        const modelUsed = response.data.model || 'unknown';
+        
+        clearInterval(timer);
+        
+        // Store the response for display
+        console.log('GPT-5 Response:', responseText);
+        console.log('Model used:', modelUsed);
+        
+        // Show success message with response preview
+        const preview = responseText.substring(0, 200) + (responseText.length > 200 ? '...' : '');
+        alert(`Ad generation completed!\n\nModel: ${modelUsed}\n\nResponse preview:\n${preview}`);
+        
+        // Proceed to next step after a short delay
+        setTimeout(() => {
+          setIsGenerating(false);
+          onNext();
+        }, 1000);
+      } else {
+        throw new Error(response.data?.error || response.data?.message || 'Failed to generate ad');
+      }
+    } catch (err: any) {
       clearInterval(timer);
       setIsGenerating(false);
-      // Proceed to next step
-      setTimeout(onNext, 300);
-    }, 3000); // 3 seconds processing time
+      const errorMessage = err.message || 'Failed to generate ad. Please try again.';
+      setError(errorMessage);
+      console.error('Ad generation error:', err);
+      alert(`Error: ${errorMessage}`);
+    }
+  };
+
+  // Helper function to build comprehensive prompt from onboarding data
+  const buildAdGenerationPrompt = (data: OnboardingData): string => {
+    const parts: string[] = [];
+
+    // Promotion type
+    const promotionType = data.customPromotionType || data.promotionType;
+    parts.push(`**Promotion Type:** ${promotionType}`);
+
+    // Platform and dimensions
+    parts.push(`**Target Platform:** ${data.platform}`);
+    if (data.platformSize) {
+      parts.push(`**Platform Size/Dimensions:** ${data.platformSize}`);
+    }
+    if (data.platformDetails) {
+      parts.push(`**Platform Details:** ${data.platformDetails}`);
+    }
+
+    // Languages
+    if (data.languages && data.languages.length > 0) {
+      parts.push(`**Target Languages:** ${data.languages.join(', ')}`);
+    }
+
+    // Target audience
+    if (data.targetAudience) {
+      const audienceParts: string[] = [];
+      if (data.targetAudience.ageRange) {
+        audienceParts.push(`Age: ${data.targetAudience.ageRange.min}-${data.targetAudience.ageRange.max}`);
+      }
+      if (data.targetAudience.location) {
+        audienceParts.push(`Location: ${data.targetAudience.location}`);
+      }
+      if (data.targetAudience.gender) {
+        audienceParts.push(`Gender: ${data.targetAudience.gender}`);
+      }
+      if (audienceParts.length > 0) {
+        parts.push(`**Target Audience:** ${audienceParts.join(', ')}`);
+      }
+    }
+
+    // Ad style/tone
+    if (data.adStyle && data.adStyle.length > 0) {
+      parts.push(`**Ad Style/Tone:** ${data.adStyle.join(', ')}`);
+    }
+
+    // Video generation instructions
+    if (data.videoGenerationInstructions) {
+      parts.push(`**Video Generation Instructions:**\n${data.videoGenerationInstructions}`);
+    }
+
+    // Reference images info
+    if (data.referenceImages && data.referenceImages.length > 0) {
+      parts.push(`**Reference Images:** ${data.referenceImages.length} image(s) provided for visual reference`);
+    }
+
+    // Product details if available
+    if (data.productName) {
+      parts.push(`**Product Name:** ${data.productName}`);
+    }
+    if (data.productDescription) {
+      parts.push(`**Product Description:** ${data.productDescription}`);
+    }
+    if (data.differentiator) {
+      parts.push(`**Key Differentiator:** ${data.differentiator}`);
+    }
+
+    const fullPrompt = `Generate a comprehensive video ad concept with the following requirements:\n\n${parts.join('\n\n')}\n\nPlease provide:\n1. A compelling ad script with hook, problem, solution, and call-to-action\n2. Visual descriptions for each scene\n3. Recommended camera angles and transitions\n4. Voiceover style recommendations\n5. Music and sound effect suggestions\n6. Platform-specific optimizations`;
+
+    return fullPrompt;
   };
 
   const handleVideoInstructionsBack = () => {
@@ -439,10 +657,6 @@ export default function OnboardingStep({ data, onUpdate, onNext }: OnboardingSte
 
   return (
     <div className="onboarding-step">
-      <div className="step-progress">
-        <div className="progress-bar" style={{ width: `${progress}%` }} />
-      </div>
-
       <div className="question-container">
         <h2 className="question-title">{currentQ.title}</h2>
 
@@ -718,20 +932,46 @@ export default function OnboardingStep({ data, onUpdate, onNext }: OnboardingSte
                 </button>
               )}
               {currentQuestion === questions.length - 1 ? (
-                <button
-                  className="generate-ad-button"
-                  onClick={handleGenerateAd}
-                  disabled={isGenerating}
-                >
-                  {isGenerating ? (
-                    <>
-                      <span className="generating-spinner">⏳</span>
-                      Generating Ad... ({processingTime}s)
-                    </>
-                  ) : (
-                    'Generate Ad'
+                <div className="generate-ad-section">
+                  {error && (
+                    <div className="error-message" style={{ 
+                      color: '#f44336', 
+                      marginBottom: '1rem', 
+                      padding: '0.75rem', 
+                      backgroundColor: 'rgba(244, 67, 54, 0.1)', 
+                      borderRadius: '0.5rem',
+                      fontSize: '0.875rem'
+                    }}>
+                      {error}
+                    </div>
                   )}
-                </button>
+                  {jobId && (
+                    <div className="job-id-message" style={{ 
+                      color: '#00c6ff', 
+                      marginBottom: '1rem', 
+                      padding: '0.75rem', 
+                      backgroundColor: 'rgba(0, 198, 255, 0.1)', 
+                      borderRadius: '0.5rem',
+                      fontSize: '0.875rem'
+                    }}>
+                      Job ID: {jobId}
+                    </div>
+                  )}
+                  <button
+                    className="generate-ad-button"
+                    onClick={handleGenerateAd}
+                    disabled={isGenerating}
+                  >
+                    {isGenerating ? (
+                      <>
+                        <span className="generating-spinner">⏳</span>
+                        Generating Ad... ({processingTime}s)
+                      </>
+                    ) : (
+                      'Generate Ad'
+                    )}
+                  </button>
+                </div>
               ) : (
                 <button
                   className="next-button"

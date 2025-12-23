@@ -40,11 +40,33 @@ export function useAdScript(): UseAdScriptReturn {
         verbosity: 'medium',
       });
 
-      if (response.success && response.job_id) {
-        setJobId(response.job_id);
-        // Script will be parsed when job completes via polling
+      // Handle both response formats:
+      // 1. Job-based: { success, job_id } - poll for completion
+      // 2. Direct: { success, job_id: 'direct-...', _directResponse: '...' } - use immediately
+      if (response.success) {
+        const responseData = response as any;
+        
+        // Check if this is a direct response (marked with 'direct-' prefix)
+        if (response.job_id && response.job_id.startsWith('direct-') && responseData._directResponse) {
+          // Direct response received - parse immediately
+          try {
+            const parsedScript = parseScriptResponse(responseData._directResponse, strategy?.adLength || 15);
+            setScript(parsedScript as AdScript);
+            setLoading(false);
+          } catch (parseError: any) {
+            console.error('Error parsing script response:', parseError);
+            throw new Error('Failed to parse script response: ' + parseError.message);
+          }
+        } else if (response.job_id && !response.job_id.startsWith('direct-')) {
+          // Job-based response - poll for completion
+          setJobId(response.job_id);
+          // Script will be parsed when job completes via polling
+        } else {
+          throw new Error('Invalid response format: missing job_id or response data');
+        }
       } else {
-        throw new Error('Failed to start script generation');
+        const errorData = response as any;
+        throw new Error('Failed to start script generation: ' + (errorData?.error || 'Unknown error'));
       }
     } catch (err: any) {
       setError(err.message || 'Failed to generate script');
@@ -52,9 +74,9 @@ export function useAdScript(): UseAdScriptReturn {
     }
   };
 
-  // Poll for job completion
+  // Poll for job completion (only for real job IDs, not direct responses)
   useEffect(() => {
-    if (!jobId) return;
+    if (!jobId || jobId.startsWith('direct-')) return; // Skip polling for direct responses
 
     const pollJob = async () => {
       try {

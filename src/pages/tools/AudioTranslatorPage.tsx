@@ -6,11 +6,14 @@ export default function AudioTranslatorPage() {
   return (
     <>
       <div className="tool-sticky-title">
-        <h1>Audio Translator</h1>
+        <h1>
+          <span>Audio Translator</span>
+          <span className="title-subtitle"> - Translate audio content into different languages</span>
+        </h1>
       </div>
       <HowToUse
         title=""
-        subtitle="Translate audio content into different languages"
+        subtitle=""
         instructions="Upload audio files using drag & drop, paste from clipboard, or click to browse. Select the source language and target language for translation. The system will transcribe the audio and translate it to your chosen language. Click 'Translate' to start the process."
       />
       <div className="tool-wrapper">

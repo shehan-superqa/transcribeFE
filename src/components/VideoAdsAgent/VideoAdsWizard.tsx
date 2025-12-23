@@ -137,11 +137,6 @@ export default function VideoAdsWizard() {
 
   return (
     <div className="video-ads-wizard">
-      <div className="wizard-header">
-        <h1>AI Video Ads Generator</h1>
-        <p>Create high-converting video ads in minutes</p>
-      </div>
-
       {error && (
         <div className="error-banner">
           <p>{error}</p>

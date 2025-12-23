@@ -7,11 +7,14 @@ export default function ImageTrainingPage() {
   return (
     <>
       <div className="tool-sticky-title">
-        <h1>Image Training (LoRA)</h1>
+        <h1>
+          <span>Image Training (LoRA)</span>
+          <span className="title-subtitle"> - Train custom AI models using your own images for personalized image generation</span>
+        </h1>
       </div>
       <HowToUse
         title=""
-        subtitle="Train custom AI models using your own images for personalized image generation"
+        subtitle=""
         instructions="Upload images using drag & drop, paste from clipboard, or click to browse. For subject training, use 5-10 high-quality images of the same subject. For style training, use 20-100 images in the same artistic style. Enter a trigger word that will activate your trained model. Click 'Generate All Captions' to caption all images, or generate captions individually. Then click 'Start Training' to begin."
       />
       <ImageTrainingTool />

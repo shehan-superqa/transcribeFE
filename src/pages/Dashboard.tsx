@@ -16,7 +16,6 @@ import TrainerTab from "../components/transcription/TrainerTab";
 import AudioTranslatorPage from "./tools/AudioTranslatorPage";
 import LiveTranscribePage from "./tools/LiveTranscribePage";
 import LiveMicVADPage from "./tools/LiveMicVADPage";
-import WebCaptionerPage from "./tools/WebCaptionerPage";
 import "./Dashboard.css";
 
 // Create Material-UI dark theme matching Dashboard colors
@@ -222,7 +221,7 @@ export default function Dashboard() {
                   <Route path="settings" element={<SettingsTab />} />
                   <Route path="trainer" element={<TrainerTab />} />
                   <Route path="live-transcribe" element={<LiveTranscribePage />} />
-                  <Route path="live-captioner" element={<WebCaptionerPage />} />
+                  <Route path="live-captioner" element={<TranscribeTab />} />
                   <Route path="live-translator" element={<LiveMicTab />} />
                   <Route path="live-voice-translator" element={<LiveMicTab />} />
                   <Route path="vad" element={<LiveMicVADPage />} />

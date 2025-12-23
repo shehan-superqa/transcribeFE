@@ -2,8 +2,8 @@
 
 .video-ads-wizard {
   min-height: calc(100vh - 80px);
-  background: linear-gradient(145deg, #0f172a, #1e293b);
-  color: #f8fafc;
+  background-color: #121212;
+  color: #e0e0e0;
   padding: 2rem;
 }
 
@@ -16,15 +16,12 @@
   font-size: 2.5rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
-  background: linear-gradient(90deg, #6366f1, #3b82f6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #e0e0e0;
 }
 
 .wizard-header p {
   font-size: 1.1rem;
-  color: #cbd5e1;
+  color: #a0a0a0;
 }
 
 .error-banner {
@@ -76,7 +73,7 @@
 }
 
 .step-dot.active {
-  background: #6366f1;
+  background: #00c6ff;
   transform: scale(1.2);
 }
 
@@ -107,7 +104,7 @@
 
 .scene-timing {
   font-size: 0.85rem;
-  color: #94a3b8;
+  color: #a0a0a0;
 }
 
 .scene-card-content {
@@ -137,7 +134,7 @@
 }
 
 .visual-description {
-  color: #cbd5e1;
+  color: #a0a0a0;
   font-size: 0.9rem;
 }
 
@@ -155,12 +152,12 @@
 
 .scene-caption {
   font-size: 0.85rem;
-  color: #94a3b8;
+  color: #a0a0a0;
 }
 
 .scene-meta {
   font-size: 0.75rem;
-  color: #64748b;
+  color: #a0a0a0;
 }
 
 

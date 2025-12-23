@@ -19,7 +19,7 @@
 }
 
 .how-to-use-title {
-  font-size: 2rem;
+  font-size: clamp(1.25rem, 5vw, 2rem);
   font-weight: 700;
   color: #ffffff !important;
   margin: 0;
@@ -34,20 +34,45 @@
   z-index: 100;
   background-color: #121212;
   background: linear-gradient(to bottom, #121212 0%, #121212 98%, rgba(18, 18, 18, 0.95) 100%);
-  padding: 1rem 0 0.75rem 0;
+  padding: 0.5rem clamp(0.5rem, 2vw, 1rem);
   margin-bottom: 0.5rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
   width: 100%;
+  box-sizing: border-box;
+  overflow: visible;
+  min-width: 0;
 }
 
 .tool-sticky-title h1 {
-  font-size: 2rem;
+  font-size: clamp(1.25rem, 5vw, 2rem);
   font-weight: 700;
   color: #ffffff !important;
   margin: 0;
   line-height: 1.2;
   display: block;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  overflow: visible;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.tool-sticky-title h1 span {
+  display: inline;
+  vertical-align: baseline;
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+.tool-sticky-title h1 .title-subtitle {
+  font-size: clamp(0.9rem, 3vw, 1.2rem);
+  font-weight: 400;
+  opacity: 0.9;
+  vertical-align: baseline;
 }
 
 /* Legacy class names for backward compatibility */
@@ -57,24 +82,49 @@
   z-index: 100;
   background-color: #121212;
   background: linear-gradient(to bottom, #121212 0%, #121212 98%, rgba(18, 18, 18, 0.95) 100%);
-  padding: 1rem 0 0.75rem 0;
+  padding: 0.5rem clamp(0.5rem, 2vw, 1rem);
   margin-bottom: 0.5rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
   width: 100%;
+  box-sizing: border-box;
+  overflow: visible;
+  min-width: 0;
 }
 
 .live-mic-title {
-  font-size: 2rem;
+  font-size: clamp(1.25rem, 5vw, 2rem);
   font-weight: 700;
   color: #ffffff !important;
   margin: 0;
   line-height: 1.2;
   display: block;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  overflow: visible;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.live-mic-title span {
+  display: inline;
+  vertical-align: baseline;
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+.live-mic-title .title-subtitle {
+  font-size: clamp(0.9rem, 3vw, 1.2rem);
+  font-weight: 400;
+  opacity: 0.9;
+  vertical-align: baseline;
 }
 
 .how-to-use-subtitle {
-  font-size: 1rem;
+  font-size: clamp(0.85rem, 2.5vw, 1rem);
   color: #ffffff !important;
   margin: 0 0 0.75rem 0;
   opacity: 0.9;
@@ -86,12 +136,14 @@
   background: rgba(13, 13, 13, 0.95) !important;
   border: 1px solid rgba(255, 255, 255, 0.2) !important;
   border-radius: 8px;
-  padding: 1rem 1.25rem;
+  padding: 0.875rem 1rem;
   color: #ffffff !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
   display: block;
   width: 100%;
   box-sizing: border-box;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .how-to-use-heading {
@@ -99,7 +151,7 @@
   font-weight: 600;
   margin-bottom: 0.25rem;
   color: #ffffff !important;
-  font-size: 1rem;
+  font-size: clamp(0.9rem, 2.5vw, 1rem);
   line-height: 1.5;
 }
 
@@ -107,23 +159,63 @@
   margin: 0;
   line-height: 1.5;
   color: #ffffff !important;
-  font-size: 0.95rem;
+  font-size: clamp(0.85rem, 2.5vw, 0.95rem);
   white-space: pre-wrap;
   display: block;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .how-to-use-title {
-    font-size: 1.5rem;
-  }
-
-  .how-to-use-subtitle {
-    font-size: 0.9rem;
-  }
-
+/* Tablet: 481px – 768px */
+@media (min-width: 481px) {
   .how-to-use-box {
-    padding: 1rem;
+    padding: 1rem 1.125rem;
+  }
+
+  .tool-sticky-title h1,
+  .live-mic-title {
+    white-space: normal;
+    overflow: visible;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+  }
+}
+
+/* Laptop: 769px – 1024px */
+@media (min-width: 769px) {
+  .how-to-use-box {
+    padding: 1rem 1.25rem;
+  }
+
+  .tool-sticky-title {
+    padding: 0.5rem 0;
+  }
+
+  .how-to-use-title-wrapper {
+    padding: 1rem 0 0.5rem 0;
+  }
+}
+
+/* Desktop: ≥ 1025px */
+@media (min-width: 1025px) {
+  .how-to-use-box {
+    padding: 1rem 1.25rem;
+  }
+}
+
+/* Mobile-specific: ≤ 480px */
+@media (max-width: 480px) {
+  .tool-sticky-title h1,
+  .live-mic-title {
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+  }
+
+  .tool-sticky-title h1 .title-subtitle,
+  .live-mic-title .title-subtitle {
+    display: block;
+    margin-top: 0.25rem;
   }
 }
 

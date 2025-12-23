@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { submitVideoDubJob, getVideoDubJobStatus, getDubLanguages, type DubLanguage } from '../../lib/api/videoApi';
 import { useSSE } from '../../hooks/useSSE';
+import { useRequireAuth } from '../../hooks/useRequireAuth';
 import HowToUse from '../common/HowToUse';
 import '../common/HowToUse.css';
 import '../../pages/Dashboard.css';
@@ -220,6 +221,7 @@ const SUPPORTED_LANGUAGES = [
 ];
 
 export default function VideoDubberTool() {
+  const { requireAuth, isAuthenticated } = useRequireAuth();
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoUrl, setVideoUrl] = useState<string>('');
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
@@ -294,7 +296,7 @@ export default function VideoDubberTool() {
           
           if (validLanguages.length > 0) {
             setAvailableLanguages(validLanguages);
-            // Set default language to first available language if current default is not in the list
+          // Set default language to first available language if current default is not in the list
             if (!validLanguages.find(lang => lang.code === outputLanguage)) {
               setOutputLanguage(validLanguages[0].code);
             }
@@ -605,6 +607,12 @@ export default function VideoDubberTool() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check authentication before submitting
+    if (!requireAuth()) {
+      return;
+    }
+    
     setError(null);
     setResultVideoUrl(null);
     setLoading(true);
@@ -710,11 +718,14 @@ export default function VideoDubberTool() {
   return (
     <div>
       <div className="tool-sticky-title">
-        <h1>Video Dubber</h1>
+        <h1>
+          <span>Video Dubber</span>
+          <span className="title-subtitle"> - Add professional voiceovers and translations to your videos using AI</span>
+        </h1>
       </div>
       <HowToUse
         title=""
-        subtitle="Add professional voiceovers and translations to your videos using AI"
+        subtitle=""
         instructions="Upload a video file using drag & drop, paste from clipboard, or click to browse. You can also paste a video URL. Select the target language for dubbing. Click 'Dub Video' to start the process. The system will translate and dub your video with natural-sounding voice in the selected language."
       />
       <div style={styles.formContainer}>
@@ -877,10 +888,10 @@ export default function VideoDubberTool() {
 
             <button
               type="submit"
-              disabled={loading || (!videoFile && !videoUrl.trim())}
+              disabled={!isAuthenticated || loading || (!videoFile && !videoUrl.trim())}
               style={{
                 ...styles.button,
-                ...(loading || (!videoFile && !videoUrl.trim()) ? styles.buttonDisabled : styles.buttonPrimary),
+                ...(!isAuthenticated || loading || (!videoFile && !videoUrl.trim()) ? styles.buttonDisabled : styles.buttonPrimary),
               }}
             >
               {loading ? 'Dubbing Video...' : 'Dub Video'}

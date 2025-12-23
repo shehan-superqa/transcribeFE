@@ -247,6 +247,25 @@ export default function Sidebar({ onRealTimeExpand }: SidebarProps) {
     }
   };
 
+  // Auto-scroll to show expanded submenu items
+  useEffect(() => {
+    const sidebar = sidebarRef.current;
+    if (!sidebar) return;
+
+    // Find the last expanded item and scroll it into view
+    const expandedArray = Array.from(expandedItems);
+    if (expandedArray.length > 0) {
+      const lastExpandedId = expandedArray[expandedArray.length - 1];
+      const menuItemElement = sidebar.querySelector(`[data-menu-id="${lastExpandedId}"]`);
+      if (menuItemElement) {
+        // Use setTimeout to ensure DOM has updated with submenu
+        setTimeout(() => {
+          menuItemElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 100);
+      }
+    }
+  }, [expandedItems]);
+
   // Handle scroll events to prevent propagation to parent
   useEffect(() => {
     const sidebar = sidebarRef.current;
@@ -254,24 +273,23 @@ export default function Sidebar({ onRealTimeExpand }: SidebarProps) {
 
     const handleWheel = (e: WheelEvent) => {
       const { scrollTop, scrollHeight, clientHeight } = sidebar;
-      const isScrollingUp = e.deltaY < 0;
-      const isScrollingDown = e.deltaY > 0;
+      const deltaY = e.deltaY;
       
-      // Check if we're at the top and trying to scroll up
-      const isAtTop = scrollTop <= 0 && isScrollingUp;
-      // Check if we're at the bottom and trying to scroll down
-      const isAtBottom = scrollTop + clientHeight >= scrollHeight - 1 && isScrollingDown;
+      // Calculate if sidebar can scroll
+      const canScrollUp = scrollTop > 0;
+      const canScrollDown = scrollTop < scrollHeight - clientHeight - 1;
       
-      // Always stop propagation to prevent parent scrolling
+      // If scrolling down and can scroll down, or scrolling up and can scroll up
+      if ((deltaY > 0 && canScrollDown) || (deltaY < 0 && canScrollUp)) {
+        // Sidebar can scroll - prevent page from scrolling but allow sidebar to scroll
       e.stopPropagation();
-      
-      // If we're at the boundaries, prevent default to stop the scroll
-      if (isAtTop || isAtBottom) {
-        e.preventDefault();
+        // Don't prevent default - let browser handle sidebar scrolling naturally
       }
+      // If at boundaries, allow event to propagate (page can scroll)
     };
 
     // Use capture phase to catch the event early
+    // Non-passive allows us to prevent default
     sidebar.addEventListener('wheel', handleWheel, { passive: false, capture: true });
 
     return () => {
@@ -283,7 +301,7 @@ export default function Sidebar({ onRealTimeExpand }: SidebarProps) {
     <div className="sidebar" ref={sidebarRef}>
       <div className="sidebar-content">
         {menuItems.map((item) => (
-          <div key={item.id}>
+          <div key={item.id} data-menu-id={item.id}>
             <button
               className={`sidebar-item ${activeItem === item.id ? 'active' : ''} ${expandedItems.has(item.id) ? 'expanded' : ''}`}
               onClick={() => handleItemClick(item)}

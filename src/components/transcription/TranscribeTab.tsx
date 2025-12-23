@@ -589,11 +589,14 @@ export default function TranscribeTab() {
   return (
     <Box>
       <div className="tool-sticky-title">
-        <h1>Audio to Text</h1>
+        <h1>
+          <span>Audio to Text</span>
+          <span className="title-subtitle"> - Convert audio files to accurate text transcriptions</span>
+        </h1>
       </div>
       <HowToUse
         title=""
-        subtitle="Convert audio files to accurate text transcriptions"
+        subtitle=""
         instructions="Upload audio files using drag & drop, paste from clipboard, or click to browse. You can also paste a YouTube link or record audio directly. Select your preferred language and model, then click 'Transcribe' to start. The transcription will appear in your history once completed."
       />
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>

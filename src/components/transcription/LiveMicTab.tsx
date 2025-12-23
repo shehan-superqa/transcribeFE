@@ -160,11 +160,14 @@ export default function LiveMicTab() {
   return (
     <Box>
       <div className="live-mic-sticky-title">
-        <h1 className="live-mic-title">Live Mic VAD</h1>
+        <h1 className="live-mic-title">
+          <span>Live Mic VAD</span>
+          <span className="title-subtitle"> - Real-time speech-to-text transcription as you speak</span>
+        </h1>
       </div>
       <HowToUse
         title=""
-        subtitle="Real-time speech-to-text transcription as you speak"
+        subtitle=""
         instructions="Click 'Start Recording' to begin. Grant microphone permissions when prompted. Speak clearly into your microphone. The transcription will appear in real-time as you speak. Adjust the VAD (Voice Activity Detection) threshold to control sensitivity. Click 'Stop Recording' when finished. You can copy the transcription or save it to your history."
       />
       <Typography variant="h4" gutterBottom sx={{ color: '#e0e0e0', mb: 3 }}>

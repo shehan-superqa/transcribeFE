@@ -7,11 +7,14 @@ export default function ImageCaptioningPage() {
   return (
     <>
       <div className="tool-sticky-title">
-        <h1>Image Captioning Tool</h1>
+        <h1>
+          <span>Image Captioning Tool</span>
+          <span className="title-subtitle"> - Upload images and generate detailed captions automatically</span>
+        </h1>
       </div>
       <HowToUse
         title=""
-        subtitle="Upload images and generate detailed captions automatically"
+        subtitle=""
         instructions="Upload images using drag & drop, paste from clipboard, or click to browse. Then click 'Generate All Captions' to caption all images, or generate captions individually. Once captions are generated, you can view, edit, or download them. You can also export all captioned images as a ZIP file."
       />
       <ImageCaptioningTool />
