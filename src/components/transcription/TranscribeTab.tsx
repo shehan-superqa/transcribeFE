@@ -23,26 +23,23 @@ import {
   ListItem,
   ListItemText,
   IconButton,
+  Chip,
   LinearProgress,
   Snackbar,
+  Grid,
   useMediaQuery,
-  Collapse,
-  Backdrop,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
 import CancelIcon from '@mui/icons-material/Cancel';
 import AddIcon from '@mui/icons-material/Add';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import CloseIcon from '@mui/icons-material/Close';
 import FileUploader from './common/FileUploader';
 import ProgressBar from './common/ProgressBar';
 import StatusLabel from './common/StatusLabel';
 import HowToUse from '../../components/common/HowToUse';
 import '../../components/common/HowToUse.css';
 import './TranscribeTab.css';
-import { StatusTag } from '../../components/design-system';
+import { StatusTag, SectionCard } from '../../components/design-system';
 import { transcriptionStore } from '../../stores/transcriptionStore';
 import { jobStore } from '../../stores/jobStore';
 import { useAuth } from '../../lib/auth';
@@ -65,15 +62,12 @@ interface BatchFile {
   jobId?: string;
 }
 
-interface TranscribeTabProps {
-  hideTitle?: boolean;
-}
-
-export default function TranscribeTab({ hideTitle = false }: TranscribeTabProps = {}) {
+export default function TranscribeTab() {
   const { openModal } = useAuthModal();
   const { theme } = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
+  const isDesktop = useMediaQuery(theme.breakpoints.up('lg'));
   const [files, setFiles] = useState<File[]>([]);
   const [batchFiles, setBatchFiles] = useState<BatchFile[]>([]);
   const [engine] = useState('replicate');
@@ -84,28 +78,16 @@ export default function TranscribeTab({ hideTitle = false }: TranscribeTabProps 
   const [enableCapitalization, setEnableCapitalization] = useState(true);
   const [jobId, setJobId] = useState<string | null>(null);
   const [availableModels, setAvailableModels] = useState<string[]>([]);
-  const [availableLanguages, setAvailableLanguages] = useState<string[]>(['en']); // Initialize with 'en' as fallback
+  const [availableLanguages, setAvailableLanguages] = useState<string[]>([]);
   const [enginesData, setEnginesData] = useState<Array<{ name: string; models: string[] }>>([]);
   const [isBatchProcessing, setIsBatchProcessing] = useState(false);
   const [batchProgress, setBatchProgress] = useState(0);
   const [batchError, setBatchError] = useState<string | null>(null);
   const [copySuccess, setCopySuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [howToUseExpanded, setHowToUseExpanded] = useState(false);
-  const [isFirstVisit, setIsFirstVisit] = useState(false);
 
   const { user } = useAuth();
   const { requireAuth } = useRequireAuth();
-
-  // Check if this is the first visit
-  useEffect(() => {
-    const hasVisited = localStorage.getItem('transcribe-tab-visited');
-    if (!hasVisited) {
-      setIsFirstVisit(true);
-      setHowToUseExpanded(true);
-      localStorage.setItem('transcribe-tab-visited', 'true');
-    }
-  }, []);
   const submitJob = transcriptionStore((state) => state.submitJob);
   const isProcessing = transcriptionStore((state) => state.isProcessing);
   const results = transcriptionStore((state) => state.results);
@@ -165,14 +147,8 @@ export default function TranscribeTab({ hideTitle = false }: TranscribeTabProps 
           const engines = data.engines || [];
           setEnginesData(engines.map(e => ({ name: e.name, models: e.models || [] })));
           
-          // Set languages (ensure at least 'en' is available)
-          const languages = data.languages && data.languages.length > 0 ? data.languages : ['en'];
-          setAvailableLanguages(languages);
-          
-          // Ensure current language is in available languages
-          if (!languages.includes(language)) {
-            setLanguage(languages[0] || 'en');
-          }
+          // Set languages
+          setAvailableLanguages(data.languages || []);
           
           // Set models for current engine or default to whisper models
           const currentEngineData = engines.find(e => e.name === engine);
@@ -192,19 +168,8 @@ export default function TranscribeTab({ hideTitle = false }: TranscribeTabProps 
         console.warn('Failed to load available models:', error);
         setAvailableModels(['base', 'small', 'medium', 'large']);
         setAvailableLanguages(['en']);
-        // Ensure language is set to 'en' if it's not already
-        if (language !== 'en') {
-          setLanguage('en');
-        }
       });
   }, []);
-
-  // Ensure language is valid when availableLanguages changes
-  useEffect(() => {
-    if (availableLanguages.length > 0 && !availableLanguages.includes(language)) {
-      setLanguage(availableLanguages[0]);
-    }
-  }, [availableLanguages]);
 
   // Update available models when engine changes
   useEffect(() => {
@@ -407,18 +372,18 @@ export default function TranscribeTab({ hideTitle = false }: TranscribeTabProps 
     }
 
     if (!isBatchMode && !singleFile) {
-      setBatchError('Please select a file');
+      setError('Please select a file');
       return;
     }
 
     // Check authentication before proceeding
-    if (!checkAuthAndTriggerModal(openModal, handleStartTranscription)) {
+    if (!checkAuthAndTriggerModal(openModal, executeTranscription)) {
       // Auth modal was opened, stop here
       return;
     }
 
     // User is authenticated, proceed with transcription
-    await handleStartTranscription();
+    await executeTranscription();
   };
 
   const handleStartBatch = async (config: TranscriptionConfig) => {
@@ -662,175 +627,36 @@ export default function TranscribeTab({ hideTitle = false }: TranscribeTabProps 
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleCloseFirstVisit = () => {
-    setIsFirstVisit(false);
-  };
-
-  return (
-    <Box className="transcribe-tab-container" sx={{ position: 'relative' }}>
-      {/* First Visit Overlay */}
-      {isFirstVisit && (
-        <Backdrop
-          open={isFirstVisit}
-          onClick={handleCloseFirstVisit}
-          sx={{
-            zIndex: 1300,
-            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-            backdropFilter: 'blur(4px)',
+  // Main Content - File Upload, Settings, Results
+  const centerPanel = (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      {/* Header */}
+      <Box>
+        <Typography 
+          variant="h4" 
+          sx={{ 
+            color: theme.palette.text.primary,
+            fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' },
+            fontWeight: 700,
+            mb: 0.5,
+            letterSpacing: '-0.02em',
+            lineHeight: 1.2,
           }}
         >
-          <Box
-            onClick={(e) => e.stopPropagation()}
-            sx={{
-              position: 'relative',
-              maxWidth: '600px',
-              width: '90%',
-              maxHeight: '90vh',
-              overflow: 'auto',
-              backgroundColor: theme.palette.background.paper,
-              borderRadius: '16px',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-              p: 3,
-            }}
-          >
-            <IconButton
-              onClick={handleCloseFirstVisit}
-              sx={{
-                position: 'absolute',
-                top: 8,
-                right: 8,
-                color: theme.palette.text.secondary,
-              }}
-            >
-              <CloseIcon />
-            </IconButton>
-            <Typography variant="h5" sx={{ mb: 2, fontWeight: 600 }}>
-              Welcome to Audio to Text
-            </Typography>
-            <HowToUse
-              title=""
-              subtitle=""
-              instructions="Upload audio files using drag & drop, paste from clipboard, or click to browse. You can also paste a YouTube link or record audio directly. Select your preferred language and model, then click 'Transcribe' to start. The transcription will appear in your history once completed."
-            />
-            <Button
-              variant="contained"
-              onClick={handleCloseFirstVisit}
-              sx={{
-                mt: 2,
-                background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
-                color: '#ffffff',
-                fontWeight: 600,
-                borderRadius: '10px',
-                '&:hover': {
-                  background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
-                },
-              }}
-            >
-              Got it!
-            </Button>
-          </Box>
-        </Backdrop>
-      )}
+          Transcribe Audio/Video
+        </Typography>
+        <Typography 
+          variant="body2" 
+          sx={{ 
+            color: theme.palette.text.secondary,
+            fontSize: '0.9375rem',
+            lineHeight: 1.6,
+          }}
+        >
+          Convert audio files to accurate text transcriptions
+        </Typography>
+      </Box>
 
-      {!hideTitle && (
-        <Box sx={{ mb: 3 }}>
-          <Typography
-            variant="h3"
-            sx={{
-              fontFamily: "'Inter', sans-serif",
-              fontWeight: 700,
-              fontSize: { xs: '1.75rem', sm: '2rem', md: '2.25rem' },
-              color: theme.palette.text.primary,
-              lineHeight: 1.2,
-              letterSpacing: '-0.02em',
-              mb: 0.5,
-            }}
-          >
-            Audio to Text
-          </Typography>
-          <Typography
-            variant="body1"
-            sx={{
-              fontFamily: "'Inter', sans-serif",
-              fontSize: { xs: '0.9375rem', sm: '1rem', md: '1.0625rem' },
-              color: theme.palette.text.secondary,
-              lineHeight: 1.5,
-              fontWeight: 400,
-            }}
-          >
-            Convert audio files to accurate text transcriptions
-          </Typography>
-          {/* Collapsible How to Use */}
-          <Paper
-            sx={{
-              mt: 2,
-              borderRadius: '12px',
-              overflow: 'hidden',
-              border: `1px solid ${theme.palette.divider}`,
-              backgroundColor: theme.palette.background.paper,
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-            }}
-          >
-            <Box
-              onClick={() => setHowToUseExpanded(!howToUseExpanded)}
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                p: 1.5,
-                cursor: 'pointer',
-                transition: 'background-color 0.2s ease',
-                '&:hover': {
-                  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
-                },
-              }}
-            >
-              <Typography 
-                variant="body1" 
-                sx={{ 
-                  fontWeight: 600, 
-                  fontSize: '0.9375rem',
-                  color: theme.palette.text.primary,
-                }}
-              >
-                How to use
-              </Typography>
-              <IconButton 
-                size="small"
-                sx={{
-                  color: theme.palette.text.secondary,
-                  padding: '4px',
-                  '&:hover': {
-                    backgroundColor: 'transparent',
-                  },
-                }}
-              >
-                {howToUseExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-              </IconButton>
-            </Box>
-            <Collapse in={howToUseExpanded}>
-              <Box 
-                sx={{ 
-                  px: 1.5,
-                  pb: 1.5,
-                  pt: 0,
-                }}
-              >
-                <Typography
-                  variant="body2"
-                  sx={{
-                    color: theme.palette.text.secondary,
-                    lineHeight: 1.6,
-                    fontSize: '0.875rem',
-                  }}
-                >
-                  Upload audio files using drag & drop, paste from clipboard, or click to browse. You can also paste a YouTube link or record audio directly. Select your preferred language and model, then click 'Transcribe' to start. The transcription will appear in your history once completed.
-                </Typography>
-              </Box>
-            </Collapse>
-          </Paper>
-        </Box>
-      )}
       {/* Controls */}
       <Box 
         sx={{ 
@@ -846,27 +672,18 @@ export default function TranscribeTab({ hideTitle = false }: TranscribeTabProps 
           disabled={files.length === 0 || isProcessing || isBatchProcessing || (isBatchMode && batchFiles.every((f) => f.status !== 'idle' && f.status !== 'pending'))}
           size={isMobile ? 'medium' : 'large'}
           sx={{
-            background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
+            backgroundColor: theme.palette.primary.main,
             color: '#ffffff',
-            fontWeight: 600,
-            borderRadius: '12px',
-            boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
-            '&:hover': { 
-              background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
-              boxShadow: '0 6px 16px rgba(59, 130, 246, 0.4)',
-              transform: 'translateY(-2px)',
-            },
-            '&:disabled': { 
-              background: 'rgba(0, 0, 0, 0.12)',
-              color: 'rgba(0, 0, 0, 0.26)',
-              boxShadow: 'none',
-            },
+            '&:hover': { backgroundColor: theme.palette.primary.dark },
+            '&:disabled': { backgroundColor: theme.palette.action.disabledBackground, color: theme.palette.action.disabled },
             width: { xs: '100%', sm: 'auto' },
             flex: { xs: '1', sm: '0 1 auto' },
             minWidth: { xs: '100%', sm: '180px', md: '200px' },
             fontSize: { xs: '0.875rem', sm: '1rem' },
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            padding: { xs: '0.75rem 1.5rem', sm: '0.875rem 2rem' },
+            fontWeight: 500,
+            borderRadius: '0.5rem',
+            textTransform: 'none',
+            padding: { xs: '0.625rem 1rem', sm: '0.75rem 1.5rem' },
           }}
         >
           {isBatchMode 
@@ -927,22 +744,9 @@ export default function TranscribeTab({ hideTitle = false }: TranscribeTabProps 
       </Box>
 
       {/* File Upload Section */}
-      <Paper 
-        className="transcribe-paper"
-        sx={{ 
-          p: { xs: 2, sm: 2.5, md: 3 }, 
-          mb: { xs: 2, sm: 2.5, md: 3 }, 
-          background: 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)',
-          border: '1px solid rgba(0, 0, 0, 0.08)',
-          borderRadius: '16px',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
-          width: '100%',
-          boxSizing: 'border-box',
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          '&:hover': {
-            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
-          }
-        }}
+      <SectionCard
+        title={isBatchMode ? `Audio/Video Files (${files.length})` : 'Audio/Video File'}
+        padding="1.5rem"
       >
         {isBatchMode && (
             <Box 
@@ -1276,25 +1080,12 @@ export default function TranscribeTab({ hideTitle = false }: TranscribeTabProps 
             </List>
           </>
         )}
-      </Paper>
+      </SectionCard>
 
       {/* Transcription Settings */}
-      <Paper 
-        className="transcribe-paper"
-        sx={{ 
-          p: { xs: 2, sm: 2.5, md: 3 }, 
-          mb: { xs: 2, sm: 2.5, md: 3 }, 
-          background: 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)',
-          border: '1px solid rgba(0, 0, 0, 0.08)',
-          borderRadius: '16px',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
-          width: '100%',
-          boxSizing: 'border-box',
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          '&:hover': {
-            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
-          }
-        }}
+      <SectionCard
+        title="Transcription Settings"
+        padding="1.5rem"
       >
         <Box 
           className="transcribe-settings-grid"
@@ -1308,7 +1099,7 @@ export default function TranscribeTab({ hideTitle = false }: TranscribeTabProps 
           <FormControl fullWidth>
             <InputLabel sx={{ color: '#666666' }}>Language</InputLabel>
             <Select 
-              value={availableLanguages.includes(language) ? language : (availableLanguages[0] || '')} 
+              value={language} 
               onChange={(e) => setLanguage(e.target.value)}
               disabled={isProcessing || isBatchProcessing}
               renderValue={(value) => typeof value === 'string' ? getLanguageDisplayName(value) : value}
@@ -1328,17 +1119,11 @@ export default function TranscribeTab({ hideTitle = false }: TranscribeTabProps 
                 },
               }}
             >
-              {availableLanguages.length > 0 ? (
-                availableLanguages.map((lang) => (
-                  <MenuItem key={lang} value={lang} sx={{ color: '#000000', '&:hover': { backgroundColor: '#f3f4f6' } }}>
-                    {getLanguageDisplayName(lang)}
-                  </MenuItem>
-                ))
-              ) : (
-                <MenuItem value="en" sx={{ color: '#000000', '&:hover': { backgroundColor: '#f3f4f6' } }}>
-                  {getLanguageDisplayName('en')}
+              {availableLanguages.map((lang) => (
+                <MenuItem key={lang} value={lang} sx={{ color: theme.palette.text.primary, '&:hover': { backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f3f4f6' } }}>
+                  {getLanguageDisplayName(lang)}
                 </MenuItem>
-              )}
+              ))}
             </Select>
           </FormControl>
           {availableModels.length > 0 && (
@@ -1461,24 +1246,11 @@ export default function TranscribeTab({ hideTitle = false }: TranscribeTabProps 
             </RadioGroup>
           </Box>
         )}
-      </Paper>
+      </SectionCard>
 
       {/* Single File Progress - Status Message Only (detailed progress shown in file upload area) */}
       {isProcessing && !isBatchMode && !progressDetails && (
-        <Paper 
-          className="transcribe-paper"
-          sx={{ 
-            p: { xs: 2, sm: 2.5, md: 3 }, 
-            mb: { xs: 2, sm: 2.5, md: 3 }, 
-            background: 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)',
-            border: '1px solid rgba(0, 0, 0, 0.08)',
-            borderRadius: '16px',
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
-            width: '100%',
-            boxSizing: 'border-box',
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          }}
-        >
+        <SectionCard padding="1.5rem">
           <StatusLabel
             status={isProcessing ? 'processing' : 'ready'}
             message={message || 'Processing...'}
@@ -1486,25 +1258,12 @@ export default function TranscribeTab({ hideTitle = false }: TranscribeTabProps 
           <Box sx={{ mt: 2 }}>
             <ProgressBar value={progress} />
           </Box>
-        </Paper>
+        </SectionCard>
       )}
 
       {/* Batch Progress */}
       {isBatchProcessing && isBatchMode && (
-        <Paper 
-          className="transcribe-paper"
-          sx={{ 
-            p: { xs: 2, sm: 2.5, md: 3 }, 
-            mb: { xs: 2, sm: 2.5, md: 3 }, 
-            background: 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)',
-            border: '1px solid rgba(0, 0, 0, 0.08)',
-            borderRadius: '16px',
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
-            width: '100%',
-            boxSizing: 'border-box',
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          }}
-        >
+        <SectionCard padding="1.5rem">
           <Typography 
             variant="body2" 
             sx={{ 
@@ -1525,7 +1284,7 @@ export default function TranscribeTab({ hideTitle = false }: TranscribeTabProps 
               },
             }}
           />
-        </Paper>
+        </SectionCard>
       )}
 
       {/* Errors */}
@@ -1537,21 +1296,9 @@ export default function TranscribeTab({ hideTitle = false }: TranscribeTabProps 
 
       {/* Single File Results */}
       {(results || (status === 'completed' && (job?.result || result))) && !isBatchMode && (
-        <Paper 
-          className="transcribe-paper"
-          sx={{ 
-            p: { xs: 2, sm: 2.5, md: 3 }, 
-            background: 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)',
-            border: '1px solid rgba(0, 0, 0, 0.08)',
-            borderRadius: '16px',
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
-            width: '100%',
-            boxSizing: 'border-box',
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            '&:hover': {
-              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
-            }
-          }}
+        <SectionCard
+          title="Transcription Results"
+          padding="1.5rem"
         >
           <TextField
             fullWidth
@@ -1593,17 +1340,9 @@ export default function TranscribeTab({ hideTitle = false }: TranscribeTabProps 
                 }
               }}
               sx={{
-                background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
-                color: '#ffffff',
-                fontWeight: 600,
-                borderRadius: '10px',
-                boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
-                '&:hover': { 
-                  background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
-                  boxShadow: '0 6px 16px rgba(59, 130, 246, 0.4)',
-                  transform: 'translateY(-1px)',
-                },
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                backgroundColor: theme.palette.primary.main,
+                color: '#121212',
+                '&:hover': { backgroundColor: '#00b0e6' },
               }}
             >
               Copy to Clipboard
@@ -1620,16 +1359,9 @@ export default function TranscribeTab({ hideTitle = false }: TranscribeTabProps 
                 setIsBatchProcessing(false);
               }}
               sx={{
-                borderColor: 'rgba(0, 0, 0, 0.15)',
-                color: '#1a1a1a',
-                fontWeight: 500,
-                borderRadius: '10px',
-                '&:hover': { 
-                  borderColor: '#3b82f6', 
-                  backgroundColor: '#f3f4f6',
-                  transform: 'translateY(-1px)',
-                },
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                borderColor: theme.palette.divider,
+                color: theme.palette.text.primary,
+                '&:hover': { borderColor: theme.palette.primary.main, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f3f4f6' },
               }}
             >
               Clear
@@ -1653,8 +1385,25 @@ export default function TranscribeTab({ hideTitle = false }: TranscribeTabProps 
               Copied to clipboard!
             </Alert>
           </Snackbar>
-        </Paper>
+        </SectionCard>
       )}
+    </Box>
+  );
+
+  return (
+    <Box 
+      className="transcribe-tab-container"
+      sx={{
+        width: '100%',
+        maxWidth: '100%',
+        padding: { xs: '1rem', sm: '1.5rem', md: '2rem' },
+      }}
+    >
+      {/* Single column layout - Dashboard already provides left/right panels */}
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {/* Main Content - File Upload, Settings, Results */}
+        {centerPanel}
+      </Box>
     </Box>
   );
 }

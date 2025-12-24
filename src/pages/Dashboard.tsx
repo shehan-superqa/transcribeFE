@@ -3,8 +3,9 @@ import { useAuth } from "../lib/auth";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchTranscriptions, Transcription } from "../store/transcriptionsSlice";
 import { RootState, AppDispatch } from "../store";
-import { ThemeProvider, useMediaQuery, Button, ButtonGroup, Box } from "@mui/material";
+import { ThemeProvider, useMediaQuery, Button, ButtonGroup, Box, IconButton } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
+import MenuIcon from "@mui/icons-material/Menu";
 import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "../contexts/ThemeContext";
 import Sidebar from "../components/Sidebar";
@@ -33,13 +34,12 @@ export default function Dashboard() {
   const [selectedJobDetails, setSelectedJobDetails] = useState<any | null>(null);
   const [userRefreshed, setUserRefreshed] = useState(false);
   const [activeMobileTab, setActiveMobileTab] = useState<'tool' | 'history'>('tool');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   
   // Detect if we're on a laptop L size or smaller - tabs show at 1440px and below
   // Toggle buttons show when viewport width is <= 1440px
   const isSmallScreen = useMediaQuery('(max-width: 1440px)');
   const isMobile = useMediaQuery('(max-width: 768px)');
-  // Detect if we're on a small screen - using custom breakpoint to include 981.60px viewport
-  // Toggle buttons show when viewport width is <= 982px
   
   // Only show toggle buttons on small screens, and only when on audio tool routes or real-time tool routes
   const showToggleButtons = isSmallScreen && (
@@ -211,8 +211,29 @@ export default function Dashboard() {
   return (
     <div className="dashboard-container">
       <div className="dashboard-content-wrapper">
-        {/* Sidebar Navigation - Uses Header's drawer icon state */}
-        <Sidebar />
+        {/* Mobile Hamburger Menu Button */}
+        {isMobile && (
+          <IconButton
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            sx={{
+              position: 'fixed',
+              top: 16,
+              left: 16,
+              zIndex: 1301,
+              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(18, 18, 18, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+              border: `1px solid ${theme.palette.divider}`,
+              boxShadow: theme.shadows[2],
+              '&:hover': {
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(18, 18, 18, 1)' : 'rgba(255, 255, 255, 1)',
+              },
+            }}
+          >
+            <MenuIcon />
+          </IconButton>
+        )}
+        
+        {/* Sidebar Navigation */}
+        <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         
         {/* Main Content Area - Side by Side Layout */}
         <div className="dashboard-main-layout">

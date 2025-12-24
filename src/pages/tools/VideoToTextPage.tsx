@@ -23,7 +23,7 @@ export default function VideoToTextPage() {
         instructions="Upload video files using drag & drop, paste from clipboard, or click to browse. You can also paste a YouTube link. The system will automatically extract audio from the video and transcribe it. Select your preferred engine and model, then click 'Transcribe' to start."
       />
       <div className="feature-content">
-        <TranscribeTab hideTitle={true} />
+        <TranscribeTab />
       </div>
     </div>
   );

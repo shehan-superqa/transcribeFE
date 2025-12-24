@@ -181,40 +181,30 @@ export default function TrainerTab() {
       />
 
       {/* Training Configuration */}
-      <Paper sx={{ p: 3, mb: 3, background: 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)', border: '1px solid rgba(0, 0, 0, 0.08)', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)' }}>
-        <Typography variant="h6" gutterBottom sx={{ color: '#1a1a1a', mb: 2, fontWeight: 600 }}>
+      <Paper sx={{ p: 3, mb: 3, backgroundColor: '#1e1e1e', border: '1px solid #333333' }}>
+        <Typography variant="h6" gutterBottom sx={{ color: '#e0e0e0', mb: 2 }}>
           Training Configuration
         </Typography>
         <FormControl fullWidth sx={{ mb: 2 }}>
-          <InputLabel sx={{ color: '#666666' }}>Target Language</InputLabel>
+          <InputLabel sx={{ color: '#a0a0a0' }}>Target Language</InputLabel>
           <Select 
             value={language} 
             onChange={(e) => setLanguage(e.target.value)}
             disabled={isTraining}
             sx={{ 
-              color: '#000000',
-              backgroundColor: '#ffffff',
-              '& .MuiOutlinedInput-notchedOutline': { borderColor: '#cccccc' },
-              '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#3b82f6' },
-              '& .MuiSelect-icon': { color: '#000000' },
-            }}
-            MenuProps={{
-              PaperProps: {
-                style: {
-                  backgroundColor: '#ffffff',
-                  color: '#000000',
-                },
-              },
+              color: '#e0e0e0',
+              '& .MuiOutlinedInput-notchedOutline': { borderColor: '#333333' },
+              '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#00c6ff' },
             }}
           >
-            <MenuItem value="sinhala" sx={{ color: '#000000', '&:hover': { backgroundColor: '#f3f4f6' } }}>Sinhala</MenuItem>
-            <MenuItem value="tamil" sx={{ color: '#000000', '&:hover': { backgroundColor: '#f3f4f6' } }}>Tamil</MenuItem>
-            <MenuItem value="hindi" sx={{ color: '#000000', '&:hover': { backgroundColor: '#f3f4f6' } }}>Hindi</MenuItem>
-            <MenuItem value="custom" sx={{ color: '#000000', '&:hover': { backgroundColor: '#f3f4f6' } }}>Custom</MenuItem>
+            <MenuItem value="sinhala">Sinhala</MenuItem>
+            <MenuItem value="tamil">Tamil</MenuItem>
+            <MenuItem value="hindi">Hindi</MenuItem>
+            <MenuItem value="custom">Custom</MenuItem>
           </Select>
         </FormControl>
         
-        <Typography variant="subtitle2" sx={{ color: '#666666', mb: 1 }}>
+        <Typography variant="subtitle2" sx={{ color: '#a0a0a0', mb: 1 }}>
           Audio Files (choose one method)
         </Typography>
         <TextField
@@ -227,12 +217,11 @@ export default function TrainerTab() {
           sx={{ 
             mb: 2,
             '& .MuiOutlinedInput-root': {
-              color: '#000000',
-              backgroundColor: '#ffffff',
-              '& fieldset': { borderColor: '#cccccc' },
-              '&:hover fieldset': { borderColor: '#3b82f6' },
+              color: '#e0e0e0',
+              '& fieldset': { borderColor: '#333333' },
+              '&:hover fieldset': { borderColor: '#00c6ff' },
             },
-            '& .MuiInputLabel-root': { color: '#666666' },
+            '& .MuiInputLabel-root': { color: '#a0a0a0' },
           }}
         />
         <input
@@ -250,16 +239,16 @@ export default function TrainerTab() {
           disabled={isTraining || !!audioDir}
           sx={{
             mb: 2,
-            borderColor: 'rgba(0, 0, 0, 0.15)',
-            color: '#1a1a1a',
-            '&:hover': { borderColor: '#3b82f6', backgroundColor: '#f3f4f6' },
-            '&:disabled': { borderColor: '#cccccc', color: '#999999' },
+            borderColor: '#333333',
+            color: '#e0e0e0',
+            '&:hover': { borderColor: '#00c6ff', backgroundColor: '#1a1a1a' },
+            '&:disabled': { borderColor: '#333333', color: '#666666' },
           }}
         >
           {audioFiles.length > 0 ? `${audioFiles.length} files selected` : 'Select Audio Files'}
         </Button>
 
-        <Typography variant="subtitle2" sx={{ color: '#666666', mb: 1, mt: 2 }}>
+        <Typography variant="subtitle2" sx={{ color: '#a0a0a0', mb: 1, mt: 2 }}>
           Transcriptions File (choose one method)
         </Typography>
         <TextField
@@ -272,12 +261,11 @@ export default function TrainerTab() {
           sx={{ 
             mb: 2,
             '& .MuiOutlinedInput-root': {
-              color: '#000000',
-              backgroundColor: '#ffffff',
-              '& fieldset': { borderColor: '#cccccc' },
-              '&:hover fieldset': { borderColor: '#3b82f6' },
+              color: '#e0e0e0',
+              '& fieldset': { borderColor: '#333333' },
+              '&:hover fieldset': { borderColor: '#00c6ff' },
             },
-            '& .MuiInputLabel-root': { color: '#666666' },
+            '& .MuiInputLabel-root': { color: '#a0a0a0' },
           }}
         />
         <input
@@ -294,10 +282,10 @@ export default function TrainerTab() {
           disabled={isTraining || !!transcriptionsFile}
           sx={{
             mb: 2,
-            borderColor: 'rgba(0, 0, 0, 0.15)',
-            color: '#1a1a1a',
-            '&:hover': { borderColor: '#3b82f6', backgroundColor: '#f3f4f6' },
-            '&:disabled': { borderColor: '#cccccc', color: '#999999' },
+            borderColor: '#333333',
+            color: '#e0e0e0',
+            '&:hover': { borderColor: '#00c6ff', backgroundColor: '#1a1a1a' },
+            '&:disabled': { borderColor: '#333333', color: '#666666' },
           }}
         >
           {transcriptionsFileData ? transcriptionsFileData.name : 'Upload Transcriptions File'}
@@ -305,17 +293,17 @@ export default function TrainerTab() {
       </Paper>
 
       {/* Training Controls */}
-      <Paper sx={{ p: 3, mb: 3, background: 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)', border: '1px solid rgba(0, 0, 0, 0.08)', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)' }}>
-        <Typography variant="h6" gutterBottom sx={{ color: '#1a1a1a', mb: 2, fontWeight: 600 }}>
+      <Paper sx={{ p: 3, mb: 3, backgroundColor: '#1e1e1e', border: '1px solid #333333' }}>
+        <Typography variant="h6" gutterBottom sx={{ color: '#e0e0e0', mb: 2 }}>
           Training Controls
         </Typography>
         {isTraining && (
           <Box sx={{ mb: 2 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-              <Typography variant="body2" sx={{ color: '#666666' }}>
+              <Typography variant="body2" sx={{ color: '#a0a0a0' }}>
                 Status: {status} {message && `- ${message}`}
               </Typography>
-              <Typography variant="body2" sx={{ color: '#666666' }}>
+              <Typography variant="body2" sx={{ color: '#a0a0a0' }}>
                 {progress}%
               </Typography>
             </Box>
@@ -323,41 +311,29 @@ export default function TrainerTab() {
               variant="determinate" 
               value={progress}
               sx={{
-                backgroundColor: '#e5e7eb',
+                backgroundColor: '#333333',
                 '& .MuiLinearProgress-bar': {
-                  background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
+                  backgroundColor: '#00c6ff',
                 },
               }}
             />
           </Box>
         )}
         {error && (
-          <Alert severity="error" sx={{ mb: 2, backgroundColor: '#ffffff', color: '#f44336', border: '1px solid #f44336' }}>
+          <Alert severity="error" sx={{ mb: 2, backgroundColor: '#1e1e1e', color: '#f44336' }}>
             {error}
           </Alert>
         )}
-        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+        <Box sx={{ display: 'flex', gap: 2 }}>
           <Button
             variant="contained"
             onClick={handleStartTraining}
             disabled={isTraining || (!audioDir && audioFiles.length === 0) || (!transcriptionsFile && !transcriptionsFileData)}
             sx={{
-              background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
-              color: '#ffffff',
-              fontWeight: 600,
-              borderRadius: '10px',
-              boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
-              '&:hover': { 
-                background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
-                boxShadow: '0 6px 16px rgba(59, 130, 246, 0.4)',
-                transform: 'translateY(-1px)',
-              },
-              '&:disabled': { 
-                background: 'rgba(0, 0, 0, 0.12)',
-                color: 'rgba(0, 0, 0, 0.26)',
-                boxShadow: 'none',
-              },
-              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              backgroundColor: '#4caf50',
+              color: '#fff',
+              '&:hover': { backgroundColor: '#45a049' },
+              '&:disabled': { backgroundColor: '#333333', color: '#666666' },
             }}
           >
             Start Training
@@ -367,22 +343,10 @@ export default function TrainerTab() {
             onClick={handleStopTraining}
             disabled={!isTraining}
             sx={{
-              background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-              color: '#ffffff',
-              fontWeight: 600,
-              borderRadius: '10px',
-              boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)',
-              '&:hover': { 
-                background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
-                boxShadow: '0 6px 16px rgba(239, 68, 68, 0.4)',
-                transform: 'translateY(-1px)',
-              },
-              '&:disabled': { 
-                background: 'rgba(0, 0, 0, 0.12)',
-                color: 'rgba(0, 0, 0, 0.26)',
-                boxShadow: 'none',
-              },
-              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              backgroundColor: '#f44336',
+              color: '#fff',
+              '&:hover': { backgroundColor: '#da190b' },
+              '&:disabled': { backgroundColor: '#333333', color: '#666666' },
             }}
           >
             Stop Training
@@ -392,20 +356,10 @@ export default function TrainerTab() {
             onClick={handleClear}
             disabled={isTraining}
             sx={{
-              borderColor: 'rgba(0, 0, 0, 0.15)',
-              color: '#1a1a1a',
-              fontWeight: 500,
-              borderRadius: '10px',
-              '&:hover': { 
-                borderColor: '#3b82f6', 
-                backgroundColor: '#f3f4f6',
-                transform: 'translateY(-1px)',
-              },
-              '&:disabled': { 
-                borderColor: '#cccccc', 
-                color: '#999999',
-              },
-              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              borderColor: '#333333',
+              color: '#e0e0e0',
+              '&:hover': { borderColor: '#00c6ff', backgroundColor: '#1a1a1a' },
+              '&:disabled': { borderColor: '#333333', color: '#666666' },
             }}
           >
             Clear
@@ -414,8 +368,8 @@ export default function TrainerTab() {
       </Paper>
 
       {/* Training Log */}
-      <Paper sx={{ p: 3, background: 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)', border: '1px solid rgba(0, 0, 0, 0.08)', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)' }}>
-        <Typography variant="h6" gutterBottom sx={{ color: '#1a1a1a', mb: 2, fontWeight: 600 }}>
+      <Paper sx={{ p: 3, backgroundColor: '#1e1e1e', border: '1px solid #333333' }}>
+        <Typography variant="h6" gutterBottom sx={{ color: '#e0e0e0', mb: 2 }}>
           Training Log
         </Typography>
         <TextField
@@ -426,10 +380,10 @@ export default function TrainerTab() {
           InputProps={{ readOnly: true }}
           sx={{
             '& .MuiOutlinedInput-root': {
-              color: '#1a1a1a',
-              backgroundColor: '#ffffff',
-              '& fieldset': { borderColor: '#cccccc' },
-              '&:hover fieldset': { borderColor: '#3b82f6' },
+              color: '#e0e0e0',
+              backgroundColor: '#121212',
+              '& fieldset': { borderColor: '#333333' },
+              '&:hover fieldset': { borderColor: '#00c6ff' },
               fontFamily: 'monospace',
               fontSize: '0.875rem',
             },
