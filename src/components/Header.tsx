@@ -340,55 +340,12 @@ export default function Header() {
     };
   }, [productDropdownOpen, toolsDropdownOpen, mobileOpen]);
 
+  // Reset tools dropdown position when it closes
   useEffect(() => {
-    if (!toolsDropdownOpen || !isDesktop || !toolsDropdownRef.current) {
+    if (!toolsDropdownOpen) {
       setToolsDropdownPosition({});
-      return;
     }
-
-    const calculatePosition = () => {
-      if (!toolsDropdownRef.current) return;
-      
-      const rect = toolsDropdownRef.current.getBoundingClientRect();
-      const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
-      const dropdownMaxWidth = 900;
-      const dropdownMaxHeight = viewportHeight - rect.bottom - 20; // Leave 20px padding from bottom
-      const padding = 32; // 2rem
-      
-      // Calculate if dropdown would overflow on the right
-      const spaceOnRight = viewportWidth - rect.right;
-      
-      const positionStyle: React.CSSProperties = {
-        zIndex: 201,
-        maxHeight: `${Math.max(200, Math.min(dropdownMaxHeight, window.innerHeight - 150))}px`, // Constrain to viewport
-      };
-      
-      if (spaceOnRight < dropdownMaxWidth + padding) {
-        // Align to right edge of viewport with padding
-        positionStyle.position = 'fixed';
-        positionStyle.top = `${rect.bottom + 4}px`;
-        positionStyle.right = `${padding}px`;
-        positionStyle.maxWidth = `${viewportWidth - padding * 2}px`;
-      } else {
-        // Position normally below trigger
-        positionStyle.position = 'absolute';
-        positionStyle.top = '100%';
-        positionStyle.left = '0';
-      }
-      
-      setToolsDropdownPosition(positionStyle);
-    };
-
-    calculatePosition();
-    window.addEventListener('resize', calculatePosition);
-    window.addEventListener('scroll', calculatePosition, true);
-    
-    return () => {
-      window.removeEventListener('resize', calculatePosition);
-      window.removeEventListener('scroll', calculatePosition, true);
-    };
-  }, [toolsDropdownOpen, isDesktop]);
+  }, [toolsDropdownOpen]);
 
 
   const handleToggleMobile = () => {
@@ -415,16 +372,16 @@ export default function Header() {
   const secondaryText = theme.palette.mode === 'dark' ? '#aaaaaa' : '#6b7280';
 
   const styles = {
-    header: { backgroundColor: headerBg, borderBottom: `1px solid ${headerBorder}`, position: 'sticky' as const, top: 0, zIndex: 200, padding: 'clamp(0.5rem, 1.5vw, 0.75rem) clamp(1rem, 3vw, 2rem)', overflowX: 'hidden' as const, maxWidth: '100vw', width: '100%' },
+    header: { backgroundColor: headerBg, borderBottom: `1px solid ${headerBorder}`, position: 'sticky' as const, top: 0, zIndex: 1000, padding: 'clamp(0.5rem, 1.5vw, 0.75rem) clamp(1rem, 3vw, 2rem)', overflowX: 'visible' as const, overflowY: 'visible' as const, maxWidth: '100vw', width: '100%' },
     headerMobile: { backgroundColor: headerBg, borderBottom: `1px solid ${headerBorder}`, position: 'sticky' as const, top: 0, zIndex: 200, padding: 'clamp(0.5rem, 1.5vw, 0.75rem) clamp(0.75rem, 2vw, 1rem)', overflowX: 'hidden' as const, maxWidth: '100vw', width: '100%' },
-    container: { maxWidth: '1448px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '0 clamp(0.5rem, 2vw, 1rem)', flexWrap: 'nowrap' as const, overflowX: 'hidden' as const, minWidth: 0 },
-    leftNavSection: { display: 'flex', alignItems: 'center', gap: 'clamp(1rem, 3vw, 2.5rem)', flexWrap: 'nowrap' as const, flexShrink: 0, minWidth: 0, overflowX: 'hidden' as const },
+    container: { maxWidth: '1448px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '0 clamp(0.5rem, 2vw, 1rem)', flexWrap: 'nowrap' as const, overflowX: 'visible' as const, overflowY: 'visible' as const, minWidth: 0, position: 'relative' as const },
+    leftNavSection: { display: 'flex', alignItems: 'center', gap: 'clamp(1rem, 3vw, 2.5rem)', flexWrap: 'nowrap' as const, flexShrink: 0, minWidth: 0, overflowX: 'visible' as const, overflowY: 'visible' as const, position: 'relative' as const },
     logo: { display: 'flex', alignItems: 'center', textDecoration: 'none', flexShrink: 0 },
     logoSvgContainer: { marginRight: '0.75rem', flexShrink: 0 },
     logoText: { fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 'clamp(1rem, 3vw, 1.2rem)', color: textColor, letterSpacing: '0.5px', whiteSpace: 'nowrap' as const },
-    desktopNavLinks: { display: 'flex', alignItems: 'center' as const, gap: 'clamp(0.75rem, 2vw, 1.25rem)', flexWrap: 'nowrap' as const, flexShrink: 0, minWidth: 0, overflowX: 'hidden' as const },
-    productDropdownContainer: { position: 'relative' as const, display: 'flex', alignItems: 'center' },
-    productDropdownMenu: { position: 'absolute' as const, top: '100%', left: '0', paddingTop: '4px', zIndex: 201, overflow: 'visible', maxWidth: 'calc(100vw - 2rem)', maxHeight: 'calc(100vh - 150px)' },
+    desktopNavLinks: { display: 'flex', alignItems: 'center' as const, gap: 'clamp(0.75rem, 2vw, 1.25rem)', flexWrap: 'nowrap' as const, flexShrink: 0, minWidth: 0, overflowX: 'visible' as const, position: 'relative' as const },
+    productDropdownContainer: { position: 'relative' as const, display: 'inline-flex' as const, alignItems: 'center' },
+    productDropdownMenu: { position: 'absolute' as const, top: '100%', left: '0', marginTop: '8px', zIndex: 9999, overflow: 'visible' as const, maxWidth: 'calc(100vw - 2rem)', maxHeight: 'calc(100vh - 150px)', minWidth: '280px' },
     productDropdownMenuMobile: { position: 'absolute' as const, top: '100%', left: '0', paddingTop: '4px', zIndex: 201, width: '100%' },
     rightAuthSection: { display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'nowrap' as const, flexShrink: 0, minWidth: 0, overflowX: 'hidden' as const },
     mobileMenuIcon: { cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '32px', minHeight: '32px', flexShrink: 0 },
@@ -475,17 +432,34 @@ export default function Header() {
 
           {/* Desktop Nav */}
           <nav style={{ ...styles.desktopNavLinks, display: isDesktop ? 'flex' : 'none' }}>
-            <div style={styles.productDropdownContainer} onMouseEnter={handleOpenProductDropdown} onMouseLeave={handleCloseProductDropdown}>
+            <div 
+              style={{ 
+                position: 'relative' as const, 
+                display: 'inline-flex' as const, 
+                alignItems: 'center' 
+              }} 
+              onMouseEnter={handleOpenProductDropdown} 
+              onMouseLeave={handleCloseProductDropdown}
+            >
               <NavLink onClick={handleToggleProductDropdown} theme={theme}>
                 Product {productDropdownOpen ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
               </NavLink>
-              {productDropdownOpen && isDesktop && <div style={{ ...styles.productDropdownMenu, maxWidth: 'calc(100vw - 2rem)' }}><ComplexDropdown isMobile={false} theme={theme} /></div>}
+              {productDropdownOpen && isDesktop && <div style={styles.productDropdownMenu}><ComplexDropdown isMobile={false} theme={theme} /></div>}
             </div>
-            <div ref={toolsDropdownRef} style={styles.productDropdownContainer} onMouseEnter={handleOpenToolsDropdown} onMouseLeave={handleCloseToolsDropdown}>
+            <div 
+              ref={toolsDropdownRef} 
+              style={{ 
+                position: 'relative' as const, 
+                display: 'inline-flex' as const, 
+                alignItems: 'center' 
+              }} 
+              onMouseEnter={handleOpenToolsDropdown} 
+              onMouseLeave={handleCloseToolsDropdown}
+            >
               <NavLink onClick={handleToggleToolsDropdown} theme={theme}>
                 Tools {toolsDropdownOpen ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
               </NavLink>
-              {toolsDropdownOpen && isDesktop && <div style={{ ...(Object.keys(toolsDropdownPosition).length > 0 ? toolsDropdownPosition : styles.productDropdownMenu), maxWidth: 'calc(100vw - 2rem)' }}><ToolsDropdown isMobile={false} theme={theme} /></div>}
+              {toolsDropdownOpen && isDesktop && <div style={styles.productDropdownMenu}><ToolsDropdown isMobile={false} theme={theme} /></div>}
             </div>
             <NavLink to="/use-cases" theme={theme}>Use Cases</NavLink>
             <NavLink to="/integrations" theme={theme}>Integrations</NavLink>
