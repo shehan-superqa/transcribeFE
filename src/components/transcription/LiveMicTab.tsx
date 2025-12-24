@@ -22,11 +22,12 @@ import StopIcon from '@mui/icons-material/Stop';
 import { useLiveTranscription } from '../../hooks/useLiveTranscription';
 import { useMicrophone } from '../../hooks/useMicrophone';
 import { useWaveformVisualization } from '../../hooks/useWaveformVisualization';
-import { useRequireAuth } from '../../hooks/useRequireAuth';
+import { useTheme } from '../../contexts/ThemeContext';
 import HowToUse from '../../components/common/HowToUse';
 import '../../components/common/HowToUse.css';
 
 export default function LiveMicTab() {
+  const { theme } = useTheme();
   const [model, setModel] = useState('base');
   const [language, setLanguage] = useState('en');
   const [vadThreshold, setVadThreshold] = useState(0.01);
@@ -463,8 +464,8 @@ export default function LiveMicTab() {
       )}
 
       {/* Results */}
-      <Paper sx={{ p: 3, backgroundColor: '#1e1e1e', border: '1px solid #333333' }}>
-        <Typography variant="h6" gutterBottom sx={{ color: '#e0e0e0', mb: 2 }}>
+      <Paper sx={{ p: 3, backgroundColor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}` }}>
+        <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary, mb: 2 }}>
           Live Transcription Results
         </Typography>
         <TextField
@@ -476,10 +477,10 @@ export default function LiveMicTab() {
           sx={{ 
             mb: 2,
             '& .MuiOutlinedInput-root': {
-              color: '#e0e0e0',
-              backgroundColor: '#121212',
-              '& fieldset': { borderColor: '#333333' },
-              '&:hover fieldset': { borderColor: '#00c6ff' },
+              color: theme.palette.text.primary,
+              backgroundColor: theme.palette.background.default,
+              '& fieldset': { borderColor: theme.palette.divider },
+              '&:hover fieldset': { borderColor: theme.palette.primary.main },
             },
           }}
         />
@@ -487,9 +488,9 @@ export default function LiveMicTab() {
           variant="outlined" 
           onClick={clearResults}
           sx={{
-            borderColor: '#333333',
-            color: '#e0e0e0',
-            '&:hover': { borderColor: '#00c6ff', backgroundColor: '#1a1a1a' },
+            borderColor: theme.palette.divider,
+            color: theme.palette.text.primary,
+            '&:hover': { borderColor: theme.palette.primary.main, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f3f4f6' },
           }}
         >
           Clear Results

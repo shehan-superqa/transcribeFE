@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../lib/auth';
+import { useTheme } from '../../contexts/ThemeContext';
 import { getUserJobs } from '../../lib/api/jobsApi';
 import type { ImageJob, Job } from '../../types/api';
 
@@ -10,7 +11,7 @@ interface ImageGalleryModeProps {
   onRefresh?: () => void;
 }
 
-const styles = {
+const getStyles = () => ({
   container: {
     display: 'flex',
     flexDirection: 'column' as const,
@@ -25,13 +26,13 @@ const styles = {
   title: {
     fontSize: '1.5rem',
     fontWeight: 600,
-    color: '#f8fafc',
+    color: 'var(--text-primary)',
     margin: 0,
   },
   refreshButton: {
-    background: 'rgba(99, 102, 241, 0.2)',
-    border: '1px solid rgba(99, 102, 241, 0.5)',
-    color: '#a5b4fc',
+    background: 'var(--bg-secondary)',
+    border: '1px solid var(--primary-color)',
+    color: 'var(--primary-color)',
     padding: '0.5rem 1rem',
     borderRadius: '0.5rem',
     fontSize: '0.85rem',
@@ -41,9 +42,9 @@ const styles = {
   searchInput: {
     padding: '0.75rem 1rem',
     borderRadius: '0.75rem',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-    background: 'rgba(255, 255, 255, 0.05)',
-    color: '#f8fafc',
+    border: '1px solid var(--border-color)',
+    background: 'var(--bg-primary)',
+    color: 'var(--text-primary)',
     outline: 'none',
     fontSize: '0.95rem',
     width: '100%',
@@ -55,8 +56,8 @@ const styles = {
     gap: '1.5rem',
   },
   imageCard: {
-    background: 'rgba(255, 255, 255, 0.03)',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
+    background: 'var(--bg-paper)',
+    border: '1px solid var(--border-color)',
     borderRadius: '0.75rem',
     overflow: 'hidden',
     transition: 'all 0.2s ease',
@@ -82,7 +83,7 @@ const styles = {
   },
   prompt: {
     fontSize: '0.9rem',
-    color: '#f8fafc',
+    color: 'var(--text-primary)',
     marginBottom: '0.5rem',
     lineHeight: '1.4',
     display: '-webkit-box',
@@ -95,7 +96,7 @@ const styles = {
     flexWrap: 'wrap' as const,
     gap: '0.5rem',
     fontSize: '0.75rem',
-    color: '#94a3b8',
+    color: 'var(--text-tertiary)',
     marginBottom: '0.75rem',
   },
   metadataItem: {
@@ -118,24 +119,24 @@ const styles = {
     transition: 'all 0.2s ease',
   },
   viewButton: {
-    background: 'rgba(99, 102, 241, 0.2)',
-    color: '#a5b4fc',
-    border: '1px solid rgba(99, 102, 241, 0.5)',
+    background: 'var(--bg-secondary)',
+    color: 'var(--primary-color)',
+    border: '1px solid var(--primary-color)',
   },
   downloadButton: {
-    background: 'rgba(16, 185, 129, 0.2)',
-    color: '#6ee7b7',
-    border: '1px solid rgba(16, 185, 129, 0.5)',
+    background: 'rgba(16, 185, 129, 0.1)',
+    color: '#4caf50',
+    border: '1px solid rgba(16, 185, 129, 0.3)',
   },
   emptyState: {
     textAlign: 'center' as const,
     padding: '4rem 2rem',
-    color: '#94a3b8',
+    color: 'var(--text-tertiary)',
   },
   emptyStateTitle: {
     fontSize: '1.25rem',
     fontWeight: 600,
-    color: '#cbd5e1',
+    color: 'var(--text-secondary)',
     marginBottom: '0.5rem',
   },
   modal: {
@@ -167,7 +168,7 @@ const styles = {
     top: '1rem',
     right: '1rem',
     background: 'rgba(0, 0, 0, 0.7)',
-    color: '#f8fafc',
+    color: 'var(--text-primary)',
     border: 'none',
     borderRadius: '50%',
     width: '2.5rem',
@@ -186,12 +187,12 @@ const styles = {
     background: 'rgba(0, 0, 0, 0.8)',
     padding: '1rem',
     borderRadius: '0.5rem',
-    color: '#f8fafc',
+    color: 'var(--text-primary)',
   },
   loading: {
     textAlign: 'center' as const,
     padding: '4rem 2rem',
-    color: '#94a3b8',
+    color: 'var(--text-tertiary)',
   },
   error: {
     textAlign: 'center' as const,
@@ -199,11 +200,13 @@ const styles = {
     background: 'rgba(239, 68, 68, 0.1)',
     border: '1px solid rgba(239, 68, 68, 0.3)',
     borderRadius: '0.75rem',
-    color: '#fca5a5',
+    color: '#f44336',
   },
-};
+});
 
 export default function ImageGalleryMode({ imageHistory, historyLoading, historyError, onRefresh }: ImageGalleryModeProps) {
+  const { theme } = useTheme();
+  const styles = getStyles();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedImage, setSelectedImage] = useState<{ url: string; job: ImageJob } | null>(null);
 
@@ -430,6 +433,11 @@ export default function ImageGalleryMode({ imageHistory, historyLoading, history
     </div>
   );
 }
+
+
+
+
+
 
 
 

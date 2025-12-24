@@ -1,0 +1,145 @@
+.financial-tool-page {
+  min-height: calc(100vh - 80px);
+  background-color: var(--bg-primary);
+  padding: 2rem 0;
+}
+
+.financial-tool-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.page-title {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.page-subtitle {
+  font-family: 'Inter', sans-serif;
+  color: var(--text-secondary);
+  font-size: 1.125rem;
+}
+
+/* Two Column Layout */
+.two-column-layout {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.left-column {
+  flex: 0 0 60%;
+  min-width: 0;
+}
+
+.right-column {
+  flex: 0 0 40%;
+  min-width: 0;
+  position: sticky;
+  top: 20px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+}
+
+/* Material-UI Tab Customization */
+.financial-tool-page .MuiTabs-root {
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--bg-paper);
+}
+
+.financial-tool-page .MuiTab-root {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  text-transform: none;
+  color: var(--text-secondary);
+  min-height: 48px;
+  background-color: var(--bg-paper);
+}
+
+.financial-tool-page .MuiTab-root.Mui-selected {
+  color: var(--primary-color);
+  background-color: var(--bg-paper);
+}
+
+.financial-tool-page .MuiTabs-indicator {
+  background-color: var(--primary-color);
+}
+
+/* Visual Hierarchy Improvements */
+.financial-tool-header {
+  margin-bottom: 1.5rem;
+}
+
+.page-title {
+  font-size: 2.5rem;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .two-column-layout {
+    flex-direction: column;
+  }
+
+  .left-column {
+    flex: 1 1 100%;
+  }
+
+  .right-column {
+    flex: 1 1 100%;
+    position: relative;
+    top: 0;
+    max-height: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .financial-tool-page {
+    padding: 1rem 0;
+  }
+
+  .page-title {
+    font-size: 1.75rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .two-column-layout {
+    gap: 1rem;
+  }
+
+  .financial-tool-header {
+    margin-bottom: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-title {
+    font-size: 1.5rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.85rem;
+  }
+}
+
+/* Accessibility Improvements */
+.financial-tool-page *:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Smooth Transitions */
+.financial-tool-page {
+  transition: all 0.3s ease;
+}
+
+
+

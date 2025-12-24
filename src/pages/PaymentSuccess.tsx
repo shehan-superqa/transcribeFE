@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../lib/auth';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getEnergyPointsBalance } from '../lib/api/paymentApi';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+import { useTheme } from '../contexts/ThemeContext';
 import {
   Box,
   Typography,
@@ -16,25 +17,9 @@ import {
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
-const darkTheme = createTheme({
-  palette: {
-    mode: 'dark',
-    primary: {
-      main: '#00c6ff',
-    },
-    background: {
-      default: '#0a0a0a',
-      paper: '#1a1a1a',
-    },
-    text: {
-      primary: '#e0e0e0',
-      secondary: '#a0a0a0',
-    },
-  },
-});
-
 export default function PaymentSuccess() {
   const { user, refreshUser } = useAuth();
+  const { theme } = useTheme();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [balance, setBalance] = useState<number | null>(null);
@@ -91,13 +76,13 @@ export default function PaymentSuccess() {
   };
 
   return (
-    <ThemeProvider theme={darkTheme}>
+    <ThemeProvider theme={theme}>
       <CssBaseline />
       <Box
         sx={{
           minHeight: 'calc(100vh - 80px)',
-          backgroundColor: '#0a0a0a',
-          color: '#ffffff',
+          backgroundColor: theme.palette.background.default,
+          color: theme.palette.text.primary,
           paddingTop: '4rem',
           paddingBottom: '2rem',
           display: 'flex',
@@ -106,12 +91,12 @@ export default function PaymentSuccess() {
         }}
       >
         <Container maxWidth="sm">
-          <Card sx={{ backgroundColor: '#1a1a1a', border: '1px solid #333333' }}>
+          <Card sx={{ backgroundColor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}` }}>
             <CardContent sx={{ textAlign: 'center', py: 4 }}>
               {loading ? (
                 <>
-                  <CircularProgress sx={{ mb: 2, color: '#00c6ff' }} />
-                  <Typography variant="h6" sx={{ color: '#a0a0a0' }}>
+                  <CircularProgress sx={{ mb: 2, color: theme.palette.primary.main }} />
+                  <Typography variant="h6" sx={{ color: theme.palette.text.secondary }}>
                     Verifying your payment...
                   </Typography>
                 </>
@@ -120,12 +105,12 @@ export default function PaymentSuccess() {
                   <Alert severity="warning" sx={{ mb: 2 }}>
                     {error}
                   </Alert>
-                  <Typography variant="body1" sx={{ mb: 3, color: '#a0a0a0' }}>
+                  <Typography variant="body1" sx={{ mb: 3, color: theme.palette.text.secondary }}>
                     Your payment was successful, but we couldn't fetch your updated balance. Please check your account
                     or contact support if needed.
                   </Typography>
                   {orderId && (
-                    <Typography variant="body2" sx={{ mb: 2, color: '#666666' }}>
+                    <Typography variant="body2" sx={{ mb: 2, color: theme.palette.text.secondary }}>
                       Order ID: {orderId}
                     </Typography>
                   )}
@@ -133,10 +118,10 @@ export default function PaymentSuccess() {
                     variant="contained"
                     onClick={handleContinue}
                     sx={{
-                      backgroundColor: '#00c6ff',
-                      color: '#000',
+                      backgroundColor: theme.palette.primary.main,
+                      color: theme.palette.mode === 'dark' ? '#000000' : '#ffffff',
                       '&:hover': {
-                        backgroundColor: '#00b8e6',
+                        backgroundColor: theme.palette.primary.dark,
                       },
                     }}
                   >
@@ -148,7 +133,7 @@ export default function PaymentSuccess() {
                   <CheckCircleIcon
                     sx={{
                       fontSize: 80,
-                      color: '#4caf50',
+                      color: theme.palette.success.main,
                       mb: 2,
                     }}
                   />
@@ -157,35 +142,35 @@ export default function PaymentSuccess() {
                     sx={{
                       fontWeight: 700,
                       mb: 1,
-                      background: 'linear-gradient(90deg, #4caf50, #00c6ff)',
+                      background: `linear-gradient(90deg, ${theme.palette.success.main}, ${theme.palette.primary.main})`,
                       WebkitBackgroundClip: 'text',
                       WebkitTextFillColor: 'transparent',
                     }}
                   >
                     Payment Successful!
                   </Typography>
-                  <Typography variant="body1" sx={{ mb: 3, color: '#a0a0a0' }}>
+                  <Typography variant="body1" sx={{ mb: 3, color: theme.palette.text.secondary }}>
                     Thank you for your purchase. Your energy points have been added to your account.
                   </Typography>
 
                   {purchasedPoints && (
                     <Box
                       sx={{
-                        backgroundColor: '#0d0d0d',
+                        backgroundColor: theme.palette.background.default,
                         borderRadius: '8px',
                         padding: 2,
                         mb: 3,
-                        border: '1px solid #333333',
+                        border: `1px solid ${theme.palette.divider}`,
                       }}
                     >
-                      <Typography variant="body2" sx={{ color: '#a0a0a0', mb: 1 }}>
+                      <Typography variant="body2" sx={{ color: theme.palette.text.secondary, mb: 1 }}>
                         Points Added
                       </Typography>
                       <Typography
                         variant="h3"
                         sx={{
                           fontWeight: 700,
-                          color: '#00c6ff',
+                          color: theme.palette.primary.main,
                           mb: 1,
                         }}
                       >
@@ -197,21 +182,21 @@ export default function PaymentSuccess() {
                   {balance !== null && (
                     <Box
                       sx={{
-                        backgroundColor: '#0d0d0d',
+                        backgroundColor: theme.palette.background.default,
                         borderRadius: '8px',
                         padding: 2,
                         mb: 3,
-                        border: '1px solid #333333',
+                        border: `1px solid ${theme.palette.divider}`,
                       }}
                     >
-                      <Typography variant="body2" sx={{ color: '#a0a0a0', mb: 1 }}>
+                      <Typography variant="body2" sx={{ color: theme.palette.text.secondary, mb: 1 }}>
                         Current Balance
                       </Typography>
                       <Typography
                         variant="h4"
                         sx={{
                           fontWeight: 700,
-                          color: '#ffffff',
+                          color: theme.palette.text.primary,
                         }}
                       >
                         ⚡ {balance.toLocaleString()} Energy Points
@@ -220,7 +205,7 @@ export default function PaymentSuccess() {
                   )}
 
                   {orderId && (
-                    <Typography variant="body2" sx={{ mb: 3, color: '#666666' }}>
+                    <Typography variant="body2" sx={{ mb: 3, color: theme.palette.text.secondary }}>
                       Order ID: {orderId}
                     </Typography>
                   )}
@@ -233,10 +218,10 @@ export default function PaymentSuccess() {
                       py: 1.5,
                       fontSize: '1rem',
                       fontWeight: 600,
-                      backgroundColor: '#00c6ff',
-                      color: '#000',
+                      backgroundColor: theme.palette.primary.main,
+                      color: theme.palette.mode === 'dark' ? '#000000' : '#ffffff',
                       '&:hover': {
-                        backgroundColor: '#00b8e6',
+                        backgroundColor: theme.palette.primary.dark,
                       },
                     }}
                   >

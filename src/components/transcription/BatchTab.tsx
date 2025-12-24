@@ -29,6 +29,9 @@ import { getAvailableModels, submitTranscriptionJob } from '../../lib/api/transc
 import { cancelJob } from '../../lib/api/jobsApi';
 import { jobStore } from '../../stores/jobStore';
 import { useAuth } from '../../lib/auth';
+import { useAuthModal } from '../../contexts/AuthModalContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import { checkAuthAndTriggerModal } from '../../lib/authCheck';
 import type { TranscriptionConfig } from '../../types/api';
 import type { TranscriptionResult } from '../../types/api';
 
@@ -44,6 +47,8 @@ export default function BatchTab() {
   const { user } = useAuth();
   const fetchJobs = jobStore((state) => state.fetchJobs);
   const updateJob = jobStore((state) => state.updateJob);
+  const { openModal } = useAuthModal();
+  const { theme } = useTheme();
   const [files, setFiles] = useState<BatchFile[]>([]);
   const [engine] = useState('replicate');
   const [language, setLanguage] = useState('en');
@@ -199,14 +204,109 @@ export default function BatchTab() {
       return;
     }
 
-    setIsProcessing(true);
-    setProgress(0);
-    setError(null);
+    // Check authentication before proceeding
+    const executeBatch = async () => {
+      setIsProcessing(true);
+      setProgress(0);
+      setError(null);
 
-    const config: TranscriptionConfig = {
-      engine,
-      language,
-      model,
+      const config: TranscriptionConfig = {
+        engine,
+        language,
+        model,
+      };
+
+      // Submit files individually to track job IDs for cancellation
+      const pendingFiles = files.filter((f) => f.status === 'pending');
+      
+      // Update pending files to processing status
+      setFiles((prev) =>
+        prev.map((f) => (f.status === 'pending' ? { ...f, status: 'processing' as const } : f))
+      );
+
+      try {
+        // Submit each file individually to get job IDs
+        const jobPromises = pendingFiles.map(async (batchFile) => {
+          try {
+            const response = await submitTranscriptionJob(batchFile.file, config);
+            return {
+              index: files.indexOf(batchFile),
+              jobId: response.job_id,
+              success: true,
+            };
+          } catch (err: any) {
+            let errorMessage = err.response?.data?.error || err.message || 'Failed to submit job';
+            
+            // Handle authentication errors more gracefully
+            if (err.response?.status === 401 || errorMessage.includes('Authentication failed') ||
+                errorMessage.includes('not authenticated') || errorMessage.includes('Please log in')) {
+              // Show auth modal for first auth error
+              if (!error) {
+                checkAuthAndTriggerModal(openModal, executeBatch);
+              }
+              errorMessage = 'Authentication required';
+            } else if (errorMessage.includes('Authentication service unavailable')) {
+              errorMessage = 'Authentication service unavailable. Please try again later.';
+            }
+            
+            return {
+              index: files.indexOf(batchFile),
+              jobId: undefined,
+              success: false,
+              error: errorMessage,
+            };
+          }
+        });
+
+        const jobResults = await Promise.all(jobPromises);
+
+        // Update files with job IDs
+        setFiles((prev) => {
+          return prev.map((batchFile, index) => {
+            const jobResult = jobResults.find((jr) => jr.index === index);
+            if (jobResult) {
+              if (jobResult.success && jobResult.jobId) {
+                return {
+                  ...batchFile,
+                  status: 'processing' as const,
+                  jobId: jobResult.jobId,
+                };
+              } else {
+                return {
+                  ...batchFile,
+                  status: 'error' as const,
+                  error: jobResult.error,
+                };
+              }
+            }
+            return batchFile;
+          });
+        });
+
+        // Poll for job status updates
+        pollJobStatuses(jobResults.filter((jr) => jr.success && jr.jobId).map((jr) => jr.jobId!));
+      } catch (err: any) {
+        let errorMessage = err.response?.data?.error || err.message || 'Batch processing failed';
+        
+        // Handle authentication errors more gracefully
+        if (err.response?.status === 401 || errorMessage.includes('Authentication failed') ||
+            errorMessage.includes('not authenticated') || errorMessage.includes('Please log in')) {
+          // Show auth modal
+          checkAuthAndTriggerModal(openModal, executeBatch);
+          setIsProcessing(false);
+          return;
+        } else if (errorMessage.includes('Authentication service unavailable')) {
+          errorMessage = 'Authentication service unavailable. Please try again later.';
+        }
+        
+        setError(errorMessage);
+        setFiles((prev) =>
+          prev.map((f) =>
+            f.status === 'processing' ? { ...f, status: 'error' as const, error: errorMessage } : f
+          )
+        );
+        setIsProcessing(false);
+      }
     };
 
     // Submit files individually to track job IDs for cancellation
@@ -299,6 +399,24 @@ export default function BatchTab() {
       );
       setIsProcessing(false);
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (files.length === 0) {
+      setError('Please select at least one file');
+      return;
+    }
+
+    // Check authentication before proceeding
+    if (!checkAuthAndTriggerModal(openModal, executeBatch)) {
+      // Auth modal was opened, stop here
+      return;
+    }
+
+    // User is authenticated, proceed with batch processing
+    await executeBatch();
   };
 
   const pollJobStatuses = (jobIds: string[]) => {
@@ -426,16 +544,34 @@ export default function BatchTab() {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom sx={{ color: '#e0e0e0', mb: 3 }}>
+      <Typography variant="h4" gutterBottom sx={{ color: theme.palette.text.primary, mb: 3 }}>
         Batch Processing (Audio & Video)
       </Typography>
 
       {/* Settings */}
-      <Paper sx={{ p: 3, mb: 3, backgroundColor: '#1e1e1e', border: '1px solid #333333' }}>
-        <Typography variant="h6" gutterBottom sx={{ color: '#e0e0e0', mb: 2 }}>
+      <Paper sx={{ p: 3, mb: 3, backgroundColor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}` }}>
+        <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary, mb: 2 }}>
           Transcription Settings
         </Typography>
-        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2 }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2 }}>
+          <FormControl fullWidth>
+            <InputLabel sx={{ color: theme.palette.text.secondary }}>Engine</InputLabel>
+            <Select 
+              value={engine} 
+              onChange={(e) => setEngine(e.target.value)}
+              disabled={isProcessing}
+              sx={{ 
+                color: theme.palette.text.primary,
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: theme.palette.divider },
+                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: theme.palette.primary.main },
+              }}
+            >
+              <MenuItem value="whisper">Whisper</MenuItem>
+              <MenuItem value="google">Google</MenuItem>
+              <MenuItem value="openai">OpenAI</MenuItem>
+              <MenuItem value="replicate">Replicate</MenuItem>
+            </Select>
+          </FormControl>
           <FormControl fullWidth>
             <InputLabel sx={{ color: '#a0a0a0' }}>Language</InputLabel>
             <Select 

@@ -83,7 +83,7 @@ export default function EnergyPointsBalance({
     cursor: 'pointer',
     fontFamily: "'Inter', sans-serif",
     fontSize: '0.85rem',
-    color: '#ffffff',
+    color: 'var(--text-primary)',
     fontWeight: 500,
     padding: '0.4rem 0.75rem',
     borderRadius: '9999px',

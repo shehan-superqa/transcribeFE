@@ -1,22 +1,39 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../../lib/auth';
 import { useRequireAuth } from '../../hooks/useRequireAuth';
 import { submitVideoJob, getVideoJobStatus } from '../../lib/api/videoApi';
 import { getUserJobs } from '../../lib/api/jobsApi';
 import { useSSE } from '../../hooks/useSSE';
+import { useAuthModal } from '../../contexts/AuthModalContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import { checkAuthAndTriggerModal } from '../../lib/authCheck';
 import type { VideoJobRequest, VideoJobResult, VideoJob, Job } from '../../types/api';
 import HowToUse from '../../components/common/HowToUse';
 import '../../components/common/HowToUse.css';
 import '../../pages/Dashboard.css';
 import './VideoGenerationTool.css';
 
-const styles = {
-  formContainer: {
+const getStyles = () => ({
+  container: {
+    display: 'flex',
+    flexDirection: 'row' as const,
+    gap: '2rem',
     padding: '2rem',
     borderRadius: '1.25rem',
-    background: 'linear-gradient(145deg, #0f172a, #1e293b)',
-    color: '#f8fafc',
-    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.25)',
+    background: 'linear-gradient(145deg, var(--gradient-start), var(--gradient-end))',
+    color: 'var(--text-primary)',
+    boxShadow: '0 10px 25px var(--shadow)',
+    maxWidth: '1600px',
+    margin: '2rem auto',
+    width: '100%',
+  },
+  formContainer: {
+    flex: 1,
+    padding: '2rem',
+    borderRadius: '1.25rem',
+    background: 'linear-gradient(145deg, var(--gradient-start), var(--gradient-end))',
+    color: 'var(--text-primary)',
+    boxShadow: '0 10px 25px var(--shadow)',
     fontFamily: 'Inter, system-ui, sans-serif',
   },
   form: {
@@ -82,7 +99,7 @@ const styles = {
   advancedToggle: {
     background: 'transparent',
     border: 'none',
-    color: '#60a5fa',
+    color: 'var(--primary-color)',
     cursor: 'pointer',
     fontSize: '0.9rem',
     padding: '0.5rem 0',
@@ -96,7 +113,7 @@ const styles = {
     flexDirection: 'column' as const,
     gap: '1rem',
     padding: '1rem',
-    background: 'rgba(255, 255, 255, 0.03)',
+    background: 'var(--bg-secondary)',
     borderRadius: '0.75rem',
     marginTop: '0.5rem',
   },
@@ -110,7 +127,7 @@ const styles = {
     maxHeight: '150px',
     borderRadius: '0.5rem',
     marginTop: '0.5rem',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
+    border: '1px solid var(--border-color)',
   },
   imageInputWrapper: {
     display: 'flex',
@@ -119,7 +136,7 @@ const styles = {
   },
   fileInputLabel: {
     fontSize: '0.85rem',
-    color: '#cbd5e1',
+    color: 'var(--text-secondary)',
     cursor: 'pointer',
     textDecoration: 'underline',
   },
@@ -127,9 +144,9 @@ const styles = {
     display: 'none',
   },
   addImageButton: {
-    background: 'rgba(99, 102, 241, 0.2)',
-    border: '1px solid rgba(99, 102, 241, 0.4)',
-    color: '#a5b4fc',
+    background: 'var(--bg-secondary)',
+    border: '1px solid var(--primary-color)',
+    color: 'var(--primary-color)',
     padding: '0.5rem 1rem',
     borderRadius: '0.5rem',
     cursor: 'pointer',
@@ -138,9 +155,9 @@ const styles = {
     alignSelf: 'flex-start',
   },
   removeImageButton: {
-    background: 'rgba(239, 68, 68, 0.2)',
-    border: '1px solid rgba(239, 68, 68, 0.4)',
-    color: '#fca5a5',
+    background: 'rgba(239, 68, 68, 0.1)',
+    border: '1px solid rgba(239, 68, 68, 0.3)',
+    color: '#f44336',
     padding: '0.25rem 0.5rem',
     borderRadius: '0.5rem',
     cursor: 'pointer',
@@ -148,8 +165,8 @@ const styles = {
     marginTop: '0.25rem',
   },
   submitButton: {
-    background: 'linear-gradient(90deg, #6366f1, #3b82f6)',
-    color: '#f8fafc',
+    background: 'linear-gradient(90deg, var(--primary-color), var(--primary-hover))',
+    color: 'var(--text-primary)',
     border: 'none',
     borderRadius: '0.75rem',
     padding: '0.875rem 1.5rem',
@@ -157,7 +174,7 @@ const styles = {
     fontSize: '1rem',
     cursor: 'pointer',
     transition: 'all 0.25s ease',
-    boxShadow: '0 4px 12px rgba(99, 102, 241, 0.4)',
+    boxShadow: '0 4px 12px var(--shadow)',
   },
   submitButtonDisabled: {
     opacity: 0.5,
@@ -166,7 +183,7 @@ const styles = {
   error: {
     background: 'rgba(239, 68, 68, 0.1)',
     border: '1px solid rgba(239, 68, 68, 0.3)',
-    color: '#fca5a5',
+    color: '#f44336',
     padding: '0.75rem 1rem',
     borderRadius: '0.75rem',
     fontSize: '0.9rem',
@@ -176,30 +193,30 @@ const styles = {
     flexDirection: 'column' as const,
     gap: '0.75rem',
     padding: '1rem',
-    background: 'rgba(255, 255, 255, 0.05)',
+    background: 'var(--bg-secondary)',
     borderRadius: '0.75rem',
   },
   progressBarContainer: {
-    background: 'rgba(255, 255, 255, 0.1)',
+    background: 'var(--bg-secondary)',
     borderRadius: '1rem',
     height: '0.5rem',
     overflow: 'hidden',
   },
   progressBar: {
     height: '100%',
-    background: 'linear-gradient(90deg, #22d3ee, #3b82f6)',
+    background: 'linear-gradient(90deg, var(--primary-color), var(--primary-hover))',
     transition: 'width 0.3s ease',
   },
   progressText: {
     fontSize: '0.85rem',
-    color: '#cbd5e1',
+    color: 'var(--text-secondary)',
   },
   videoContainer: {
     display: 'flex',
     flexDirection: 'column' as const,
     gap: '1rem',
     padding: '1.5rem',
-    background: 'rgba(255, 255, 255, 0.05)',
+    background: 'var(--bg-secondary)',
     borderRadius: '0.75rem',
     minWidth: '400px',
     maxWidth: '500px',
@@ -225,15 +242,18 @@ const styles = {
   },
   charCount: {
     fontSize: '0.75rem',
-    color: '#cbd5e1',
+    color: 'var(--text-secondary)',
     textAlign: 'right' as const,
     marginTop: '0.25rem',
   },
-};
+});
 
 export default function VideoGenerationTool() {
   const { user } = useAuth();
-  const { requireAuth } = useRequireAuth();
+  const { theme } = useTheme();
+  const { openModal } = useAuthModal();
+  const styles = getStyles();
+  const performSubmission = useRef(false);
   const [prompt, setPrompt] = useState('');
   const [referenceImages, setReferenceImages] = useState<string[]>(['']);
   const [aspectRatio, setAspectRatio] = useState<'16:9' | '9:16' | '1:1' | '4:3' | '3:4'>('16:9');
@@ -509,14 +529,10 @@ export default function VideoGenerationTool() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Check authentication before submitting
-    if (!requireAuth()) {
-      return;
-    }
-    
+  const executeSubmission = async () => {
+    if (performSubmission.current) return;
+    performSubmission.current = true;
+
     setError(null);
     setVideoUrl(null);
     setLoading(true);
@@ -575,9 +591,43 @@ export default function VideoGenerationTool() {
         setLoading(false);
       }
     } catch (err: any) {
+      // Check if this is an authentication error
+      if (
+        err.message?.includes('not authenticated') ||
+        err.message?.includes('Please log in') ||
+        err.message?.includes('Authentication failed') ||
+        err.message?.includes('Authentication required') ||
+        err.response?.status === 401
+      ) {
+        // Show auth modal - will retry submission after successful auth
+        checkAuthAndTriggerModal(openModal, executeSubmission);
+        setLoading(false);
+        return;
+      }
+
       setError(err.message || 'Failed to submit video generation job');
       setLoading(false);
+    } finally {
+      performSubmission.current = false;
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!prompt.trim()) {
+      setError('Please enter a prompt');
+      return;
+    }
+
+    // Check authentication before proceeding
+    if (!checkAuthAndTriggerModal(openModal, executeSubmission)) {
+      // Auth modal was opened, stop here
+      return;
+    }
+
+    // User is authenticated, proceed with submission
+    await executeSubmission();
   };
 
   const handleDownload = () => {
@@ -622,17 +672,17 @@ export default function VideoGenerationTool() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "completed":
-        return "#4caf50";
+        return theme.palette.success.main;
       case "processing":
       case "starting":
-        return "#ff9800";
+        return theme.palette.warning.main;
       case "error":
       case "cancelled":
-        return "#f44336";
+        return theme.palette.error.main;
       case "queued":
-        return "#2196f3";
+        return theme.palette.info.main;
       default:
-        return "#666666";
+        return theme.palette.text.secondary;
     }
   };
 
@@ -659,23 +709,9 @@ export default function VideoGenerationTool() {
         subtitle=""
         instructions="Enter a detailed text prompt describing the video you want to generate. Optionally upload reference images to guide the video style (1-3 images, works with 16:9 aspect ratio and 8-second duration). Adjust settings like aspect ratio, duration, and model selection. Click 'Generate Video' to create your video. The process may take several minutes depending on the video length."
       />
-      <div style={styles.formContainer}>
-              {videoUrl && (
-                <div style={styles.videoContainer}>
-                  <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#f8fafc' }}>Generated Video</h3>
-                  <video src={videoUrl} controls style={styles.video}>
-                    Your browser does not support the video tag.
-                  </video>
-                  <a
-                    href={videoUrl}
-                    download={`video-${jobId || 'output'}.mp4`}
-                    style={styles.downloadButton}
-                  >
-                    Download Video
-                  </a>
-                </div>
-              )}
-              <form onSubmit={handleSubmit} style={styles.form}>
+      <div style={styles.container}>
+        <div style={styles.formContainer}>
+          <form onSubmit={handleSubmit} style={styles.form}>
         <div style={styles.inputGroup}>
           <label style={styles.label}>
             Prompt <span style={{ color: '#ef4444' }}>*</span>
@@ -693,7 +729,7 @@ export default function VideoGenerationTool() {
 
         <div style={styles.inputGroup}>
           <label style={styles.label}>Reference Images (Optional, 1-3 images)</label>
-          <p style={{ fontSize: '0.85rem', color: '#cbd5e1', margin: '0 0 0.5rem 0' }}>
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: '0 0 0.5rem 0' }}>
             Paste images from clipboard, upload files, or provide image URLs. Only works with 16:9 aspect ratio and 8-second duration.
           </p>
           {referenceImages.map((imageUrl, index) => (
@@ -876,11 +912,105 @@ export default function VideoGenerationTool() {
         </button>
 
         {!user && (
-          <p style={{ textAlign: 'center', color: '#cbd5e1', fontSize: '0.9rem' }}>
-            Please <a href="/auth/login" style={{ color: '#60a5fa' }}>sign in</a> to generate videos
+          <p style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+            Please <a href="/auth/login" style={{ color: 'var(--primary-color)' }}>sign in</a> to generate videos
           </p>
         )}
       </form>
+      </div>
+
+      {/* Right Sidebar: Video Result + History */}
+      <div style={styles.rightSidebar}>
+        {videoUrl && (
+          <div style={styles.videoContainer}>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-primary)' }}>Generated Video</h3>
+            <video src={videoUrl} controls style={styles.video}>
+              Your browser does not support the video tag.
+            </video>
+            <a
+              href={videoUrl}
+              download={`video-${jobId || 'output'}.mp4`}
+              style={styles.downloadButton}
+            >
+              Download Video
+            </a>
+          </div>
+        )}
+
+        {/* Video History Section */}
+        <div style={styles.historyContainer}>
+        <h3 style={styles.historyTitle}>Video History</h3>
+        
+        {historyLoading ? (
+          <div style={styles.emptyHistory}>Loading history...</div>
+        ) : historyError ? (
+          <div style={{ ...styles.emptyHistory, color: theme.palette.error.main }}>
+            {historyError}
+          </div>
+        ) : videoHistory.length === 0 ? (
+          <div style={styles.emptyHistory}>
+            <p>No video generations yet</p>
+            <p style={{ fontSize: '0.85rem', marginTop: '0.5rem' }}>
+              Start generating videos using the form on the left.
+            </p>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {videoHistory.map((job) => {
+              const hasVideo = !!(job.result?.video_url || job.video_output_url);
+              return (
+                <div
+                  key={job._id}
+                  style={{
+                    ...styles.historyCard,
+                    ...(hasVideo ? {} : { opacity: 0.7 }),
+                  }}
+                  onClick={() => hasVideo && handleVideoJobClick(job)}
+                  onMouseEnter={(e) => {
+                    if (hasVideo) {
+                      e.currentTarget.style.borderColor = 'var(--primary-color)';
+                      e.currentTarget.style.background = 'var(--hover-bg)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (hasVideo) {
+                      e.currentTarget.style.borderColor = 'var(--border-color)';
+                      e.currentTarget.style.background = 'var(--bg-paper)';
+                    }
+                  }}
+                >
+                  <div style={styles.historyCardHeader}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                      {job.prompt.length > 30 ? `${job.prompt.substring(0, 30)}...` : job.prompt}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        color: getStatusColor(job.status),
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      {job.status}
+                    </span>
+                  </div>
+                  <div style={styles.historyCardMeta}>
+                    <span>{formatDate(job.created_at)}</span>
+                    {(job as any).duration && <span>• {(job as any).duration}s</span>}
+                    {(job as any).resolution && <span>• {(job as any).resolution}</span>}
+                  </div>
+                  {hasVideo && (
+                    <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: theme.palette.success.main }}>
+                      ✓ Video available - Click to view
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+        </div>
+      </div>
       </div>
     </div>
   );

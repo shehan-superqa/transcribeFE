@@ -46,6 +46,7 @@ interface ToolTabNavigationProps {
 export default function ToolTabNavigation({ toolType }: ToolTabNavigationProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { theme } = useTheme();
 
   const tabs = toolType === 'voice' ? voiceTabs : videoTabs;
   const basePath = toolType === 'voice' ? '/voice' : '/video';
@@ -68,7 +69,7 @@ export default function ToolTabNavigation({ toolType }: ToolTabNavigationProps) 
   };
 
   return (
-    <Box sx={{ borderBottom: 1, borderColor: '#333333', mb: 3 }}>
+    <Box sx={{ borderBottom: 1, borderColor: theme.palette.divider, mb: 3 }}>
       <Tabs
         value={getCurrentTab()}
         onChange={handleChange}
@@ -76,17 +77,17 @@ export default function ToolTabNavigation({ toolType }: ToolTabNavigationProps) 
         scrollButtons="auto"
         sx={{
           '& .MuiTab-root': {
-            color: '#a0a0a0',
+            color: theme.palette.text.secondary,
             minHeight: 64,
             '&:hover': {
-              color: '#00c6ff',
+              color: theme.palette.primary.main,
             },
             '&.Mui-selected': {
-              color: '#00c6ff',
+              color: theme.palette.primary.main,
             },
           },
           '& .MuiTabs-indicator': {
-            backgroundColor: '#00c6ff',
+            backgroundColor: theme.palette.primary.main,
           },
         }}
       >
@@ -102,6 +103,11 @@ export default function ToolTabNavigation({ toolType }: ToolTabNavigationProps) 
     </Box>
   );
 }
+
+
+
+
+
 
 
 

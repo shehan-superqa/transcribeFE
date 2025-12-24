@@ -1,33 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../lib/auth';
 import { useNavigate } from 'react-router-dom';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+import { useTheme } from '../contexts/ThemeContext';
 import { Box, Typography, Container, Grid } from '@mui/material';
 import PricingTabs from '../components/pricing/PricingTabs';
 import PricingCard from '../components/pricing/PricingCard';
 import BillingToggle from '../components/pricing/BillingToggle';
 import { pricingData, type ServiceType, type BillingPeriod } from '../data/pricingData';
 
-const darkTheme = createTheme({
-  palette: {
-    mode: 'dark',
-    primary: {
-      main: '#00c6ff',
-    },
-    background: {
-      default: '#0a0a0a',
-      paper: '#1a1a1a',
-    },
-    text: {
-      primary: '#e0e0e0',
-      secondary: '#a0a0a0',
-    },
-  },
-});
-
 export default function Pricing() {
   const { user } = useAuth();
+  const { theme } = useTheme();
   const navigate = useNavigate();
   const [currentService, setCurrentService] = useState<ServiceType>('transcription');
   const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('monthly');
@@ -69,13 +54,13 @@ export default function Pricing() {
     : 'Video Generation';
 
   return (
-    <ThemeProvider theme={darkTheme}>
+    <ThemeProvider theme={theme}>
       <CssBaseline />
       <Box
         sx={{
           minHeight: 'calc(100vh - 80px)',
-          backgroundColor: '#0a0a0a',
-          color: '#ffffff',
+          backgroundColor: theme.palette.background.default,
+          color: theme.palette.text.primary,
           paddingTop: '1rem',
           paddingBottom: '2rem',
         }}
@@ -89,7 +74,7 @@ export default function Pricing() {
                 fontSize: { xs: '1.25rem', md: '1.75rem' },
                 fontWeight: 700,
                 mb: 0.25,
-                background: `linear-gradient(90deg, ${currentPricing.accentColor}, #ffffff)`,
+                background: `linear-gradient(90deg, ${currentPricing.accentColor}, ${theme.palette.mode === 'dark' ? '#ffffff' : theme.palette.text.primary})`,
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
               }}
@@ -153,15 +138,15 @@ export default function Pricing() {
               textAlign: 'center',
               mt: { xs: 3, md: 4 },
               padding: { xs: '1.5rem 1rem', md: '2rem 1.5rem' },
-              backgroundColor: '#181818',
+              backgroundColor: theme.palette.background.paper,
               borderRadius: '10px',
-              border: '1px solid #333333',
+              border: `1px solid ${theme.palette.divider}`,
             }}
           >
             <Typography
               variant="h6"
               sx={{
-                color: '#ffffff',
+                color: theme.palette.text.primary,
                 fontWeight: 700,
                 mb: 1,
                 fontSize: '1.125rem',
@@ -171,7 +156,7 @@ export default function Pricing() {
             </Typography>
             <Typography
               sx={{
-                color: '#cccccc',
+                color: theme.palette.text.secondary,
                 mb: 2,
                 maxWidth: '600px',
                 margin: '0 auto 1.5rem',
@@ -185,7 +170,7 @@ export default function Pricing() {
               onClick={() => handleSubscribe('enterprise')}
               sx={{
                 backgroundColor: currentPricing.accentColor,
-                color: '#000',
+                color: theme.palette.mode === 'dark' ? '#000000' : '#ffffff',
                 padding: '0.75rem 1.5rem',
                 borderRadius: '6px',
                 fontWeight: 600,

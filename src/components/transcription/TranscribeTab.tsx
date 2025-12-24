@@ -43,6 +43,9 @@ import { useRequireAuth } from '../../hooks/useRequireAuth';
 import { useJobPolling } from '../../hooks/useJobPolling';
 import { getAvailableModels, submitTranscriptionJob } from '../../lib/api/transcriptionApi';
 import { cancelJob } from '../../lib/api/jobsApi';
+import { useAuthModal } from '../../contexts/AuthModalContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import { checkAuthAndTriggerModal } from '../../lib/authCheck';
 import type { TranscriptionConfig } from '../../types/api';
 import type { ProcessingMode } from '../../types/transcription';
 import type { TranscriptionResult } from '../../types/api';
@@ -56,6 +59,8 @@ interface BatchFile {
 }
 
 export default function TranscribeTab() {
+  const { openModal } = useAuthModal();
+  const { theme } = useTheme();
   const [files, setFiles] = useState<File[]>([]);
   const [batchFiles, setBatchFiles] = useState<BatchFile[]>([]);
   const [engine] = useState('replicate');
@@ -326,13 +331,27 @@ export default function TranscribeTab() {
       return;
     }
 
-    const config: TranscriptionConfig = {
-      engine,
-      language,
-      model,
-      processing_mode: processingMode,
-      enable_punctuation: enablePunctuation,
-      enable_capitalization: enableCapitalization,
+    // Check authentication before proceeding
+    const executeTranscription = async () => {
+      const config: TranscriptionConfig = {
+        engine,
+        language,
+        model,
+        processing_mode: processingMode,
+        enable_punctuation: enablePunctuation,
+        enable_capitalization: enableCapitalization,
+      };
+
+      if (isBatchMode) {
+        // Batch processing
+        await handleStartBatch(config);
+      } else {
+        // Single file processing
+        const submittedJobId = await submitJob(singleFile!, config);
+        if (submittedJobId) {
+          setJobId(submittedJobId);
+        }
+      }
     };
 
     if (isBatchMode) {
@@ -348,6 +367,29 @@ export default function TranscribeTab() {
         await fetchJobs(user.id);
       }
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (isBatchMode && batchFiles.length === 0) {
+      setBatchError('Please select at least one file');
+      return;
+    }
+
+    if (!isBatchMode && !singleFile) {
+      setError('Please select a file');
+      return;
+    }
+
+    // Check authentication before proceeding
+    if (!checkAuthAndTriggerModal(openModal, executeTranscription)) {
+      // Auth modal was opened, stop here
+      return;
+    }
+
+    // User is authenticated, proceed with transcription
+    await executeTranscription();
   };
 
   const handleStartBatch = async (config: TranscriptionConfig) => {
@@ -389,8 +431,13 @@ export default function TranscribeTab() {
           };
         } catch (err: any) {
           let errorMessage = err.response?.data?.error || err.message || 'Failed to submit job';
-          if (err.response?.status === 401 || errorMessage.includes('Authentication failed')) {
-            errorMessage = 'Authentication failed. Please log in again.';
+          if (err.response?.status === 401 || errorMessage.includes('Authentication failed') || 
+              errorMessage.includes('not authenticated') || errorMessage.includes('Please log in')) {
+            // Show auth modal for first auth error
+            if (!batchError) {
+              checkAuthAndTriggerModal(openModal, () => handleStartBatch(config));
+            }
+            errorMessage = 'Authentication required';
           } else if (errorMessage.includes('Authentication service unavailable')) {
             errorMessage = 'Authentication service unavailable. Please try again later.';
           }
@@ -600,15 +647,15 @@ export default function TranscribeTab() {
         instructions="Upload audio files using drag & drop, paste from clipboard, or click to browse. You can also paste a YouTube link or record audio directly. Select your preferred language and model, then click 'Transcribe' to start. The transcription will appear in your history once completed."
       />
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" sx={{ color: '#e0e0e0' }}>
+        <Typography variant="h4" sx={{ color: theme.palette.text.primary }}>
           Transcribe Audio/Video
         </Typography>
         {isBatchMode && (
           <Chip 
             label={`Batch Mode: ${files.length} files`}
             sx={{
-              backgroundColor: '#00c6ff',
-              color: '#121212',
+              backgroundColor: theme.palette.primary.main,
+              color: theme.palette.mode === 'dark' ? '#000000' : '#ffffff',
               fontWeight: 600,
             }}
           />
@@ -617,7 +664,7 @@ export default function TranscribeTab() {
           <Chip 
             label="Single File Mode"
             sx={{
-              backgroundColor: '#4caf50',
+              backgroundColor: theme.palette.success.main,
               color: '#fff',
               fontWeight: 600,
             }}
@@ -633,10 +680,10 @@ export default function TranscribeTab() {
           disabled={files.length === 0 || isProcessing || isBatchProcessing || (isBatchMode && batchFiles.every((f) => f.status !== 'idle' && f.status !== 'pending'))}
           size="large"
           sx={{
-            backgroundColor: '#00c6ff',
-            color: '#121212',
-            '&:hover': { backgroundColor: '#00b0e6' },
-            '&:disabled': { backgroundColor: '#333333', color: '#666666' },
+            backgroundColor: theme.palette.primary.main,
+            color: theme.palette.mode === 'dark' ? '#000000' : '#ffffff',
+            '&:hover': { backgroundColor: theme.palette.primary.dark },
+            '&:disabled': { backgroundColor: theme.palette.action.disabledBackground, color: theme.palette.action.disabled },
           }}
         >
           {isBatchMode 
@@ -651,10 +698,10 @@ export default function TranscribeTab() {
             disabled={!isProcessing}
             size="large"
             sx={{
-              borderColor: '#333333',
-              color: '#e0e0e0',
-              '&:hover': { borderColor: '#00c6ff', backgroundColor: '#1a1a1a' },
-              '&:disabled': { borderColor: '#333333', color: '#666666' },
+              borderColor: theme.palette.divider,
+              color: theme.palette.text.primary,
+              '&:hover': { borderColor: theme.palette.primary.main, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f3f4f6' },
+              '&:disabled': { borderColor: theme.palette.divider, color: theme.palette.action.disabled },
             }}
           >
             Stop
@@ -671,10 +718,10 @@ export default function TranscribeTab() {
             disabled={isBatchProcessing}
             size="large"
             sx={{
-              borderColor: '#333333',
-              color: '#e0e0e0',
-              '&:hover': { borderColor: '#00c6ff', backgroundColor: '#1a1a1a' },
-              '&:disabled': { borderColor: '#333333', color: '#666666' },
+              borderColor: theme.palette.divider,
+              color: theme.palette.text.primary,
+              '&:hover': { borderColor: theme.palette.primary.main, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f3f4f6' },
+              '&:disabled': { borderColor: theme.palette.divider, color: theme.palette.action.disabled },
             }}
           >
             Clear All
@@ -683,17 +730,17 @@ export default function TranscribeTab() {
       </Box>
 
       {/* File Upload Section */}
-      <Paper sx={{ p: 3, mb: 3, backgroundColor: '#1e1e1e', border: '1px solid #333333' }}>
+      <Paper sx={{ p: 3, mb: 3, backgroundColor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}` }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h6" sx={{ color: '#e0e0e0' }}>
+          <Typography variant="h6" sx={{ color: theme.palette.text.primary }}>
             {isBatchMode ? `Audio/Video Files (${files.length})` : 'Audio/Video File'}
           </Typography>
           {isBatchMode && (
             <Box sx={{ display: 'flex', gap: 1 }}>
-              <Chip label={`${completedCount} Completed`} size="small" sx={{ backgroundColor: '#4caf50', color: '#fff' }} />
-              {errorCount > 0 && <Chip label={`${errorCount} Errors`} size="small" sx={{ backgroundColor: '#f44336', color: '#fff' }} />}
-              {pendingCount > 0 && <Chip label={`${pendingCount} Pending`} size="small" sx={{ backgroundColor: '#666666', color: '#fff' }} />}
-              {idleCount > 0 && <Chip label={`${idleCount} Ready`} size="small" sx={{ backgroundColor: '#333333', color: '#a0a0a0' }} />}
+              <Chip label={`${completedCount} Completed`} size="small" sx={{ backgroundColor: theme.palette.success.main, color: '#fff' }} />
+              {errorCount > 0 && <Chip label={`${errorCount} Errors`} size="small" sx={{ backgroundColor: theme.palette.error.main, color: '#fff' }} />}
+              {pendingCount > 0 && <Chip label={`${pendingCount} Pending`} size="small" sx={{ backgroundColor: theme.palette.mode === 'dark' ? '#666666' : '#9ca3af', color: '#fff' }} />}
+              {idleCount > 0 && <Chip label={`${idleCount} Ready`} size="small" sx={{ backgroundColor: theme.palette.mode === 'dark' ? '#333333' : '#e5e7eb', color: theme.palette.text.secondary }} />}
             </Box>
           )}
         </Box>
@@ -719,7 +766,7 @@ export default function TranscribeTab() {
             {singleFile && (
               <Box sx={{ mt: 2 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: isProcessing ? 2 : 0 }}>
-                  <Typography variant="body2" sx={{ color: '#a0a0a0' }}>
+                  <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
                     {singleFile.name} • {(singleFile.size / (1024 * 1024)).toFixed(2)} MB • {singleFile.name.split('.').pop()?.toUpperCase()}
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 1 }}>
@@ -727,9 +774,9 @@ export default function TranscribeTab() {
                       onClick={() => handleRemoveFile(0)}
                       disabled={isProcessing || isBatchProcessing}
                       sx={{ 
-                        color: '#f44336',
+                        color: theme.palette.error.main,
                         '&:hover': { backgroundColor: 'rgba(244, 67, 54, 0.1)' },
-                        '&:disabled': { color: '#666666' },
+                        '&:disabled': { color: theme.palette.action.disabled },
                       }}
                       size="small"
                       title="Remove file"
@@ -746,8 +793,8 @@ export default function TranscribeTab() {
                       }}
                       disabled={isProcessing || isBatchProcessing}
                       sx={{ 
-                        color: '#00c6ff',
-                        '&:disabled': { color: '#666666' },
+                        color: theme.palette.primary.main,
+                        '&:disabled': { color: theme.palette.action.disabled },
                       }}
                     >
                       Add More Files
@@ -760,16 +807,16 @@ export default function TranscribeTab() {
                   <Box sx={{ 
                     mt: 2, 
                     p: 2, 
-                    backgroundColor: '#121212', 
+                    backgroundColor: theme.palette.background.default, 
                     borderRadius: 1, 
-                    border: '1px solid #333333' 
+                    border: `1px solid ${theme.palette.divider}` 
                   }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
-                      <Typography variant="subtitle2" sx={{ color: '#e0e0e0', fontWeight: 600 }}>
+                      <Typography variant="subtitle2" sx={{ color: theme.palette.text.primary, fontWeight: 600 }}>
                         Processing Progress
                       </Typography>
                       {progressDetails.percentage !== undefined && (
-                        <Typography variant="body2" sx={{ color: '#00c6ff', fontWeight: 600 }}>
+                        <Typography variant="body2" sx={{ color: theme.palette.primary.main, fontWeight: 600 }}>
                           {progressDetails.percentage}%
                         </Typography>
                       )}
@@ -780,30 +827,30 @@ export default function TranscribeTab() {
                     <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 1.5 }}>
                       {progressDetails.audio_time_processed !== undefined && progressDetails.audio_duration !== undefined && (
                         <Box>
-                          <Typography variant="caption" sx={{ color: '#666666', display: 'block', mb: 0.5 }}>
+                          <Typography variant="caption" sx={{ color: theme.palette.text.secondary, display: 'block', mb: 0.5 }}>
                             Audio Processed
                           </Typography>
-                          <Typography variant="body2" sx={{ color: '#e0e0e0' }}>
+                          <Typography variant="body2" sx={{ color: theme.palette.text.primary }}>
                             {formatTime(progressDetails.audio_time_processed)} / {formatTime(progressDetails.audio_duration)}
                           </Typography>
                         </Box>
                       )}
                       {progressDetails.audio_time_remaining !== undefined && (
                         <Box>
-                          <Typography variant="caption" sx={{ color: '#666666', display: 'block', mb: 0.5 }}>
+                          <Typography variant="caption" sx={{ color: theme.palette.text.secondary, display: 'block', mb: 0.5 }}>
                             Time Remaining
                           </Typography>
-                          <Typography variant="body2" sx={{ color: '#e0e0e0' }}>
+                          <Typography variant="body2" sx={{ color: theme.palette.text.primary }}>
                             {formatTime(progressDetails.audio_time_remaining)}
                           </Typography>
                         </Box>
                       )}
                       {progressDetails.frames_progress && (
                         <Box>
-                          <Typography variant="caption" sx={{ color: '#666666', display: 'block', mb: 0.5 }}>
+                          <Typography variant="caption" sx={{ color: theme.palette.text.secondary, display: 'block', mb: 0.5 }}>
                             Frames Progress
                           </Typography>
-                          <Typography variant="body2" sx={{ color: '#e0e0e0' }}>
+                          <Typography variant="body2" sx={{ color: theme.palette.text.primary }}>
                             {progressDetails.frames_progress}
                           </Typography>
                         </Box>

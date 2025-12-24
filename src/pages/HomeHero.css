@@ -1,13 +1,14 @@
 /* Root variables for consistent colors & shadows */
+/* Note: These use global CSS variables set by ThemeContext */
 :root {
-    --primary: #00c6ff;
-    --primary-dark: #0072ff;
-    --secondary: #9b5de5;
-    --background-dark: #0a0a0a;
-    --background-light: #1a1a1a;
-    --text-light: #fff;
-    --text-muted: rgba(255, 255, 255, 0.7);
-    --shadow-lg: 0 15px 35px rgba(0,0,0,0.25);
+    --primary: var(--primary-color);
+    --primary-dark: var(--primary-hover);
+    --secondary: var(--primary-hover);
+    --background-dark: var(--bg-primary);
+    --background-light: var(--bg-paper);
+    --text-light: var(--text-primary);
+    --text-muted: var(--text-secondary);
+    --shadow-lg: 0 15px 35px var(--shadow);
     --border-radius-md: 0.5rem;
     --border-radius-lg: 1rem;
     --transition-fast: 0.3s ease;
@@ -21,7 +22,7 @@
     padding: 8rem 1.5rem 6rem;
     text-align: center;
     overflow: hidden;
-    background: radial-gradient(ellipse at center, var(--background-dark) 0%, #000000 100%);
+    background: radial-gradient(ellipse at center, var(--background-dark) 0%, var(--bg-primary) 100%);
     color: var(--text-light);
     --mouse-x: 50%;
     --mouse-y: 50%;
@@ -231,7 +232,7 @@
     padding: 2rem;
     text-align: center;
     transition: all var(--transition-normal);
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 1px solid var(--border-color);
   }
   
   .feature-card:hover {
@@ -254,9 +255,9 @@
 .cta-section {
   text-align: center;
   padding: 4rem 2rem;
-  background: linear-gradient(135deg, #0a0a0a, #1a1a1a); /* dark gradient background */
+  background: linear-gradient(135deg, var(--bg-primary), var(--bg-paper));
   color: var(--text-light);
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 15px 40px var(--shadow);
   position: relative;
   overflow: hidden;
   border-radius: 0;
@@ -279,14 +280,14 @@
   display: inline-block;
   margin-top: 1.5rem;
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(90deg, #6366f1, #3b82f6); /* Indigo → Blue gradient */
-  color: #fff;
+  background: linear-gradient(90deg, var(--primary-color), var(--primary-hover));
+  color: var(--text-primary);
   font-weight: 600;
   border-radius: 0.75rem;
   text-decoration: none;
   text-align: center;
   transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s ease;
-  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 8px 20px var(--shadow);
   position: relative;
   overflow: hidden;
   will-change: transform, box-shadow;

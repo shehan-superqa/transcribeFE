@@ -157,7 +157,7 @@ export default function ResetPassword() {
                       background: "none",
                       border: "none",
                       cursor: "pointer",
-                      color: "var(--color-gray-500)",
+                      color: "var(--text-secondary)",
                     }}
                   >
                     {showPassword ? <FaEyeSlash /> : <FaEye />}
@@ -167,7 +167,7 @@ export default function ResetPassword() {
                   <div style={{ 
                     marginTop: "0.5rem", 
                     fontSize: "0.875rem", 
-                    color: "var(--color-error)" 
+                    color: "#f44336" 
                   }}>
                     <ul style={{ margin: 0, paddingLeft: "1.25rem" }}>
                       {passwordErrors.map((err, idx) => (
@@ -180,7 +180,7 @@ export default function ResetPassword() {
                   <div style={{ 
                     marginTop: "0.5rem", 
                     fontSize: "0.875rem", 
-                    color: "var(--color-success)" 
+                    color: "#4caf50" 
                   }}>
                     Password meets all requirements
                   </div>
@@ -212,7 +212,7 @@ export default function ResetPassword() {
                       background: "none",
                       border: "none",
                       cursor: "pointer",
-                      color: "var(--color-gray-500)",
+                      color: "var(--text-secondary)",
                     }}
                   >
                     {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
@@ -222,7 +222,7 @@ export default function ResetPassword() {
                   <div style={{ 
                     marginTop: "0.5rem", 
                     fontSize: "0.875rem", 
-                    color: "var(--color-error)" 
+                    color: "#f44336" 
                   }}>
                     Passwords do not match
                   </div>

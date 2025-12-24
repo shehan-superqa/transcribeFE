@@ -1,12 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { generateText } from '../../lib/api/gpt5Api';
 import { useGPT5WebSocket } from '../../hooks/useGPT5WebSocket';
-import { useRequireAuth } from '../../hooks/useRequireAuth';
+import { useAuthModal } from '../../contexts/AuthModalContext';
+import { checkAuthAndTriggerModal } from '../../lib/authCheck';
+import { useAuth } from '../../lib/auth';
 import type { GPT5TextGenerationRequest, ReasoningEffort, Verbosity } from '../../types/gpt5';
 import './GPT5Tool.css';
 
 export default function TextGenerationTool() {
-  const { requireAuth, isAuthenticated } = useRequireAuth();
+  const { user } = useAuth();
+  const isAuthenticated = !!user;
   const [prompt, setPrompt] = useState('');
   const [model, setModel] = useState('');
   const [reasoningEffort, setReasoningEffort] = useState<ReasoningEffort>('medium');
@@ -15,35 +18,25 @@ export default function TextGenerationTool() {
   const [jobId, setJobId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { openModal } = useAuthModal();
+  const performSubmission = useRef(false);
 
   // Use WebSocket streaming when stream is enabled
   const wsStream = useGPT5WebSocket(stream && jobId ? jobId : null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Check authentication before submitting
-    if (!requireAuth()) {
-      return;
-    }
-    
-    if (!prompt.trim()) {
-      setError('Please enter a prompt');
-      return;
-    }
-
-    // Prevent duplicate submissions
-    if (isSubmitting) {
-      return;
-    }
+  const executeSubmission = async () => {
+    if (performSubmission.current) return;
+    performSubmission.current = true;
 
     setIsSubmitting(true);
     setError(null);
     setJobId(null);
 
+    const promptContent = prompt.trim();
+
     try {
       const request: GPT5TextGenerationRequest = {
-        prompt: prompt.trim(),
+        prompt: promptContent,
         stream,
       };
 
@@ -61,7 +54,7 @@ export default function TextGenerationTool() {
           try {
             await wsStream.startStream({
               job_id: response.job_id,
-              prompt: prompt.trim(),
+              prompt: promptContent,
               model: model || undefined,
               reasoning_effort: reasoningEffort,
               verbosity: verbosity,
@@ -83,20 +76,56 @@ export default function TextGenerationTool() {
     } catch (err: any) {
       console.error('Error generating text:', err);
       
+      // Check if it's an auth error
+      if (
+        err.message?.includes('not authenticated') ||
+        err.message?.includes('Please log in') ||
+        err.message?.includes('Authentication failed') ||
+        err.response?.status === 401
+      ) {
+        // Show auth modal - will retry submission after successful auth
+        checkAuthAndTriggerModal(openModal, executeSubmission);
+        setIsSubmitting(false);
+        return;
+      }
+      
       // Provide user-friendly error messages
       let errorMessage = err.message || 'Failed to generate text. Please try again.';
       
       if (err.message?.includes('404') || err.message?.includes('not found')) {
         errorMessage = 'GPT-5 endpoint not available. Please ensure the backend service is running and the GPT-5 endpoints are configured.';
-      } else if (err.message?.includes('401') || err.message?.includes('Authentication')) {
-        errorMessage = 'Authentication failed. Please log in again.';
       } else if (err.message?.includes('Network') || err.message?.includes('fetch')) {
         errorMessage = 'Network error. Please check your connection and try again.';
       }
       
       setError(errorMessage);
       setIsSubmitting(false);
+    } finally {
+      performSubmission.current = false;
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!prompt.trim()) {
+      setError('Please enter a prompt');
+      return;
+    }
+
+    // Prevent duplicate submissions
+    if (isSubmitting || performSubmission.current) {
+      return;
+    }
+
+    // Check authentication before proceeding
+    if (!checkAuthAndTriggerModal(openModal, executeSubmission)) {
+      // Auth modal was opened, stop here
+      return;
+    }
+
+    // User is authenticated, proceed with submission
+    await executeSubmission();
   };
 
   const handleReset = async () => {

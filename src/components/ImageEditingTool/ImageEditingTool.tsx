@@ -2,18 +2,22 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../../lib/auth';
 import { submitImageEditJob, getImageEditJobStatus } from '../../lib/api/imageEditApi';
 import { useSSE } from '../../hooks/useSSE';
+import { useAuthModal } from '../../contexts/AuthModalContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import { checkAuthAndTriggerModal } from '../../lib/authCheck';
 import type { ImageEditJobRequest, ImageEditJobResult, ImageEditJob, Job } from '../../types/api';
 import './ImageEditingTool.css';
 
-const styles = {
+const getStyles = () => ({
   container: {
     padding: '2rem',
     borderRadius: '1.25rem',
-    background: 'linear-gradient(145deg, #0f172a, #1e293b)',
-    color: '#f8fafc',
-    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.25)',
+    background: 'linear-gradient(145deg, var(--gradient-start), var(--gradient-end))',
+    color: 'var(--text-primary)',
+    boxShadow: '0 10px 25px var(--shadow)',
     fontFamily: 'Inter, system-ui, sans-serif',
-    maxWidth: '900px',
+    maxWidth: '1600px',
+    margin: '2rem auto',
     width: '100%',
   },
   form: {
@@ -33,14 +37,14 @@ const styles = {
   label: {
     fontWeight: 600,
     fontSize: '0.95rem',
-    color: '#f8fafc',
+    color: 'var(--text-primary)',
   },
   textarea: {
     padding: '0.75rem 1rem',
     borderRadius: '0.75rem',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-    background: 'rgba(255, 255, 255, 0.05)',
-    color: '#f8fafc',
+    border: '1px solid var(--border-color)',
+    background: 'var(--bg-primary)',
+    color: 'var(--text-primary)',
     outline: 'none',
     fontFamily: 'inherit',
     fontSize: '0.95rem',
@@ -50,24 +54,24 @@ const styles = {
   input: {
     padding: '0.75rem 1rem',
     borderRadius: '0.75rem',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-    background: 'rgba(255, 255, 255, 0.05)',
-    color: '#f8fafc',
+    border: '1px solid var(--border-color)',
+    background: 'var(--bg-primary)',
+    color: 'var(--text-primary)',
     outline: 'none',
     fontSize: '0.95rem',
   },
   fileUploadBox: {
-    border: '2px dashed rgba(255, 255, 255, 0.2)',
+    border: '2px dashed var(--border-color)',
     borderRadius: '0.75rem',
     padding: '2rem',
     textAlign: 'center' as const,
     cursor: 'pointer',
     transition: 'all 0.2s ease',
-    background: 'rgba(255, 255, 255, 0.03)',
+    background: 'var(--bg-secondary)',
   },
   fileUploadBoxHover: {
-    borderColor: '#00c6ff',
-    background: 'rgba(0, 198, 255, 0.1)',
+    borderColor: 'var(--primary-color)',
+    background: 'var(--hover-bg)',
   },
   imagePreview: {
     maxWidth: '100%',
@@ -77,7 +81,7 @@ const styles = {
     objectFit: 'contain' as const,
     borderRadius: '0.75rem',
     marginTop: '1rem',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
+    border: '1px solid var(--border-color)',
     display: 'block',
     boxSizing: 'border-box' as const,
   },
@@ -134,7 +138,7 @@ const styles = {
     cursor: 'not-allowed',
   },
   error: {
-    color: '#ef4444',
+    color: '#f44336',
     padding: '0.75rem',
     borderRadius: '0.75rem',
     background: 'rgba(239, 68, 68, 0.1)',
@@ -143,20 +147,20 @@ const styles = {
   progressContainer: {
     padding: '1rem',
     borderRadius: '0.75rem',
-    background: 'rgba(255, 255, 255, 0.05)',
+    background: 'var(--bg-secondary)',
     marginTop: '1rem',
   },
   progressBar: {
     width: '100%',
     height: '8px',
     borderRadius: '4px',
-    background: 'rgba(255, 255, 255, 0.1)',
+    background: 'var(--bg-secondary)',
     overflow: 'hidden' as const,
     marginTop: '0.5rem',
   },
   progressBarFill: {
     height: '100%',
-    background: 'linear-gradient(90deg, #00c6ff, #0077be)',
+    background: 'linear-gradient(90deg, var(--primary-color), var(--primary-hover))',
     transition: 'width 0.3s ease',
   },
   imageContainer: {
@@ -164,7 +168,7 @@ const styles = {
     flexDirection: 'column' as const,
     gap: '1rem',
     padding: '1.5rem',
-    background: 'rgba(255, 255, 255, 0.05)',
+    background: 'var(--bg-secondary)',
     borderRadius: '0.75rem',
   },
   beforeAfterContainer: {
@@ -184,7 +188,7 @@ const styles = {
   },
   imageLabel: {
     fontSize: '0.85rem',
-    color: '#94a3b8',
+    color: 'var(--text-tertiary)',
     fontWeight: 600,
   },
   image: {
@@ -194,12 +198,12 @@ const styles = {
     height: 'auto',
     objectFit: 'contain' as const,
     borderRadius: '0.75rem',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
+    border: '1px solid var(--border-color)',
     display: 'block',
   },
   downloadButton: {
-    background: 'linear-gradient(90deg, #10b981, #059669)',
-    color: '#f8fafc',
+    background: 'linear-gradient(90deg, var(--primary-color), var(--primary-hover))',
+    color: 'var(--text-primary)',
     border: 'none',
     borderRadius: '0.75rem',
     padding: '0.75rem 1.5rem',
@@ -209,8 +213,8 @@ const styles = {
     alignSelf: 'flex-start',
   },
   editAgainButton: {
-    background: 'linear-gradient(90deg, #00c6ff, #0077be)',
-    color: '#f8fafc',
+    background: 'linear-gradient(90deg, var(--primary-color), var(--primary-hover))',
+    color: 'var(--text-primary)',
     border: 'none',
     borderRadius: '0.75rem',
     padding: '0.75rem 1.5rem',
@@ -220,7 +224,54 @@ const styles = {
     alignSelf: 'flex-start',
     marginTop: '0.5rem',
   },
-};
+  historyContainer: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '1rem',
+    padding: '1.5rem',
+    background: 'var(--bg-secondary)',
+    borderRadius: '0.75rem',
+    minWidth: '350px',
+    maxWidth: '400px',
+  },
+  historyTitle: {
+    margin: 0,
+    fontSize: '1.25rem',
+    fontWeight: 600,
+    color: 'var(--text-primary)',
+  },
+  historyCard: {
+    padding: '1rem',
+    background: 'var(--bg-paper)',
+    borderRadius: '0.75rem',
+    border: '1px solid var(--border-color)',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+  },
+  historyCardHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '0.5rem',
+  },
+  historyCardPrompt: {
+    fontSize: '0.9rem',
+    color: 'var(--text-secondary)',
+    marginBottom: '0.5rem',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap' as const,
+  },
+  historyCardMeta: {
+    fontSize: '0.75rem',
+    color: 'var(--text-tertiary)',
+  },
+  emptyHistory: {
+    textAlign: 'center' as const,
+    padding: '2rem',
+    color: 'var(--text-tertiary)',
+  },
+});
 
 type EditCategory = 'add' | 'remove' | 'modify' | 'text' | 'people' | 'camera' | 'background' | 'multi-step';
 
@@ -288,6 +339,10 @@ interface ImageWithPreview {
 
 export default function ImageEditingTool() {
   const { user } = useAuth();
+  const { theme } = useTheme();
+  const { openModal } = useAuthModal();
+  const styles = getStyles();
+  const performSubmission = useRef(false);
   const [imageFiles, setImageFiles] = useState<ImageWithPreview[]>([]);
   const [modificationInstruction, setModificationInstruction] = useState('');
   const [changeTarget, setChangeTarget] = useState('');
@@ -530,8 +585,10 @@ export default function ImageEditingTool() {
     return parts.join(', ');
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const executeSubmission = async () => {
+    if (performSubmission.current) return;
+    performSubmission.current = true;
+
     setError(null);
     setLoading(true);
     setJobId(null);
@@ -619,9 +676,51 @@ export default function ImageEditingTool() {
       }
     } catch (err: any) {
       console.error('Error submitting edit job:', err);
+      
+      // Check if this is an authentication error
+      if (
+        err.message?.includes('not authenticated') ||
+        err.message?.includes('Please log in') ||
+        err.message?.includes('Authentication failed') ||
+        err.message?.includes('Authentication required') ||
+        err.response?.status === 401
+      ) {
+        // Show auth modal - will retry submission after successful auth
+        checkAuthAndTriggerModal(openModal, executeSubmission);
+        setLoading(false);
+        return;
+      }
+
       setError(err?.message || 'Failed to submit editing job. Please try again.');
       setLoading(false);
+    } finally {
+      performSubmission.current = false;
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Allow editing from either imageFiles or editedImageUrl
+    if (imageFiles.length === 0 && !editedImageUrl) {
+      setError('Please select at least one image to edit');
+      return;
+    }
+
+    const prompt = buildPrompt();
+    if (!prompt.trim()) {
+      setError('Please provide editing instructions');
+      return;
+    }
+
+    // Check authentication before proceeding
+    if (!checkAuthAndTriggerModal(openModal, executeSubmission)) {
+      // Auth modal was opened, stop here
+      return;
+    }
+
+    // User is authenticated, proceed with submission
+    await executeSubmission();
   };
 
   const handleDownload = (url: string) => {
@@ -682,7 +781,7 @@ export default function ImageEditingTool() {
             <label style={styles.label}>
               Upload Image{imageFiles.length > 1 ? 's' : ''}
               {editedImageUrl && imageFiles.length === 0 && (
-                <span style={{ color: '#00c6ff', fontSize: '0.85rem', fontWeight: 'normal', marginLeft: '0.5rem' }}>
+                <span style={{ color: 'var(--primary-color)', fontSize: '0.85rem', fontWeight: 'normal', marginLeft: '0.5rem' }}>
                   (Editing previously edited image)
                 </span>
               )}
@@ -710,12 +809,12 @@ export default function ImageEditingTool() {
               <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ margin: '0 auto', opacity: 0.5 }}>
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              <p style={{ margin: '0.5rem 0', color: '#cbd5e1' }}>
+              <p style={{ margin: '0.5rem 0', color: 'var(--text-secondary)' }}>
                 {imageFiles.length > 0 
                   ? `${imageFiles.length} image${imageFiles.length > 1 ? 's' : ''} selected` 
                   : 'Click to upload or drag and drop'}
               </p>
-              <p style={{ margin: 0, fontSize: '0.85rem', color: '#94a3b8' }}>
+              <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-tertiary)' }}>
                 PNG, JPG, WEBP up to 10MB each (multiple images supported)
               </p>
             </div>
@@ -733,7 +832,7 @@ export default function ImageEditingTool() {
                       position: 'relative',
                       borderRadius: '0.75rem',
                       overflow: 'hidden',
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      border: '1px solid var(--border-color)',
                     }}
                   >
                     <img 
@@ -801,7 +900,7 @@ export default function ImageEditingTool() {
           {/* Modification Instruction */}
           <div style={styles.inputGroup}>
             <label style={styles.label}>
-              Modification Instruction <span style={{ color: '#94a3b8', fontWeight: 'normal' }}>(What to change?)</span>
+              Modification Instruction <span style={{ color: 'var(--text-tertiary)', fontWeight: 'normal' }}>(What to change?)</span>
             </label>
             <textarea
               value={modificationInstruction}
@@ -818,7 +917,7 @@ export default function ImageEditingTool() {
           {/* Change Target */}
           <div style={styles.inputGroup}>
             <label style={styles.label}>
-              Change Target <span style={{ color: '#94a3b8', fontWeight: 'normal' }}>(What to modify?)</span>
+              Change Target <span style={{ color: 'var(--text-tertiary)', fontWeight: 'normal' }}>(What to modify?)</span>
             </label>
             <textarea
               value={changeTarget}
@@ -835,7 +934,7 @@ export default function ImageEditingTool() {
           {/* Preservation Requirements */}
           <div style={styles.inputGroup}>
             <label style={styles.label}>
-              Preservation Requirements <span style={{ color: '#94a3b8', fontWeight: 'normal' }}>(What must stay the same?)</span>
+              Preservation Requirements <span style={{ color: 'var(--text-tertiary)', fontWeight: 'normal' }}>(What must stay the same?)</span>
             </label>
             <textarea
               value={preservationRequirements}
@@ -865,7 +964,7 @@ export default function ImageEditingTool() {
               style={{
                 background: 'transparent',
                 border: 'none',
-                color: '#60a5fa',
+                color: 'var(--primary-color)',
                 cursor: 'pointer',
                 fontSize: '0.9rem',
                 padding: '0.5rem 0',
@@ -935,7 +1034,7 @@ export default function ImageEditingTool() {
           {/* Progress Display */}
           {(loading || currentProgress > 0) && (
             <div style={styles.progressContainer}>
-              <div style={{ color: '#f8fafc', fontSize: '0.9rem' }}>
+              <div style={{ color: 'var(--text-primary)', fontSize: '0.9rem' }}>
                 {currentMessage || 'Processing...'}
               </div>
               <div style={styles.progressBar}>
@@ -946,7 +1045,7 @@ export default function ImageEditingTool() {
                   }}
                 />
               </div>
-              <div style={{ color: '#94a3b8', fontSize: '0.8rem', marginTop: '0.5rem' }}>
+              <div style={{ color: 'var(--text-tertiary)', fontSize: '0.8rem', marginTop: '0.5rem' }}>
                 Status: {currentStatus || 'Processing'} ({Math.round(currentProgress)}%)
               </div>
             </div>
@@ -964,16 +1063,16 @@ export default function ImageEditingTool() {
           </button>
 
           {!user && (
-            <p style={{ color: '#94a3b8', fontSize: '0.9rem', textAlign: 'center' }}>
-              Please <a href="/auth/login" style={{ color: '#00c6ff' }}>sign in</a> to use image editing
+            <p style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem', textAlign: 'center' }}>
+              Please <a href="/auth/login" style={{ color: 'var(--primary-color)' }}>sign in</a> to use image editing
             </p>
           )}
         </form>
 
         {/* Before & After Section */}
         {(originalImageUrls.length > 0 || editedImageUrl) && (
-          <div style={{ marginTop: '2rem', padding: '1.5rem', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '0.75rem' }}>
-            <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem', color: '#f8fafc' }}>Before & After</h3>
+          <div style={styles.imageContainer}>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-primary)' }}>Before & After</h3>
             <div style={styles.beforeAfterContainer}>
               {originalImageUrls.length > 0 && (
                 <div style={styles.imageWrapper}>

@@ -3,7 +3,7 @@
  * Main interface for TTS generation
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useMediaQuery, useTheme } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -28,14 +28,16 @@ import VoiceSelector from './tts/VoiceSelector';
 import AudioPlayer from './tts/AudioPlayer';
 import HowToUse from '../../components/common/HowToUse';
 import '../../components/common/HowToUse.css';
-import { submitTTSJob, getTTSJobStatus, getAvailableVoices, type Voice as TTSVoice, type TTSJobRequest } from '../../lib/api/ttsApi';
-import { useRequireAuth } from '../../hooks/useRequireAuth';
+import { submitTTSJob, getTTSJobStatus, getAvailableVoices, type TTSVoice, type TTSJobRequest } from '../../lib/api/ttsApi';
+import { useAuthModal } from '../../contexts/AuthModalContext';
+import { checkAuthAndTriggerModal } from '../../lib/authCheck';
 
 export default function TTSTab() {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const { requireAuth } = useRequireAuth();
+  const { openModal } = useAuthModal();
+  const performSubmission = useRef(false);
   const [text, setText] = useState('');
   const [selectedVoice, setSelectedVoice] = useState<string>('');
   const [language, setLanguage] = useState<string>('en');
@@ -144,31 +146,9 @@ export default function TTSTab() {
     }
   };
 
-  const handleSubmit = async (e?: React.FormEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-
-    // Prevent navigation if button is clicked
-    if (e && e.nativeEvent) {
-      e.nativeEvent.stopImmediatePropagation();
-    }
-
-    // Check authentication before submitting
-    if (!requireAuth()) {
-      return;
-    }
-
-    if (!text.trim()) {
-      setError('Please enter text to convert to speech');
-      return;
-    }
-
-    if (!selectedVoice) {
-      setError('Please select a voice');
-      return;
-    }
+  const executeSubmission = async () => {
+    if (performSubmission.current) return;
+    performSubmission.current = true;
 
     setError(null);
     setTtsJob(null);
@@ -201,13 +181,9 @@ export default function TTSTab() {
       }
     } catch (err: any) {
       // Check if this is an authentication error
-      if (err.isAuthError || err.message?.includes('not authenticated') || err.message?.includes('Please log in')) {
-        // Only redirect if we're actually not authenticated
-        // Don't redirect if user is already on login page
-        if (!window.location.pathname.includes('/auth/login')) {
-          const currentPath = window.location.pathname;
-          navigate(`/auth/login?redirect=${encodeURIComponent(currentPath)}`, { replace: true });
-        }
+      if (err.isAuthError || err.message?.includes('not authenticated') || err.message?.includes('Please log in') || err.response?.status === 401) {
+        // Show auth modal - will retry submission after successful auth
+        checkAuthAndTriggerModal(openModal, executeSubmission);
         return;
       }
       
@@ -219,7 +195,40 @@ export default function TTSTab() {
         response: err.response?.data,
         status: err.response?.status,
       });
+    } finally {
+      performSubmission.current = false;
     }
+  };
+
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    // Prevent navigation if button is clicked
+    if (e && e.nativeEvent) {
+      e.nativeEvent.stopImmediatePropagation();
+    }
+
+    if (!text.trim()) {
+      setError('Please enter text to convert to speech');
+      return;
+    }
+
+    if (!selectedVoice) {
+      setError('Please select a voice');
+      return;
+    }
+
+    // Check authentication before proceeding
+    if (!checkAuthAndTriggerModal(openModal, executeSubmission)) {
+      // Auth modal was opened, stop here
+      return;
+    }
+
+    // User is authenticated, proceed with submission
+    await executeSubmission();
   };
 
   const handleReset = () => {

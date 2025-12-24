@@ -8,15 +8,16 @@ import ImageGenerationMode from './ImageGenerationMode';
 import ImageGalleryMode from './ImageGalleryMode';
 import './ImageTrainingTool.css';
 
-const styles = {
+const getStyles = () => ({
   container: {
     padding: '2rem',
     borderRadius: '1.25rem',
-    background: 'linear-gradient(145deg, #0f172a, #1e293b)',
-    color: '#f8fafc',
-    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.25)',
+    background: 'linear-gradient(145deg, var(--gradient-start), var(--gradient-end))',
+    color: 'var(--text-primary)',
+    boxShadow: '0 10px 25px var(--shadow)',
     fontFamily: 'Inter, system-ui, sans-serif',
-    maxWidth: '900px',
+    maxWidth: '1600px',
+    margin: '2rem auto',
     width: '100%',
   },
   form: {
@@ -32,14 +33,14 @@ const styles = {
   label: {
     fontWeight: 600,
     fontSize: '0.95rem',
-    color: '#f8fafc',
+    color: 'var(--text-primary)',
   },
   textarea: {
     padding: '0.75rem 1rem',
     borderRadius: '0.75rem',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-    background: 'rgba(255, 255, 255, 0.05)',
-    color: '#f8fafc',
+    border: '1px solid var(--border-color)',
+    background: 'var(--bg-primary)',
+    color: 'var(--text-primary)',
     outline: 'none',
     fontFamily: 'inherit',
     fontSize: '0.95rem',
@@ -49,19 +50,19 @@ const styles = {
   input: {
     padding: '0.75rem 1rem',
     borderRadius: '0.75rem',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-    background: 'rgba(255, 255, 255, 0.05)',
-    color: '#f8fafc',
+    border: '1px solid var(--border-color)',
+    background: 'var(--bg-primary)',
+    color: 'var(--text-primary)',
     outline: 'none',
     fontSize: '0.95rem',
   },
   select: {
     padding: '0.75rem 1rem',
     borderRadius: '0.75rem',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-    background: 'rgba(255, 255, 255, 0.05)',
-    backgroundColor: 'rgba(30, 41, 59, 0.8)',
-    color: '#f8fafc',
+    border: '1px solid var(--border-color)',
+    background: 'var(--bg-primary)',
+    backgroundColor: 'var(--bg-paper)',
+    color: 'var(--text-primary)',
     outline: 'none',
     fontSize: '0.95rem',
     cursor: 'pointer',
@@ -72,7 +73,7 @@ const styles = {
   advancedToggle: {
     background: 'transparent',
     border: 'none',
-    color: '#60a5fa',
+    color: 'var(--primary-color)',
     cursor: 'pointer',
     fontSize: '0.9rem',
     padding: '0.5rem 0',
@@ -86,7 +87,7 @@ const styles = {
     flexDirection: 'column' as const,
     gap: '1rem',
     padding: '1rem',
-    background: 'rgba(255, 255, 255, 0.03)',
+    background: 'var(--bg-secondary)',
     borderRadius: '0.75rem',
     marginTop: '0.5rem',
   },
@@ -96,9 +97,9 @@ const styles = {
     gap: '0.5rem',
   },
   addButton: {
-    background: 'rgba(99, 102, 241, 0.2)',
-    border: '1px solid rgba(99, 102, 241, 0.4)',
-    color: '#a5b4fc',
+    background: 'var(--bg-secondary)',
+    border: '1px solid var(--primary-color)',
+    color: 'var(--primary-color)',
     padding: '0.5rem 1rem',
     borderRadius: '0.5rem',
     cursor: 'pointer',
@@ -107,9 +108,9 @@ const styles = {
     alignSelf: 'flex-start',
   },
   removeButton: {
-    background: 'rgba(239, 68, 68, 0.2)',
-    border: '1px solid rgba(239, 68, 68, 0.4)',
-    color: '#fca5a5',
+    background: 'rgba(239, 68, 68, 0.1)',
+    border: '1px solid rgba(239, 68, 68, 0.3)',
+    color: '#f44336',
     padding: '0.25rem 0.5rem',
     borderRadius: '0.5rem',
     cursor: 'pointer',
@@ -117,8 +118,8 @@ const styles = {
     marginTop: '0.25rem',
   },
   submitButton: {
-    background: 'linear-gradient(90deg, #6366f1, #3b82f6)',
-    color: '#f8fafc',
+    background: 'linear-gradient(90deg, var(--primary-color), var(--primary-hover))',
+    color: 'var(--text-primary)',
     border: 'none',
     borderRadius: '0.75rem',
     padding: '0.875rem 1.5rem',
@@ -126,7 +127,7 @@ const styles = {
     fontSize: '1rem',
     cursor: 'pointer',
     transition: 'all 0.25s ease',
-    boxShadow: '0 4px 12px rgba(99, 102, 241, 0.4)',
+    boxShadow: '0 4px 12px var(--shadow)',
   },
   submitButtonDisabled: {
     opacity: 0.5,
@@ -135,7 +136,7 @@ const styles = {
   error: {
     background: 'rgba(239, 68, 68, 0.1)',
     border: '1px solid rgba(239, 68, 68, 0.3)',
-    color: '#fca5a5',
+    color: '#f44336',
     padding: '0.75rem 1rem',
     borderRadius: '0.75rem',
     fontSize: '0.9rem',
@@ -145,30 +146,30 @@ const styles = {
     flexDirection: 'column' as const,
     gap: '0.75rem',
     padding: '1rem',
-    background: 'rgba(255, 255, 255, 0.05)',
+    background: 'var(--bg-secondary)',
     borderRadius: '0.75rem',
   },
   progressBarContainer: {
-    background: 'rgba(255, 255, 255, 0.1)',
+    background: 'var(--bg-secondary)',
     borderRadius: '1rem',
     height: '0.5rem',
     overflow: 'hidden',
   },
   progressBar: {
     height: '100%',
-    background: 'linear-gradient(90deg, #22d3ee, #3b82f6)',
+    background: 'linear-gradient(90deg, var(--primary-color), var(--primary-hover))',
     transition: 'width 0.3s ease',
   },
   progressText: {
     fontSize: '0.85rem',
-    color: '#cbd5e1',
+    color: 'var(--text-secondary)',
   },
   resultContainer: {
     display: 'flex',
     flexDirection: 'column' as const,
     gap: '1rem',
     padding: '1.5rem',
-    background: 'rgba(255, 255, 255, 0.05)',
+    background: 'var(--bg-secondary)',
     borderRadius: '0.75rem',
     minWidth: '400px',
     maxWidth: '500px',
@@ -180,7 +181,7 @@ const styles = {
     border: '1px solid rgba(16, 185, 129, 0.3)',
     borderRadius: '0.75rem',
     fontSize: '0.9rem',
-    color: '#6ee7b7',
+    color: '#4caf50',
   },
   modelId: {
     fontFamily: 'monospace',
@@ -188,13 +189,13 @@ const styles = {
     wordBreak: 'break-all' as const,
     marginTop: '0.5rem',
     padding: '0.5rem',
-    background: 'rgba(0, 0, 0, 0.2)',
+    background: 'var(--bg-primary)',
     borderRadius: '0.5rem',
   },
   copyButton: {
-    background: 'rgba(99, 102, 241, 0.2)',
-    border: '1px solid rgba(99, 102, 241, 0.4)',
-    color: '#a5b4fc',
+    background: 'var(--bg-secondary)',
+    border: '1px solid var(--primary-color)',
+    color: 'var(--primary-color)',
     padding: '0.5rem 1rem',
     borderRadius: '0.5rem',
     cursor: 'pointer',
@@ -206,7 +207,7 @@ const styles = {
     flexDirection: 'column' as const,
     gap: '1rem',
     padding: '1.5rem',
-    background: 'rgba(255, 255, 255, 0.05)',
+    background: 'var(--bg-secondary)',
     borderRadius: '0.75rem',
     minWidth: '350px',
     maxWidth: '400px',
@@ -217,13 +218,13 @@ const styles = {
     margin: 0,
     fontSize: '1.25rem',
     fontWeight: 600,
-    color: '#f8fafc',
+    color: 'var(--text-primary)',
   },
   historyCard: {
     padding: '1rem',
-    background: 'rgba(255, 255, 255, 0.03)',
+    background: 'var(--bg-paper)',
     borderRadius: '0.75rem',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
+    border: '1px solid var(--border-color)',
     cursor: 'pointer',
     transition: 'all 0.2s ease',
   },
@@ -235,7 +236,7 @@ const styles = {
   },
   historyCardMeta: {
     fontSize: '0.75rem',
-    color: '#94a3b8',
+    color: 'var(--text-tertiary)',
     display: 'flex',
     gap: '0.5rem',
     flexWrap: 'wrap' as const,
@@ -243,27 +244,35 @@ const styles = {
   emptyHistory: {
     textAlign: 'center' as const,
     padding: '2rem',
-    color: '#94a3b8',
+    color: 'var(--text-tertiary)',
+  },
+  rightSidebar: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '1.5rem',
+    minWidth: '350px',
+    maxWidth: '400px',
+    flexShrink: 0,
   },
   infoBox: {
     padding: '0.75rem 1rem',
-    background: 'rgba(59, 130, 246, 0.1)',
-    border: '1px solid rgba(59, 130, 246, 0.3)',
+    background: 'var(--bg-secondary)',
+    border: '1px solid var(--primary-color)',
     borderRadius: '0.75rem',
     fontSize: '0.85rem',
-    color: '#93c5fd',
+    color: 'var(--primary-color)',
     marginBottom: '0.5rem',
   },
   tabContainer: {
     display: 'flex',
     gap: '0.5rem',
     marginBottom: '1.5rem',
-    borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+    borderBottom: '1px solid var(--border-color)',
   },
   tab: {
     background: 'transparent',
     border: 'none',
-    color: '#94a3b8',
+    color: 'var(--text-tertiary)',
     padding: '0.75rem 1.5rem',
     fontSize: '0.95rem',
     fontWeight: 600,
@@ -272,13 +281,15 @@ const styles = {
     transition: 'all 0.2s ease',
   },
   tabActive: {
-    color: '#60a5fa',
-    borderBottomColor: '#60a5fa',
+    color: 'var(--primary-color)',
+    borderBottomColor: 'var(--primary-color)',
   },
-};
+});
 
 export default function ImageTrainingTool() {
   const { user } = useAuth();
+  const { theme } = useTheme();
+  const styles = getStyles();
   const [images, setImages] = useState<ImageWithDescription[]>([]);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [triggerWord, setTriggerWord] = useState('');
@@ -733,18 +744,18 @@ export default function ImageTrainingTool() {
     switch (normalizedStatus) {
       case "completed":
       case "complete":
-        return "#4caf50";
+        return theme.palette.success.main;
       case "processing":
       case "in_progress":
-        return "#ff9800";
+        return theme.palette.warning.main;
       case "error":
       case "failed":
       case "cancelled":
-        return "#f44336";
+        return theme.palette.error.main;
       case "queued":
-        return "#2196f3";
+        return theme.palette.info.main;
       default:
-        return "#666666";
+        return theme.palette.text.secondary;
     }
   };
 
@@ -800,7 +811,7 @@ export default function ImageTrainingTool() {
 
         <div style={styles.inputGroup}>
           <label style={styles.label}>
-            Training Images <span style={{ color: '#ef4444' }}>*</span>
+            Training Images <span style={{ color: theme.palette.error.main }}>*</span>
           </label>
           <ImageUploader
             images={images}
@@ -849,7 +860,7 @@ export default function ImageTrainingTool() {
               + Add Image URL
             </button>
           </div>
-          <small style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.5rem', display: 'block' }}>
+          <small style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '0.5rem', display: 'block' }}>
             {images.length > 0 
               ? `${images.length} image${images.length !== 1 ? 's' : ''} uploaded, ${imageUrls.filter(u => u.trim()).length} URL${imageUrls.filter(u => u.trim()).length !== 1 ? 's' : ''} provided`
               : `${imageUrls.filter(u => u.trim()).length} image URL${imageUrls.filter(u => u.trim()).length !== 1 ? 's' : ''} provided`}
@@ -858,7 +869,7 @@ export default function ImageTrainingTool() {
 
         <div style={styles.inputGroup}>
           <label style={styles.label}>
-            Trigger Word <span style={{ color: '#ef4444' }}>*</span>
+            Trigger Word <span style={{ color: theme.palette.error.main }}>*</span>
           </label>
           <input
             type="text"
@@ -886,7 +897,7 @@ export default function ImageTrainingTool() {
 
         <div style={styles.inputGroup}>
           <label style={styles.label}>
-            Destination Model <span style={{ color: '#ef4444' }}>*</span>
+            Destination Model <span style={{ color: theme.palette.error.main }}>*</span>
           </label>
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}>
             <input
@@ -905,7 +916,7 @@ export default function ImageTrainingTool() {
               style={{ cursor: 'pointer' }}
               disabled={loading}
             />
-            <label style={{ fontSize: '0.85rem', color: '#cbd5e1', cursor: 'pointer' }}>
+            <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
               Auto-generate from trigger word
             </label>
           </div>
@@ -982,8 +993,8 @@ export default function ImageTrainingTool() {
         </button>
 
         {!user && (
-          <p style={{ textAlign: 'center', color: '#cbd5e1', fontSize: '0.9rem' }}>
-            Please <a href="/auth/login" style={{ color: '#60a5fa' }}>sign in</a> to train models
+          <p style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+            Please <a href="/auth/login" style={{ color: 'var(--primary-color)' }}>sign in</a> to train models
           </p>
         )}
 
@@ -1115,25 +1126,177 @@ export default function ImageTrainingTool() {
           />
         )}
 
-      {/* Training Completed Message */}
-      {trainedModel && (
-        <div style={styles.resultContainer}>
-          <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#f8fafc' }}>Training Completed!</h3>
-          <div style={styles.modelInfo}>
-            <div>Your trained model is ready to use:</div>
-            <div style={styles.modelId}>{trainedModel}</div>
-            <button
-              onClick={handleCopyModelId}
-              style={styles.copyButton}
-            >
-              Copy Model ID
-            </button>
-            <div style={{ marginTop: '1rem', fontSize: '0.85rem', color: '#cbd5e1' }}>
-              <strong>How to use:</strong> When generating images, set the model to this ID and include your trigger word in the prompt.
+      {/* Right Sidebar: Training Result + History */}
+      <div style={styles.rightSidebar}>
+        {trainedModel && (
+          <div style={styles.resultContainer}>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-primary)' }}>Training Completed!</h3>
+            <div style={styles.modelInfo}>
+              <div>Your trained model is ready to use:</div>
+              <div style={styles.modelId}>{trainedModel}</div>
+              <button
+                onClick={handleCopyModelId}
+                style={styles.copyButton}
+              >
+                Copy Model ID
+              </button>
+              <div style={{ marginTop: '1rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                <strong>How to use:</strong> When generating images, set the model to this ID and include your trigger word in the prompt.
+              </div>
             </div>
           </div>
+        )}
+
+        {/* LoRAs from Replicate Section */}
+        <div style={styles.historyContainer}>
+        <h3 style={styles.historyTitle}>My LoRAs</h3>
+        
+        {lorasLoading ? (
+          <div style={styles.emptyHistory}>Loading LoRAs...</div>
+        ) : lorasError ? (
+          <div style={{ ...styles.emptyHistory, color: '#f44336' }}>
+            {lorasError}
+          </div>
+        ) : loras.length === 0 ? (
+          <div style={styles.emptyHistory}>
+            <p>No LoRAs found</p>
+            <p style={{ fontSize: '0.85rem', marginTop: '0.5rem' }}>
+              Train a model to create your first LoRA.
+            </p>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {loras.map((lora) => {
+              const loraUrl = lora.url || `${lora.owner}/${lora.name}`;
+              return (
+                <div
+                  key={lora.id}
+                  style={styles.historyCard}
+                  onClick={() => {
+                    setTrainedModel(loraUrl);
+                    navigator.clipboard.writeText(loraUrl);
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--primary-color)';
+                    e.currentTarget.style.background = 'var(--hover-bg)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--border-color)';
+                    e.currentTarget.style.background = 'var(--bg-paper)';
+                  }}
+                >
+                  <div style={styles.historyCardHeader}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                      {lora.name}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        color: lora.visibility === 'public' ? theme.palette.success.main : theme.palette.warning.main,
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      {lora.visibility}
+                    </span>
+                  </div>
+                  {lora.description && (
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: '0.5rem' }}>
+                      {lora.description.length > 60 
+                        ? `${lora.description.substring(0, 60)}...` 
+                        : lora.description}
+                    </div>
+                  )}
+                  <div style={styles.historyCardMeta}>
+                    <span>{formatDate(lora.updated_at || lora.created_at)}</span>
+                    {lora.owner && <span>• {lora.owner}</span>}
+                  </div>
+                  <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: 'var(--primary-color)' }}>
+                    {loraUrl} - Click to copy
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
         </div>
-      )}
+
+        {/* Training History Section */}
+        <div style={styles.historyContainer}>
+        <h3 style={styles.historyTitle}>Training History</h3>
+        
+        {historyLoading ? (
+          <div style={styles.emptyHistory}>Loading history...</div>
+        ) : historyError ? (
+          <div style={{ ...styles.emptyHistory, color: theme.palette.error.main }}>
+            {historyError}
+          </div>
+        ) : trainingHistory.length === 0 ? (
+          <div style={styles.emptyHistory}>
+            <p>No training jobs yet</p>
+            <p style={{ fontSize: '0.85rem', marginTop: '0.5rem' }}>
+              Start training a model using the form on the left.
+            </p>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {trainingHistory.map((job) => {
+              const hasModel = !!job.trained_model;
+              // Determine actual status: if model exists, it's completed regardless of status field
+              const actualStatus = hasModel ? 'completed' : (job.status || 'unknown');
+              return (
+                <div
+                  key={job._id}
+                  style={{
+                    ...styles.historyCard,
+                    ...(hasModel ? {} : { opacity: 0.7 }),
+                  }}
+                  onClick={() => hasModel && handleTrainingJobClick(job)}
+                  onMouseEnter={(e) => {
+                    if (hasModel) {
+                      e.currentTarget.style.borderColor = 'var(--primary-color)';
+                      e.currentTarget.style.background = 'var(--hover-bg)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (hasModel) {
+                      e.currentTarget.style.borderColor = 'var(--border-color)';
+                      e.currentTarget.style.background = 'var(--bg-paper)';
+                    }
+                  }}
+                >
+                  <div style={styles.historyCardHeader}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                      {job.trigger_word}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        color: getStatusColor(actualStatus),
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      {actualStatus}
+                    </span>
+                  </div>
+                  <div style={styles.historyCardMeta}>
+                    <span>{formatDate(job.created_at)}</span>
+                    {job.lora_type && <span>• {job.lora_type}</span>}
+                    {job.image_urls && <span>• {job.image_urls.length} images</span>}
+                  </div>
+                  {hasModel && (
+                    <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: theme.palette.success.main }}>
+                      ✓ Model ready - Click to view
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+        </div>
+      </div>
     </div>
   );
 }

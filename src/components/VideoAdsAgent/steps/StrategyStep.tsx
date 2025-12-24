@@ -44,3 +44,8 @@ export default function StrategyStep({ onboarding, onStrategyGenerated, onError 
 
 
 
+
+
+
+
+

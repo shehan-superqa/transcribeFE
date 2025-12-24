@@ -3,6 +3,8 @@ import { useAuth } from '../../lib/auth';
 import { convertYouTubeToM4A, isValidYouTubeUrl, ConversionProgress } from '../../lib/youtubeConverter';
 import { submitTranscriptionJob, type TranscriptionJobOptions } from '../../lib/transcribeApi';
 import { getJobStatus } from '../../lib/api/jobsApi';
+import { useAuthModal } from '../../contexts/AuthModalContext';
+import { checkAuthAndTriggerModal } from '../../lib/authCheck';
 import { InputMode } from './types';
 
 export const useTranscription = (
@@ -15,12 +17,14 @@ export const useTranscription = (
   onTranscriptionStart?: () => void
 ) => {
   const { user } = useAuth();
+  const { openModal } = useAuthModal();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [converting, setConverting] = useState(false);
   const [conversionProgress, setConversionProgress] = useState<ConversionProgress | null>(null);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isPollingRef = useRef<boolean>(false);
+  const performSubmission = useRef(false);
 
   // Cleanup polling on unmount
   useEffect(() => {
@@ -33,39 +37,9 @@ export const useTranscription = (
     };
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-
-    if (!user) {
-      setError('Please sign in to use transcription');
-      return;
-    }
-
-    if (energyPoints < 10) {
-      setError('Not enough energy points. Please upgrade your plan.');
-      return;
-    }
-
-    if (mode === 'file' && !file) {
-      setError('Please select a file');
-      return;
-    }
-
-    if (mode === 'youtube' && !youtubeUrl) {
-      setError('Please enter a YouTube URL');
-      return;
-    }
-
-    if (mode === 'youtube' && !isValidYouTubeUrl(youtubeUrl)) {
-      setError('Please enter a valid YouTube URL');
-      return;
-    }
-
-    if (mode === 'recording' && audioChunksRef.current.length === 0) {
-      setError('Please record audio first');
-      return;
-    }
+  const executeSubmission = async () => {
+    if (performSubmission.current) return;
+    performSubmission.current = true;
 
     setLoading(true);
     setError('');
@@ -183,9 +157,64 @@ export const useTranscription = (
         setLoading(false);
       }
     } catch (err: any) {
+      // Check if this is an authentication error
+      if (
+        err.message?.includes('not authenticated') ||
+        err.message?.includes('Please log in') ||
+        err.message?.includes('Authentication failed') ||
+        err.message?.includes('Authentication required') ||
+        err.response?.status === 401
+      ) {
+        // Show auth modal - will retry submission after successful auth
+        checkAuthAndTriggerModal(openModal, executeSubmission);
+        setLoading(false);
+        return;
+      }
+
       setError(err.message || 'Failed to start transcription');
       setLoading(false);
+    } finally {
+      performSubmission.current = false;
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (energyPoints < 10) {
+      setError('Not enough energy points. Please upgrade your plan.');
+      return;
+    }
+
+    if (mode === 'file' && !file) {
+      setError('Please select a file');
+      return;
+    }
+
+    if (mode === 'youtube' && !youtubeUrl) {
+      setError('Please enter a YouTube URL');
+      return;
+    }
+
+    if (mode === 'youtube' && !isValidYouTubeUrl(youtubeUrl)) {
+      setError('Please enter a valid YouTube URL');
+      return;
+    }
+
+    if (mode === 'recording' && audioChunksRef.current.length === 0) {
+      setError('Please record audio first');
+      return;
+    }
+
+    // Check authentication before proceeding
+    if (!checkAuthAndTriggerModal(openModal, executeSubmission)) {
+      // Auth modal was opened, stop here
+      return;
+    }
+
+    // User is authenticated, proceed with submission
+    await executeSubmission();
   };
 
   return {

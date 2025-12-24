@@ -245,7 +245,7 @@ export default function Login() {
                   background: "none",
                   border: "none",
                   cursor: "pointer",
-                  color: "var(--color-gray-500)",
+                  color: "var(--text-secondary)",
                 }}
               >
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
@@ -255,7 +255,7 @@ export default function Login() {
               <div style={{ 
                 marginTop: "0.5rem", 
                 fontSize: "0.875rem", 
-                color: "#cf6679" 
+                color: "#f44336" 
               }}>
                 <ul style={{ margin: 0, paddingLeft: "1.25rem" }}>
                   {passwordErrors.map((err, idx) => (
@@ -280,7 +280,7 @@ export default function Login() {
               <Link 
                 to="/auth/forgot-password" 
                 style={{ 
-                  color: "#00c6ff", 
+                  color: "var(--primary-color)", 
                   fontSize: "0.8rem", 
                   textDecoration: "none" 
                 }}

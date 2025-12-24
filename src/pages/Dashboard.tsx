@@ -3,9 +3,10 @@ import { useAuth } from "../lib/auth";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchTranscriptions, Transcription } from "../store/transcriptionsSlice";
 import { RootState, AppDispatch } from "../store";
-import { ThemeProvider, createTheme } from "@mui/material/styles";
+import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { useTheme } from "../contexts/ThemeContext";
 import Sidebar from "../components/Sidebar";
 import TranscribeTab from "../components/transcription/TranscribeTab";
 import LiveMicTab from "../components/transcription/LiveMicTab";
@@ -18,27 +19,9 @@ import LiveTranscribePage from "./tools/LiveTranscribePage";
 import LiveMicVADPage from "./tools/LiveMicVADPage";
 import "./Dashboard.css";
 
-// Create Material-UI dark theme matching Dashboard colors
-const darkTheme = createTheme({
-  palette: {
-    mode: 'dark',
-    primary: {
-      main: '#00c6ff',
-    },
-    background: {
-      default: '#121212',
-      paper: '#1e1e1e',
-    },
-    text: {
-      primary: '#e0e0e0',
-      secondary: '#a0a0a0',
-    },
-    divider: '#333333',
-  },
-});
-
 export default function Dashboard() {
   const { user, refreshUser } = useAuth();
+  const { theme } = useTheme();
   const dispatch = useDispatch<AppDispatch>();
   const location = useLocation();
   const navigate = useNavigate();
@@ -104,13 +87,13 @@ export default function Dashboard() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "completed":
-        return "#4caf50";
+        return theme.palette.success.main;
       case "processing":
-        return "#ff9800";
+        return theme.palette.warning.main;
       case "failed":
-        return "#f44336";
+        return theme.palette.error.main;
       default:
-        return "#757575";
+        return theme.palette.text.secondary;
     }
   };
 
@@ -207,7 +190,7 @@ export default function Dashboard() {
           {/* Transcription Tool with Tabs - Left Side */}
           <div className="tool-wrapper">
             <div className="tool-container">
-              <ThemeProvider theme={darkTheme}>
+              <ThemeProvider theme={theme}>
                 <CssBaseline />
                 <Routes>
                   <Route path="/" element={<Navigate to="/voice/transcribe" replace />} />
@@ -337,7 +320,7 @@ export default function Dashboard() {
                   )}
                   {t.error && (
                     <div className="transcription-error">
-                      <span style={{ color: '#f44336', fontSize: '0.875rem' }}>
+                      <span style={{ color: theme.palette.error.main, fontSize: '0.875rem' }}>
                         Error: {t.error}
                       </span>
                     </div>
@@ -516,7 +499,7 @@ export default function Dashboard() {
                 {selectedTranscription.error && (
                   <div className="modal-detail-item">
                     <span className="modal-detail-label">Error: </span>
-                    <span className="modal-detail-value" style={{ color: '#f44336' }}>{selectedTranscription.error}</span>
+                    <span className="modal-detail-value" style={{ color: theme.palette.error.main }}>{selectedTranscription.error}</span>
                   </div>
                 )}
               </div>

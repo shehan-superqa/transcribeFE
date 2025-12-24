@@ -1,18 +1,35 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../../lib/auth';
 import { useRequireAuth } from '../../hooks/useRequireAuth';
 import { submitImageJob, getImageJobStatus } from '../../lib/api/imageApi';
 import { useSSE } from '../../hooks/useSSE';
-import type { ImageJobRequest, ImageJobResult } from '../../types/api';
+import { useAuthModal } from '../../contexts/AuthModalContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import { checkAuthAndTriggerModal } from '../../lib/authCheck';
+import type { ImageJobRequest, ImageJobResult, ImageJob, Job } from '../../types/api';
 import './ImageGenerationTool.css';
 
-const styles = {
-  formContainer: {
+const getStyles = () => ({
+  container: {
+    display: 'flex',
+    flexDirection: 'row' as const,
+    gap: '2rem',
     padding: '2rem',
     borderRadius: '1.25rem',
-    background: 'linear-gradient(145deg, #0f172a, #1e293b)',
-    color: '#f8fafc',
-    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.25)',
+    background: 'linear-gradient(145deg, var(--gradient-start), var(--gradient-end))',
+    color: 'var(--text-primary)',
+    boxShadow: '0 10px 25px var(--shadow)',
+    maxWidth: '1600px',
+    margin: '2rem auto',
+    width: '100%',
+  },
+  formContainer: {
+    flex: 1,
+    padding: '2rem',
+    borderRadius: '1.25rem',
+    background: 'linear-gradient(145deg, var(--gradient-start), var(--gradient-end))',
+    color: 'var(--text-primary)',
+    boxShadow: '0 10px 25px var(--shadow)',
     fontFamily: 'Inter, system-ui, sans-serif',
     maxWidth: '900px',
     width: '100%',
@@ -30,14 +47,14 @@ const styles = {
   label: {
     fontWeight: 600,
     fontSize: '0.95rem',
-    color: '#f8fafc',
+    color: 'var(--text-primary)',
   },
   textarea: {
     padding: '0.75rem 1rem',
     borderRadius: '0.75rem',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-    background: 'rgba(255, 255, 255, 0.05)',
-    color: '#f8fafc',
+    border: '1px solid var(--border-color)',
+    background: 'var(--bg-primary)',
+    color: 'var(--text-primary)',
     outline: 'none',
     fontFamily: 'inherit',
     fontSize: '0.95rem',
@@ -48,9 +65,9 @@ const styles = {
   input: {
     padding: '0.75rem 1rem',
     borderRadius: '0.75rem',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-    background: 'rgba(255, 255, 255, 0.05)',
-    color: '#f8fafc',
+    border: '1px solid var(--border-color)',
+    background: 'var(--bg-primary)',
+    color: 'var(--text-primary)',
     outline: 'none',
     fontSize: '0.95rem',
     width: '100%',
@@ -58,10 +75,10 @@ const styles = {
   select: {
     padding: '0.75rem 1rem',
     borderRadius: '0.75rem',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-    background: 'rgba(255, 255, 255, 0.05)',
-    backgroundColor: 'rgba(30, 41, 59, 0.8)',
-    color: '#f8fafc',
+    border: '1px solid var(--border-color)',
+    background: 'var(--bg-primary)',
+    backgroundColor: 'var(--bg-paper)',
+    color: 'var(--text-primary)',
     outline: 'none',
     fontSize: '0.95rem',
     cursor: 'pointer',
@@ -73,7 +90,7 @@ const styles = {
   advancedToggle: {
     background: 'transparent',
     border: 'none',
-    color: '#60a5fa',
+    color: 'var(--primary-color)',
     cursor: 'pointer',
     fontSize: '0.9rem',
     padding: '0.5rem 0',
@@ -87,7 +104,7 @@ const styles = {
     flexDirection: 'column' as const,
     gap: '1rem',
     padding: '1rem',
-    background: 'rgba(255, 255, 255, 0.03)',
+    background: 'var(--bg-secondary)',
     borderRadius: '0.75rem',
     marginTop: '0.5rem',
   },
@@ -101,11 +118,11 @@ const styles = {
     maxHeight: '150px',
     borderRadius: '0.5rem',
     marginTop: '0.5rem',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
+    border: '1px solid var(--border-color)',
   },
   fileInputLabel: {
     fontSize: '0.85rem',
-    color: '#cbd5e1',
+    color: 'var(--text-secondary)',
     cursor: 'pointer',
     textDecoration: 'underline',
   },
@@ -113,8 +130,8 @@ const styles = {
     display: 'none',
   },
   submitButton: {
-    background: 'linear-gradient(90deg, #6366f1, #3b82f6)',
-    color: '#f8fafc',
+    background: 'linear-gradient(90deg, var(--primary-color), var(--primary-hover))',
+    color: 'var(--text-primary)',
     border: 'none',
     borderRadius: '0.75rem',
     padding: '0.875rem 1.5rem',
@@ -132,7 +149,7 @@ const styles = {
   error: {
     background: 'rgba(239, 68, 68, 0.1)',
     border: '1px solid rgba(239, 68, 68, 0.3)',
-    color: '#fca5a5',
+    color: '#f44336',
     padding: '0.75rem 1rem',
     borderRadius: '0.75rem',
     fontSize: '0.9rem',
@@ -142,30 +159,30 @@ const styles = {
     flexDirection: 'column' as const,
     gap: '0.75rem',
     padding: '1rem',
-    background: 'rgba(255, 255, 255, 0.05)',
+    background: 'var(--bg-secondary)',
     borderRadius: '0.75rem',
   },
   progressBarContainer: {
-    background: 'rgba(255, 255, 255, 0.1)',
+    background: 'var(--bg-secondary)',
     borderRadius: '1rem',
     height: '0.5rem',
     overflow: 'hidden',
   },
   progressBar: {
     height: '100%',
-    background: 'linear-gradient(90deg, #22d3ee, #3b82f6)',
+    background: 'linear-gradient(90deg, var(--primary-color), var(--primary-hover))',
     transition: 'width 0.3s ease',
   },
   progressText: {
     fontSize: '0.85rem',
-    color: '#cbd5e1',
+    color: 'var(--text-secondary)',
   },
   imageContainer: {
     display: 'flex',
     flexDirection: 'column' as const,
     gap: '1rem',
     padding: '1.5rem',
-    background: 'rgba(255, 255, 255, 0.05)',
+    background: 'var(--bg-secondary)',
     borderRadius: '0.75rem',
     minWidth: '400px',
     maxWidth: '500px',
@@ -184,8 +201,8 @@ const styles = {
     marginTop: '0.5rem',
   },
   downloadButton: {
-    background: 'linear-gradient(90deg, #10b981, #059669)',
-    color: '#f8fafc',
+    background: 'linear-gradient(90deg, var(--primary-color), var(--primary-hover))',
+    color: 'var(--text-primary)',
     border: 'none',
     borderRadius: '0.75rem',
     padding: '0.75rem 1.5rem',
@@ -196,9 +213,107 @@ const styles = {
     textDecoration: 'none',
     display: 'inline-block',
   },
+  historyContainer: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '1rem',
+    padding: '1.5rem',
+    background: 'var(--bg-secondary)',
+    borderRadius: '0.75rem',
+    minWidth: '350px',
+    maxWidth: '400px',
+    flexShrink: 0,
+    minHeight: 0,
+  },
+  historyTitle: {
+    margin: 0,
+    fontSize: '1.25rem',
+    fontWeight: 600,
+    color: 'var(--text-primary)',
+  },
+  historyCard: {
+    padding: '1rem',
+    background: 'var(--bg-paper)',
+    borderRadius: '0.75rem',
+    border: '1px solid var(--border-color)',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+  },
+  historyCardHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '0.5rem',
+  },
+  historyCardPrompt: {
+    fontSize: '0.9rem',
+    color: 'var(--text-secondary)',
+    marginBottom: '0.5rem',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap' as const,
+  },
+  historyCardMeta: {
+    fontSize: '0.75rem',
+    color: 'var(--text-tertiary)',
+  },
+  emptyHistory: {
+    textAlign: 'center' as const,
+    padding: '2rem',
+    color: 'var(--text-tertiary)',
+  },
+  rightSidebar: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '1.5rem',
+    minWidth: '350px',
+    maxWidth: '400px',
+    flexShrink: 0,
+  },
+});
+  historyTitle: {
+    margin: 0,
+    fontSize: '1.25rem',
+    fontWeight: 600,
+    color: 'var(--text-primary)',
+  },
+  historyCard: {
+    padding: '1rem',
+    background: 'var(--bg-primary)',
+    borderRadius: '0.75rem',
+    border: '1px solid var(--border-color)',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+  },
+  historyCardHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '0.5rem',
+  },
+  historyCardPrompt: {
+    fontSize: '0.9rem',
+    color: 'var(--text-secondary)',
+    marginBottom: '0.5rem',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap' as const,
+  },
+  historyCardMeta: {
+    fontSize: '0.75rem',
+    color: 'var(--text-tertiary)',
+    display: 'flex',
+    gap: '0.5rem',
+    flexWrap: 'wrap' as const,
+  },
+  emptyHistory: {
+    textAlign: 'center' as const,
+    padding: '2rem',
+    color: 'var(--text-tertiary)',
+  },
   charCount: {
     fontSize: '0.75rem',
-    color: '#cbd5e1',
+    color: 'var(--text-secondary)',
     textAlign: 'right' as const,
     marginTop: '0.25rem',
   },
@@ -206,7 +321,10 @@ const styles = {
 
 export default function ImageGenerationTool() {
   const { user } = useAuth();
-  const { requireAuth } = useRequireAuth();
+  const { theme } = useTheme();
+  const { openModal } = useAuthModal();
+  const performSubmission = useRef(false);
+  const styles = getStyles();
   const [prompt, setPrompt] = useState('');
   const [negativePrompt, setNegativePrompt] = useState('');
   const [width, setWidth] = useState(1024);
@@ -405,14 +523,10 @@ export default function ImageGenerationTool() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Check authentication before submitting
-    if (!requireAuth()) {
-      return;
-    }
-    
+  const executeSubmission = async () => {
+    if (performSubmission.current) return;
+    performSubmission.current = true;
+
     setError(null);
     setImageUrls([]);
     setLoading(true);
@@ -460,9 +574,43 @@ export default function ImageGenerationTool() {
         setLoading(false);
       }
     } catch (err: any) {
+      // Check if this is an authentication error
+      if (
+        err.message?.includes('not authenticated') ||
+        err.message?.includes('Please log in') ||
+        err.message?.includes('Authentication failed') ||
+        err.message?.includes('Authentication required') ||
+        err.response?.status === 401
+      ) {
+        // Show auth modal - will retry submission after successful auth
+        checkAuthAndTriggerModal(openModal, executeSubmission);
+        setLoading(false);
+        return;
+      }
+
       setError(err.message || 'Failed to submit image generation job');
       setLoading(false);
+    } finally {
+      performSubmission.current = false;
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!prompt.trim()) {
+      setError('Please enter a prompt');
+      return;
+    }
+
+    // Check authentication before proceeding
+    if (!checkAuthAndTriggerModal(openModal, executeSubmission)) {
+      // Auth modal was opened, stop here
+      return;
+    }
+
+    // User is authenticated, proceed with submission
+    await executeSubmission();
   };
 
   const handleDownload = (url: string, index: number) => {

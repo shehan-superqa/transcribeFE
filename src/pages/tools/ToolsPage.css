@@ -1,33 +1,33 @@
 .tools-page {
-  background: #1a1a1a;
+  background: var(--bg-paper);
   border-radius: 16px;
   padding: 2rem;
   min-height: 600px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 25px var(--shadow);
+  border: 1px solid var(--border-color);
 }
 
 .tools-header {
-  background: linear-gradient(135deg, #00c6ff 0%, #0072ff 50%, #9b5de5 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 50%, var(--primary-hover) 100%);
   border-radius: 12px;
   padding: 2rem;
   margin-bottom: 2rem;
-  color: white;
-  box-shadow: 0 8px 20px rgba(0, 198, 255, 0.3);
+  color: var(--text-primary);
+  box-shadow: 0 8px 20px var(--shadow);
 }
 
 .tools-title {
   font-size: 2rem;
   font-weight: 700;
   margin: 0 0 0.5rem 0;
-  color: white;
+  color: var(--text-primary);
 }
 
 .tools-subtitle {
   font-size: 1rem;
   margin: 0;
   opacity: 0.95;
-  color: white;
+  color: var(--text-primary);
 }
 
 .tools-grid {
@@ -37,34 +37,34 @@
 }
 
 .tool-card {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
   border-radius: 12px;
   padding: 1.5rem;
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: left;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 8px var(--shadow-light);
 }
 
 .tool-card:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--hover-bg);
   transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(0, 198, 255, 0.2);
-  border-color: rgba(0, 198, 255, 0.3);
+  box-shadow: 0 8px 16px var(--shadow);
+  border-color: var(--primary-color);
 }
 
 .tool-card-title {
   font-size: 1.25rem;
   font-weight: 600;
   margin: 0 0 0.5rem 0;
-  color: #00c6ff;
+  color: var(--primary-color);
 }
 
 .tool-card-description {
   font-size: 0.9rem;
   margin: 0;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-secondary);
   line-height: 1.5;
 }
 

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../lib/auth';
 import { submitImageJob, getImageJobStatus } from '../../lib/api/imageApi';
 import { useSSE } from '../../hooks/useSSE';
+import { useTheme } from '../../contexts/ThemeContext';
 import type { ImageJobRequest, ImageJobResult, LoRAModel } from '../../types/api';
 import type { ImageJob } from '../../types/api';
 
@@ -12,7 +13,7 @@ interface ImageGenerationModeProps {
   onGenerationComplete?: () => void;
 }
 
-const styles = {
+const getStyles = () => ({
   form: {
     display: 'flex',
     flexDirection: 'column' as const,
@@ -26,14 +27,14 @@ const styles = {
   label: {
     fontWeight: 600,
     fontSize: '0.95rem',
-    color: '#f8fafc',
+    color: 'var(--text-primary)',
   },
   textarea: {
     padding: '0.75rem 1rem',
     borderRadius: '0.75rem',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-    background: 'rgba(255, 255, 255, 0.05)',
-    color: '#f8fafc',
+    border: '1px solid var(--border-color)',
+    background: 'var(--bg-primary)',
+    color: 'var(--text-primary)',
     outline: 'none',
     fontFamily: 'inherit',
     fontSize: '0.95rem',
@@ -43,19 +44,19 @@ const styles = {
   input: {
     padding: '0.75rem 1rem',
     borderRadius: '0.75rem',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-    background: 'rgba(255, 255, 255, 0.05)',
-    color: '#f8fafc',
+    border: '1px solid var(--border-color)',
+    background: 'var(--bg-primary)',
+    color: 'var(--text-primary)',
     outline: 'none',
     fontSize: '0.95rem',
   },
   select: {
     padding: '0.75rem 1rem',
     borderRadius: '0.75rem',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-    background: 'rgba(255, 255, 255, 0.05)',
-    backgroundColor: 'rgba(30, 41, 59, 0.8)',
-    color: '#f8fafc',
+    border: '1px solid var(--border-color)',
+    background: 'var(--bg-primary)',
+    backgroundColor: 'var(--bg-paper)',
+    color: 'var(--text-primary)',
     outline: 'none',
     fontSize: '0.95rem',
     cursor: 'pointer',
@@ -66,7 +67,7 @@ const styles = {
   advancedToggle: {
     background: 'transparent',
     border: 'none',
-    color: '#60a5fa',
+    color: 'var(--primary-color)',
     cursor: 'pointer',
     fontSize: '0.9rem',
     padding: '0.5rem 0',
@@ -76,8 +77,8 @@ const styles = {
     gap: '0.5rem',
   },
   submitButton: {
-    background: 'linear-gradient(90deg, #6366f1, #3b82f6)',
-    color: '#f8fafc',
+    background: 'linear-gradient(90deg, var(--primary-color), var(--primary-hover))',
+    color: 'var(--text-primary)',
     border: 'none',
     borderRadius: '0.75rem',
     padding: '0.875rem 1.5rem',
@@ -85,7 +86,7 @@ const styles = {
     fontSize: '1rem',
     cursor: 'pointer',
     transition: 'all 0.25s ease',
-    boxShadow: '0 4px 12px rgba(99, 102, 241, 0.4)',
+    boxShadow: '0 4px 12px var(--shadow)',
   },
   submitButtonDisabled: {
     opacity: 0.5,
@@ -94,7 +95,7 @@ const styles = {
   error: {
     background: 'rgba(239, 68, 68, 0.1)',
     border: '1px solid rgba(239, 68, 68, 0.3)',
-    color: '#fca5a5',
+    color: '#f44336',
     padding: '0.75rem 1rem',
     borderRadius: '0.75rem',
     fontSize: '0.9rem',
@@ -104,23 +105,23 @@ const styles = {
     flexDirection: 'column' as const,
     gap: '0.75rem',
     padding: '1rem',
-    background: 'rgba(255, 255, 255, 0.05)',
+    background: 'var(--bg-secondary)',
     borderRadius: '0.75rem',
   },
   progressBarContainer: {
-    background: 'rgba(255, 255, 255, 0.1)',
+    background: 'var(--bg-secondary)',
     borderRadius: '1rem',
     height: '0.5rem',
     overflow: 'hidden',
   },
   progressBar: {
     height: '100%',
-    background: 'linear-gradient(90deg, #22d3ee, #3b82f6)',
+    background: 'linear-gradient(90deg, var(--primary-color), var(--primary-hover))',
     transition: 'width 0.3s ease',
   },
   progressText: {
     fontSize: '0.85rem',
-    color: '#cbd5e1',
+    color: 'var(--text-secondary)',
   },
   imagesGrid: {
     display: 'grid',
@@ -132,8 +133,8 @@ const styles = {
     position: 'relative' as const,
     borderRadius: '0.75rem',
     overflow: 'hidden',
-    background: 'rgba(255, 255, 255, 0.05)',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
+    background: 'var(--bg-secondary)',
+    border: '1px solid var(--border-color)',
   },
   image: {
     width: '100%',
@@ -145,7 +146,7 @@ const styles = {
     top: '0.5rem',
     right: '0.5rem',
     background: 'rgba(0, 0, 0, 0.7)',
-    color: '#f8fafc',
+    color: 'var(--text-primary)',
     border: 'none',
     borderRadius: '0.5rem',
     padding: '0.5rem',
@@ -154,17 +155,19 @@ const styles = {
   },
   infoBox: {
     padding: '0.75rem 1rem',
-    background: 'rgba(59, 130, 246, 0.1)',
-    border: '1px solid rgba(59, 130, 246, 0.3)',
+    background: 'var(--bg-secondary)',
+    border: '1px solid var(--primary-color)',
     borderRadius: '0.75rem',
     fontSize: '0.85rem',
-    color: '#93c5fd',
+    color: 'var(--primary-color)',
     marginBottom: '0.5rem',
   },
-};
+});
 
 export default function ImageGenerationMode({ loras, lorasLoading, lorasError, onGenerationComplete }: ImageGenerationModeProps) {
   const { user } = useAuth();
+  const { theme } = useTheme();
+  const styles = getStyles();
   const [selectedLora, setSelectedLora] = useState<LoRAModel | null>(null);
   const [customModel, setCustomModel] = useState('');
   const [useCustomModel, setUseCustomModel] = useState(false);

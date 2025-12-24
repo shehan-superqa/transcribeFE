@@ -1,18 +1,37 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { submitVideoDubJob, getVideoDubJobStatus, getDubLanguages, type DubLanguage } from '../../lib/api/videoApi';
 import { useSSE } from '../../hooks/useSSE';
-import { useRequireAuth } from '../../hooks/useRequireAuth';
+import { useAuthModal } from '../../contexts/AuthModalContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import { checkAuthAndTriggerModal } from '../../lib/authCheck';
+import { useAuth } from '../../lib/auth';
+import type { VideoDubJob, Job } from '../../types/api';
 import HowToUse from '../common/HowToUse';
 import '../common/HowToUse.css';
 import '../../pages/Dashboard.css';
 import './VideoDubberTool.css';
 
-const styles = {
-  formContainer: {
+const getStyles = () => ({
+  container: {
+    display: 'flex',
+    flexDirection: 'row' as const,
+    gap: '2rem',
     padding: '2rem',
     borderRadius: '1.25rem',
-    background: 'linear-gradient(145deg, #0f172a, #1e293b)',
-    color: '#f8fafc',
+    background: 'linear-gradient(145deg, var(--gradient-start), var(--gradient-end))',
+    color: 'var(--text-primary)',
+    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.25)',
+    fontFamily: 'Inter, system-ui, sans-serif',
+    maxWidth: '1600px',
+    margin: '2rem auto',
+    width: '100%',
+  },
+  formContainer: {
+    flex: 1,
+    padding: '2rem',
+    borderRadius: '1.25rem',
+    background: 'linear-gradient(145deg, var(--gradient-start), var(--gradient-end))',
+    color: 'var(--text-primary)',
     boxShadow: '0 10px 25px rgba(0, 0, 0, 0.25)',
     fontFamily: 'Inter, system-ui, sans-serif',
     maxWidth: '900px',
@@ -31,14 +50,14 @@ const styles = {
   label: {
     fontWeight: 600,
     fontSize: '0.95rem',
-    color: '#f8fafc',
+    color: 'var(--text-primary)',
   },
   input: {
     padding: '0.75rem 1rem',
     borderRadius: '0.75rem',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-    background: 'rgba(255, 255, 255, 0.05)',
-    color: '#f8fafc',
+    border: '1px solid var(--border-color)',
+    background: 'var(--bg-primary)',
+    color: 'var(--text-primary)',
     outline: 'none',
     fontSize: '0.95rem',
     width: '100%',
@@ -46,10 +65,10 @@ const styles = {
   select: {
     padding: '0.75rem 1rem',
     borderRadius: '0.75rem',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-    background: 'rgba(255, 255, 255, 0.05)',
-    backgroundColor: 'rgba(30, 41, 59, 0.8)',
-    color: '#f8fafc',
+    border: '1px solid var(--border-color)',
+    background: 'var(--bg-primary)',
+    backgroundColor: 'var(--bg-paper)',
+    color: 'var(--text-primary)',
     outline: 'none',
     fontSize: '0.95rem',
     cursor: 'pointer',
@@ -59,21 +78,21 @@ const styles = {
     width: '100%',
   },
   dropzone: {
-    border: '2px dashed rgba(255, 255, 255, 0.3)',
+    border: '2px dashed var(--border-color)',
     borderRadius: '0.75rem',
     padding: '2rem',
     textAlign: 'center' as const,
     cursor: 'pointer',
     transition: 'all 0.2s ease',
-    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    backgroundColor: 'var(--bg-secondary)',
     width: '100%',
   },
   dropzoneActive: {
-    borderColor: '#3b82f6',
-    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+    borderColor: 'var(--primary-color)',
+    backgroundColor: 'var(--hover-bg)',
   },
   dropzoneText: {
-    color: '#cbd5e1',
+    color: 'var(--text-secondary)',
     fontSize: '0.9rem',
     marginTop: '0.5rem',
   },
@@ -95,25 +114,25 @@ const styles = {
     width: '100%',
   },
   buttonPrimary: {
-    background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-    color: '#ffffff',
+    background: 'linear-gradient(135deg, var(--primary-color), var(--primary-hover))',
+    color: 'var(--text-primary)',
   },
   buttonDisabled: {
-    background: 'rgba(255, 255, 255, 0.1)',
-    color: 'rgba(255, 255, 255, 0.5)',
+    background: 'var(--bg-secondary)',
+    color: 'var(--text-tertiary)',
     cursor: 'not-allowed',
   },
   progressBar: {
     width: '100%',
     height: '8px',
     borderRadius: '4px',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'var(--bg-secondary)',
     overflow: 'hidden' as const,
     marginTop: '0.5rem',
   },
   progressFill: {
     height: '100%',
-    background: 'linear-gradient(90deg, #3b82f6, #8b5cf6)',
+    background: 'linear-gradient(90deg, var(--primary-color), var(--primary-hover))',
     transition: 'width 0.3s ease',
   },
   error: {
@@ -121,7 +140,7 @@ const styles = {
     borderRadius: '0.75rem',
     backgroundColor: 'rgba(239, 68, 68, 0.1)',
     border: '1px solid rgba(239, 68, 68, 0.3)',
-    color: '#fca5a5',
+    color: '#f44336',
     fontSize: '0.9rem',
   },
   success: {
@@ -129,14 +148,14 @@ const styles = {
     borderRadius: '0.75rem',
     backgroundColor: 'rgba(34, 197, 94, 0.1)',
     border: '1px solid rgba(34, 197, 94, 0.3)',
-    color: '#86efac',
+    color: '#4caf50',
     fontSize: '0.9rem',
   },
   historyItem: {
     padding: '1rem',
     borderRadius: '0.75rem',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'var(--bg-paper)',
+    border: '1px solid var(--border-color)',
     marginBottom: '0.75rem',
     cursor: 'pointer',
     transition: 'all 0.2s ease',
@@ -150,7 +169,7 @@ const styles = {
   historyItemTitle: {
     fontWeight: 600,
     fontSize: '0.9rem',
-    color: '#f8fafc',
+    color: 'var(--text-primary)',
   },
   historyItemStatus: {
     fontSize: '0.75rem',
@@ -160,22 +179,22 @@ const styles = {
   },
   statusCompleted: {
     backgroundColor: 'rgba(34, 197, 94, 0.2)',
-    color: '#86efac',
+    color: '#4caf50',
   },
   statusProcessing: {
     backgroundColor: 'rgba(59, 130, 246, 0.2)',
-    color: '#93c5fd',
+    color: 'var(--primary-color)',
   },
   statusError: {
     backgroundColor: 'rgba(239, 68, 68, 0.2)',
-    color: '#fca5a5',
+    color: '#f44336',
   },
   videoContainer: {
     display: 'flex',
     flexDirection: 'column' as const,
     gap: '1rem',
     padding: '1.5rem',
-    background: 'rgba(255, 255, 255, 0.05)',
+    background: 'var(--bg-secondary)',
     borderRadius: '0.75rem',
     minWidth: '400px',
     maxWidth: '500px',
@@ -187,8 +206,8 @@ const styles = {
     maxHeight: '500px',
   },
   downloadButton: {
-    background: 'linear-gradient(90deg, #10b981, #059669)',
-    color: '#f8fafc',
+    background: 'linear-gradient(90deg, var(--primary-color), var(--primary-hover))',
+    color: 'var(--text-primary)',
     border: 'none',
     borderRadius: '0.75rem',
     padding: '0.75rem 1.5rem',
@@ -199,7 +218,7 @@ const styles = {
     textDecoration: 'none',
     display: 'inline-block',
   },
-};
+});
 
 // Supported languages for video dubbing
 const SUPPORTED_LANGUAGES = [
@@ -221,7 +240,12 @@ const SUPPORTED_LANGUAGES = [
 ];
 
 export default function VideoDubberTool() {
-  const { requireAuth, isAuthenticated } = useRequireAuth();
+  const { user } = useAuth();
+  const { theme } = useTheme();
+  const { openModal } = useAuthModal();
+  const styles = getStyles();
+  const performSubmission = useRef(false);
+  const isAuthenticated = !!user;
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoUrl, setVideoUrl] = useState<string>('');
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
@@ -605,14 +629,10 @@ export default function VideoDubberTool() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Check authentication before submitting
-    if (!requireAuth()) {
-      return;
-    }
-    
+  const executeSubmission = async () => {
+    if (performSubmission.current) return;
+    performSubmission.current = true;
+
     setError(null);
     setResultVideoUrl(null);
     setLoading(true);
@@ -621,18 +641,6 @@ export default function VideoDubberTool() {
     setPollingProgress(0);
     setPollingStatus('');
     setPollingMessage('');
-
-    if (!videoFile && !videoUrl.trim()) {
-      setError('Please upload a video file or provide a video URL');
-      setLoading(false);
-      return;
-    }
-
-    if (!outputLanguage) {
-      setError('Please select an output language');
-      setLoading(false);
-      return;
-    }
 
     try {
       // Verify we have a valid file or URL
@@ -686,6 +694,20 @@ export default function VideoDubberTool() {
         setLoading(false);
       }
     } catch (err: any) {
+      // Check if this is an authentication error
+      if (
+        err.message?.includes('not authenticated') ||
+        err.message?.includes('Please log in') ||
+        err.message?.includes('Authentication failed') ||
+        err.message?.includes('Authentication required') ||
+        err.response?.status === 401
+      ) {
+        // Show auth modal - will retry submission after successful auth
+        checkAuthAndTriggerModal(openModal, executeSubmission);
+        setLoading(false);
+        return;
+      }
+
       // Extract detailed error message
       let errorMessage = 'Failed to submit video dubbing job';
       
@@ -705,6 +727,113 @@ export default function VideoDubberTool() {
       
       setError(errorMessage);
       setLoading(false);
+    } finally {
+      performSubmission.current = false;
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!videoFile && !videoUrl.trim()) {
+      setError('Please upload a video file or provide a video URL');
+      return;
+    }
+
+    if (!outputLanguage) {
+      setError('Please select an output language');
+      return;
+    }
+
+    // Check authentication before proceeding
+    if (!checkAuthAndTriggerModal(openModal, executeSubmission)) {
+      // Auth modal was opened, stop here
+      return;
+    }
+
+    // User is authenticated, proceed with submission
+    await executeSubmission();
+  };
+
+  const handleDownload = async (downloadJobId?: string) => {
+    const targetJobId = downloadJobId || jobId;
+    
+    if (!targetJobId) {
+      setError('No job ID available for download');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Download the video file from backend
+      const blob = await downloadDubbedVideo(targetJobId);
+      
+      // Create download link
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `dubbed_video_${targetJobId}.mp4`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up the blob URL
+      setTimeout(() => URL.revokeObjectURL(url), 100);
+      
+      setLoading(false);
+    } catch (err: any) {
+      console.error('Error downloading video:', err);
+      setError(err.message || 'Failed to download dubbed video');
+      setLoading(false);
+    }
+  };
+
+  const handleHistoryItemClick = (job: VideoDubJob) => {
+    if (job.status === 'completed') {
+      // Prioritize video_output_url (dubbed video) over result.video_url (might be input)
+      const completedVideoUrl = job.video_output_url || 
+                                (job.result as any)?.dubbed_video_url ||
+                                (job.result as any)?.output_video_url ||
+                                job.result?.video_url;
+      if (completedVideoUrl) {
+        // Make sure we're not using the input video URL
+        const inputVideoUrl = job.video_url || job.video;
+        if (completedVideoUrl !== inputVideoUrl) {
+          setResultVideoUrl(completedVideoUrl);
+          setJobId(job._id);
+        } else {
+          setError('This video appears to be the original input video, not the dubbed version. The dubbing may have failed.');
+        }
+      }
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "completed":
+        return theme.palette.success.main;
+      case "processing":
+      case "starting":
+        return theme.palette.warning.main;
+      case "error":
+        return theme.palette.error.main;
+      case "queued":
+        return theme.palette.info.main;
+      default:
+        return theme.palette.text.secondary;
     }
   };
 
@@ -759,7 +888,7 @@ export default function VideoDubberTool() {
                       fill="none"
                       stroke="currentColor"
                       strokeWidth="2"
-                      style={{ color: '#64748b', margin: '0 auto' }}
+                      style={{ color: 'var(--text-tertiary)', margin: '0 auto' }}
                     >
                       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                       <polyline points="14 2 14 8 20 8" />
@@ -799,7 +928,7 @@ export default function VideoDubberTool() {
                 }}
                 style={styles.input}
               />
-              <p style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '0.25rem' }}>
                 Alternatively, enter a publicly accessible video URL
               </p>
             </div>
@@ -874,7 +1003,7 @@ export default function VideoDubberTool() {
                     }}
                   />
                 </div>
-                <p style={{ color: '#cbd5e1', fontSize: '0.85rem', marginTop: '0.5rem' }}>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '0.5rem' }}>
                   {displayMessage || 'Processing...'}
                 </p>
               </div>
@@ -897,21 +1026,89 @@ export default function VideoDubberTool() {
               {loading ? 'Dubbing Video...' : 'Dub Video'}
             </button>
           </form>
-        {resultVideoUrl && (
-          <div style={styles.videoContainer}>
-            <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#f8fafc' }}>Dubbed Video</h3>
-            <video src={resultVideoUrl} controls style={styles.video}>
-              Your browser does not support the video tag.
-            </video>
-            <a
-              href={resultVideoUrl}
-              download={`dubbed_video_${jobId || 'output'}.mp4`}
-              style={styles.downloadButton}
-            >
-              Download Dubbed Video
-            </a>
+        </div>
+
+        <div style={styles.rightSidebar}>
+          {resultVideoUrl && (
+            <div style={styles.videoContainer}>
+              <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-primary)' }}>Dubbed Video</h3>
+              <video src={resultVideoUrl} controls style={styles.video}>
+                Your browser does not support the video tag.
+              </video>
+              <a
+                href={resultVideoUrl}
+                download={`dubbed_video_${jobId || 'output'}.mp4`}
+                style={styles.downloadButton}
+              >
+                Download Dubbed Video
+              </a>
+            </div>
+          )}
+
+          <div>
+            <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem', fontWeight: 600 }}>
+              Dubbing History
+            </h3>
+            {historyLoading && <p style={{ color: '#cbd5e1' }}>Loading...</p>}
+            {historyError && (
+              <div style={styles.error}>
+                {historyError}
+              </div>
+            )}
+            {!historyLoading && !historyError && dubHistory.length === 0 && (
+              <p style={{ color: '#64748b', fontSize: '0.9rem' }}>
+                No dubbing history yet
+              </p>
+            )}
+            {!historyLoading &&
+              !historyError &&
+              dubHistory.map((job) => (
+                <div
+                  key={job._id}
+                  style={styles.historyItem}
+                  onClick={() => handleHistoryItemClick(job)}
+                  onMouseEnter={(e) => {
+                    if (job.status === 'completed') {
+                      e.currentTarget.style.borderColor = 'var(--primary-color)';
+                      e.currentTarget.style.backgroundColor = 'var(--hover-bg)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (job.status === 'completed') {
+                      e.currentTarget.style.borderColor = 'var(--border-color)';
+                      e.currentTarget.style.backgroundColor = 'var(--bg-paper)';
+                    }
+                  }}
+                >
+                  <div style={styles.historyItemHeader}>
+                    <span style={styles.historyItemTitle}>
+                      {job.output_language}
+                    </span>
+                    <span
+                      style={{
+                        ...styles.historyItemStatus,
+                        ...(job.status === 'completed'
+                          ? styles.statusCompleted
+                          : job.status === 'error'
+                          ? styles.statusError
+                          : styles.statusProcessing),
+                      }}
+                    >
+                      {job.status}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '0.5rem' }}>
+                    {formatDate(job.created_at)}
+                  </div>
+                  {job.status === 'completed' && (job.video_output_url || job.result?.video_url) && (
+                    <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: theme.palette.success.main }}>
+                      ✓ Video available - Click to view
+                    </div>
+                  )}
+                </div>
+              ))}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
