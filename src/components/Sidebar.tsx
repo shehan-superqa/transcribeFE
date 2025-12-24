@@ -114,12 +114,13 @@ export default function Sidebar({ onRealTimeExpand, open, onClose }: SidebarProp
   useEffect(() => {
     const handleSidebarToggle = (event: CustomEvent) => {
       if (open === undefined && event.detail?.open !== undefined) {
-        // Use functional update to avoid dependency issues
+        // Immediately update state when event is received
         setSidebarOpen(event.detail.open);
       }
     };
     
-    window.addEventListener('sidebarToggle' as any, handleSidebarToggle as EventListener);
+    // Add event listener with capture to catch events early
+    window.addEventListener('sidebarToggle' as any, handleSidebarToggle as EventListener, true);
     
     // Also check initial state
     const state = (window as any).__sidebarState;
@@ -128,7 +129,7 @@ export default function Sidebar({ onRealTimeExpand, open, onClose }: SidebarProp
     }
     
     return () => {
-      window.removeEventListener('sidebarToggle' as any, handleSidebarToggle as EventListener);
+      window.removeEventListener('sidebarToggle' as any, handleSidebarToggle as EventListener, true);
     };
   }, [open]);
 
@@ -163,6 +164,46 @@ export default function Sidebar({ onRealTimeExpand, open, onClose }: SidebarProp
   // Use open prop if provided, otherwise use local sidebarOpen state
   // The sidebarOpen state is kept in sync via useEffect hooks above
   const isOpen = open !== undefined ? open : sidebarOpen;
+  
+  // Prevent body scrolling when drawer is open on mobile
+  useEffect(() => {
+    if (isMobile && isOpen) {
+      // Save current scroll position
+      const scrollY = window.scrollY;
+      
+      // Prevent body scrolling
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
+      
+      // Prevent touch scrolling on iOS
+      const preventTouchMove = (e: TouchEvent) => {
+        // Allow scrolling within the drawer
+        const target = e.target as HTMLElement;
+        const drawer = target.closest('.MuiDrawer-paper, .sidebar');
+        if (!drawer) {
+          e.preventDefault();
+        }
+      };
+      
+      document.addEventListener('touchmove', preventTouchMove, { passive: false });
+      
+      return () => {
+        // Restore scrolling
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+        
+        // Restore scroll position
+        window.scrollTo(0, scrollY);
+        
+        // Remove touch event listener
+        document.removeEventListener('touchmove', preventTouchMove);
+      };
+    }
+  }, [isMobile, isOpen]);
   
   const handleClose = onClose || (() => {
     const state = (window as any).__sidebarState;
@@ -443,9 +484,17 @@ export default function Sidebar({ onRealTimeExpand, open, onClose }: SidebarProp
       <Drawer
         anchor="left"
         open={isOpen}
-        onClose={handleClose}
+        onClose={(event, reason) => {
+          // Close drawer when backdrop is clicked or escape is pressed
+          // The icon click is handled via state toggle in Header
+          if (reason === 'backdropClick' || reason === 'escapeKeyDown') {
+            handleClose();
+          }
+        }}
         ModalProps={{
           keepMounted: true, // Better mobile performance
+          disableScrollLock: false, // Enable scroll lock to prevent background scrolling
+          disableEnforceFocus: false, // Keep focus management
         }}
         sx={{
           display: { xs: 'block', sm: 'block', md: 'none' }, // Show on mobile and tablet, hide on desktop
@@ -453,6 +502,8 @@ export default function Sidebar({ onRealTimeExpand, open, onClose }: SidebarProp
           '& .MuiBackdrop-root': {
             top: 'var(--header-height, 64px)', // Position below header
             backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            // Prevent backdrop from allowing scroll
+            touchAction: 'none',
           },
           '& .MuiDrawer-paper': {
             width: { xs: 280, sm: 300 },

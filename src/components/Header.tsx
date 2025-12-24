@@ -479,13 +479,21 @@ export default function Header() {
           {isMobileScreen && (
             <IconButton
               ref={drawerIconRef}
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 const newState = !sidebarOpen;
+                // Update state immediately
                 setSidebarOpen(newState);
                 // Immediately update window state for Sidebar to sync
                 (window as any).__sidebarState = { open: newState, setOpen: setSidebarOpen };
-                // Dispatch custom event for immediate Sidebar update
-                window.dispatchEvent(new CustomEvent('sidebarToggle', { detail: { open: newState } }));
+                // Dispatch custom event for immediate Sidebar update (use capture phase)
+                const event = new CustomEvent('sidebarToggle', { 
+                  detail: { open: newState },
+                  bubbles: true,
+                  cancelable: true
+                });
+                window.dispatchEvent(event);
               }}
               sx={{
                 padding: '0.5rem',
