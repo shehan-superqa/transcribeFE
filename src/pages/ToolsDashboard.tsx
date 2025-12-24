@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { ThemeProvider } from '@mui/material/styles';
+import { ThemeProvider, useMediaQuery, Button, ButtonGroup, Box, IconButton } from '@mui/material';
 import CssBaseline from '@mui/material/CssBaseline';
+import MenuIcon from '@mui/icons-material/Menu';
 import { useTheme } from '../contexts/ThemeContext';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchTranscriptions, Transcription } from '../store/transcriptionsSlice';
@@ -9,14 +10,9 @@ import { RootState, AppDispatch } from '../store';
 import { useAuth } from '../lib/auth';
 import Sidebar from '../components/Sidebar';
 import VideoToTextPage from './tools/VideoToTextPage';
-import VideoGenerationPage from './tools/VideoGenerationPage';
 import VideoDubberPage from './tools/VideoDubberPage';
 import { DubHistory } from '../components/video/VideoDubberTab';
 import VideoAdsPage from './tools/VideoAdsPage';
-import FreeToolsPage from './tools/FreeToolsPage';
-import LiveTranscribePage from './tools/LiveTranscribePage';
-import RealTimeTranslatorPage from './tools/RealTimeTranslatorPage';
-import LiveVoiceTranslatorPage from './tools/LiveVoiceTranslatorPage';
 import TextToVideoTab, { VideoHistory } from '../components/video/TextToVideoTab';
 import VideoTranslatorPage from './tools/VideoTranslatorPage';
 import SubtitleGeneratorPage from './tools/SubtitleGeneratorPage';
@@ -32,6 +28,32 @@ export default function ToolsDashboard() {
   );
   const [selectedTranscription, setSelectedTranscription] = useState<Transcription | null>(null);
   const [selectedJobDetails, setSelectedJobDetails] = useState<any | null>(null);
+  const [activeMobileTab, setActiveMobileTab] = useState<'tool' | 'history'>('tool');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  
+  // Detect if we're on a small screen - using custom breakpoint to include 981.60px viewport
+  // Toggle buttons show when viewport width is <= 982px
+  const isSmallScreen = useMediaQuery('(max-width: 982px)');
+  const isMobile = useMediaQuery('(max-width: 768px)');
+  
+  // Only show toggle buttons on small screens, and only when on video tool routes
+  const showToggleButtons = isSmallScreen && (
+    location.pathname.startsWith('/video/text-to-video') ||
+    location.pathname.startsWith('/video/ads') ||
+    location.pathname.startsWith('/video/to-text') ||
+    location.pathname.startsWith('/video/dubber') ||
+    location.pathname.startsWith('/video/translator') ||
+    location.pathname.startsWith('/video/subtitle-generator') ||
+    location.pathname === '/video' ||
+    location.pathname === '/video/'
+  );
+  
+  // Reset active tab when screen expands to large size (both sections visible)
+  useEffect(() => {
+    if (!isSmallScreen) {
+      setActiveMobileTab('tool');
+    }
+  }, [isSmallScreen]);
   
   const isTextToVideoRoute = location.pathname.includes('text-to-video') || location.pathname === '/video' || location.pathname === '/video/';
   const isDubberRoute = location.pathname.includes('dubber');
@@ -158,9 +180,102 @@ export default function ToolsDashboard() {
   return (
     <div className="dashboard-container">
       <div className="dashboard-content-wrapper">
-        <Sidebar />
+        {/* Mobile Hamburger Menu Button */}
+        {isMobile && (
+          <IconButton
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            sx={{
+              position: 'fixed',
+              top: 16,
+              left: 16,
+              zIndex: 1301,
+              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(18, 18, 18, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+              border: `1px solid ${theme.palette.divider}`,
+              boxShadow: theme.shadows[2],
+              '&:hover': {
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(18, 18, 18, 1)' : 'rgba(255, 255, 255, 1)',
+              },
+            }}
+          >
+            <MenuIcon />
+          </IconButton>
+        )}
+        
+        <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <div className="dashboard-main-layout">
-          <div className="tool-wrapper">
+          {/* Mobile Toggle Buttons - Only visible on small screens and when on video tool routes */}
+          {showToggleButtons && (
+            <Box
+              sx={{
+                display: isSmallScreen ? 'flex' : 'none',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: 1,
+                mb: 2,
+                width: '100%',
+                position: 'sticky',
+                top: 0,
+                zIndex: 10,
+                backgroundColor: theme.palette.mode === 'dark' ? '#000000' : '#ffffff',
+                padding: '0.5rem 0',
+                borderBottom: `1px solid ${theme.palette.divider}`,
+              }}
+            >
+              <ButtonGroup
+                variant="outlined"
+                aria-label="Tool and History toggle"
+                sx={{
+                  maxWidth: '300px',
+                  '& .MuiButton-root': {
+                    flex: 1,
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
+                    textTransform: 'none',
+                    borderColor: theme.palette.divider,
+                    color: theme.palette.text.primary,
+                    '&:hover': {
+                      borderColor: theme.palette.primary.main,
+                      backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f3f4f6',
+                    },
+                  },
+                }}
+              >
+                <Button
+                  onClick={() => setActiveMobileTab('tool')}
+                  variant={activeMobileTab === 'tool' ? 'contained' : 'outlined'}
+                  sx={{
+                    backgroundColor: activeMobileTab === 'tool' ? theme.palette.primary.main : 'transparent',
+                    color: activeMobileTab === 'tool' ? '#ffffff' : theme.palette.text.primary,
+                    '&:hover': {
+                      backgroundColor: activeMobileTab === 'tool' ? theme.palette.primary.dark : theme.palette.mode === 'dark' ? '#1a1a1a' : '#f3f4f6',
+                    },
+                  }}
+                >
+                  Tool
+                </Button>
+                <Button
+                  onClick={() => setActiveMobileTab('history')}
+                  variant={activeMobileTab === 'history' ? 'contained' : 'outlined'}
+                  sx={{
+                    backgroundColor: activeMobileTab === 'history' ? theme.palette.primary.main : 'transparent',
+                    color: activeMobileTab === 'history' ? '#ffffff' : theme.palette.text.primary,
+                    '&:hover': {
+                      backgroundColor: activeMobileTab === 'history' ? theme.palette.primary.dark : theme.palette.mode === 'dark' ? '#1a1a1a' : '#f3f4f6',
+                    },
+                  }}
+                >
+                  History
+                </Button>
+              </ButtonGroup>
+            </Box>
+          )}
+
+          <div 
+            className="tool-wrapper"
+            style={{
+              display: showToggleButtons && activeMobileTab !== 'tool' ? 'none' : 'flex',
+            }}
+          >
             <div className="tool-container">
               <ThemeProvider theme={theme}>
                 <CssBaseline />
@@ -184,14 +299,35 @@ export default function ToolsDashboard() {
           </div>
           
           {/* Video History Section - Right Side (only for text-to-video route) */}
-          {isTextToVideoRoute && <VideoHistory />}
+          {isTextToVideoRoute && (
+            <div
+              style={{
+                display: showToggleButtons && activeMobileTab !== 'history' ? 'none' : 'block',
+              }}
+            >
+              <VideoHistory />
+            </div>
+          )}
           
           {/* Dubbing History Section - Right Side (only for dubber route) */}
-          {isDubberRoute && <DubHistory />}
+          {isDubberRoute && (
+            <div
+              style={{
+                display: showToggleButtons && activeMobileTab !== 'history' ? 'none' : 'block',
+              }}
+            >
+              <DubHistory />
+            </div>
+          )}
           
           {/* Transcription History Section - Right Side (only for video-to-text route) */}
           {isVideoToTextRoute && (
-            <div className="history-container">
+            <div 
+              className="history-container"
+              style={{
+                display: showToggleButtons && activeMobileTab !== 'history' ? 'none' : 'block',
+              }}
+            >
               <h2 className="history-title">
                 Transcription History
               </h2>

@@ -5,7 +5,7 @@ import { useAuthModal } from '../../contexts/AuthModalContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { checkAuthAndTriggerModal } from '../../lib/authCheck';
 import { useAuth } from '../../lib/auth';
-import type { VideoDubJob, Job } from '../../types/api';
+import type { VideoDubJob } from '../../types/api';
 import HowToUse from '../common/HowToUse';
 import '../common/HowToUse.css';
 import '../../pages/Dashboard.css';
@@ -790,37 +790,6 @@ export default function VideoDubberTool() {
     }
   };
 
-  const handleHistoryItemClick = (job: VideoDubJob) => {
-    if (job.status === 'completed') {
-      // Prioritize video_output_url (dubbed video) over result.video_url (might be input)
-      const completedVideoUrl = job.video_output_url || 
-                                (job.result as any)?.dubbed_video_url ||
-                                (job.result as any)?.output_video_url ||
-                                job.result?.video_url;
-      if (completedVideoUrl) {
-        // Make sure we're not using the input video URL
-        const inputVideoUrl = job.video_url || job.video;
-        if (completedVideoUrl !== inputVideoUrl) {
-          setResultVideoUrl(completedVideoUrl);
-          setJobId(job._id);
-        } else {
-          setError('This video appears to be the original input video, not the dubbed version. The dubbing may have failed.');
-        }
-      }
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case "completed":
@@ -1045,70 +1014,6 @@ export default function VideoDubberTool() {
               </a>
             </div>
           )}
-
-          <div>
-            <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem', fontWeight: 600 }}>
-              Dubbing History
-            </h3>
-            {historyLoading && <p style={{ color: '#cbd5e1' }}>Loading...</p>}
-            {historyError && (
-              <div style={styles.error}>
-                {historyError}
-              </div>
-            )}
-            {!historyLoading && !historyError && dubHistory.length === 0 && (
-              <p style={{ color: '#64748b', fontSize: '0.9rem' }}>
-                No dubbing history yet
-              </p>
-            )}
-            {!historyLoading &&
-              !historyError &&
-              dubHistory.map((job) => (
-                <div
-                  key={job._id}
-                  style={styles.historyItem}
-                  onClick={() => handleHistoryItemClick(job)}
-                  onMouseEnter={(e) => {
-                    if (job.status === 'completed') {
-                      e.currentTarget.style.borderColor = 'var(--primary-color)';
-                      e.currentTarget.style.backgroundColor = 'var(--hover-bg)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (job.status === 'completed') {
-                      e.currentTarget.style.borderColor = 'var(--border-color)';
-                      e.currentTarget.style.backgroundColor = 'var(--bg-paper)';
-                    }
-                  }}
-                >
-                  <div style={styles.historyItemHeader}>
-                    <span style={styles.historyItemTitle}>
-                      {job.output_language}
-                    </span>
-                    <span
-                      style={{
-                        ...styles.historyItemStatus,
-                        ...(job.status === 'completed'
-                          ? styles.statusCompleted
-                          : job.status === 'error'
-                          ? styles.statusError
-                          : styles.statusProcessing),
-                      }}
-                    >
-                      {job.status}
-                    </span>
-                  </div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '0.5rem' }}>
-                    {formatDate(job.created_at)}
-                  </div>
-                  {job.status === 'completed' && (job.video_output_url || job.result?.video_url) && (
-                    <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: theme.palette.success.main }}>
-                      ✓ Video available - Click to view
-                    </div>
-                  )}
-                </div>
-              ))}
-          </div>
         </div>
       </div>
     </div>

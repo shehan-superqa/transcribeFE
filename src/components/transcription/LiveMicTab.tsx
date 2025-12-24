@@ -23,6 +23,7 @@ import { useLiveTranscription } from '../../hooks/useLiveTranscription';
 import { useMicrophone } from '../../hooks/useMicrophone';
 import { useWaveformVisualization } from '../../hooks/useWaveformVisualization';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useRequireAuth } from '../../hooks/useRequireAuth';
 import HowToUse from '../../components/common/HowToUse';
 import '../../components/common/HowToUse.css';
 

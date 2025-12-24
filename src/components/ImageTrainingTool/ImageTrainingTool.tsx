@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../lib/auth';
+import { useTheme } from '../../contexts/ThemeContext';
 import { submitImageTrainingJob, getImageTrainingJobStatus, uploadImagesForTraining, getLoRAsFromReplicate, type ImageWithDescription, type LoRAModel } from '../../lib/api/imageTrainingApi';
 import { useSSE } from '../../hooks/useSSE';
 import type { ImageTrainingJobRequest, ImageTrainingJobResult, ImageTrainingJob, ImageJob, Job } from '../../types/api';
@@ -1221,81 +1222,6 @@ export default function ImageTrainingTool() {
         )}
         </div>
 
-        {/* Training History Section */}
-        <div style={styles.historyContainer}>
-        <h3 style={styles.historyTitle}>Training History</h3>
-        
-        {historyLoading ? (
-          <div style={styles.emptyHistory}>Loading history...</div>
-        ) : historyError ? (
-          <div style={{ ...styles.emptyHistory, color: theme.palette.error.main }}>
-            {historyError}
-          </div>
-        ) : trainingHistory.length === 0 ? (
-          <div style={styles.emptyHistory}>
-            <p>No training jobs yet</p>
-            <p style={{ fontSize: '0.85rem', marginTop: '0.5rem' }}>
-              Start training a model using the form on the left.
-            </p>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {trainingHistory.map((job) => {
-              const hasModel = !!job.trained_model;
-              // Determine actual status: if model exists, it's completed regardless of status field
-              const actualStatus = hasModel ? 'completed' : (job.status || 'unknown');
-              return (
-                <div
-                  key={job._id}
-                  style={{
-                    ...styles.historyCard,
-                    ...(hasModel ? {} : { opacity: 0.7 }),
-                  }}
-                  onClick={() => hasModel && handleTrainingJobClick(job)}
-                  onMouseEnter={(e) => {
-                    if (hasModel) {
-                      e.currentTarget.style.borderColor = 'var(--primary-color)';
-                      e.currentTarget.style.background = 'var(--hover-bg)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (hasModel) {
-                      e.currentTarget.style.borderColor = 'var(--border-color)';
-                      e.currentTarget.style.background = 'var(--bg-paper)';
-                    }
-                  }}
-                >
-                  <div style={styles.historyCardHeader}>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                      {job.trigger_word}
-                    </span>
-                    <span
-                      style={{
-                        fontSize: '0.75rem',
-                        fontWeight: 600,
-                        color: getStatusColor(actualStatus),
-                        textTransform: 'uppercase',
-                      }}
-                    >
-                      {actualStatus}
-                    </span>
-                  </div>
-                  <div style={styles.historyCardMeta}>
-                    <span>{formatDate(job.created_at)}</span>
-                    {job.lora_type && <span>• {job.lora_type}</span>}
-                    {job.image_urls && <span>• {job.image_urls.length} images</span>}
-                  </div>
-                  {hasModel && (
-                    <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: theme.palette.success.main }}>
-                      ✓ Model ready - Click to view
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-        </div>
       </div>
     </div>
   );

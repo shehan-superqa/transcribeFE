@@ -1,5 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Drawer, useMediaQuery, IconButton } from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
+import { useTheme } from '../contexts/ThemeContext';
 import './Sidebar.css';
 
 interface SubMenuItem {
@@ -89,11 +92,15 @@ const bottomMenuItems: MenuItem[] = [
 
 interface SidebarProps {
   onRealTimeExpand?: (expanded: boolean) => void;
+  open?: boolean;
+  onClose?: () => void;
 }
 
-export default function Sidebar({ onRealTimeExpand }: SidebarProps) {
+export default function Sidebar({ onRealTimeExpand, open, onClose }: SidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { theme } = useTheme();
+  const isMobile = useMediaQuery('(max-width: 768px)');
   const [activeItem, setActiveItem] = useState<string>('');
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set()); // Default: all collapsed
   const [userCollapsedItems, setUserCollapsedItems] = useState<Set<string>>(new Set());
@@ -166,6 +173,41 @@ export default function Sidebar({ onRealTimeExpand }: SidebarProps) {
     }
   }, [location.pathname, onRealTimeExpand, userCollapsedItems]);
 
+
+  const handleSubItemClick = (subItem: SubMenuItem, parentId: string) => {
+    setActiveItem(parentId);
+    navigate(subItem.path);
+    // Close drawer on mobile when item is selected
+    if (isMobile && onClose) {
+      onClose();
+    }
+    // Ensure parent is expanded and remove from collapsed items
+    if (!expandedItems.has(parentId)) {
+      const newExpanded = new Set(expandedItems);
+      newExpanded.add(parentId);
+      setExpandedItems(newExpanded);
+      // Remove from userCollapsedItems since user is navigating to a sub-item
+      setUserCollapsedItems(prev => {
+        const newCollapsed = new Set(prev);
+        newCollapsed.delete(parentId);
+        return newCollapsed;
+      });
+      if (parentId === 'real-time') {
+        onRealTimeExpand?.(true);
+      }
+    } else {
+      // Even if already expanded, ensure it's not in collapsed items
+      setUserCollapsedItems(prev => {
+        if (prev.has(parentId)) {
+          const newCollapsed = new Set(prev);
+          newCollapsed.delete(parentId);
+          return newCollapsed;
+        }
+        return prev;
+      });
+    }
+  };
+
   const handleItemClick = (item: MenuItem) => {
     if (item.isExpandable) {
       // Set flag to prevent auto-expansion during manual toggle
@@ -214,36 +256,10 @@ export default function Sidebar({ onRealTimeExpand }: SidebarProps) {
       // Navigate for regular items
       setActiveItem(item.id);
       navigate(item.path);
-    }
-  };
-
-  const handleSubItemClick = (subItem: SubMenuItem, parentId: string) => {
-    setActiveItem(parentId);
-    navigate(subItem.path);
-    // Ensure parent is expanded and remove from collapsed items
-    if (!expandedItems.has(parentId)) {
-      const newExpanded = new Set(expandedItems);
-      newExpanded.add(parentId);
-      setExpandedItems(newExpanded);
-      // Remove from userCollapsedItems since user is navigating to a sub-item
-      setUserCollapsedItems(prev => {
-        const newCollapsed = new Set(prev);
-        newCollapsed.delete(parentId);
-        return newCollapsed;
-      });
-      if (parentId === 'real-time') {
-        onRealTimeExpand?.(true);
+      // Close drawer on mobile when item is selected
+      if (isMobile && onClose) {
+        onClose();
       }
-    } else {
-      // Even if already expanded, ensure it's not in collapsed items
-      setUserCollapsedItems(prev => {
-        if (prev.has(parentId)) {
-          const newCollapsed = new Set(prev);
-          newCollapsed.delete(parentId);
-          return newCollapsed;
-        }
-        return prev;
-      });
     }
   };
 
@@ -297,7 +313,7 @@ export default function Sidebar({ onRealTimeExpand }: SidebarProps) {
     };
   }, []);
 
-  return (
+  const sidebarContent = (
     <div className="sidebar" ref={sidebarRef}>
       <div className="sidebar-content">
         {menuItems.map((item) => (
@@ -355,5 +371,45 @@ export default function Sidebar({ onRealTimeExpand }: SidebarProps) {
       </div>
     </div>
   );
+
+  // Mobile: Render as Drawer
+  if (isMobile) {
+    return (
+      <Drawer
+        anchor="left"
+        open={open ?? false}
+        onClose={onClose}
+        ModalProps={{
+          keepMounted: true, // Better mobile performance
+        }}
+        sx={{
+          display: { xs: 'block', sm: 'none' },
+          '& .MuiDrawer-paper': {
+            width: 280,
+            maxWidth: '85vw',
+            boxSizing: 'border-box',
+            zIndex: 1300,
+            backgroundColor: theme.palette.mode === 'dark' ? '#121212' : '#ffffff',
+            borderRight: `1px solid ${theme.palette.divider}`,
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+          },
+        }}
+      >
+        <div style={{ 
+          height: '100%', 
+          display: 'flex', 
+          flexDirection: 'column',
+          overflow: 'hidden'
+        }}>
+          {sidebarContent}
+        </div>
+      </Drawer>
+    );
+  }
+
+  // Desktop: Render as fixed sidebar (always visible)
+  return sidebarContent;
 }
 

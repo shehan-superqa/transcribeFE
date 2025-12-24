@@ -120,6 +120,7 @@
   overflow-x: hidden;
   overscroll-behavior-y: contain;
   overscroll-behavior-x: none;
+  box-sizing: border-box;
 }
 
 .tool-container {
@@ -131,21 +132,23 @@
 .history-container {
   background-color: var(--bg-paper);
   border-radius: clamp(8px, 2vw, 12px);
-  padding: clamp(1rem, 3vw, 2rem);
   border: 1px solid var(--border-color);
   position: sticky;
   top: clamp(1rem, 2vw, 2rem);
+  height: calc(100vh - clamp(2rem, 4vw, 4rem));
   max-height: calc(100vh - clamp(2rem, 4vw, 4rem));
-  overflow-y: auto;
   width: 100%;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
 }
 
 .history-title {
   color: var(--text-primary);
   margin: 0;
-  margin-bottom: 1.5rem;
-  padding: 0.75rem 1rem;
+  padding: clamp(0.75rem, 2vw, 1rem) clamp(1rem, 3vw, 1.5rem);
   font-size: clamp(1.25rem, 3vw, 1.5rem);
   font-weight: 600;
   position: sticky;
@@ -153,14 +156,17 @@
   background-color: var(--bg-paper);
   z-index: 10;
   border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
 .history-content {
-  padding: 0 1rem 1rem 1rem;
+  padding: clamp(1rem, 3vw, 1.5rem);
   overflow-y: auto;
   overflow-x: hidden;
-  flex: 1;
+  flex: 1 1 auto;
   min-height: 0;
+  max-height: 100%;
   overscroll-behavior-y: contain;
   overscroll-behavior-x: none;
 }
@@ -444,9 +450,10 @@
   }
 
   .history-container {
+    height: 60vh;
     max-height: 60vh;
     border-radius: clamp(8px, 2vw, 10px);
-    padding: clamp(1.25rem, 3vw, 1.5rem);
+    min-height: 0;
   }
 
   .history-title {
@@ -455,7 +462,7 @@
   }
 
   .history-content {
-    padding: 0 clamp(1rem, 3vw, 1.5rem) clamp(1rem, 3vw, 1.5rem) clamp(1rem, 3vw, 1.5rem);
+    padding: clamp(1rem, 3vw, 1.5rem);
   }
 
   .transcriptions-grid {
@@ -508,18 +515,19 @@
   .history-container {
     position: sticky;
     top: clamp(0.5rem, 1vw, 1rem);
+    height: calc(100vh - clamp(1.5rem, 3vw, 2rem));
     max-height: calc(100vh - clamp(1.5rem, 3vw, 2rem));
     border-radius: clamp(10px, 2vw, 12px);
-    padding: clamp(1.5rem, 3vw, 2rem);
+    min-height: 0;
   }
 
   .history-title {
-    padding: clamp(0.5rem, 1vw, 0.75rem) clamp(1.25rem, 3vw, 1.5rem) clamp(0.75rem, 2vw, 1rem) clamp(1.25rem, 3vw, 1.5rem);
+    padding: clamp(0.75rem, 2vw, 1rem) clamp(1.25rem, 3vw, 1.5rem);
     font-size: clamp(1.2rem, 3vw, 1.5rem);
   }
 
   .history-content {
-    padding: 0 clamp(1.25rem, 3vw, 1.5rem) clamp(1.25rem, 3vw, 1.5rem) clamp(1.25rem, 3vw, 1.5rem);
+    padding: clamp(1.25rem, 3vw, 1.5rem);
   }
 
   .modal-content {
@@ -545,12 +553,12 @@
   }
 
   .history-title {
-    padding: clamp(0.5rem, 1vw, 0.75rem) clamp(1.5rem, 3vw, 2rem) clamp(1rem, 2vw, 1.5rem) clamp(1.5rem, 3vw, 2rem);
+    padding: clamp(0.75rem, 2vw, 1rem) clamp(1.5rem, 3vw, 2rem);
     font-size: clamp(1.3rem, 3.5vw, 1.5rem);
   }
 
   .history-content {
-    padding: 0 clamp(1.5rem, 3vw, 2rem) clamp(1.5rem, 3vw, 2rem) clamp(1.5rem, 3vw, 2rem);
+    padding: clamp(1.5rem, 3vw, 2rem);
   }
 
   .loading-state,
@@ -599,10 +607,27 @@
   }
 }
 
+/* Small screens: ≤ 982px (includes inspect viewport sizes) */
+@media (max-width: 982px) {
+  .tool-wrapper {
+    overflow-y: auto;
+    max-height: calc(100vh - 120px);
+  }
+
+  .tool-container {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
 /* Mobile-specific: ≤ 480px */
 @media (max-width: 480px) {
   .dashboard-container {
     padding: 0.5rem;
+  }
+
+  .tool-wrapper {
+    max-height: calc(100vh - 100px);
   }
 
   .meta-separator {
