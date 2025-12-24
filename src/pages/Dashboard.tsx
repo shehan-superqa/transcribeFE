@@ -36,9 +36,9 @@ export default function Dashboard() {
   const [activeMobileTab, setActiveMobileTab] = useState<'tool' | 'history'>('tool');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
-  // Detect if we're on a small screen - using custom breakpoint to include 981.60px viewport
-  // Toggle buttons show when viewport width is <= 982px
-  const isSmallScreen = useMediaQuery('(max-width: 982px)');
+  // Detect if we're on a laptop L size or smaller - tabs show at 1440px and below
+  // Toggle buttons show when viewport width is <= 1440px
+  const isSmallScreen = useMediaQuery('(max-width: 1440px)');
   const isMobile = useMediaQuery('(max-width: 768px)');
   
   // Only show toggle buttons on small screens, and only when on audio tool routes or real-time tool routes

@@ -2,11 +2,6 @@
   transition: all 0.2s ease;
 }
 
-.file-uploader.drag-active {
-  border-color: #00c6ff !important;
-  background-color: #1a1a1a !important;
-}
-
 .file-uploader.disabled {
   opacity: 0.6;
   cursor: not-allowed !important;

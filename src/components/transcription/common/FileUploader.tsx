@@ -8,6 +8,7 @@ import {
   Box,
   Typography,
   Paper,
+  useTheme,
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { validateFile, formatFileSize, type FileValidationResult } from '../../../utils/fileValidation';
@@ -28,6 +29,7 @@ export default function FileUploader({
   disabled = false,
   currentFile,
 }: FileUploaderProps) {
+  const theme = useTheme();
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const onDrop = useCallback(
@@ -66,14 +68,15 @@ export default function FileUploader({
           p: 4,
           border: 2,
           borderStyle: 'dashed',
-          borderColor: isDragActive ? '#00c6ff' : '#333333',
-          backgroundColor: isDragActive ? '#1a1a1a' : '#1e1e1e',
+          borderColor: isDragActive ? theme.palette.primary.main : theme.palette.divider,
+          backgroundColor: theme.palette.background.paper,
+          borderRadius: '0.75rem',
           cursor: disabled ? 'not-allowed' : 'pointer',
           opacity: disabled ? 0.6 : 1,
           transition: 'all 0.2s',
           '&:hover': {
-            borderColor: disabled ? '#333333' : '#00c6ff',
-            backgroundColor: disabled ? '#1e1e1e' : '#1a1a1a',
+            borderColor: disabled ? theme.palette.divider : theme.palette.primary.main,
+            backgroundColor: disabled ? theme.palette.background.paper : (theme.palette.mode === 'dark' ? theme.palette.grey[800] : theme.palette.grey[50]),
           },
         }}
       >
@@ -86,18 +89,40 @@ export default function FileUploader({
             gap: 2,
           }}
         >
-          <CloudUploadIcon sx={{ fontSize: 48, color: '#00c6ff' }} />
-          <Typography variant="h6" sx={{ color: '#e0e0e0' }}>
+          <CloudUploadIcon sx={{ fontSize: 48, color: theme.palette.primary.main }} />
+          <Typography 
+            variant="body1" 
+            sx={{ 
+              color: theme.palette.text.primary,
+              fontFamily: "'Inter', sans-serif",
+              fontSize: '0.875rem',
+              textAlign: 'center',
+            }}
+          >
             {isDragActive
               ? 'Drop the file here'
               : 'Drag & drop an audio or video file here, or click to select'}
           </Typography>
           {currentFile && (
             <Box sx={{ mt: 2, textAlign: 'center' }}>
-              <Typography variant="body2" sx={{ color: '#a0a0a0' }}>
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  color: theme.palette.text.secondary,
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '0.875rem',
+                }}
+              >
                 Selected: {currentFile.name}
               </Typography>
-              <Typography variant="body2" sx={{ color: '#a0a0a0' }}>
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  color: theme.palette.text.secondary,
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '0.875rem',
+                }}
+              >
                 Size: {formatFileSize(currentFile.size)}
               </Typography>
             </Box>
@@ -105,7 +130,14 @@ export default function FileUploader({
         </Box>
       </Paper>
       {validationError && (
-        <Typography sx={{ mt: 1, color: '#f44336' }}>
+        <Typography 
+          sx={{ 
+            mt: 1, 
+            color: theme.palette.error.main,
+            fontFamily: "'Inter', sans-serif",
+            fontSize: '0.875rem',
+          }}
+        >
           {validationError}
         </Typography>
       )}
