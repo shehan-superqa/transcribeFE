@@ -10,12 +10,12 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  background-color: #121212;
-  background: linear-gradient(to bottom, #121212 0%, #121212 98%, rgba(18, 18, 18, 0.95) 100%);
+  background-color: #ffffff;
+  background: linear-gradient(to bottom, #ffffff 0%, #ffffff 98%, rgba(255, 255, 255, 0.95) 100%);
   padding: 1rem 0 0.5rem 0;
   margin-bottom: 0.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .how-to-use-title {
@@ -32,12 +32,12 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  background-color: #121212;
-  background: linear-gradient(to bottom, #121212 0%, #121212 98%, rgba(18, 18, 18, 0.95) 100%);
+  background-color: #ffffff;
+  background: linear-gradient(to bottom, #ffffff 0%, #ffffff 98%, rgba(255, 255, 255, 0.95) 100%);
   padding: 0.5rem clamp(0.5rem, 2vw, 1rem);
   margin-bottom: 0.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   width: 100%;
   box-sizing: border-box;
   overflow: visible;
@@ -47,7 +47,7 @@
 .tool-sticky-title h1 {
   font-size: clamp(1.25rem, 5vw, 2rem);
   font-weight: 700;
-  color: #ffffff !important;
+  color: #000000 !important;
   margin: 0;
   line-height: 1.2;
   display: block;
@@ -80,12 +80,12 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  background-color: #121212;
-  background: linear-gradient(to bottom, #121212 0%, #121212 98%, rgba(18, 18, 18, 0.95) 100%);
+  background-color: #ffffff;
+  background: linear-gradient(to bottom, #ffffff 0%, #ffffff 98%, rgba(255, 255, 255, 0.95) 100%);
   padding: 0.5rem clamp(0.5rem, 2vw, 1rem);
   margin-bottom: 0.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   width: 100%;
   box-sizing: border-box;
   overflow: visible;
@@ -95,7 +95,7 @@
 .live-mic-title {
   font-size: clamp(1.25rem, 5vw, 2rem);
   font-weight: 700;
-  color: #ffffff !important;
+  color: #000000 !important;
   margin: 0;
   line-height: 1.2;
   display: block;

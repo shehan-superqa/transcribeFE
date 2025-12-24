@@ -862,10 +862,10 @@ export default function TranscribeTab() {
               disabled={isProcessing || isBatchProcessing}
               sx={{
                 mb: 2,
-                borderColor: '#333333',
-                color: '#e0e0e0',
-                '&:hover': { borderColor: '#00c6ff', backgroundColor: '#1a1a1a' },
-                '&:disabled': { borderColor: '#333333', color: '#666666' },
+                borderColor: '#cccccc',
+                color: '#000000',
+                '&:hover': { borderColor: '#00c6ff', backgroundColor: '#f3f4f6' },
+                '&:disabled': { borderColor: '#cccccc', color: '#999999' },
               }}
             >
               Add More Files
@@ -878,8 +878,8 @@ export default function TranscribeTab() {
                   <ListItem
                     key={index}
                     sx={{
-                      backgroundColor: '#121212',
-                      border: '1px solid #333333',
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #cccccc',
                       borderRadius: 1,
                       mb: 1,
                       flexDirection: 'column',
@@ -890,7 +890,7 @@ export default function TranscribeTab() {
                       <ListItemText
                         primary={
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Typography sx={{ color: '#e0e0e0' }}>{file.name}</Typography>
+                            <Typography sx={{ color: '#000000' }}>{file.name}</Typography>
                             {batchFile && (
                               <Chip
                                 label={fileStatus === 'cancelled' ? 'cancelled' : fileStatus === 'idle' ? 'ready' : fileStatus}
@@ -911,7 +911,7 @@ export default function TranscribeTab() {
                           </Box>
                         }
                         secondary={
-                          <Typography sx={{ color: '#a0a0a0' }}>
+                          <Typography sx={{ color: '#666666' }}>
                             {(file.size / (1024 * 1024)).toFixed(2)} MB • {file.name.split('.').pop()?.toUpperCase()}
                             {batchFile?.error && ` • Error: ${batchFile.error}`}
                             {batchFile?.jobId && ` • Job: ${batchFile.jobId.substring(0, 8)}...`}
@@ -959,9 +959,9 @@ export default function TranscribeTab() {
                           InputProps={{ readOnly: true }}
                           sx={{
                             '& .MuiOutlinedInput-root': {
-                              color: '#e0e0e0',
-                              backgroundColor: '#0a0a0a',
-                              '& fieldset': { borderColor: '#333333' },
+                              color: '#000000',
+                              backgroundColor: '#ffffff',
+                              '& fieldset': { borderColor: '#cccccc' },
                             },
                           }}
                         />
@@ -976,36 +976,36 @@ export default function TranscribeTab() {
       </Paper>
 
       {/* Transcription Settings */}
-      <Paper sx={{ p: 3, mb: 3, backgroundColor: '#1e1e1e', border: '1px solid #333333' }}>
-        <Typography variant="h6" gutterBottom sx={{ color: '#e0e0e0', mb: 2 }}>
+      <Paper sx={{ p: 3, mb: 3, backgroundColor: '#ffffff', border: '1px solid #cccccc' }}>
+        <Typography variant="h6" gutterBottom sx={{ color: '#000000', mb: 2 }}>
           Transcription Settings
         </Typography>
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2, mb: 2 }}>
           <FormControl fullWidth>
-            <InputLabel sx={{ color: '#a0a0a0' }}>Language</InputLabel>
+            <InputLabel sx={{ color: '#666666' }}>Language</InputLabel>
             <Select 
               value={language} 
               onChange={(e) => setLanguage(e.target.value)}
               disabled={isProcessing || isBatchProcessing}
               renderValue={(value) => typeof value === 'string' ? getLanguageDisplayName(value) : value}
               sx={{ 
-                color: '#e0e0e0',
-                backgroundColor: '#121212',
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#333333' },
+                color: '#000000',
+                backgroundColor: '#ffffff',
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#cccccc' },
                 '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#00c6ff' },
-                '& .MuiSelect-icon': { color: '#e0e0e0' },
+                '& .MuiSelect-icon': { color: '#000000' },
               }}
               MenuProps={{
                 PaperProps: {
                   style: {
-                    backgroundColor: '#1e1e1e',
-                    color: '#e0e0e0',
+                    backgroundColor: '#ffffff',
+                    color: '#000000',
                   },
                 },
               }}
             >
               {availableLanguages.map((lang) => (
-                <MenuItem key={lang} value={lang} sx={{ color: '#e0e0e0', '&:hover': { backgroundColor: '#2a2a2a' } }}>
+                <MenuItem key={lang} value={lang} sx={{ color: '#000000', '&:hover': { backgroundColor: '#f3f4f6' } }}>
                   {getLanguageDisplayName(lang)}
                 </MenuItem>
               ))}
@@ -1013,7 +1013,7 @@ export default function TranscribeTab() {
           </FormControl>
           {availableModels.length > 0 && (
             <FormControl fullWidth>
-              <InputLabel sx={{ color: '#a0a0a0' }}>Model</InputLabel>
+              <InputLabel sx={{ color: '#666666' }}>Model</InputLabel>
               <Select 
                 value={model || ''} 
                 onChange={(e) => setModel(e.target.value)} 
@@ -1023,17 +1023,17 @@ export default function TranscribeTab() {
                   PaperProps: {
                     style: {
                       zIndex: 1300,
-                      backgroundColor: '#1e1e1e',
-                      color: '#e0e0e0',
+                      backgroundColor: '#ffffff',
+                      color: '#000000',
                     },
                   },
                 }}
                 sx={{ 
-                  color: '#e0e0e0',
-                  backgroundColor: '#121212',
-                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#333333' },
+                  color: '#000000',
+                  backgroundColor: '#ffffff',
+                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#cccccc' },
                   '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#00c6ff' },
-                  '& .MuiSelect-icon': { color: '#e0e0e0' },
+                  '& .MuiSelect-icon': { color: '#000000' },
                 }}
               >
                 {availableModels.map((m) => (
@@ -1041,10 +1041,10 @@ export default function TranscribeTab() {
                     key={m} 
                     value={m}
                     sx={{
-                      color: '#e0e0e0',
-                      backgroundColor: '#1e1e1e',
+                      color: '#000000',
+                      backgroundColor: '#ffffff',
                       '&:hover': {
-                        backgroundColor: '#2a2a2a',
+                        backgroundColor: '#f3f4f6',
                       },
                     }}
                   >
@@ -1066,7 +1066,7 @@ export default function TranscribeTab() {
                 sx={{ color: '#00c6ff' }}
               />
             }
-            label={<Typography sx={{ color: '#e0e0e0' }}>Enable punctuation</Typography>}
+            label={<Typography sx={{ color: '#000000' }}>Enable punctuation</Typography>}
           />
           <FormControlLabel
             control={
@@ -1077,14 +1077,14 @@ export default function TranscribeTab() {
                 sx={{ color: '#00c6ff' }}
               />
             }
-            label={<Typography sx={{ color: '#e0e0e0' }}>Enable capitalization</Typography>}
+            label={<Typography sx={{ color: '#000000' }}>Enable capitalization</Typography>}
           />
         </Box>
 
         {/* Processing Mode - Only show for single file */}
         {!isBatchMode && (
           <Box>
-            <Typography variant="subtitle1" gutterBottom sx={{ color: '#e0e0e0', mb: 1 }}>
+            <Typography variant="subtitle1" gutterBottom sx={{ color: '#000000', mb: 1 }}>
               Processing Mode
             </Typography>
             <RadioGroup
@@ -1094,7 +1094,7 @@ export default function TranscribeTab() {
               <FormControlLabel 
                 value="batch" 
                 control={<Radio sx={{ color: '#00c6ff' }} />} 
-                label={<Typography sx={{ color: '#e0e0e0' }}>Batch Processing (Process entire file at once)</Typography>} 
+                label={<Typography sx={{ color: '#000000' }}>Batch Processing (Process entire file at once)</Typography>} 
               />
             </RadioGroup>
           </Box>
@@ -1103,7 +1103,7 @@ export default function TranscribeTab() {
 
       {/* Single File Progress - Status Message Only (detailed progress shown in file upload area) */}
       {isProcessing && !isBatchMode && !progressDetails && (
-        <Paper sx={{ p: 3, mb: 3, backgroundColor: '#1e1e1e', border: '1px solid #333333' }}>
+        <Paper sx={{ p: 3, mb: 3, backgroundColor: '#ffffff', border: '1px solid #cccccc' }}>
           <StatusLabel
             status={isProcessing ? 'processing' : 'ready'}
             message={message || 'Processing...'}
@@ -1116,15 +1116,15 @@ export default function TranscribeTab() {
 
       {/* Batch Progress */}
       {isBatchProcessing && isBatchMode && (
-        <Paper sx={{ p: 3, mb: 3, backgroundColor: '#1e1e1e', border: '1px solid #333333' }}>
-          <Typography variant="body2" sx={{ color: '#a0a0a0', mb: 1 }}>
+        <Paper sx={{ p: 3, mb: 3, backgroundColor: '#ffffff', border: '1px solid #cccccc' }}>
+          <Typography variant="body2" sx={{ color: '#666666', mb: 1 }}>
             Processing batch... {completedCount} of {batchFiles.length} completed
           </Typography>
           <LinearProgress 
             variant="determinate" 
             value={batchProgress}
             sx={{
-              backgroundColor: '#333333',
+              backgroundColor: '#e5e7eb',
               '& .MuiLinearProgress-bar': {
                 backgroundColor: '#00c6ff',
               },
@@ -1135,7 +1135,7 @@ export default function TranscribeTab() {
 
       {/* Errors */}
       {(error || batchError) && (
-        <Alert severity="error" sx={{ mb: 3, backgroundColor: '#1e1e1e', color: '#f44336' }}>
+        <Alert severity="error" sx={{ mb: 3, backgroundColor: '#ffffff', color: '#f44336', border: '1px solid #f44336' }}>
           {error || batchError}
         </Alert>
       )}
