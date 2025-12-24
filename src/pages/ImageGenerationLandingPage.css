@@ -1,6 +1,6 @@
 .image-generation-landing {
   min-height: calc(100vh - 80px);
-  background: linear-gradient(145deg, #0f172a, #1e293b);
+  background: #ffffff;
   width: 100%;
 }
 
@@ -16,19 +16,15 @@
 }
 
 .landing-title {
-  color: #f8fafc;
+  color: #000000;
   font-weight: 700;
-  font-size: clamp(2rem, 5vw, 3rem);
+  font-size: clamp(1.5rem, 3.5vw, 2rem);
   margin-bottom: 1rem;
-  background: linear-gradient(135deg, #00c6ff 0%, #4A90E2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .landing-subtitle {
-  color: #94a3b8;
-  font-size: clamp(1rem, 2vw, 1.25rem);
+  color: #000000;
+  font-size: clamp(0.875rem, 1.8vw, 1rem);
   max-width: none;
   margin: 50px auto 0 auto;
   line-height: 1.6;

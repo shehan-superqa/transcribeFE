@@ -1,0 +1,289 @@
+/* Responsive styles for TranscribeTab (Audio to Text page) */
+
+/* Base styles - Mobile first (≤ 480px) */
+.transcribe-tab-container {
+  width: 100%;
+  max-width: 100%;
+  padding: clamp(0.5rem, 2vw, 1rem);
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+.transcribe-header-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: clamp(1rem, 3vw, 2rem);
+}
+
+.transcribe-title-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.transcribe-controls-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.transcribe-button {
+  width: 100%;
+  min-height: 44px;
+  font-size: clamp(0.875rem, 2.5vw, 1rem);
+}
+
+.transcribe-settings-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.transcribe-file-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  word-break: break-word;
+}
+
+.transcribe-batch-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.transcribe-progress-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+/* Tablet: 481px – 768px */
+@media (min-width: 481px) {
+  .transcribe-tab-container {
+    padding: clamp(0.75rem, 2.5vw, 1.5rem);
+  }
+
+  .transcribe-header-section {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .transcribe-controls-section {
+    flex-direction: row;
+    gap: 1rem;
+  }
+
+  .transcribe-button {
+    width: auto;
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .transcribe-settings-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+
+  .transcribe-file-info {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .transcribe-progress-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Laptop: 769px – 1024px */
+@media (min-width: 769px) {
+  .transcribe-tab-container {
+    padding: clamp(1rem, 3vw, 2rem);
+  }
+
+  .transcribe-controls-section {
+    gap: 1.5rem;
+  }
+
+  .transcribe-button {
+    flex: 0 1 auto;
+    min-width: 180px;
+  }
+
+  .transcribe-progress-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Desktop: ≥ 1025px */
+@media (min-width: 1025px) {
+  .transcribe-tab-container {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .transcribe-controls-section {
+    gap: 2rem;
+  }
+
+  .transcribe-button {
+    min-width: 200px;
+  }
+}
+
+/* Mobile-specific: ≤ 480px */
+@media (max-width: 480px) {
+  .transcribe-header-section {
+    align-items: flex-start;
+  }
+
+  .transcribe-controls-section {
+    gap: 0.5rem;
+  }
+
+  .transcribe-button {
+    font-size: 0.875rem;
+    padding: 0.625rem 1rem;
+  }
+
+  .transcribe-batch-chips {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .transcribe-file-info {
+    font-size: 0.75rem;
+  }
+}
+
+/* Ensure Paper components are responsive */
+.transcribe-paper {
+  width: 100%;
+  box-sizing: border-box;
+  padding: clamp(1rem, 3vw, 1.5rem) !important;
+  margin-bottom: clamp(1rem, 3vw, 1.5rem) !important;
+}
+
+/* Responsive Typography */
+.transcribe-title {
+  font-size: clamp(1.25rem, 4vw, 1.75rem) !important;
+}
+
+.transcribe-subtitle {
+  font-size: clamp(0.875rem, 2.5vw, 1rem) !important;
+}
+
+/* Responsive Form Controls */
+.transcribe-form-control {
+  width: 100%;
+}
+
+/* Responsive List Items */
+.transcribe-list-item {
+  flex-direction: column !important;
+  align-items: stretch !important;
+  padding: clamp(0.75rem, 2vw, 1rem) !important;
+}
+
+@media (min-width: 481px) {
+  .transcribe-list-item {
+    flex-direction: row !important;
+    align-items: center !important;
+  }
+}
+
+/* Responsive TextField */
+.transcribe-textfield {
+  width: 100%;
+  font-size: clamp(0.875rem, 2.5vw, 1rem) !important;
+}
+
+/* Responsive Chip */
+.transcribe-chip {
+  font-size: clamp(0.7rem, 2vw, 0.875rem) !important;
+  padding: clamp(0.25rem, 1vw, 0.5rem) clamp(0.5rem, 2vw, 0.75rem) !important;
+}
+
+/* Responsive Grid for Progress Details */
+.transcribe-progress-details-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 481px) {
+  .transcribe-progress-details-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 769px) {
+  .transcribe-progress-details-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Responsive Button Groups */
+.transcribe-button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+@media (min-width: 481px) {
+  .transcribe-button-group {
+    flex-direction: row;
+    gap: 1rem;
+  }
+}
+
+/* Responsive File Actions */
+.transcribe-file-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+@media (min-width: 481px) {
+  .transcribe-file-actions {
+    flex-direction: row;
+    gap: 0.5rem;
+    width: auto;
+  }
+}
+
+/* Responsive Checkbox/Radio Labels */
+.transcribe-form-label {
+  font-size: clamp(0.875rem, 2.5vw, 1rem) !important;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Ensure no horizontal overflow */
+.transcribe-tab-container * {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Responsive spacing */
+.transcribe-spacing-sm {
+  margin-bottom: clamp(0.5rem, 2vw, 1rem);
+}
+
+.transcribe-spacing-md {
+  margin-bottom: clamp(1rem, 3vw, 1.5rem);
+}
+
+.transcribe-spacing-lg {
+  margin-bottom: clamp(1.5rem, 4vw, 2rem);
+}
+

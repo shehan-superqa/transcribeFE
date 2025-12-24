@@ -26,6 +26,8 @@ import {
   Chip,
   LinearProgress,
   Snackbar,
+  Grid,
+  useMediaQuery,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
@@ -36,6 +38,7 @@ import ProgressBar from './common/ProgressBar';
 import StatusLabel from './common/StatusLabel';
 import HowToUse from '../../components/common/HowToUse';
 import '../../components/common/HowToUse.css';
+import './TranscribeTab.css';
 import { transcriptionStore } from '../../stores/transcriptionStore';
 import { jobStore } from '../../stores/jobStore';
 import { useAuth } from '../../lib/auth';
@@ -61,6 +64,9 @@ interface BatchFile {
 export default function TranscribeTab() {
   const { openModal } = useAuthModal();
   const { theme } = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
+  const isDesktop = useMediaQuery(theme.breakpoints.up('lg'));
   const [files, setFiles] = useState<File[]>([]);
   const [batchFiles, setBatchFiles] = useState<BatchFile[]>([]);
   const [engine] = useState('replicate');
@@ -621,7 +627,7 @@ export default function TranscribeTab() {
   };
 
   return (
-    <Box>
+    <Box className="transcribe-tab-container">
       <div className="tool-sticky-title">
         <h1>
           <span>Audio to Text</span>
@@ -633,8 +639,25 @@ export default function TranscribeTab() {
         subtitle=""
         instructions="Upload audio files using drag & drop, paste from clipboard, or click to browse. You can also paste a YouTube link or record audio directly. Select your preferred language and model, then click 'Transcribe' to start. The transcription will appear in your history once completed."
       />
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" sx={{ color: theme.palette.text.primary }}>
+      <Box 
+        className="transcribe-header-section"
+        sx={{ 
+          display: 'flex', 
+          flexDirection: { xs: 'column', sm: 'row' },
+          justifyContent: 'space-between', 
+          alignItems: { xs: 'flex-start', sm: 'center' },
+          gap: { xs: 1, sm: 2 },
+          mb: { xs: 2, sm: 3 }
+        }}
+      >
+        <Typography 
+          variant="h4" 
+          className="transcribe-title"
+          sx={{ 
+            color: theme.palette.text.primary,
+            fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' }
+          }}
+        >
           Transcribe Audio/Video
         </Typography>
         {isBatchMode && (
@@ -660,22 +683,36 @@ export default function TranscribeTab() {
       </Box>
 
       {/* Controls - Moved to Top */}
-      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+      <Box 
+        className="transcribe-controls-section"
+        sx={{ 
+          display: 'flex', 
+          flexDirection: { xs: 'column', sm: 'row' },
+          gap: { xs: 1, sm: 2 },
+          mb: { xs: 2, sm: 3 },
+          width: '100%'
+        }}
+      >
         <Button
           variant="contained"
           onClick={handleStartTranscription}
           disabled={files.length === 0 || isProcessing || isBatchProcessing || (isBatchMode && batchFiles.every((f) => f.status !== 'idle' && f.status !== 'pending'))}
-          size="large"
+          size={isMobile ? 'medium' : 'large'}
+          className="transcribe-button"
           sx={{
             backgroundColor: theme.palette.primary.main,
             color: theme.palette.mode === 'dark' ? '#000000' : '#ffffff',
             '&:hover': { backgroundColor: theme.palette.primary.dark },
             '&:disabled': { backgroundColor: theme.palette.action.disabledBackground, color: theme.palette.action.disabled },
+            width: { xs: '100%', sm: 'auto' },
+            flex: { xs: '1', sm: '0 1 auto' },
+            minWidth: { xs: '100%', sm: '180px', md: '200px' },
+            fontSize: { xs: '0.875rem', sm: '1rem' },
           }}
         >
           {isBatchMode 
-            ? `Start Batch Processing (${idleCount + pendingCount} files)`
-            : 'Start Audio/Video Transcription'
+            ? (isMobile ? `Start Batch (${idleCount + pendingCount})` : `Start Batch Processing (${idleCount + pendingCount} files)`)
+            : (isMobile ? 'Start Transcription' : 'Start Audio/Video Transcription')
           }
         </Button>
         {!isBatchMode && (
@@ -683,12 +720,16 @@ export default function TranscribeTab() {
             variant="outlined"
             onClick={handleStop}
             disabled={!isProcessing}
-            size="large"
+            size={isMobile ? 'medium' : 'large'}
+            className="transcribe-button"
             sx={{
               borderColor: theme.palette.divider,
               color: theme.palette.text.primary,
               '&:hover': { borderColor: theme.palette.primary.main, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f3f4f6' },
               '&:disabled': { borderColor: theme.palette.divider, color: theme.palette.action.disabled },
+              width: { xs: '100%', sm: 'auto' },
+              flex: { xs: '1', sm: '0 1 auto' },
+              minWidth: { xs: '100%', sm: '120px' },
             }}
           >
             Stop
@@ -703,12 +744,16 @@ export default function TranscribeTab() {
               setBatchError(null);
             }}
             disabled={isBatchProcessing}
-            size="large"
+            size={isMobile ? 'medium' : 'large'}
+            className="transcribe-button"
             sx={{
               borderColor: theme.palette.divider,
               color: theme.palette.text.primary,
               '&:hover': { borderColor: theme.palette.primary.main, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f3f4f6' },
               '&:disabled': { borderColor: theme.palette.divider, color: theme.palette.action.disabled },
+              width: { xs: '100%', sm: 'auto' },
+              flex: { xs: '1', sm: '0 1 auto' },
+              minWidth: { xs: '100%', sm: '120px' },
             }}
           >
             Clear All
@@ -717,17 +762,93 @@ export default function TranscribeTab() {
       </Box>
 
       {/* File Upload Section */}
-      <Paper sx={{ p: 3, mb: 3, backgroundColor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}` }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h6" sx={{ color: theme.palette.text.primary }}>
+      <Paper 
+        className="transcribe-paper"
+        sx={{ 
+          p: { xs: 2, sm: 2.5, md: 3 }, 
+          mb: { xs: 2, sm: 2.5, md: 3 }, 
+          backgroundColor: theme.palette.background.paper, 
+          border: `1px solid ${theme.palette.divider}`,
+          width: '100%',
+          boxSizing: 'border-box'
+        }}
+      >
+        <Box 
+          sx={{ 
+            display: 'flex', 
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: 'space-between', 
+            alignItems: { xs: 'flex-start', sm: 'center' },
+            gap: { xs: 1, sm: 2 },
+            mb: 2 
+          }}
+        >
+          <Typography 
+            variant="h6" 
+            sx={{ 
+              color: theme.palette.text.primary,
+              fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.5rem' }
+            }}
+          >
             {isBatchMode ? `Audio/Video Files (${files.length})` : 'Audio/Video File'}
           </Typography>
           {isBatchMode && (
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <Chip label={`${completedCount} Completed`} size="small" sx={{ backgroundColor: theme.palette.success.main, color: '#fff' }} />
-              {errorCount > 0 && <Chip label={`${errorCount} Errors`} size="small" sx={{ backgroundColor: theme.palette.error.main, color: '#fff' }} />}
-              {pendingCount > 0 && <Chip label={`${pendingCount} Pending`} size="small" sx={{ backgroundColor: theme.palette.mode === 'dark' ? '#666666' : '#9ca3af', color: '#fff' }} />}
-              {idleCount > 0 && <Chip label={`${idleCount} Ready`} size="small" sx={{ backgroundColor: theme.palette.mode === 'dark' ? '#333333' : '#e5e7eb', color: theme.palette.text.secondary }} />}
+            <Box 
+              className="transcribe-batch-chips"
+              sx={{ 
+                display: 'flex', 
+                flexWrap: 'wrap',
+                flexDirection: { xs: 'column', sm: 'row' },
+                gap: { xs: 0.5, sm: 1 },
+                width: { xs: '100%', sm: 'auto' }
+              }}
+            >
+              <Chip 
+                label={`${completedCount} Completed`} 
+                size="small" 
+                className="transcribe-chip"
+                sx={{ 
+                  backgroundColor: theme.palette.success.main, 
+                  color: '#fff',
+                  fontSize: { xs: '0.7rem', sm: '0.875rem' }
+                }} 
+              />
+              {errorCount > 0 && (
+                <Chip 
+                  label={`${errorCount} Errors`} 
+                  size="small" 
+                  className="transcribe-chip"
+                  sx={{ 
+                    backgroundColor: theme.palette.error.main, 
+                    color: '#fff',
+                    fontSize: { xs: '0.7rem', sm: '0.875rem' }
+                  }} 
+                />
+              )}
+              {pendingCount > 0 && (
+                <Chip 
+                  label={`${pendingCount} Pending`} 
+                  size="small" 
+                  className="transcribe-chip"
+                  sx={{ 
+                    backgroundColor: theme.palette.mode === 'dark' ? '#666666' : '#9ca3af', 
+                    color: '#fff',
+                    fontSize: { xs: '0.7rem', sm: '0.875rem' }
+                  }} 
+                />
+              )}
+              {idleCount > 0 && (
+                <Chip 
+                  label={`${idleCount} Ready`} 
+                  size="small" 
+                  className="transcribe-chip"
+                  sx={{ 
+                    backgroundColor: theme.palette.mode === 'dark' ? '#333333' : '#e5e7eb', 
+                    color: theme.palette.text.secondary,
+                    fontSize: { xs: '0.7rem', sm: '0.875rem' }
+                  }} 
+                />
+              )}
             </Box>
           )}
         </Box>
@@ -752,11 +873,37 @@ export default function TranscribeTab() {
             />
             {singleFile && (
               <Box sx={{ mt: 2 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: isProcessing ? 2 : 0 }}>
-                  <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                <Box 
+                  className="transcribe-file-info"
+                  sx={{ 
+                    display: 'flex', 
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    justifyContent: 'space-between', 
+                    alignItems: { xs: 'flex-start', sm: 'center' },
+                    gap: { xs: 1, sm: 2 },
+                    mb: isProcessing ? { xs: 1.5, sm: 2 } : 0 
+                  }}
+                >
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      color: theme.palette.text.secondary,
+                      fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                      wordBreak: 'break-word',
+                      overflowWrap: 'break-word'
+                    }}
+                  >
                     {singleFile.name} • {(singleFile.size / (1024 * 1024)).toFixed(2)} MB • {singleFile.name.split('.').pop()?.toUpperCase()}
                   </Typography>
-                  <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Box 
+                    className="transcribe-file-actions"
+                    sx={{ 
+                      display: 'flex', 
+                      flexDirection: { xs: 'column', sm: 'row' },
+                      gap: { xs: 0.5, sm: 1 },
+                      width: { xs: '100%', sm: 'auto' }
+                    }}
+                  >
                     <IconButton
                       onClick={() => handleRemoveFile(0)}
                       disabled={isProcessing || isBatchProcessing}
@@ -811,7 +958,18 @@ export default function TranscribeTab() {
                     <Box sx={{ mb: 2 }}>
                       <ProgressBar value={progress} />
                     </Box>
-                    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 1.5 }}>
+                    <Box 
+                      className="transcribe-progress-details-grid"
+                      sx={{ 
+                        display: 'grid', 
+                        gridTemplateColumns: { 
+                          xs: '1fr', 
+                          sm: 'repeat(2, 1fr)', 
+                          md: 'repeat(3, 1fr)' 
+                        }, 
+                        gap: { xs: 1, sm: 1.5 } 
+                      }}
+                    >
                       {progressDetails.audio_time_processed !== undefined && progressDetails.audio_duration !== undefined && (
                         <Box>
                           <Typography variant="caption" sx={{ color: theme.palette.text.secondary, display: 'block', mb: 0.5 }}>
@@ -877,16 +1035,28 @@ export default function TranscribeTab() {
                 return (
                   <ListItem
                     key={index}
+                    className="transcribe-list-item"
                     sx={{
                       backgroundColor: '#ffffff',
                       border: '1px solid #cccccc',
                       borderRadius: 1,
                       mb: 1,
-                      flexDirection: 'column',
-                      alignItems: 'stretch',
+                      flexDirection: { xs: 'column', sm: 'row' },
+                      alignItems: { xs: 'stretch', sm: 'center' },
+                      gap: { xs: 1, sm: 2 },
+                      padding: { xs: '0.75rem', sm: '1rem' },
                     }}
                   >
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                    <Box 
+                      sx={{ 
+                        display: 'flex', 
+                        flexDirection: { xs: 'column', sm: 'row' },
+                        justifyContent: 'space-between', 
+                        alignItems: { xs: 'flex-start', sm: 'center' },
+                        width: '100%',
+                        gap: { xs: 1, sm: 2 }
+                      }}
+                    >
                       <ListItemText
                         primary={
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -918,7 +1088,15 @@ export default function TranscribeTab() {
                           </Typography>
                         }
                       />
-                      <Box sx={{ display: 'flex', gap: 0.5 }}>
+                      <Box 
+                        className="transcribe-file-actions"
+                        sx={{ 
+                          display: 'flex', 
+                          flexDirection: { xs: 'row', sm: 'row' },
+                          gap: { xs: 0.5, sm: 0.5 },
+                          flexWrap: 'wrap'
+                        }}
+                      >
                         {batchFile?.status === 'completed' && batchFile.result && (
                           <IconButton
                             onClick={() => handleDownload(batchFile.result!.text, file.name)}
@@ -954,14 +1132,16 @@ export default function TranscribeTab() {
                         <TextField
                           fullWidth
                           multiline
-                          rows={3}
+                          rows={isMobile ? 2 : 3}
                           value={batchFile.result.text}
                           InputProps={{ readOnly: true }}
+                          className="transcribe-textfield"
                           sx={{
                             '& .MuiOutlinedInput-root': {
                               color: '#000000',
                               backgroundColor: '#ffffff',
                               '& fieldset': { borderColor: '#cccccc' },
+                              fontSize: { xs: '0.875rem', sm: '1rem' },
                             },
                           }}
                         />
@@ -976,11 +1156,38 @@ export default function TranscribeTab() {
       </Paper>
 
       {/* Transcription Settings */}
-      <Paper sx={{ p: 3, mb: 3, backgroundColor: '#ffffff', border: '1px solid #cccccc' }}>
-        <Typography variant="h6" gutterBottom sx={{ color: '#000000', mb: 2 }}>
+      <Paper 
+        className="transcribe-paper"
+        sx={{ 
+          p: { xs: 2, sm: 2.5, md: 3 }, 
+          mb: { xs: 2, sm: 2.5, md: 3 }, 
+          backgroundColor: '#ffffff', 
+          border: '1px solid #cccccc',
+          width: '100%',
+          boxSizing: 'border-box'
+        }}
+      >
+        <Typography 
+          variant="h6" 
+          gutterBottom 
+          className="transcribe-title"
+          sx={{ 
+            color: '#000000', 
+            mb: { xs: 1.5, sm: 2 },
+            fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.5rem' }
+          }}
+        >
           Transcription Settings
         </Typography>
-        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2, mb: 2 }}>
+        <Box 
+          className="transcribe-settings-grid"
+          sx={{ 
+            display: 'grid', 
+            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' }, 
+            gap: { xs: 1.5, sm: 2 }, 
+            mb: 2 
+          }}
+        >
           <FormControl fullWidth>
             <InputLabel sx={{ color: '#666666' }}>Language</InputLabel>
             <Select 
@@ -1066,7 +1273,17 @@ export default function TranscribeTab() {
                 sx={{ color: '#00c6ff' }}
               />
             }
-            label={<Typography sx={{ color: '#000000' }}>Enable punctuation</Typography>}
+            label={
+              <Typography 
+                className="transcribe-form-label"
+                sx={{ 
+                  color: '#000000',
+                  fontSize: { xs: '0.875rem', sm: '1rem' }
+                }}
+              >
+                Enable punctuation
+              </Typography>
+            }
           />
           <FormControlLabel
             control={
@@ -1077,7 +1294,17 @@ export default function TranscribeTab() {
                 sx={{ color: '#00c6ff' }}
               />
             }
-            label={<Typography sx={{ color: '#000000' }}>Enable capitalization</Typography>}
+            label={
+              <Typography 
+                className="transcribe-form-label"
+                sx={{ 
+                  color: '#000000',
+                  fontSize: { xs: '0.875rem', sm: '1rem' }
+                }}
+              >
+                Enable capitalization
+              </Typography>
+            }
           />
         </Box>
 
@@ -1094,7 +1321,17 @@ export default function TranscribeTab() {
               <FormControlLabel 
                 value="batch" 
                 control={<Radio sx={{ color: '#00c6ff' }} />} 
-                label={<Typography sx={{ color: '#000000' }}>Batch Processing (Process entire file at once)</Typography>} 
+                label={
+                  <Typography 
+                    className="transcribe-form-label"
+                    sx={{ 
+                      color: '#000000',
+                      fontSize: { xs: '0.875rem', sm: '1rem' }
+                    }}
+                  >
+                    {isMobile ? 'Batch Processing' : 'Batch Processing (Process entire file at once)'}
+                  </Typography>
+                } 
               />
             </RadioGroup>
           </Box>
@@ -1103,7 +1340,17 @@ export default function TranscribeTab() {
 
       {/* Single File Progress - Status Message Only (detailed progress shown in file upload area) */}
       {isProcessing && !isBatchMode && !progressDetails && (
-        <Paper sx={{ p: 3, mb: 3, backgroundColor: '#ffffff', border: '1px solid #cccccc' }}>
+        <Paper 
+          className="transcribe-paper"
+          sx={{ 
+            p: { xs: 2, sm: 2.5, md: 3 }, 
+            mb: { xs: 2, sm: 2.5, md: 3 }, 
+            backgroundColor: '#ffffff', 
+            border: '1px solid #cccccc',
+            width: '100%',
+            boxSizing: 'border-box'
+          }}
+        >
           <StatusLabel
             status={isProcessing ? 'processing' : 'ready'}
             message={message || 'Processing...'}
@@ -1116,8 +1363,25 @@ export default function TranscribeTab() {
 
       {/* Batch Progress */}
       {isBatchProcessing && isBatchMode && (
-        <Paper sx={{ p: 3, mb: 3, backgroundColor: '#ffffff', border: '1px solid #cccccc' }}>
-          <Typography variant="body2" sx={{ color: '#666666', mb: 1 }}>
+        <Paper 
+          className="transcribe-paper"
+          sx={{ 
+            p: { xs: 2, sm: 2.5, md: 3 }, 
+            mb: { xs: 2, sm: 2.5, md: 3 }, 
+            backgroundColor: '#ffffff', 
+            border: '1px solid #cccccc',
+            width: '100%',
+            boxSizing: 'border-box'
+          }}
+        >
+          <Typography 
+            variant="body2" 
+            sx={{ 
+              color: '#666666', 
+              mb: 1,
+              fontSize: { xs: '0.875rem', sm: '1rem' }
+            }}
+          >
             Processing batch... {completedCount} of {batchFiles.length} completed
           </Typography>
           <LinearProgress 
@@ -1142,27 +1406,55 @@ export default function TranscribeTab() {
 
       {/* Single File Results */}
       {(results || (status === 'completed' && (job?.result || result))) && !isBatchMode && (
-        <Paper sx={{ p: 3, backgroundColor: '#ffffff', border: '1px solid #cccccc' }}>
-          <Typography variant="h6" gutterBottom sx={{ color: '#000000', mb: 2 }}>
+        <Paper 
+          className="transcribe-paper"
+          sx={{ 
+            p: { xs: 2, sm: 2.5, md: 3 }, 
+            backgroundColor: '#ffffff', 
+            border: '1px solid #cccccc',
+            width: '100%',
+            boxSizing: 'border-box'
+          }}
+        >
+          <Typography 
+            variant="h6" 
+            gutterBottom 
+            className="transcribe-title"
+            sx={{ 
+              color: '#000000', 
+              mb: { xs: 1.5, sm: 2 },
+              fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.5rem' }
+            }}
+          >
             Transcription Results
           </Typography>
           <TextField
             fullWidth
             multiline
-            rows={10}
+            rows={isMobile ? 6 : isTablet ? 8 : 10}
             value={results?.text || job?.result?.text || result?.text || ''}
             InputProps={{ readOnly: true }}
-            sx={{ 
-              mb: 2,
+            className="transcribe-textfield"
+            sx={{
+              mb: { xs: 1.5, sm: 2 },
               '& .MuiOutlinedInput-root': {
                 color: '#000000',
                 backgroundColor: '#ffffff',
                 '& fieldset': { borderColor: '#cccccc' },
                 '&:hover fieldset': { borderColor: '#00c6ff' },
+                fontSize: { xs: '0.875rem', sm: '1rem' },
               },
             }}
           />
-          <Box sx={{ display: 'flex', gap: 2 }}>
+          <Box 
+            className="transcribe-button-group"
+            sx={{ 
+              display: 'flex', 
+              flexDirection: { xs: 'column', sm: 'row' },
+              gap: { xs: 1, sm: 2 },
+              width: '100%'
+            }}
+          >
             <Button 
               variant="contained" 
               onClick={async () => {

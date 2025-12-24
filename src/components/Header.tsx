@@ -374,7 +374,7 @@ export default function Header() {
   const styles = {
     header: { backgroundColor: headerBg, borderBottom: `1px solid ${headerBorder}`, position: 'sticky' as const, top: 0, zIndex: 1000, padding: 'clamp(0.5rem, 1.5vw, 0.75rem) clamp(1rem, 3vw, 2rem)', overflowX: 'visible' as const, overflowY: 'visible' as const, maxWidth: '100vw', width: '100%' },
     headerMobile: { backgroundColor: headerBg, borderBottom: `1px solid ${headerBorder}`, position: 'sticky' as const, top: 0, zIndex: 200, padding: 'clamp(0.5rem, 1.5vw, 0.75rem) clamp(0.75rem, 2vw, 1rem)', overflowX: 'hidden' as const, maxWidth: '100vw', width: '100%' },
-    container: { maxWidth: '1448px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '0 clamp(0.5rem, 2vw, 1rem)', flexWrap: 'nowrap' as const, overflowX: 'visible' as const, overflowY: 'visible' as const, minWidth: 0, position: 'relative' as const },
+    container: { maxWidth: 'min(1448px, 100%)', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '0 clamp(0.5rem, 2vw, 1rem)', flexWrap: 'nowrap' as const, overflowX: 'visible' as const, overflowY: 'visible' as const, minWidth: 0, position: 'relative' as const, boxSizing: 'border-box' as const },
     leftNavSection: { display: 'flex', alignItems: 'center', gap: 'clamp(1rem, 3vw, 2.5rem)', flexWrap: 'nowrap' as const, flexShrink: 0, minWidth: 0, overflowX: 'visible' as const, overflowY: 'visible' as const, position: 'relative' as const },
     logo: { display: 'flex', alignItems: 'center', textDecoration: 'none', flexShrink: 0 },
     logoSvgContainer: { marginRight: '0.75rem', flexShrink: 0 },
@@ -408,6 +408,18 @@ export default function Header() {
         }
         .tools-dropdown-scroll::-webkit-scrollbar-thumb:hover {
           background: ${theme.palette.mode === 'dark' ? '#444444' : '#9ca3af'};
+        }
+        @media (min-width: 1025px) {
+          header[style*="sticky"] {
+            max-width: 100vw !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+          }
+          header[style*="sticky"] > div[style*="maxWidth"] {
+            max-width: min(1448px, 100%) !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+          }
         }
       `}</style>
       <header style={isMobile ? styles.headerMobile : styles.header}>
@@ -462,7 +474,6 @@ export default function Header() {
               {toolsDropdownOpen && isDesktop && <div style={styles.productDropdownMenu}><ToolsDropdown isMobile={false} theme={theme} /></div>}
             </div>
             <NavLink to="/use-cases" theme={theme}>Use Cases</NavLink>
-            <NavLink to="/integrations" theme={theme}>Integrations</NavLink>
             <NavLink to="/cases" theme={theme}>Cases</NavLink>
             <NavLink to="/academy" theme={theme}>Academy</NavLink>
             <NavLink to="/pricing" theme={theme}>Pricing</NavLink>

@@ -102,12 +102,13 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: clamp(0.75rem, 2vw, 1rem);
   align-items: stretch;
   min-width: 0;
   min-height: 0;
   width: 100%;
   overflow: visible;
+  box-sizing: border-box;
 }
 
 .tool-wrapper {
@@ -129,13 +130,15 @@
 
 .history-container {
   background-color: var(--bg-paper);
-  border-radius: 12px;
-  padding: 2rem;
+  border-radius: clamp(8px, 2vw, 12px);
+  padding: clamp(1rem, 3vw, 2rem);
   border: 1px solid var(--border-color);
   position: sticky;
-  top: 2rem;
-  max-height: calc(100vh - 4rem);
+  top: clamp(1rem, 2vw, 2rem);
+  max-height: calc(100vh - clamp(2rem, 4vw, 4rem));
   overflow-y: auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .history-title {
@@ -197,13 +200,15 @@
 
 .transcription-card {
   border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 0.875rem;
+  border-radius: clamp(6px, 1.5vw, 8px);
+  padding: clamp(0.75rem, 2vw, 0.875rem);
   cursor: pointer;
   background-color: var(--bg-primary);
   transition: all 0.2s;
   min-width: 0;
   touch-action: manipulation;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .transcription-card:hover {
@@ -427,159 +432,170 @@
 /* Tablet: 481px – 768px */
 @media (min-width: 481px) {
   .dashboard-container {
-    padding: 0.75rem;
+    padding: clamp(0.75rem, 2vw, 1rem);
   }
 
   .dashboard-content-wrapper {
-    gap: 1.5rem;
+    gap: clamp(1rem, 2.5vw, 1.5rem);
   }
 
   .dashboard-main-layout {
-    gap: 1.5rem;
+    gap: clamp(1rem, 2.5vw, 1.5rem);
   }
 
   .history-container {
     max-height: 60vh;
-    border-radius: 10px;
+    border-radius: clamp(8px, 2vw, 10px);
+    padding: clamp(1.25rem, 3vw, 1.5rem);
   }
 
   .history-title {
-    padding: 0.75rem 1.5rem;
+    padding: clamp(0.75rem, 2vw, 1rem) clamp(1rem, 3vw, 1.5rem);
     font-size: clamp(1.1rem, 3.5vw, 1.25rem);
   }
 
   .history-content {
-    padding: 0 1.5rem 1.5rem 1.5rem;
+    padding: 0 clamp(1rem, 3vw, 1.5rem) clamp(1rem, 3vw, 1.5rem) clamp(1rem, 3vw, 1.5rem);
   }
 
   .transcriptions-grid {
-    gap: 1rem;
+    gap: clamp(0.75rem, 2vw, 1rem);
   }
 
   .transcription-card {
-    padding: 1rem;
+    padding: clamp(0.875rem, 2vw, 1rem);
   }
 
   .modal-content {
-    padding: 1.5rem;
-    border-radius: 10px;
+    padding: clamp(1.25rem, 3vw, 1.5rem);
+    border-radius: clamp(8px, 2vw, 10px);
     max-width: 90%;
   }
 
   .modal-download-button {
     flex: 0 1 auto;
+    min-width: 120px;
   }
 }
 
 /* Laptop: 769px – 1024px */
 @media (min-width: 769px) {
   .dashboard-container {
-    padding: 1rem;
+    padding: clamp(0.875rem, 2vw, 1rem);
     height: 100vh;
     overflow-y: hidden;
   }
 
   .dashboard-content-wrapper {
     flex-direction: row;
-    gap: 1.5rem;
+    gap: clamp(1.25rem, 2.5vw, 1.5rem);
     overflow: hidden;
   }
 
   .dashboard-main-layout {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 1.5rem;
-    max-height: calc(100vh - 2rem);
+    gap: clamp(1.25rem, 2.5vw, 1.5rem);
+    max-height: calc(100vh - clamp(1.5rem, 3vw, 2rem));
   }
 
   .tool-wrapper {
-    max-height: calc(100vh - 2rem);
+    max-height: calc(100vh - clamp(1.5rem, 3vw, 2rem));
     overflow-y: auto;
+    overflow-x: hidden;
   }
 
   .history-container {
     position: sticky;
-    top: 0;
-    max-height: calc(100vh - 2rem);
-    border-radius: 12px;
+    top: clamp(0.5rem, 1vw, 1rem);
+    max-height: calc(100vh - clamp(1.5rem, 3vw, 2rem));
+    border-radius: clamp(10px, 2vw, 12px);
+    padding: clamp(1.5rem, 3vw, 2rem);
   }
 
   .history-title {
-    padding: 0.5rem 1.5rem 1rem 1.5rem;
+    padding: clamp(0.5rem, 1vw, 0.75rem) clamp(1.25rem, 3vw, 1.5rem) clamp(0.75rem, 2vw, 1rem) clamp(1.25rem, 3vw, 1.5rem);
     font-size: clamp(1.2rem, 3vw, 1.5rem);
   }
 
   .history-content {
-    padding: 0 1.5rem 1.5rem 1.5rem;
+    padding: 0 clamp(1.25rem, 3vw, 1.5rem) clamp(1.25rem, 3vw, 1.5rem) clamp(1.25rem, 3vw, 1.5rem);
   }
 
   .modal-content {
-    padding: 2rem;
-    max-width: 700px;
+    padding: clamp(1.5rem, 3vw, 2rem);
+    max-width: min(700px, 90vw);
   }
 }
 
 /* Desktop: ≥ 1025px */
 @media (min-width: 1025px) {
   .dashboard-content-wrapper {
-    gap: 2rem;
+    gap: clamp(1.5rem, 3vw, 2rem);
   }
 
   .dashboard-main-layout {
-    grid-template-columns: 1fr 400px;
-    gap: 2rem;
+    grid-template-columns: 1fr clamp(300px, 25vw, 400px);
+    gap: clamp(1.5rem, 3vw, 2rem);
+  }
+
+  .history-container {
+    min-width: clamp(300px, 25vw, 400px);
+    max-width: clamp(300px, 25vw, 400px);
   }
 
   .history-title {
-    padding: 0.5rem 2rem 1.5rem 2rem;
+    padding: clamp(0.5rem, 1vw, 0.75rem) clamp(1.5rem, 3vw, 2rem) clamp(1rem, 2vw, 1.5rem) clamp(1.5rem, 3vw, 2rem);
+    font-size: clamp(1.3rem, 3.5vw, 1.5rem);
   }
 
   .history-content {
-    padding: 0 2rem 2rem 2rem;
+    padding: 0 clamp(1.5rem, 3vw, 2rem) clamp(1.5rem, 3vw, 2rem) clamp(1.5rem, 3vw, 2rem);
   }
 
   .loading-state,
   .error-state {
-    padding: 2rem;
+    padding: clamp(1.5rem, 3vw, 2rem);
   }
 
   .empty-state {
-    padding: 3rem;
+    padding: clamp(2rem, 4vw, 3rem);
   }
 
   .transcriptions-grid {
-    gap: 1rem;
+    gap: clamp(0.875rem, 1.5vw, 1rem);
   }
 
   .transcription-card {
-    padding: 1rem;
+    padding: clamp(0.875rem, 1.5vw, 1rem);
   }
 
   .transcription-title {
-    gap: 0.75rem;
-    min-width: 200px;
+    gap: clamp(0.5rem, 1vw, 0.75rem);
+    min-width: clamp(150px, 20vw, 200px);
   }
 
   .transcription-meta {
-    gap: 1rem;
-    font-size: 0.875rem;
+    gap: clamp(0.75rem, 1.5vw, 1rem);
+    font-size: clamp(0.8125rem, 1.5vw, 0.875rem);
   }
 
   .modal-content {
-    padding: 2rem;
+    padding: clamp(1.5rem, 3vw, 2rem);
+    max-width: min(700px, 85vw);
   }
 
   .modal-actions {
-    margin-bottom: 1.5rem;
+    margin-bottom: clamp(1rem, 2vw, 1.5rem);
   }
 
   .modal-details {
-    gap: 1rem;
-    margin-bottom: 1.5rem;
+    gap: clamp(0.75rem, 1.5vw, 1rem);
+    margin-bottom: clamp(1rem, 2vw, 1.5rem);
   }
 
   .modal-transcription-text {
-    padding: 1.5rem;
+    padding: clamp(1.25rem, 2.5vw, 1.5rem);
   }
 }
 
