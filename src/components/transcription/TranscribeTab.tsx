@@ -61,7 +61,11 @@ interface BatchFile {
   jobId?: string;
 }
 
-export default function TranscribeTab() {
+interface TranscribeTabProps {
+  hideTitle?: boolean;
+}
+
+export default function TranscribeTab({ hideTitle = false }: TranscribeTabProps = {}) {
   const { openModal } = useAuthModal();
   const { theme } = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -77,7 +81,7 @@ export default function TranscribeTab() {
   const [enableCapitalization, setEnableCapitalization] = useState(true);
   const [jobId, setJobId] = useState<string | null>(null);
   const [availableModels, setAvailableModels] = useState<string[]>([]);
-  const [availableLanguages, setAvailableLanguages] = useState<string[]>([]);
+  const [availableLanguages, setAvailableLanguages] = useState<string[]>(['en']); // Initialize with 'en' as fallback
   const [enginesData, setEnginesData] = useState<Array<{ name: string; models: string[] }>>([]);
   const [isBatchProcessing, setIsBatchProcessing] = useState(false);
   const [batchProgress, setBatchProgress] = useState(0);
@@ -146,8 +150,14 @@ export default function TranscribeTab() {
           const engines = data.engines || [];
           setEnginesData(engines.map(e => ({ name: e.name, models: e.models || [] })));
           
-          // Set languages
-          setAvailableLanguages(data.languages || []);
+          // Set languages (ensure at least 'en' is available)
+          const languages = data.languages && data.languages.length > 0 ? data.languages : ['en'];
+          setAvailableLanguages(languages);
+          
+          // Ensure current language is in available languages
+          if (!languages.includes(language)) {
+            setLanguage(languages[0] || 'en');
+          }
           
           // Set models for current engine or default to whisper models
           const currentEngineData = engines.find(e => e.name === engine);
@@ -167,8 +177,19 @@ export default function TranscribeTab() {
         console.warn('Failed to load available models:', error);
         setAvailableModels(['base', 'small', 'medium', 'large']);
         setAvailableLanguages(['en']);
+        // Ensure language is set to 'en' if it's not already
+        if (language !== 'en') {
+          setLanguage('en');
+        }
       });
   }, []);
+
+  // Ensure language is valid when availableLanguages changes
+  useEffect(() => {
+    if (availableLanguages.length > 0 && !availableLanguages.includes(language)) {
+      setLanguage(availableLanguages[0]);
+    }
+  }, [availableLanguages]);
 
   // Update available models when engine changes
   useEffect(() => {
@@ -628,17 +649,21 @@ export default function TranscribeTab() {
 
   return (
     <Box className="transcribe-tab-container">
-      <div className="tool-sticky-title">
-        <h1>
-          <span>Audio to Text</span>
-          <span className="title-subtitle"> - Convert audio files to accurate text transcriptions</span>
-        </h1>
-      </div>
-      <HowToUse
-        title=""
-        subtitle=""
-        instructions="Upload audio files using drag & drop, paste from clipboard, or click to browse. You can also paste a YouTube link or record audio directly. Select your preferred language and model, then click 'Transcribe' to start. The transcription will appear in your history once completed."
-      />
+      {!hideTitle && (
+        <>
+          <div className="tool-sticky-title">
+            <h1>
+              <span>Audio to Text</span>
+              <span className="title-subtitle"> - Convert audio files to accurate text transcriptions</span>
+            </h1>
+          </div>
+          <HowToUse
+            title=""
+            subtitle=""
+            instructions="Upload audio files using drag & drop, paste from clipboard, or click to browse. You can also paste a YouTube link or record audio directly. Select your preferred language and model, then click 'Transcribe' to start. The transcription will appear in your history once completed."
+          />
+        </>
+      )}
       <Box 
         className="transcribe-header-section"
         sx={{ 
@@ -700,14 +725,27 @@ export default function TranscribeTab() {
           size={isMobile ? 'medium' : 'large'}
           className="transcribe-button"
           sx={{
-            backgroundColor: theme.palette.primary.main,
-            color: theme.palette.mode === 'dark' ? '#000000' : '#ffffff',
-            '&:hover': { backgroundColor: theme.palette.primary.dark },
-            '&:disabled': { backgroundColor: theme.palette.action.disabledBackground, color: theme.palette.action.disabled },
+            background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
+            color: '#ffffff',
+            fontWeight: 600,
+            borderRadius: '12px',
+            boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
+            '&:hover': { 
+              background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+              boxShadow: '0 6px 16px rgba(59, 130, 246, 0.4)',
+              transform: 'translateY(-2px)',
+            },
+            '&:disabled': { 
+              background: 'rgba(0, 0, 0, 0.12)',
+              color: 'rgba(0, 0, 0, 0.26)',
+              boxShadow: 'none',
+            },
             width: { xs: '100%', sm: 'auto' },
             flex: { xs: '1', sm: '0 1 auto' },
             minWidth: { xs: '100%', sm: '180px', md: '200px' },
             fontSize: { xs: '0.875rem', sm: '1rem' },
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            padding: { xs: '0.75rem 1.5rem', sm: '0.875rem 2rem' },
           }}
         >
           {isBatchMode 
@@ -767,10 +805,16 @@ export default function TranscribeTab() {
         sx={{ 
           p: { xs: 2, sm: 2.5, md: 3 }, 
           mb: { xs: 2, sm: 2.5, md: 3 }, 
-          backgroundColor: theme.palette.background.paper, 
-          border: `1px solid ${theme.palette.divider}`,
+          background: 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)',
+          border: '1px solid rgba(0, 0, 0, 0.08)',
+          borderRadius: '16px',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
           width: '100%',
-          boxSizing: 'border-box'
+          boxSizing: 'border-box',
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          '&:hover': {
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
+          }
         }}
       >
         <Box 
@@ -1161,10 +1205,16 @@ export default function TranscribeTab() {
         sx={{ 
           p: { xs: 2, sm: 2.5, md: 3 }, 
           mb: { xs: 2, sm: 2.5, md: 3 }, 
-          backgroundColor: '#ffffff', 
-          border: '1px solid #cccccc',
+          background: 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)',
+          border: '1px solid rgba(0, 0, 0, 0.08)',
+          borderRadius: '16px',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
           width: '100%',
-          boxSizing: 'border-box'
+          boxSizing: 'border-box',
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          '&:hover': {
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
+          }
         }}
       >
         <Typography 
@@ -1191,7 +1241,7 @@ export default function TranscribeTab() {
           <FormControl fullWidth>
             <InputLabel sx={{ color: '#666666' }}>Language</InputLabel>
             <Select 
-              value={language} 
+              value={availableLanguages.includes(language) ? language : (availableLanguages[0] || '')} 
               onChange={(e) => setLanguage(e.target.value)}
               disabled={isProcessing || isBatchProcessing}
               renderValue={(value) => typeof value === 'string' ? getLanguageDisplayName(value) : value}
@@ -1211,11 +1261,17 @@ export default function TranscribeTab() {
                 },
               }}
             >
-              {availableLanguages.map((lang) => (
-                <MenuItem key={lang} value={lang} sx={{ color: '#000000', '&:hover': { backgroundColor: '#f3f4f6' } }}>
-                  {getLanguageDisplayName(lang)}
+              {availableLanguages.length > 0 ? (
+                availableLanguages.map((lang) => (
+                  <MenuItem key={lang} value={lang} sx={{ color: '#000000', '&:hover': { backgroundColor: '#f3f4f6' } }}>
+                    {getLanguageDisplayName(lang)}
+                  </MenuItem>
+                ))
+              ) : (
+                <MenuItem value="en" sx={{ color: '#000000', '&:hover': { backgroundColor: '#f3f4f6' } }}>
+                  {getLanguageDisplayName('en')}
                 </MenuItem>
-              ))}
+              )}
             </Select>
           </FormControl>
           {availableModels.length > 0 && (
@@ -1345,10 +1401,13 @@ export default function TranscribeTab() {
           sx={{ 
             p: { xs: 2, sm: 2.5, md: 3 }, 
             mb: { xs: 2, sm: 2.5, md: 3 }, 
-            backgroundColor: '#ffffff', 
-            border: '1px solid #cccccc',
+            background: 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)',
+            border: '1px solid rgba(0, 0, 0, 0.08)',
+            borderRadius: '16px',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
             width: '100%',
-            boxSizing: 'border-box'
+            boxSizing: 'border-box',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           }}
         >
           <StatusLabel
@@ -1368,10 +1427,13 @@ export default function TranscribeTab() {
           sx={{ 
             p: { xs: 2, sm: 2.5, md: 3 }, 
             mb: { xs: 2, sm: 2.5, md: 3 }, 
-            backgroundColor: '#ffffff', 
-            border: '1px solid #cccccc',
+            background: 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)',
+            border: '1px solid rgba(0, 0, 0, 0.08)',
+            borderRadius: '16px',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
             width: '100%',
-            boxSizing: 'border-box'
+            boxSizing: 'border-box',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           }}
         >
           <Typography 
@@ -1410,10 +1472,16 @@ export default function TranscribeTab() {
           className="transcribe-paper"
           sx={{ 
             p: { xs: 2, sm: 2.5, md: 3 }, 
-            backgroundColor: '#ffffff', 
-            border: '1px solid #cccccc',
+            background: 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)',
+            border: '1px solid rgba(0, 0, 0, 0.08)',
+            borderRadius: '16px',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
             width: '100%',
-            boxSizing: 'border-box'
+            boxSizing: 'border-box',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            '&:hover': {
+              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
+            }
           }}
         >
           <Typography 
@@ -1468,9 +1536,17 @@ export default function TranscribeTab() {
                 }
               }}
               sx={{
-                backgroundColor: '#00c6ff',
-                color: '#121212',
-                '&:hover': { backgroundColor: '#00b0e6' },
+                background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
+                color: '#ffffff',
+                fontWeight: 600,
+                borderRadius: '10px',
+                boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
+                '&:hover': { 
+                  background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+                  boxShadow: '0 6px 16px rgba(59, 130, 246, 0.4)',
+                  transform: 'translateY(-1px)',
+                },
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
               }}
             >
               Copy to Clipboard
@@ -1487,9 +1563,16 @@ export default function TranscribeTab() {
                 setIsBatchProcessing(false);
               }}
               sx={{
-                borderColor: '#cccccc',
-                color: '#000000',
-                '&:hover': { borderColor: '#00c6ff', backgroundColor: '#f3f4f6' },
+                borderColor: 'rgba(0, 0, 0, 0.15)',
+                color: '#1a1a1a',
+                fontWeight: 500,
+                borderRadius: '10px',
+                '&:hover': { 
+                  borderColor: '#3b82f6', 
+                  backgroundColor: '#f3f4f6',
+                  transform: 'translateY(-1px)',
+                },
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
               }}
             >
               Clear
