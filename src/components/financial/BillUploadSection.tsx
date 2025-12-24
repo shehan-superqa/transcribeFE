@@ -191,28 +191,61 @@ export default function BillUploadSection({ onTransactionCreated }: BillUploadSe
       )}
 
       <Paper 
-        elevation={2} 
+        elevation={0} 
         sx={{ 
-          p: 4, 
+          p: '1.5rem', 
           backgroundColor: theme.palette.background.paper,
-          border: `2px solid ${theme.palette.primary.main}`,
-          borderRadius: 3,
+          border: `1px solid ${theme.palette.divider}`,
+          borderRadius: '12px',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
         }}
       >
-        <Box sx={{ mb: 3 }}>
-          <Typography variant="h5" gutterBottom sx={{ color: theme.palette.text.primary, fontWeight: 600 }}>
+        <Box sx={{ mb: '2rem' }}>
+          <Typography 
+            variant="h5" 
+            gutterBottom 
+            sx={{ 
+              fontFamily: "'Inter', sans-serif",
+              color: theme.palette.text.primary, 
+              fontWeight: 600,
+              fontSize: '1.25rem',
+              lineHeight: 1.2,
+              mb: '0.5rem',
+            }}
+          >
             Upload Bill or Receipt
           </Typography>
-          <Typography variant="body1" color="text.secondary">
+          <Typography 
+            variant="body1" 
+            sx={{
+              fontFamily: "'Inter', sans-serif",
+              fontSize: '0.875rem',
+              fontWeight: 400,
+              lineHeight: 1.5,
+              color: theme.palette.text.secondary,
+              mb: '0.5rem',
+            }}
+          >
             Upload a bill image or PDF for automatic processing. We'll extract the details and categorize it for you.
           </Typography>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+          <Typography 
+            variant="caption" 
+            sx={{ 
+              fontFamily: "'Inter', sans-serif",
+              fontSize: '0.75rem',
+              fontWeight: 400,
+              lineHeight: 1.5,
+              color: theme.palette.text.secondary,
+              display: 'block',
+              mt: '0.5rem',
+            }}
+          >
             Supports: JPG, PNG, WEBP, PDF • You can also paste an image (Ctrl+V / Cmd+V)
           </Typography>
         </Box>
 
         {/* Optional Overrides */}
-        <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+        <Box sx={{ display: 'flex', gap: '1rem', mb: '2rem' }}>
           <TextField
             label="Category Override (optional)"
             value={categoryOverride}
@@ -220,6 +253,16 @@ export default function BillUploadSection({ onTransactionCreated }: BillUploadSe
             size="small"
             fullWidth
             disabled={uploading}
+            sx={{
+              '& .MuiInputBase-root': {
+                fontFamily: "'Inter', sans-serif",
+                fontSize: '0.875rem',
+              },
+              '& .MuiInputLabel-root': {
+                fontFamily: "'Inter', sans-serif",
+                fontSize: '0.875rem',
+              },
+            }}
           />
           <TextField
             label="Merchant Override (optional)"
@@ -228,24 +271,39 @@ export default function BillUploadSection({ onTransactionCreated }: BillUploadSe
             size="small"
             fullWidth
             disabled={uploading}
+            sx={{
+              '& .MuiInputBase-root': {
+                fontFamily: "'Inter', sans-serif",
+                fontSize: '0.875rem',
+              },
+              '& .MuiInputLabel-root': {
+                fontFamily: "'Inter', sans-serif",
+                fontSize: '0.875rem',
+              },
+            }}
           />
         </Box>
 
         {/* Upload Options */}
-        <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
+        <Box sx={{ display: 'flex', gap: '1rem', mb: '2rem', flexWrap: 'wrap' }}>
           <Button
             variant="outlined"
             startIcon={<CameraAlt />}
             onClick={() => setShowCamera(true)}
             disabled={uploading}
             sx={{ 
+              fontFamily: "'Inter', sans-serif",
               flex: '1 1 auto', 
               minWidth: '120px',
+              padding: '0.625rem 1rem',
+              borderRadius: '8px',
+              fontSize: '0.875rem',
+              fontWeight: 500,
               borderColor: theme.palette.divider,
               color: theme.palette.text.primary,
               '&:hover': {
                 borderColor: theme.palette.primary.main,
-                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(0, 198, 255, 0.1)' : '#f0f9ff',
+                backgroundColor: theme.palette.action.hover,
               },
             }}
           >
@@ -278,13 +336,18 @@ export default function BillUploadSection({ onTransactionCreated }: BillUploadSe
             }}
             disabled={uploading}
             sx={{ 
+              fontFamily: "'Inter', sans-serif",
               flex: '1 1 auto', 
               minWidth: '120px',
+              padding: '0.625rem 1rem',
+              borderRadius: '8px',
+              fontSize: '0.875rem',
+              fontWeight: 500,
               borderColor: theme.palette.divider,
               color: theme.palette.text.primary,
               '&:hover': {
                 borderColor: theme.palette.primary.main,
-                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(0, 198, 255, 0.1)' : '#f0f9ff',
+                backgroundColor: theme.palette.action.hover,
               },
             }}
           >
@@ -314,10 +377,30 @@ export default function BillUploadSection({ onTransactionCreated }: BillUploadSe
           >
             <input {...getInputProps()} aria-label="File input for bill upload" />
             <CloudUpload sx={{ fontSize: 64, color: isDragActive ? theme.palette.primary.main : theme.palette.text.secondary, mb: 2 }} />
-            <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary, fontWeight: 600 }}>
+            <Typography 
+              variant="h6" 
+              gutterBottom 
+              sx={{ 
+                fontFamily: "'Inter', sans-serif",
+                color: theme.palette.text.primary, 
+                fontWeight: 600,
+                fontSize: '1rem',
+                lineHeight: 1.2,
+                mb: '0.5rem',
+              }}
+            >
               {isDragActive ? 'Drop file here' : 'Drag & drop file here'}
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography 
+              variant="body2" 
+              sx={{
+                fontFamily: "'Inter', sans-serif",
+                fontSize: '0.875rem',
+                fontWeight: 400,
+                lineHeight: 1.5,
+                color: theme.palette.text.secondary,
+              }}
+            >
               or click to browse files
             </Typography>
           </Box>
@@ -325,10 +408,32 @@ export default function BillUploadSection({ onTransactionCreated }: BillUploadSe
 
         {/* Progress */}
         {uploading && (
-          <Box sx={{ mb: 2 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-              <Typography variant="body2">{status}</Typography>
-              <Typography variant="body2">{progress}%</Typography>
+          <Box sx={{ mb: '1.5rem' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: '0.5rem' }}>
+              <Typography 
+                variant="body2"
+                sx={{
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '0.875rem',
+                  fontWeight: 400,
+                  lineHeight: 1.5,
+                  color: theme.palette.text.primary,
+                }}
+              >
+                {status}
+              </Typography>
+              <Typography 
+                variant="body2"
+                sx={{
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '0.875rem',
+                  fontWeight: 400,
+                  lineHeight: 1.5,
+                  color: theme.palette.text.primary,
+                }}
+              >
+                {progress}%
+              </Typography>
             </Box>
             <LinearProgress variant="determinate" value={progress} />
           </Box>
@@ -351,20 +456,74 @@ export default function BillUploadSection({ onTransactionCreated }: BillUploadSe
             role="alert"
             aria-live="polite"
           >
-            <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
+            <Typography 
+              variant="subtitle1" 
+              gutterBottom 
+              sx={{ 
+                fontFamily: "'Inter', sans-serif",
+                fontWeight: 600,
+                fontSize: '1rem',
+                lineHeight: 1.2,
+                mb: '0.5rem',
+              }}
+            >
               Transaction Created Successfully!
             </Typography>
-            <Box sx={{ mt: 1 }}>
-              <Typography variant="body2" component="div">
+            <Box sx={{ mt: '0.5rem' }}>
+              <Typography 
+                variant="body2" 
+                component="div"
+                sx={{
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '0.875rem',
+                  fontWeight: 400,
+                  lineHeight: 1.5,
+                  color: theme.palette.text.primary,
+                  mb: '0.25rem',
+                }}
+              >
                 <strong>Amount:</strong> Rs. {transaction.amount.toFixed(2)}
               </Typography>
-              <Typography variant="body2" component="div">
+              <Typography 
+                variant="body2" 
+                component="div"
+                sx={{
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '0.875rem',
+                  fontWeight: 400,
+                  lineHeight: 1.5,
+                  color: theme.palette.text.primary,
+                  mb: '0.25rem',
+                }}
+              >
                 <strong>Merchant:</strong> {transaction.merchant_id || 'Unknown'}
               </Typography>
-              <Typography variant="body2" component="div">
+              <Typography 
+                variant="body2" 
+                component="div"
+                sx={{
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '0.875rem',
+                  fontWeight: 400,
+                  lineHeight: 1.5,
+                  color: theme.palette.text.primary,
+                  mb: '0.25rem',
+                }}
+              >
                 <strong>Category:</strong> {transaction.category_id || 'Unknown'}
               </Typography>
-              <Typography variant="body2" component="div" sx={{ mt: 1 }}>
+              <Typography 
+                variant="body2" 
+                component="div" 
+                sx={{ 
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '0.875rem',
+                  fontWeight: 400,
+                  lineHeight: 1.5,
+                  color: theme.palette.text.primary,
+                  mt: '0.5rem',
+                }}
+              >
                 <strong>Confidence:</strong>{' '}
                 <Chip
                   label={`${(transaction.confidence_category * 100).toFixed(1)}%`}
@@ -380,6 +539,7 @@ export default function BillUploadSection({ onTransactionCreated }: BillUploadSe
     </Box>
   );
 }
+
 
 
 

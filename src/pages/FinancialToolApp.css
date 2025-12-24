@@ -1,7 +1,8 @@
 .financial-tool-page {
   min-height: calc(100vh - 80px);
   background-color: var(--bg-primary);
-  padding: 2rem 0;
+  padding: 1.5rem 2rem;
+  font-family: 'Inter', sans-serif;
 }
 
 .financial-tool-header {
@@ -22,7 +23,32 @@
   font-size: 1.125rem;
 }
 
-/* Two Column Layout */
+/* Three Column Layout - Matching Service Requests Design */
+.financial-three-column-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr 320px;
+  gap: 1.5rem;
+  align-items: start;
+  max-width: 100%;
+}
+
+.financial-left-sidebar {
+  min-width: 0;
+  width: 280px;
+}
+
+.financial-main-content {
+  min-width: 0;
+  max-width: 100%;
+  padding: 0;
+}
+
+.financial-right-sidebar {
+  min-width: 0;
+  width: 320px;
+}
+
+/* Two Column Layout (Legacy - for backward compatibility) */
 .two-column-layout {
   display: flex;
   gap: 2rem;
@@ -80,8 +106,91 @@
   background-clip: text;
 }
 
+/* Card Styling - Matching Service Requests Design */
+.financial-three-column-layout .MuiPaper-root {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.2s ease;
+  border-radius: 12px;
+}
+
+.financial-three-column-layout .MuiPaper-root:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Typography - Matching Design System */
+.financial-tool-page h1,
+.financial-tool-page h2,
+.financial-tool-page h3,
+.financial-tool-page h4,
+.financial-tool-page h5,
+.financial-tool-page h6 {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--text-primary);
+}
+
+.financial-tool-page p,
+.financial-tool-page span,
+.financial-tool-page div {
+  font-family: 'Inter', sans-serif;
+  line-height: 1.5;
+}
+
+/* Spacing - Matching Design System */
+.financial-tool-page .MuiBox-root {
+  font-family: 'Inter', sans-serif;
+}
+
+/* Button Styling */
+.financial-tool-page .MuiButton-root {
+  font-family: 'Inter', sans-serif;
+  text-transform: none;
+  font-weight: 500;
+  border-radius: 8px;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* Input Styling */
+.financial-tool-page .MuiTextField-root,
+.financial-tool-page .MuiInputBase-root {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.financial-tool-page .MuiInputBase-input {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  padding: 0.625rem 0.875rem;
+}
+
 /* Responsive Design */
+@media (max-width: 1440px) {
+  .financial-three-column-layout {
+    grid-template-columns: 240px 1fr 280px;
+    gap: 1rem;
+  }
+}
+
 @media (max-width: 1024px) {
+  .financial-three-column-layout {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .financial-left-sidebar,
+  .financial-right-sidebar {
+    order: 2;
+  }
+
+  .financial-main-content {
+    order: 1;
+  }
+
   .two-column-layout {
     flex-direction: column;
   }
@@ -140,6 +249,7 @@
 .financial-tool-page {
   transition: all 0.3s ease;
 }
+
 
 
 

@@ -82,20 +82,61 @@ export default function ModelStatusSection() {
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      <Paper elevation={1} sx={{ p: 2, backgroundColor: theme.palette.background.paper }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h6" sx={{ color: theme.palette.text.primary }}>Model Status</Typography>
-          <Button startIcon={<Refresh />} onClick={loadModelStatus} size="small">
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <Paper 
+        elevation={0} 
+        sx={{ 
+          p: '1.5rem', 
+          backgroundColor: theme.palette.background.paper,
+          border: `1px solid ${theme.palette.divider}`,
+          borderRadius: '12px',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+        }}
+      >
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: '1.5rem' }}>
+          <Typography 
+            variant="h6" 
+            sx={{ 
+              fontFamily: "'Inter', sans-serif",
+              color: theme.palette.text.primary,
+              fontSize: '1rem',
+              fontWeight: 600,
+              lineHeight: 1.2,
+            }}
+          >
+            Model Status
+          </Typography>
+          <Button 
+            startIcon={<Refresh />} 
+            onClick={loadModelStatus} 
+            size="small"
+            sx={{
+              fontFamily: "'Inter', sans-serif",
+              fontSize: '0.875rem',
+              fontWeight: 500,
+              padding: '0.5rem 0.75rem',
+              borderRadius: '8px',
+              textTransform: 'none',
+            }}
+          >
             Refresh
           </Button>
         </Box>
         {modelStatus && (
           <Box>
-            <Alert severity={modelStatus.model_loaded ? 'success' : 'warning'} sx={{ mb: 2 }}>
+            <Alert severity={modelStatus.model_loaded ? 'success' : 'warning'} sx={{ mb: '1.5rem' }}>
               Model Status: {modelStatus.model_loaded ? 'Loaded' : 'Not Loaded'}
             </Alert>
-            <Typography variant="body2" color="text.secondary">
+            <Typography 
+              variant="body2" 
+              sx={{
+                fontFamily: "'Inter', sans-serif",
+                fontSize: '0.875rem',
+                fontWeight: 400,
+                lineHeight: 1.5,
+                color: theme.palette.text.secondary,
+              }}
+            >
               Categorization Method: {modelStatus.categorization_method}
             </Typography>
           </Box>
@@ -195,6 +236,7 @@ export default function ModelStatusSection() {
     </Box>
   );
 }
+
 
 
 

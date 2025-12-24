@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Typography, Collapse, IconButton } from '@mui/material';
+import { Box, Typography, Collapse, IconButton, useTheme } from '@mui/material';
 import { ExpandMore, ChevronRight } from '@mui/icons-material';
 
 interface CollapsibleSectionProps {
@@ -17,6 +17,7 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   onToggle,
   actionButton,
 }) => {
+  const theme = useTheme();
   const [expanded, setExpanded] = useState(defaultExpanded);
 
   const handleToggle = () => {
@@ -28,7 +29,7 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   return (
     <Box
       sx={{
-        borderBottom: expanded ? '1px solid #e5e7eb' : 'none',
+        borderBottom: expanded ? `1px solid ${theme.palette.divider}` : 'none',
         paddingBottom: expanded ? '1rem' : 0,
         marginBottom: expanded ? '1rem' : 0,
       }}
@@ -51,7 +52,7 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
             size="small"
             sx={{
               padding: '0.25rem',
-              color: '#6b7280',
+              color: theme.palette.text.secondary,
               '&:hover': {
                 backgroundColor: 'transparent',
               },
@@ -66,9 +67,11 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
           <Typography
             variant="body1"
             sx={{
+              fontFamily: "'Inter', sans-serif",
               fontWeight: 500,
-              color: '#111827',
+              color: theme.palette.text.primary,
               fontSize: '0.875rem',
+              lineHeight: 1.5,
               userSelect: 'none',
             }}
           >

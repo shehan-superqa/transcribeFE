@@ -109,11 +109,29 @@ export default function AlertsPanel({ compact = false, maxItems = 10, onAlertCli
   const unreadAlerts = alerts.filter((alert) => !alert.read);
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      <Paper elevation={2} sx={{ p: compact ? 2 : 3, backgroundColor: theme.palette.background.paper }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography variant={compact ? 'h6' : 'h5'} sx={{ color: theme.palette.text.primary, fontWeight: 600 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <Paper 
+        elevation={0} 
+        sx={{ 
+          p: compact ? '1rem' : '1.5rem', 
+          backgroundColor: theme.palette.background.paper,
+          border: `1px solid ${theme.palette.divider}`,
+          borderRadius: '12px',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+        }}
+      >
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: '1.5rem' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Typography 
+              variant={compact ? 'h6' : 'h5'} 
+              sx={{ 
+                fontFamily: "'Inter', sans-serif",
+                color: theme.palette.text.primary, 
+                fontWeight: 600,
+                fontSize: compact ? '1rem' : '1.25rem',
+                lineHeight: 1.2,
+              }}
+            >
               Budget Alerts
             </Typography>
             {unreadCount > 0 && (
@@ -128,6 +146,14 @@ export default function AlertsPanel({ compact = false, maxItems = 10, onAlertCli
               startIcon={<MarkEmailRead />}
               onClick={handleMarkAllRead}
               aria-label="Mark all alerts as read"
+              sx={{
+                fontFamily: "'Inter', sans-serif",
+                fontSize: '0.875rem',
+                fontWeight: 500,
+                padding: '0.5rem 0.75rem',
+                borderRadius: '8px',
+                textTransform: 'none',
+              }}
             >
               Mark All Read
             </Button>
@@ -141,12 +167,32 @@ export default function AlertsPanel({ compact = false, maxItems = 10, onAlertCli
         )}
 
         {alerts.length === 0 ? (
-          <Box sx={{ textAlign: 'center', py: 4 }}>
-            <CheckCircle sx={{ fontSize: 48, color: theme.palette.success.main, mb: 1 }} />
-            <Typography variant="body1" color="text.secondary">
+          <Box sx={{ textAlign: 'center', py: '2rem' }}>
+            <CheckCircle sx={{ fontSize: 48, color: theme.palette.success.main, mb: '0.5rem' }} />
+            <Typography 
+              variant="body1" 
+              sx={{
+                fontFamily: "'Inter', sans-serif",
+                fontSize: '0.875rem',
+                fontWeight: 400,
+                lineHeight: 1.5,
+                color: theme.palette.text.secondary,
+              }}
+            >
               No alerts at this time
             </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+            <Typography 
+              variant="caption" 
+              sx={{ 
+                fontFamily: "'Inter', sans-serif",
+                fontSize: '0.75rem',
+                fontWeight: 400,
+                lineHeight: 1.5,
+                color: theme.palette.text.secondary,
+                display: 'block', 
+                mt: '0.25rem',
+              }}
+            >
               You're staying within your budgets
             </Typography>
           </Box>
@@ -157,8 +203,9 @@ export default function AlertsPanel({ compact = false, maxItems = 10, onAlertCli
                 key={alert._id}
                 sx={{
                   border: `1px solid ${theme.palette.divider}`,
-                  borderRadius: 1,
-                  mb: 1,
+                  borderRadius: '8px',
+                  mb: '0.75rem',
+                  p: '1rem',
                   backgroundColor: alert.read
                     ? theme.palette.background.paper
                     : theme.palette.mode === 'dark'
@@ -175,28 +222,72 @@ export default function AlertsPanel({ compact = false, maxItems = 10, onAlertCli
                 <ListItemIcon>{getSeverityIcon(alert.severity)}</ListItemIcon>
                 <ListItemText
                   primary={
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                      <Typography variant="subtitle2" sx={{ fontWeight: alert.read ? 400 : 600 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <Typography 
+                        variant="subtitle2" 
+                        sx={{ 
+                          fontFamily: "'Inter', sans-serif",
+                          fontSize: '0.875rem',
+                          fontWeight: alert.read ? 400 : 600,
+                          lineHeight: 1.2,
+                        }}
+                      >
                         {alert.title}
                       </Typography>
                       <Chip
                         label={alert.severity}
                         size="small"
                         color={getSeverityColor(alert.severity) as any}
-                        sx={{ fontSize: '0.7rem', height: 20 }}
+                        sx={{ 
+                          fontFamily: "'Inter', sans-serif",
+                          fontSize: '0.75rem', 
+                          height: 20,
+                          borderRadius: '8px',
+                        }}
                       />
                       {!alert.read && (
-                        <Chip label="New" size="small" color="primary" sx={{ fontSize: '0.7rem', height: 20 }} />
+                        <Chip 
+                          label="New" 
+                          size="small" 
+                          color="primary" 
+                          sx={{ 
+                            fontFamily: "'Inter', sans-serif",
+                            fontSize: '0.75rem', 
+                            height: 20,
+                            borderRadius: '8px',
+                          }} 
+                        />
                       )}
                     </Box>
                   }
                   secondary={
                     <Box>
-                      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          fontFamily: "'Inter', sans-serif",
+                          fontSize: '0.875rem',
+                          fontWeight: 400,
+                          lineHeight: 1.5,
+                          color: theme.palette.text.secondary,
+                          mt: '0.25rem',
+                        }}
+                      >
                         {alert.message}
                       </Typography>
                       {alert.amount && (
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                        <Typography 
+                          variant="caption" 
+                          sx={{ 
+                            fontFamily: "'Inter', sans-serif",
+                            fontSize: '0.75rem',
+                            fontWeight: 400,
+                            lineHeight: 1.5,
+                            color: theme.palette.text.secondary,
+                            display: 'block', 
+                            mt: '0.25rem',
+                          }}
+                        >
                           Amount: Rs. {alert.amount.toFixed(2)}
                         </Typography>
                       )}
@@ -226,6 +317,7 @@ export default function AlertsPanel({ compact = false, maxItems = 10, onAlertCli
     </Box>
   );
 }
+
 
 
 

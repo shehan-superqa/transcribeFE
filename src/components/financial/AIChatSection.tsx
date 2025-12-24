@@ -154,22 +154,41 @@ export default function AIChatSection({ floating = false, minimized = false, onM
       }}
     >
       <Paper
-        elevation={floating ? 8 : 1}
+        elevation={0}
         sx={{
-          p: 2,
-          mb: 2,
+          p: '1.5rem',
+          mb: '1rem',
           backgroundColor: theme.palette.background.paper,
-          borderRadius: floating ? 3 : 1,
-          borderTopLeftRadius: floating ? 3 : 1,
-          borderTopRightRadius: floating ? 3 : 1,
+          border: `1px solid ${theme.palette.divider}`,
+          borderRadius: floating ? '12px 12px 0 0' : '12px',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
         }}
       >
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box>
-            <Typography variant="h6" sx={{ color: theme.palette.text.primary, fontWeight: 600 }}>
+            <Typography 
+              variant="h6" 
+              sx={{ 
+                fontFamily: "'Inter', sans-serif",
+                color: theme.palette.text.primary, 
+                fontWeight: 600,
+                fontSize: '1rem',
+                lineHeight: 1.2,
+                mb: '0.25rem',
+              }}
+            >
               AI Financial Assistant
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography 
+              variant="body2" 
+              sx={{
+                fontFamily: "'Inter', sans-serif",
+                fontSize: '0.875rem',
+                fontWeight: 400,
+                lineHeight: 1.5,
+                color: theme.palette.text.secondary,
+              }}
+            >
               Ask questions about your finances
             </Typography>
           </Box>
@@ -198,34 +217,51 @@ export default function AIChatSection({ floating = false, minimized = false, onM
       </Paper>
 
       <Paper
-        elevation={floating ? 8 : 1}
+        elevation={0}
         sx={{
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
           backgroundColor: theme.palette.background.paper,
-          borderRadius: floating ? '0 0 12px 12px' : 1,
+          border: `1px solid ${theme.palette.divider}`,
+          borderTop: floating ? 'none' : `1px solid ${theme.palette.divider}`,
+          borderRadius: floating ? '0 0 12px 12px' : '12px',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
         }}
       >
-        <List sx={{ flex: 1, overflow: 'auto', p: 2 }}>
+        <List sx={{ flex: 1, overflow: 'auto', p: '1.5rem' }}>
           {messages.length === 0 && (
             <Box>
               <ListItem>
-                <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', mb: 2 }}>
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: '0.875rem',
+                    fontWeight: 400,
+                    lineHeight: 1.5,
+                    fontStyle: 'italic', 
+                    mb: '1rem',
+                    color: theme.palette.text.secondary,
+                  }}
+                >
                   Start a conversation by asking a question about your finances, or try one of these:
                 </Typography>
               </ListItem>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, px: 2 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', px: '1rem' }}>
                 {QUICK_QUESTIONS.map((question, index) => (
                   <Chip
                     key={index}
                     label={question}
                     onClick={() => handleQuickQuestion(question)}
                     sx={{
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: '0.875rem',
                       justifyContent: 'flex-start',
                       height: 'auto',
                       py: 1.5,
+                      borderRadius: '8px',
                       '& .MuiChip-label': {
                         whiteSpace: 'normal',
                         textAlign: 'left',
@@ -320,6 +356,7 @@ export default function AIChatSection({ floating = false, minimized = false, onM
     </Box>
   );
 }
+
 
 
 

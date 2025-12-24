@@ -112,14 +112,42 @@ export default function CategoryCapSection({ categories = [], onCapChange }: Cat
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      <Paper elevation={2} sx={{ p: 3, backgroundColor: theme.palette.background.paper }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <Paper 
+        elevation={0} 
+        sx={{ 
+          p: '1.5rem', 
+          backgroundColor: theme.palette.background.paper,
+          border: `1px solid ${theme.palette.divider}`,
+          borderRadius: '12px',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+        }}
+      >
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: '1.5rem' }}>
           <Box>
-            <Typography variant="h6" sx={{ color: theme.palette.text.primary, fontWeight: 600, mb: 0.5 }}>
+            <Typography 
+              variant="h6" 
+              sx={{ 
+                fontFamily: "'Inter', sans-serif",
+                color: theme.palette.text.primary, 
+                fontWeight: 600,
+                fontSize: '1rem',
+                lineHeight: 1.2,
+                mb: '0.5rem',
+              }}
+            >
               Category Spending Caps
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography 
+              variant="body2" 
+              sx={{
+                fontFamily: "'Inter', sans-serif",
+                fontSize: '0.875rem',
+                fontWeight: 400,
+                lineHeight: 1.5,
+                color: theme.palette.text.secondary,
+              }}
+            >
               Set monthly spending limits for specific categories
             </Typography>
           </Box>
@@ -133,6 +161,14 @@ export default function CategoryCapSection({ categories = [], onCapChange }: Cat
             }}
             disabled={availableCategories.length === 0}
             aria-label="Set category spending cap"
+            sx={{
+              fontFamily: "'Inter', sans-serif",
+              fontSize: '0.875rem',
+              fontWeight: 500,
+              padding: '0.625rem 1rem',
+              borderRadius: '8px',
+              textTransform: 'none',
+            }}
           >
             Set Cap
           </Button>
@@ -145,8 +181,18 @@ export default function CategoryCapSection({ categories = [], onCapChange }: Cat
         )}
 
         {caps.length === 0 ? (
-          <Box sx={{ textAlign: 'center', py: 4 }}>
-            <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+          <Box sx={{ textAlign: 'center', py: '2rem' }}>
+            <Typography 
+              variant="body1" 
+              sx={{ 
+                fontFamily: "'Inter', sans-serif",
+                fontSize: '0.875rem',
+                fontWeight: 400,
+                lineHeight: 1.5,
+                color: theme.palette.text.secondary,
+                mb: '1rem',
+              }}
+            >
               No category caps set. Set spending limits to get alerts when you're approaching them.
             </Typography>
           </Box>
@@ -155,20 +201,63 @@ export default function CategoryCapSection({ categories = [], onCapChange }: Cat
             <Table aria-label="Category spending caps">
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 600 }}>Category</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 600 }}>
+                  <TableCell 
+                    sx={{ 
+                      fontFamily: "'Inter', sans-serif",
+                      fontWeight: 600,
+                      fontSize: '0.875rem',
+                    }}
+                  >
+                    Category
+                  </TableCell>
+                  <TableCell 
+                    align="right" 
+                    sx={{ 
+                      fontFamily: "'Inter', sans-serif",
+                      fontWeight: 600,
+                      fontSize: '0.875rem',
+                    }}
+                  >
                     Monthly Limit
                   </TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 600 }}>
+                  <TableCell 
+                    align="right" 
+                    sx={{ 
+                      fontFamily: "'Inter', sans-serif",
+                      fontWeight: 600,
+                      fontSize: '0.875rem',
+                    }}
+                  >
                     Current Spending
                   </TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 600 }}>
+                  <TableCell 
+                    align="right" 
+                    sx={{ 
+                      fontFamily: "'Inter', sans-serif",
+                      fontWeight: 600,
+                      fontSize: '0.875rem',
+                    }}
+                  >
                     Remaining
                   </TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 600 }}>
+                  <TableCell 
+                    align="center" 
+                    sx={{ 
+                      fontFamily: "'Inter', sans-serif",
+                      fontWeight: 600,
+                      fontSize: '0.875rem',
+                    }}
+                  >
                     Status
                   </TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 600 }}>
+                  <TableCell 
+                    align="right" 
+                    sx={{ 
+                      fontFamily: "'Inter', sans-serif",
+                      fontWeight: 600,
+                      fontSize: '0.875rem',
+                    }}
+                  >
                     Actions
                   </TableCell>
                 </TableRow>
@@ -178,17 +267,38 @@ export default function CategoryCapSection({ categories = [], onCapChange }: Cat
                   const percentageUsed = (cap.current_spending / cap.monthly_limit) * 100;
                   return (
                     <TableRow key={cap._id}>
-                      <TableCell>{cap.category_name}</TableCell>
-                      <TableCell align="right">
+                      <TableCell
+                        sx={{
+                          fontFamily: "'Inter', sans-serif",
+                          fontSize: '0.875rem',
+                        }}
+                      >
+                        {cap.category_name}
+                      </TableCell>
+                      <TableCell 
+                        align="right"
+                        sx={{
+                          fontFamily: "'Inter', sans-serif",
+                          fontSize: '0.875rem',
+                        }}
+                      >
                         Rs. {cap.monthly_limit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </TableCell>
-                      <TableCell align="right">
+                      <TableCell 
+                        align="right"
+                        sx={{
+                          fontFamily: "'Inter', sans-serif",
+                          fontSize: '0.875rem',
+                        }}
+                      >
                         Rs. {cap.current_spending.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </TableCell>
                       <TableCell align="right">
                         <Typography
                           variant="body2"
                           sx={{
+                            fontFamily: "'Inter', sans-serif",
+                            fontSize: '0.875rem',
                             color: cap.remaining >= 0 ? theme.palette.success.main : theme.palette.error.main,
                             fontWeight: 600,
                           }}
@@ -348,6 +458,7 @@ export default function CategoryCapSection({ categories = [], onCapChange }: Cat
     </Box>
   );
 }
+
 
 
 
