@@ -29,6 +29,8 @@ const NavLink = ({ to, children, onClick, theme }: { to?: string; children: Reac
     display: 'flex',
     alignItems: 'center',
     whiteSpace: 'nowrap' as const,
+    flexShrink: 0,
+    lineHeight: '1.5',
   };
 
   if (to) {
@@ -67,9 +69,10 @@ const PrimaryButton = ({ onClick, children }: { onClick?: () => void; children: 
       style={{
         fontFamily: "'Inter', sans-serif",
         fontWeight: 500,
-        fontSize: 'clamp(0.8rem, 2vw, 0.85rem)',
-        padding: 'clamp(0.5rem, 1.5vw, 0.625rem) clamp(1rem, 2.5vw, 1.1rem)',
-        minHeight: '44px',
+        fontSize: 'clamp(0.75rem, 2vw, 0.8rem)',
+        padding: 'clamp(0.35rem, 1vw, 0.4rem) clamp(0.75rem, 2vw, 1rem)',
+        height: 'auto',
+        lineHeight: '1.5',
         touchAction: 'manipulation',
         backgroundColor: hover ? '#e0e0e0' : '#ffffff',
         color: '#000000',
@@ -80,6 +83,8 @@ const PrimaryButton = ({ onClick, children }: { onClick?: () => void; children: 
         display: 'flex',
         alignItems: 'center',
         gap: '0.25rem',
+        flexShrink: 0,
+        whiteSpace: 'nowrap' as const,
       }}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
@@ -176,7 +181,7 @@ const ToolsDropdown = ({ isMobile, theme }: { isMobile: boolean; theme?: any }) 
   
   if (isMobile) {
     return (
-      <div style={{ backgroundColor: dropdownBg, borderRadius: '8px', boxShadow: theme?.palette?.mode === 'dark' ? '0 8px 20px rgba(0,0,0,0.5)' : '0 8px 20px rgba(0,0,0,0.1)', overflow: 'hidden', padding: '0.5rem', width: '100%' }}>
+      <div style={{ backgroundColor: dropdownBg, borderRadius: '8px', boxShadow: theme?.palette?.mode === 'dark' ? '0 8px 20px rgba(0,0,0,0.5)' : '0 8px 20px rgba(0,0,0,0.1)', overflowY: 'auto', overflowX: 'hidden', padding: '0.5rem', width: '100%', maxHeight: 'calc(100vh - 250px)' }}>
         <HighlightedItem to="/voice/transcribe" title="Audio to Text" description="Convert audio files to accurate text transcriptions" />
         <div style={{ display: 'flex', flexDirection: 'column', marginTop: '0.5rem' }}>
           <DropdownSection title="VOICE (AUDIO) TOOLS" theme={theme}>
@@ -204,7 +209,7 @@ const ToolsDropdown = ({ isMobile, theme }: { isMobile: boolean; theme?: any }) 
   }
   
   return (
-    <div className="tools-dropdown-scroll" style={{ display: 'flex', backgroundColor: dropdownBg, borderRadius: '8px', boxShadow: theme?.palette?.mode === 'dark' ? '0 8px 20px rgba(0,0,0,0.5)' : '0 8px 20px rgba(0,0,0,0.1)', overflowX: 'auto', overflowY: 'hidden', minWidth: 'clamp(280px, 80vw, 600px)', maxWidth: 'clamp(90vw, 900px, 95vw)', padding: '0.5rem', scrollbarWidth: 'thin', scrollbarColor: `${scrollbarThumb} ${scrollbarTrack}` }}>
+    <div className="tools-dropdown-scroll" style={{ display: 'flex', backgroundColor: dropdownBg, borderRadius: '8px', boxShadow: theme?.palette?.mode === 'dark' ? '0 8px 20px rgba(0,0,0,0.5)' : '0 8px 20px rgba(0,0,0,0.1)', overflowX: 'auto', overflowY: 'auto', minWidth: 'clamp(280px, 80vw, 600px)', maxWidth: 'clamp(90vw, 900px, 95vw)', maxHeight: 'calc(100vh - 150px)', padding: '0.5rem', scrollbarWidth: 'thin', scrollbarColor: `${scrollbarThumb} ${scrollbarTrack}` }}>
       <HighlightedItem to="/voice/transcribe" title="Audio to Text" description="Convert audio files to accurate text transcriptions instantly." />
       <div style={{ display: 'flex', flexShrink: 0 }}>
         <DropdownSection title="VOICE (AUDIO) TOOLS" theme={theme}>
@@ -239,7 +244,7 @@ const ComplexDropdown = ({ isMobile, theme }: { isMobile: boolean; theme?: any }
   
   if (isMobile) {
     return (
-      <div style={{ backgroundColor: dropdownBg, borderRadius: '8px', boxShadow: theme?.palette?.mode === 'dark' ? '0 8px 20px rgba(0,0,0,0.5)' : '0 8px 20px rgba(0,0,0,0.1)', overflow: 'hidden', padding: '0.5rem', width: '100%' }}>
+      <div style={{ backgroundColor: dropdownBg, borderRadius: '8px', boxShadow: theme?.palette?.mode === 'dark' ? '0 8px 20px rgba(0,0,0,0.5)' : '0 8px 20px rgba(0,0,0,0.1)', overflowY: 'auto', overflowX: 'hidden', padding: '0.5rem', width: '100%', maxHeight: 'calc(100vh - 250px)' }}>
         <HighlightedItem to="/pricing" title="Secure Comm." description="End-to-end encryption for all voice and data streams." />
         <div style={{ display: 'flex', flexDirection: 'column', marginTop: '0.5rem' }}>
           <DropdownSection title="CORE FEATURES" theme={theme}>
@@ -262,7 +267,7 @@ const ComplexDropdown = ({ isMobile, theme }: { isMobile: boolean; theme?: any }
   }
   
   return (
-    <div className="tools-dropdown-scroll" style={{ display: 'flex', backgroundColor: dropdownBg, borderRadius: '8px', boxShadow: theme?.palette?.mode === 'dark' ? '0 8px 20px rgba(0,0,0,0.5)' : '0 8px 20px rgba(0,0,0,0.1)', overflowX: 'auto', overflowY: 'hidden', minWidth: 'clamp(280px, 80vw, 600px)', maxWidth: 'clamp(90vw, 900px, 95vw)', padding: '0.5rem', scrollbarWidth: 'thin', scrollbarColor: `${scrollbarThumb} ${scrollbarTrack}` }}>
+    <div className="tools-dropdown-scroll" style={{ display: 'flex', backgroundColor: dropdownBg, borderRadius: '8px', boxShadow: theme?.palette?.mode === 'dark' ? '0 8px 20px rgba(0,0,0,0.5)' : '0 8px 20px rgba(0,0,0,0.1)', overflowX: 'auto', overflowY: 'auto', minWidth: 'clamp(280px, 80vw, 600px)', maxWidth: 'clamp(90vw, 900px, 95vw)', maxHeight: 'calc(100vh - 150px)', padding: '0.5rem', scrollbarWidth: 'thin', scrollbarColor: `${scrollbarThumb} ${scrollbarTrack}` }}>
       <HighlightedItem to="/pricing" title="Secure Comm." description="End-to-end encryption for all voice and data streams." />
       <div style={{ display: 'flex', flexShrink: 0 }}>
         <DropdownSection title="CORE FEATURES" theme={theme}>
@@ -323,6 +328,18 @@ export default function Header() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Prevent body scroll when dropdowns are open
+  useEffect(() => {
+    if (productDropdownOpen || toolsDropdownOpen || mobileOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [productDropdownOpen, toolsDropdownOpen, mobileOpen]);
+
   useEffect(() => {
     if (!toolsDropdownOpen || !isDesktop || !toolsDropdownRef.current) {
       setToolsDropdownPosition({});
@@ -334,30 +351,33 @@ export default function Header() {
       
       const rect = toolsDropdownRef.current.getBoundingClientRect();
       const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
       const dropdownMaxWidth = 900;
+      const dropdownMaxHeight = viewportHeight - rect.bottom - 20; // Leave 20px padding from bottom
       const padding = 32; // 2rem
       
       // Calculate if dropdown would overflow on the right
       const spaceOnRight = viewportWidth - rect.right;
       
+      const positionStyle: React.CSSProperties = {
+        zIndex: 201,
+        maxHeight: `${Math.max(200, Math.min(dropdownMaxHeight, window.innerHeight - 150))}px`, // Constrain to viewport
+      };
+      
       if (spaceOnRight < dropdownMaxWidth + padding) {
         // Align to right edge of viewport with padding
-        setToolsDropdownPosition({
-          position: 'fixed' as const,
-          top: `${rect.bottom + 4}px`,
-          right: `${padding}px`,
-          zIndex: 201,
-          maxWidth: `${viewportWidth - padding * 2}px`,
-        });
+        positionStyle.position = 'fixed';
+        positionStyle.top = `${rect.bottom + 4}px`;
+        positionStyle.right = `${padding}px`;
+        positionStyle.maxWidth = `${viewportWidth - padding * 2}px`;
       } else {
         // Position normally below trigger
-        setToolsDropdownPosition({
-          position: 'absolute' as const,
-          top: '100%',
-          left: '0',
-          zIndex: 201,
-        });
+        positionStyle.position = 'absolute';
+        positionStyle.top = '100%';
+        positionStyle.left = '0';
       }
+      
+      setToolsDropdownPosition(positionStyle);
     };
 
     calculatePosition();
@@ -395,22 +415,22 @@ export default function Header() {
   const secondaryText = theme.palette.mode === 'dark' ? '#aaaaaa' : '#6b7280';
 
   const styles = {
-    header: { backgroundColor: headerBg, borderBottom: `1px solid ${headerBorder}`, position: 'sticky' as const, top: 0, zIndex: 200, padding: 'clamp(0.5rem, 1.5vw, 0.75rem) clamp(1rem, 3vw, 2rem)' },
-    headerMobile: { backgroundColor: headerBg, borderBottom: `1px solid ${headerBorder}`, position: 'sticky' as const, top: 0, zIndex: 200, padding: 'clamp(0.5rem, 1.5vw, 0.75rem) clamp(0.75rem, 2vw, 1rem)' },
-    container: { maxWidth: '1448px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '0 clamp(0.5rem, 2vw, 1rem)' },
-    leftNavSection: { display: 'flex', alignItems: 'center', gap: 'clamp(1rem, 3vw, 2.5rem)', flexWrap: 'wrap' as const },
-    logo: { display: 'flex', alignItems: 'center', textDecoration: 'none' },
-    logoSvgContainer: { marginRight: '0.75rem' },
-    logoText: { fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 'clamp(1rem, 3vw, 1.2rem)', color: textColor, letterSpacing: '0.5px' },
-    desktopNavLinks: { display: 'flex', alignItems: 'center' as const, gap: 'clamp(0.75rem, 2vw, 1.25rem)', flexWrap: 'wrap' as const },
+    header: { backgroundColor: headerBg, borderBottom: `1px solid ${headerBorder}`, position: 'sticky' as const, top: 0, zIndex: 200, padding: 'clamp(0.5rem, 1.5vw, 0.75rem) clamp(1rem, 3vw, 2rem)', overflowX: 'hidden' as const, maxWidth: '100vw', width: '100%' },
+    headerMobile: { backgroundColor: headerBg, borderBottom: `1px solid ${headerBorder}`, position: 'sticky' as const, top: 0, zIndex: 200, padding: 'clamp(0.5rem, 1.5vw, 0.75rem) clamp(0.75rem, 2vw, 1rem)', overflowX: 'hidden' as const, maxWidth: '100vw', width: '100%' },
+    container: { maxWidth: '1448px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '0 clamp(0.5rem, 2vw, 1rem)', flexWrap: 'nowrap' as const, overflowX: 'hidden' as const, minWidth: 0 },
+    leftNavSection: { display: 'flex', alignItems: 'center', gap: 'clamp(1rem, 3vw, 2.5rem)', flexWrap: 'nowrap' as const, flexShrink: 0, minWidth: 0, overflowX: 'hidden' as const },
+    logo: { display: 'flex', alignItems: 'center', textDecoration: 'none', flexShrink: 0 },
+    logoSvgContainer: { marginRight: '0.75rem', flexShrink: 0 },
+    logoText: { fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 'clamp(1rem, 3vw, 1.2rem)', color: textColor, letterSpacing: '0.5px', whiteSpace: 'nowrap' as const },
+    desktopNavLinks: { display: 'flex', alignItems: 'center' as const, gap: 'clamp(0.75rem, 2vw, 1.25rem)', flexWrap: 'nowrap' as const, flexShrink: 0, minWidth: 0, overflowX: 'hidden' as const },
     productDropdownContainer: { position: 'relative' as const, display: 'flex', alignItems: 'center' },
-    productDropdownMenu: { position: 'absolute' as const, top: '100%', left: '0', paddingTop: '4px', zIndex: 201, overflow: 'visible' },
+    productDropdownMenu: { position: 'absolute' as const, top: '100%', left: '0', paddingTop: '4px', zIndex: 201, overflow: 'visible', maxWidth: 'calc(100vw - 2rem)', maxHeight: 'calc(100vh - 150px)' },
     productDropdownMenuMobile: { position: 'absolute' as const, top: '100%', left: '0', paddingTop: '4px', zIndex: 201, width: '100%' },
-    rightAuthSection: { display: 'flex', alignItems: 'center', gap: '0.75rem' },
+    rightAuthSection: { display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'nowrap' as const, flexShrink: 0, minWidth: 0, overflowX: 'hidden' as const },
     mobileMenuIcon: { cursor: 'pointer' },
-    mobileMenu: { display: 'flex', flexDirection: 'column' as const, gap: '0.6rem', backgroundColor: headerBg, padding: '1rem 2rem', borderTop: `1px solid ${headerBorder}` },
+    mobileMenu: { display: 'flex', flexDirection: 'column' as const, gap: '0.6rem', backgroundColor: headerBg, padding: '1rem 2rem', borderTop: `1px solid ${headerBorder}`, maxHeight: 'calc(100vh - 80px)', overflowY: 'auto' as const, overflowX: 'hidden' as const },
     mobileDropdownContainer: { position: 'relative' as const, width: '100%' },
-    mobileDropdownMenu: { backgroundColor: dropdownBg, borderRadius: '4px', padding: '0.5rem 0', marginTop: '0.5rem', display: 'flex', flexDirection: 'column' as const, gap: '0' },
+    mobileDropdownMenu: { backgroundColor: dropdownBg, borderRadius: '4px', padding: '0.5rem 0', marginTop: '0.5rem', display: 'flex', flexDirection: 'column' as const, gap: '0', maxHeight: 'calc(100vh - 300px)', overflowY: 'auto' as const, overflowX: 'hidden' as const },
     simpleDropdownItem: { fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: '0.8rem', textDecoration: 'none', color: textColor, backgroundColor: 'transparent', padding: '0.4rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
   };
 
@@ -419,6 +439,7 @@ export default function Header() {
       <style>{`
         .tools-dropdown-scroll::-webkit-scrollbar {
           height: 8px;
+          width: 8px;
         }
         .tools-dropdown-scroll::-webkit-scrollbar-track {
           background: ${theme.palette.mode === 'dark' ? '#0d0d0d' : '#f3f4f6'};
@@ -458,13 +479,13 @@ export default function Header() {
               <NavLink onClick={handleToggleProductDropdown} theme={theme}>
                 Product {productDropdownOpen ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
               </NavLink>
-              {productDropdownOpen && isDesktop && <div style={styles.productDropdownMenu}><ComplexDropdown isMobile={false} theme={theme} /></div>}
+              {productDropdownOpen && isDesktop && <div style={{ ...styles.productDropdownMenu, maxWidth: 'calc(100vw - 2rem)' }}><ComplexDropdown isMobile={false} theme={theme} /></div>}
             </div>
             <div ref={toolsDropdownRef} style={styles.productDropdownContainer} onMouseEnter={handleOpenToolsDropdown} onMouseLeave={handleCloseToolsDropdown}>
               <NavLink onClick={handleToggleToolsDropdown} theme={theme}>
                 Tools {toolsDropdownOpen ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
               </NavLink>
-              {toolsDropdownOpen && isDesktop && <div style={Object.keys(toolsDropdownPosition).length > 0 ? toolsDropdownPosition : styles.productDropdownMenu}><ToolsDropdown isMobile={false} theme={theme} /></div>}
+              {toolsDropdownOpen && isDesktop && <div style={{ ...(Object.keys(toolsDropdownPosition).length > 0 ? toolsDropdownPosition : styles.productDropdownMenu), maxWidth: 'calc(100vw - 2rem)' }}><ToolsDropdown isMobile={false} theme={theme} /></div>}
             </div>
             <NavLink to="/use-cases" theme={theme}>Use Cases</NavLink>
             <NavLink to="/integrations" theme={theme}>Integrations</NavLink>
@@ -492,11 +513,13 @@ export default function Header() {
           
           {user ? (
             <>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginRight: '0.5rem', flexWrap: 'nowrap' }}>
-                <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 'clamp(0.75rem, 2vw, 0.85rem)', color: textColor, fontWeight: 500, whiteSpace: 'nowrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginRight: '0.5rem', flexWrap: 'nowrap', flexShrink: 0, minWidth: 0, overflowX: 'hidden' as const }}>
+                <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 'clamp(0.75rem, 2vw, 0.8rem)', color: textColor, fontWeight: 500, whiteSpace: 'nowrap', lineHeight: '1.5', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '200px' }}>
                   Welcome, {user?.name || user?.email}
                 </span>
-                <EnergyPointsBalance showLabel={false} />
+                <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+                  <EnergyPointsBalance showLabel={false} />
+                </div>
                 {user.isEmailVerified ? (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.75rem', backgroundColor: '#d4edda', borderRadius: '9999px', flexShrink: 0 }}>
                     <FaCheckCircle style={{ color: '#155724', fontSize: '0.75rem' }} />

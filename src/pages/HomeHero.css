@@ -19,9 +19,12 @@
   .hero-section {
     position: relative;
     width: 100%;
+    max-width: 100vw;
     padding: 8rem 1.5rem 6rem;
     text-align: center;
     overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: visible;
     background: radial-gradient(ellipse at center, var(--background-dark) 0%, var(--bg-primary) 100%);
     color: var(--text-light);
     --mouse-x: 50%;
@@ -30,15 +33,24 @@
     --mouse-y-percent: 50%;
     --mouse-x-norm: 0.5;
     --mouse-y-norm: 0.5;
+    clip-path: inset(0);
+    contain: layout style paint;
   }
   
   /* Interactive Background Layers with Parallax */
   .hero-bg-layer {
     position: absolute;
-    inset: 0;
+    top: -5%;
+    left: -5%;
+    right: -5%;
+    bottom: -5%;
+    width: 110%;
+    height: 110%;
     pointer-events: none;
     will-change: transform;
     transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    clip-path: inset(0);
   }
   
   .hero-bg-layer-1 {
@@ -50,8 +62,8 @@
       transparent 70%
     );
     transform: translate(
-      calc((var(--mouse-x-norm, 0.5) - 0.5) * 30px),
-      calc((var(--mouse-y-norm, 0.5) - 0.5) * 30px)
+      calc((var(--mouse-x-norm, 0.5) - 0.5) * 8px),
+      calc((var(--mouse-y-norm, 0.5) - 0.5) * 8px)
     );
     animation: floatGradient 20s ease-in-out infinite alternate;
   }
@@ -65,8 +77,8 @@
       transparent 65%
     );
     transform: translate(
-      calc((var(--mouse-x-norm, 0.5) - 0.5) * -20px),
-      calc((var(--mouse-y-norm, 0.5) - 0.5) * -20px)
+      calc((var(--mouse-x-norm, 0.5) - 0.5) * -5px),
+      calc((var(--mouse-y-norm, 0.5) - 0.5) * -5px)
     );
     animation: floatGradient 15s ease-in-out infinite alternate-reverse;
   }
@@ -79,8 +91,8 @@
       transparent 50%
     );
     transform: translate(
-      calc((var(--mouse-x-norm, 0.5) - 0.5) * 15px),
-      calc((var(--mouse-y-norm, 0.5) - 0.5) * 15px)
+      calc((var(--mouse-x-norm, 0.5) - 0.5) * 4px),
+      calc((var(--mouse-y-norm, 0.5) - 0.5) * 4px)
     );
     filter: blur(40px);
     animation: floatGradient 25s ease-in-out infinite alternate;
@@ -89,15 +101,15 @@
   @keyframes floatGradient {
     0% { 
       transform: translate(
-        calc((var(--mouse-x-norm, 0.5) - 0.5) * 30px),
-        calc((var(--mouse-y-norm, 0.5) - 0.5) * 30px)
-      ) translate(-5%, -5%);
+        calc((var(--mouse-x-norm, 0.5) - 0.5) * 8px),
+        calc((var(--mouse-y-norm, 0.5) - 0.5) * 8px)
+      ) translate(-1%, -1%);
     }
     100% { 
       transform: translate(
-        calc((var(--mouse-x-norm, 0.5) - 0.5) * 30px),
-        calc((var(--mouse-y-norm, 0.5) - 0.5) * 30px)
-      ) translate(5%, 5%);
+        calc((var(--mouse-x-norm, 0.5) - 0.5) * 8px),
+        calc((var(--mouse-y-norm, 0.5) - 0.5) * 8px)
+      ) translate(1%, 1%);
     }
   }
   
@@ -112,8 +124,8 @@
     will-change: transform;
     transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
     transform: translate(
-      calc((var(--mouse-x-norm, 0.5) - 0.5) * 8px),
-      calc((var(--mouse-y-norm, 0.5) - 0.5) * 8px)
+      calc((var(--mouse-x-norm, 0.5) - 0.5) * 4px),
+      calc((var(--mouse-y-norm, 0.5) - 0.5) * 4px)
     );
   }
   
@@ -136,21 +148,17 @@
     position: relative;
     will-change: transform, filter;
     transform: translate(
-      calc((var(--mouse-x-norm, 0.5) - 0.5) * 12px),
-      calc((var(--mouse-y-norm, 0.5) - 0.5) * 12px)
+      calc((var(--mouse-x-norm, 0.5) - 0.5) * 4px),
+      calc((var(--mouse-y-norm, 0.5) - 0.5) * 4px)
     );
-  }
-  
-  /* Enhanced text shadow that follows mouse */
-  .hero-title {
     filter: drop-shadow(
-      calc((var(--mouse-x-norm, 0.5) - 0.5) * 30px) 
-      calc((var(--mouse-y-norm, 0.5) - 0.5) * 30px) 
-      40px rgba(0, 240, 255, 0.3)
+      calc((var(--mouse-x-norm, 0.5) - 0.5) * 4px) 
+      calc((var(--mouse-y-norm, 0.5) - 0.5) * 4px) 
+      20px rgba(0, 240, 255, 0.2)
     ) drop-shadow(
-      calc((var(--mouse-x-norm, 0.5) - 0.5) * -20px) 
-      calc((var(--mouse-y-norm, 0.5) - 0.5) * -20px) 
-      30px rgba(155, 93, 229, 0.2)
+      calc((var(--mouse-x-norm, 0.5) - 0.5) * -3px) 
+      calc((var(--mouse-y-norm, 0.5) - 0.5) * -3px) 
+      15px rgba(155, 93, 229, 0.12)
     );
   }
   
@@ -173,8 +181,8 @@
     will-change: transform;
     transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
     transform: translate(
-      calc((var(--mouse-x-norm, 0.5) - 0.5) * 6px),
-      calc((var(--mouse-y-norm, 0.5) - 0.5) * 6px)
+      calc((var(--mouse-x-norm, 0.5) - 0.5) * 3px),
+      calc((var(--mouse-y-norm, 0.5) - 0.5) * 3px)
     );
   }
   
@@ -191,7 +199,7 @@
   
   .hero-subtitle .highlight {
     background: linear-gradient(
-      calc(90deg + (var(--mouse-x-norm, 0.5) - 0.5) * 30deg),
+      calc(90deg + (var(--mouse-x-norm, 0.5) - 0.5) * 10deg),
       var(--primary),
       var(--secondary)
     );
@@ -200,9 +208,9 @@
     font-weight: 600;
     transition: background 0.2s ease;
     filter: drop-shadow(
-      calc((var(--mouse-x-norm, 0.5) - 0.5) * 10px) 
-      calc((var(--mouse-y-norm, 0.5) - 0.5) * 10px) 
-      15px rgba(0, 198, 255, 0.3)
+      calc((var(--mouse-x-norm, 0.5) - 0.5) * 3px) 
+      calc((var(--mouse-y-norm, 0.5) - 0.5) * 3px) 
+      10px rgba(0, 198, 255, 0.25)
     );
   }
   
@@ -292,8 +300,8 @@
   overflow: hidden;
   will-change: transform, box-shadow;
   transform: translate(
-    calc((var(--mouse-x-norm, 0.5) - 0.5) * 5px),
-    calc((var(--mouse-y-norm, 0.5) - 0.5) * 5px)
+    calc((var(--mouse-x-norm, 0.5) - 0.5) * 3px),
+    calc((var(--mouse-y-norm, 0.5) - 0.5) * 3px)
   );
 }
 
@@ -330,14 +338,14 @@
 /* Enhanced button hover with mouse interaction */
 .get-started-button:hover {
   transform: translate(
-    calc((var(--mouse-x-norm, 0.5) - 0.5) * 5px),
-    calc((var(--mouse-y-norm, 0.5) - 0.5) * 5px)
+    calc((var(--mouse-x-norm, 0.5) - 0.5) * 2px),
+    calc((var(--mouse-y-norm, 0.5) - 0.5) * 2px)
   ) translateY(-2px);
   box-shadow: 
     0 12px 25px rgba(99, 102, 241, 0.5),
-    calc((var(--mouse-x-norm, 0.5) - 0.5) * 20px) 
-    calc((var(--mouse-y-norm, 0.5) - 0.5) * 20px) 
-    30px rgba(99, 102, 241, 0.3);
+    calc((var(--mouse-x-norm, 0.5) - 0.5) * 5px) 
+    calc((var(--mouse-y-norm, 0.5) - 0.5) * 5px) 
+    25px rgba(99, 102, 241, 0.25);
 }
 
 /* Ripple effect on click */

@@ -188,9 +188,15 @@ const styles = {
     minHeight: "100vh",
     display: "flex",
     flexDirection: "column" as const,
+    overflowX: "hidden" as const,
+    maxWidth: "100vw",
+    width: "100%",
   },
   main: {
     flex: 1,
+    overflowX: "hidden" as const,
+    maxWidth: "100vw",
+    width: "100%",
   },
   footerContent: {
     maxWidth: "1200px",
