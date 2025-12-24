@@ -1,12 +1,28 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, createContext, useContext } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 import { useTheme } from '../contexts/ThemeContext';
 import { FiMenu, FiX, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import { FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
-import { IconButton } from '@mui/material';
-import { Brightness4, Brightness7 } from '@mui/icons-material';
+import { IconButton, useMediaQuery } from '@mui/material';
+import { Brightness4, Brightness7, Menu as MenuIcon } from '@mui/icons-material';
 import EnergyPointsBalance from './common/EnergyPointsBalance';
+
+// Sidebar Context
+interface SidebarContextType {
+  sidebarOpen: boolean;
+  setSidebarOpen: (open: boolean) => void;
+}
+
+const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
+
+export const useSidebar = () => {
+  const context = useContext(SidebarContext);
+  if (!context) {
+    throw new Error('useSidebar must be used within SidebarProvider');
+  }
+  return context;
+};
 
 // -------------------------
 // 1. NavLink Component
@@ -291,6 +307,15 @@ const ComplexDropdown = ({ isMobile, theme }: { isMobile: boolean; theme?: any }
 
 // 4. Header Component
 // -------------------------
+export function SidebarProvider({ children }: { children: React.ReactNode }) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  return (
+    <SidebarContext.Provider value={{ sidebarOpen, setSidebarOpen }}>
+      {children}
+    </SidebarContext.Provider>
+  );
+}
+
 export default function Header() {
   const { user, signOut, refreshUser } = useAuth();
   const { mode, toggleTheme, theme } = useTheme();
@@ -303,6 +328,15 @@ export default function Header() {
   const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth <= 1024);
   const toolsDropdownRef = useRef<HTMLDivElement>(null);
   const [toolsDropdownPosition, setToolsDropdownPosition] = useState<React.CSSProperties>({});
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const drawerIconRef = useRef<HTMLButtonElement>(null);
+  const isMobileScreen = useMediaQuery('(max-width: 768px)');
+  
+  // Store sidebar state in a way that Sidebar component can access
+  useEffect(() => {
+    // Store in a custom event or window property for Sidebar to access
+    (window as any).__sidebarState = { open: sidebarOpen, setOpen: setSidebarOpen };
+  }, [sidebarOpen]);
 
   // Refresh user data when navigating to dashboard after login
   useEffect(() => {
@@ -347,6 +381,21 @@ export default function Header() {
     }
   }, [toolsDropdownOpen]);
 
+  // Set CSS variable for header height and store sidebar state
+  useEffect(() => {
+    const headerElement = document.querySelector('header');
+    if (headerElement) {
+      const headerHeight = headerElement.offsetHeight;
+      document.documentElement.style.setProperty('--header-height', `${headerHeight}px`);
+    }
+  }, [isMobile]);
+
+  // Store sidebar state in window for Sidebar component to access (update immediately on change)
+  useEffect(() => {
+    (window as any).__sidebarState = { open: sidebarOpen, setOpen: setSidebarOpen };
+    // Dispatch event for immediate Sidebar update
+    window.dispatchEvent(new CustomEvent('sidebarToggle', { detail: { open: sidebarOpen } }));
+  }, [sidebarOpen]);
 
   const handleToggleMobile = () => {
     setMobileOpen(!mobileOpen);
@@ -426,6 +475,41 @@ export default function Header() {
         <div style={styles.container}>
         {/* Left Section */}
         <div style={styles.leftNavSection}>
+          {/* Drawer Icon - Show on mobile/tablet screens (≤768px) */}
+          {isMobileScreen && (
+            <IconButton
+              ref={drawerIconRef}
+              onClick={() => {
+                const newState = !sidebarOpen;
+                setSidebarOpen(newState);
+                // Immediately update window state for Sidebar to sync
+                (window as any).__sidebarState = { open: newState, setOpen: setSidebarOpen };
+                // Dispatch custom event for immediate Sidebar update
+                window.dispatchEvent(new CustomEvent('sidebarToggle', { detail: { open: newState } }));
+              }}
+              sx={{
+                padding: '0.5rem',
+                marginRight: '0.75rem',
+                color: textColor,
+                flexShrink: 0,
+                minWidth: { xs: '36px', sm: '40px' },
+                minHeight: { xs: '36px', sm: '40px' },
+                width: { xs: '36px', sm: '40px' },
+                height: { xs: '36px', sm: '40px' },
+                '&:hover': {
+                  backgroundColor: hoverBg,
+                },
+                '&:active': {
+                  transform: 'scale(0.95)',
+                },
+                transition: 'all 0.2s ease',
+              }}
+              aria-label={sidebarOpen ? "Close sidebar" : "Open sidebar"}
+              aria-expanded={sidebarOpen}
+            >
+              <MenuIcon sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }} />
+            </IconButton>
+          )}
           <Link to="/" style={{ ...styles.logo, display: 'flex' }}>
             <div style={styles.logoSvgContainer}>
               <svg width="32" height="32" viewBox="0 0 32 32" fill="none">

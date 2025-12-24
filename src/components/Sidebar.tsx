@@ -106,6 +106,71 @@ export default function Sidebar({ onRealTimeExpand, open, onClose }: SidebarProp
   const [userCollapsedItems, setUserCollapsedItems] = useState<Set<string>>(new Set());
   const sidebarRef = useRef<HTMLDivElement>(null);
   const isManuallyTogglingRef = useRef<string | null>(null);
+  
+  // Get sidebar state from window (set by Header component) if open/onClose not provided
+  const [sidebarOpen, setSidebarOpen] = useState(open ?? false);
+  
+  // Listen for custom events for immediate updates (primary method)
+  useEffect(() => {
+    const handleSidebarToggle = (event: CustomEvent) => {
+      if (open === undefined && event.detail?.open !== undefined) {
+        // Use functional update to avoid dependency issues
+        setSidebarOpen(event.detail.open);
+      }
+    };
+    
+    window.addEventListener('sidebarToggle' as any, handleSidebarToggle as EventListener);
+    
+    // Also check initial state
+    const state = (window as any).__sidebarState;
+    if (state && open === undefined) {
+      setSidebarOpen(state.open);
+    }
+    
+    return () => {
+      window.removeEventListener('sidebarToggle' as any, handleSidebarToggle as EventListener);
+    };
+  }, [open]);
+
+  // Fallback: Listen for sidebar state changes from Header via window state
+  useEffect(() => {
+    if (open !== undefined) return; // Don't sync if prop is provided
+    
+    const checkSidebarState = () => {
+      const state = (window as any).__sidebarState;
+      if (state) {
+        // Use functional update to get latest state
+        setSidebarOpen(prev => {
+          if (state.open !== prev) {
+            return state.open;
+          }
+          return prev;
+        });
+      }
+    };
+    
+    // Check immediately
+    checkSidebarState();
+    
+    // Set up interval for state sync (fallback method)
+    const interval = setInterval(checkSidebarState, 100);
+    
+    return () => {
+      clearInterval(interval);
+    };
+  }, [open]);
+  
+  // Use open prop if provided, otherwise use local sidebarOpen state
+  // The sidebarOpen state is kept in sync via useEffect hooks above
+  const isOpen = open !== undefined ? open : sidebarOpen;
+  
+  const handleClose = onClose || (() => {
+    const state = (window as any).__sidebarState;
+    if (state) {
+      state.setOpen(false); // This will trigger the Header's state update
+    }
+    setSidebarOpen(false);
+  });
 
   useEffect(() => {
     const path = location.pathname;
@@ -178,8 +243,8 @@ export default function Sidebar({ onRealTimeExpand, open, onClose }: SidebarProp
     setActiveItem(parentId);
     navigate(subItem.path);
     // Close drawer on mobile when item is selected
-    if (isMobile && onClose) {
-      onClose();
+    if (isMobile) {
+      handleClose();
     }
     // Ensure parent is expanded and remove from collapsed items
     if (!expandedItems.has(parentId)) {
@@ -257,8 +322,8 @@ export default function Sidebar({ onRealTimeExpand, open, onClose }: SidebarProp
       setActiveItem(item.id);
       navigate(item.path);
       // Close drawer on mobile when item is selected
-      if (isMobile && onClose) {
-        onClose();
+      if (isMobile) {
+        handleClose();
       }
     }
   };
@@ -377,23 +442,30 @@ export default function Sidebar({ onRealTimeExpand, open, onClose }: SidebarProp
     return (
       <Drawer
         anchor="left"
-        open={open ?? false}
-        onClose={onClose}
+        open={isOpen}
+        onClose={handleClose}
         ModalProps={{
           keepMounted: true, // Better mobile performance
         }}
         sx={{
-          display: { xs: 'block', sm: 'none' },
+          display: { xs: 'block', sm: 'block', md: 'none' }, // Show on mobile and tablet, hide on desktop
+          zIndex: 1200, // Below header (zIndex: 1000-2000)
+          '& .MuiBackdrop-root': {
+            top: 'var(--header-height, 64px)', // Position below header
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          },
           '& .MuiDrawer-paper': {
-            width: 280,
-            maxWidth: '85vw',
+            width: { xs: 280, sm: 300 },
+            maxWidth: { xs: '85vw', sm: '90vw' },
             boxSizing: 'border-box',
-            zIndex: 1300,
+            zIndex: 1201,
             backgroundColor: theme.palette.mode === 'dark' ? '#121212' : '#ffffff',
             borderRight: `1px solid ${theme.palette.divider}`,
-            height: '100%',
+            top: 'var(--header-height, 64px)', // Position below header
+            height: 'calc(100% - var(--header-height, 64px))',
             display: 'flex',
             flexDirection: 'column',
+            transition: 'transform 0.3s ease-in-out', // Smooth slide animation
           },
         }}
       >
