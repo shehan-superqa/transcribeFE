@@ -15,7 +15,25 @@ export interface Transaction {
     merchant: string;
     date: string;
     total: number;
-    items?: any[];
+    items?: Array<{
+      name: string;
+      quantity: number;
+      unit_price: number;
+      total_price: number;
+      category?: string;
+    }>;
+  };
+  normalized_output?: {
+    merchant: string;
+    date: string;
+    total: number;
+    items?: Array<{
+      name: string;
+      quantity: number;
+      unit_price: number;
+      total_price: number;
+      category?: string;
+    }>;
   };
   embedding_vector?: number[];
   duplicate_of?: string | null;
@@ -371,3 +389,6 @@ export interface AlertsResponse {
   alerts: BudgetAlert[];
   unread_count: number;
 }
+
+
+

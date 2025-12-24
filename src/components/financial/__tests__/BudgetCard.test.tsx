@@ -228,3 +228,6 @@ describe('BudgetCard', () => {
     expect(handleViewDetails).toHaveBeenCalled();
   });
 });
+
+
+

@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Box, Paper, Typography, Button, TextField, LinearProgress, Alert } from '@mui/material';
+import { Box, Paper, Typography, Button, TextField, LinearProgress, Alert, Chip } from '@mui/material';
 import { CloudUpload, CameraAlt, CheckCircle, ContentPaste } from '@mui/icons-material';
 import { useTheme } from '../../contexts/ThemeContext';
 import { uploadBill, getBillStatus } from '../../lib/api/financialApi';
@@ -380,3 +380,6 @@ export default function BillUploadSection({ onTransactionCreated }: BillUploadSe
     </Box>
   );
 }
+
+
+

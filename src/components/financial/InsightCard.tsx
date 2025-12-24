@@ -73,6 +73,11 @@ export default function InsightCard({
         borderRadius: 2,
         cursor: onClick ? 'pointer' : 'default',
         transition: 'all 0.2s ease-in-out',
+        height: '100%',
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        minWidth: 0,
         '&:hover': onClick
           ? {
               elevation: 4,
@@ -87,7 +92,7 @@ export default function InsightCard({
       onKeyPress={onClick ? (e) => e.key === 'Enter' && onClick() : undefined}
       aria-label={onClick ? `${title}: ${value}${actionLabel ? `. ${actionLabel}` : ''}` : undefined}
     >
-      <CardContent sx={{ p: 2.5 }}>
+      <CardContent sx={{ p: 2.5, flex: 1, display: 'flex', flexDirection: 'column', width: '100%', minWidth: 0 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1 }}>
             <Box
@@ -122,47 +127,55 @@ export default function InsightCard({
             </Box>
           )}
         </Box>
-        <Typography
-          variant="h4"
-          sx={{
-            color: theme.palette.text.primary,
-            fontWeight: 700,
-            fontSize: { xs: '1.75rem', sm: '2rem' },
-            mb: subtitle ? 0.5 : 0,
-            lineHeight: 1.2,
-          }}
-        >
-          {typeof value === 'number' ? `Rs. ${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : value}
-        </Typography>
-        {subtitle && (
-          <Typography
-            variant="caption"
-            sx={{
-              color: theme.palette.text.secondary,
-              fontSize: '0.75rem',
-              display: 'block',
-              mt: 0.5,
-            }}
-          >
-            {subtitle}
-          </Typography>
-        )}
-        {actionLabel && onClick && (
-          <Typography
-            variant="caption"
-            sx={{
-              color: getColor(),
-              fontSize: '0.75rem',
-              fontWeight: 600,
-              display: 'block',
-              mt: 1,
-              textDecoration: 'underline',
-            }}
-          >
-            {actionLabel} →
-          </Typography>
-        )}
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <Box>
+            <Typography
+              variant="h4"
+              sx={{
+                color: theme.palette.text.primary,
+                fontWeight: 700,
+                fontSize: { xs: '1.75rem', sm: '2rem' },
+                mb: subtitle ? 0.5 : 0,
+                lineHeight: 1.2,
+              }}
+            >
+              {typeof value === 'number' ? `Rs. ${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : value}
+            </Typography>
+            {subtitle && (
+              <Typography
+                variant="caption"
+                sx={{
+                  color: theme.palette.text.secondary,
+                  fontSize: '0.75rem',
+                  display: 'block',
+                  mt: 0.5,
+                }}
+              >
+                {subtitle}
+              </Typography>
+            )}
+          </Box>
+          {actionLabel && onClick && (
+            <Typography
+              variant="caption"
+              sx={{
+                color: getColor(),
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                display: 'block',
+                mt: 'auto',
+                pt: 1,
+                textDecoration: 'underline',
+              }}
+            >
+              {actionLabel} →
+            </Typography>
+          )}
+        </Box>
       </CardContent>
     </Card>
   );
 }
+
+
+

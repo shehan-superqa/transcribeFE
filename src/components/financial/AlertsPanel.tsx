@@ -226,3 +226,6 @@ export default function AlertsPanel({ compact = false, maxItems = 10, onAlertCli
     </Box>
   );
 }
+
+
+

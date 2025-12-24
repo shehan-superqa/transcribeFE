@@ -320,3 +320,6 @@ export default function AIChatSection({ floating = false, minimized = false, onM
     </Box>
   );
 }
+
+
+

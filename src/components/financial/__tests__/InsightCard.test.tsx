@@ -106,3 +106,6 @@ describe('InsightCard', () => {
     expect(button).toHaveAttribute('aria-label');
   });
 });
+
+
+

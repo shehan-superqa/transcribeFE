@@ -286,3 +286,6 @@ export default function BudgetSection({ categories = [], onBudgetChange }: Budge
     </Box>
   );
 }
+
+
+

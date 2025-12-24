@@ -84,70 +84,83 @@ export default function QuickStatsBar({ onStatClick }: QuickStatsBarProps) {
             md: 'repeat(4, 1fr)',
           },
           gap: 2,
+          alignItems: 'stretch',
+          width: '100%',
         }}
       >
         {loading ? (
           <>
-            <Skeleton variant="rectangular" height={100} />
-            <Skeleton variant="rectangular" height={100} />
-            <Skeleton variant="rectangular" height={100} />
-            <Skeleton variant="rectangular" height={100} />
+            <Skeleton variant="rectangular" height={100} sx={{ width: '100%' }} />
+            <Skeleton variant="rectangular" height={100} sx={{ width: '100%' }} />
+            <Skeleton variant="rectangular" height={100} sx={{ width: '100%' }} />
+            <Skeleton variant="rectangular" height={100} sx={{ width: '100%' }} />
           </>
         ) : (
           <>
-            <InsightCard
-              title="Total Spending"
-              value={totalSpending}
-              subtitle="This month"
-              type="info"
-              onClick={onStatClick ? () => onStatClick('spending') : undefined}
-              actionLabel="View details"
-            />
-            <InsightCard
-              title="Transactions"
-              value={transactionCount}
-              subtitle="This month"
-              type="info"
-              onClick={onStatClick ? () => onStatClick('transactions') : undefined}
-              actionLabel="View all"
-            />
-            {topCategory ? (
+            <Box sx={{ width: '100%', minWidth: 0 }}>
               <InsightCard
-                title="Top Category"
-                value={topCategory.category_name}
-                subtitle={`Rs. ${topCategory.amount.toFixed(2)} (${topCategory.percentage.toFixed(1)}%)`}
+                title="Total Spending"
+                value={totalSpending}
+                subtitle="This month"
                 type="info"
-                onClick={onStatClick ? () => onStatClick('category') : undefined}
-                actionLabel="View breakdown"
+                onClick={onStatClick ? () => onStatClick('spending') : undefined}
+                actionLabel="View details"
               />
-            ) : (
+            </Box>
+            <Box sx={{ width: '100%', minWidth: 0 }}>
               <InsightCard
-                title="Top Category"
-                value="No data"
-                subtitle="Upload bills to get started"
+                title="Transactions"
+                value={transactionCount}
+                subtitle="This month"
                 type="info"
+                onClick={onStatClick ? () => onStatClick('transactions') : undefined}
+                actionLabel="View all"
               />
-            )}
-            {alertsCount > 0 ? (
-              <InsightCard
-                title="Budget Alerts"
-                value={alertsCount}
-                subtitle={alertsCount === 1 ? 'Unread alert' : 'Unread alerts'}
-                type="warning"
-                onClick={onStatClick ? () => onStatClick('alerts') : undefined}
-                actionLabel="View alerts"
-              />
-            ) : (
-              <InsightCard
-                title="Avg per Transaction"
-                value={transactionCount > 0 ? (totalSpending / transactionCount) : 0}
-                subtitle={transactionCount > 0 ? "This month" : "No transactions"}
-                type="info"
-              />
-            )}
+            </Box>
+            <Box sx={{ width: '100%', minWidth: 0 }}>
+              {topCategory ? (
+                <InsightCard
+                  title="Top Category"
+                  value={topCategory.category_name}
+                  subtitle={`Rs. ${topCategory.amount.toFixed(2)} (${topCategory.percentage.toFixed(1)}%)`}
+                  type="info"
+                  onClick={onStatClick ? () => onStatClick('category') : undefined}
+                  actionLabel="View breakdown"
+                />
+              ) : (
+                <InsightCard
+                  title="Top Category"
+                  value="No data"
+                  subtitle="Upload bills to get started"
+                  type="info"
+                />
+              )}
+            </Box>
+            <Box sx={{ width: '100%', minWidth: 0 }}>
+              {alertsCount > 0 ? (
+                <InsightCard
+                  title="Budget Alerts"
+                  value={alertsCount}
+                  subtitle={alertsCount === 1 ? 'Unread alert' : 'Unread alerts'}
+                  type="warning"
+                  onClick={onStatClick ? () => onStatClick('alerts') : undefined}
+                  actionLabel="View alerts"
+                />
+              ) : (
+                <InsightCard
+                  title="Avg per Transaction"
+                  value={transactionCount > 0 ? (totalSpending / transactionCount) : 0}
+                  subtitle={transactionCount > 0 ? "This month" : "No transactions"}
+                  type="info"
+                />
+              )}
+            </Box>
           </>
         )}
       </Box>
     </Paper>
   );
 }
+
+
+

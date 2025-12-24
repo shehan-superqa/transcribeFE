@@ -1,43 +1,105 @@
 import { useState, useEffect } from 'react';
-import { Box, Paper, Typography, FormControl, InputLabel, Select, MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Card, CardContent, Alert, CircularProgress } from '@mui/material';
-import { Bar, Line } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  PointElement,
-  LineElement,
-  Tooltip,
-  Legend,
-} from 'chart.js';
+import { 
+  Box, 
+  Paper, 
+  Typography, 
+  FormControl, 
+  InputLabel, 
+  Select, 
+  MenuItem, 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableContainer, 
+  TableHead, 
+  TableRow, 
+  Card, 
+  CardContent, 
+  Alert, 
+  CircularProgress,
+  Tabs,
+  Tab,
+  Button,
+  Chip,
+  Grid,
+} from '@mui/material';
+import { 
+  BarChart, 
+  Bar, 
+  PieChart, 
+  Pie, 
+  Cell, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend, 
+  ResponsiveContainer,
+  LineChart,
+  Line,
+} from 'recharts';
+import { 
+  TrendingUp, 
+  TrendingDown, 
+  Savings, 
+  Business, 
+  ShowChart,
+  Lightbulb,
+  CompareArrows,
+  Inventory,
+  Assessment,
+  Security,
+  Psychology,
+} from '@mui/icons-material';
 import { useTheme } from '../../contexts/ThemeContext';
-import { getSpendingSummary, getSpendingTrends, getAnomalies } from '../../lib/api/financialApi';
+import { getSpendingSummary, getSpendingTrends, getAnomalies, sendAIChat } from '../../lib/api/financialApi';
 import { SpendingSummaryResponse, SpendingTrendsResponse, AnomaliesResponse } from '../../types/financial';
 
-// Register Chart.js components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  PointElement,
-  LineElement,
-  Tooltip,
-  Legend
-);
+type AnalysisType = 'personal' | 'business' | 'investment';
+
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`analysis-tabpanel-${index}`}
+      aria-labelledby={`analysis-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ pt: 3 }}>{children}</Box>}
+    </div>
+  );
+}
 
 export default function AnalyticsSection() {
   const { theme } = useTheme();
+  const [analysisType, setAnalysisType] = useState<AnalysisType>('personal');
+  const [tabValue, setTabValue] = useState(0);
   const [period, setPeriod] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('monthly');
   const [summary, setSummary] = useState<SpendingSummaryResponse | null>(null);
   const [trends, setTrends] = useState<SpendingTrendsResponse | null>(null);
   const [anomalies, setAnomalies] = useState<AnomaliesResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [aiInsights, setAiInsights] = useState<{ [key: string]: string }>({});
+  const [loadingInsights, setLoadingInsights] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
     loadAnalytics();
   }, [period]);
+
+  useEffect(() => {
+    if (summary) {
+      loadAIInsights();
+    }
+  }, [summary, analysisType]);
 
   const loadAnalytics = async () => {
     setLoading(true);
@@ -59,42 +121,82 @@ export default function AnalyticsSection() {
     }
   };
 
-  const summaryChartData = summary
-    ? {
-        labels: summary.summary.by_category.map((item) => item.category_name),
-        datasets: [
-          {
-            label: 'Amount (Rs.)',
-            data: summary.summary.by_category.map((item) => item.amount),
-            backgroundColor: theme.palette.primary.main,
-          },
-        ],
+  const loadAIInsights = async () => {
+    if (!summary) return;
+    
+    const insightKey = `${analysisType}-${period}`;
+    if (aiInsights[insightKey] || loadingInsights[insightKey]) return;
+
+    setLoadingInsights(prev => ({ ...prev, [insightKey]: true }));
+    
+    try {
+      let query = '';
+      switch (analysisType) {
+        case 'personal':
+          query = `Analyze my monthly spending of Rs. ${summary.summary.total.toFixed(2)} across ${summary.summary.transaction_count} transactions. Provide savings suggestions and category optimization recommendations.`;
+          break;
+        case 'business':
+          query = `Perform a profit & loss analysis, cost optimization suggestions, supplier comparison, and identify any inventory vs sales mismatches based on my transaction data.`;
+          break;
+        case 'investment':
+          query = `Analyze my spending patterns for portfolio diversification opportunities, provide risk scoring, and suggest scenario simulations.`;
+          break;
       }
-    : null;
+
+      const response = await sendAIChat({ query });
+      if (response.success) {
+        setAiInsights(prev => ({ ...prev, [insightKey]: response.response }));
+      }
+    } catch (error) {
+      console.error('Failed to load AI insights:', error);
+    } finally {
+      setLoadingInsights(prev => ({ ...prev, [insightKey]: false }));
+    }
+  };
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue);
+    const types: AnalysisType[] = ['personal', 'business', 'investment'];
+    setAnalysisType(types[newValue]);
+  };
+
+  const barChartData = summary
+    ? summary.summary.by_category.slice(0, 10).map((item) => ({
+        name: item.category_name.length > 15 ? item.category_name.substring(0, 15) + '...' : item.category_name,
+        amount: item.amount,
+        fullName: item.category_name,
+      }))
+    : [];
+
+  const pieChartData = summary
+    ? summary.summary.by_category.slice(0, 5).map((item) => ({
+        name: item.category_name,
+        value: item.amount,
+      }))
+    : [];
 
   const trendsChartData = trends
-    ? {
-        labels: trends.trends.comparisons.map((item) => item.period),
-        datasets: [
-          {
-            label: 'Current',
-            data: trends.trends.comparisons.map((item) => item.current_total),
-            borderColor: theme.palette.primary.main,
-            backgroundColor: theme.palette.mode === 'dark' 
-              ? 'rgba(59, 130, 246, 0.1)' 
-              : 'rgba(59, 130, 246, 0.1)',
-          },
-          {
-            label: 'Previous',
-            data: trends.trends.comparisons.map((item) => item.previous_total),
-            borderColor: theme.palette.success.main,
-            backgroundColor: theme.palette.mode === 'dark'
-              ? 'rgba(16, 185, 129, 0.1)'
-              : 'rgba(16, 185, 129, 0.1)',
-          },
-        ],
-      }
-    : null;
+    ? trends.trends.comparisons.map((item) => ({
+        period: item.period,
+        current: item.current_total,
+        previous: item.previous_total,
+      }))
+    : [];
+
+  const chartColors = [
+    theme.palette.primary.main,
+    theme.palette.secondary.main,
+    '#10b981',
+    '#f59e0b',
+    '#ef4444',
+    '#8b5cf6',
+    '#ec4899',
+    '#06b6d4',
+  ];
+
+  const insightKey = `${analysisType}-${period}`;
+  const currentInsight = aiInsights[insightKey];
+  const isLoadingInsight = loadingInsights[insightKey];
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -103,250 +205,492 @@ export default function AnalyticsSection() {
           {error}
         </Alert>
       )}
-      {loading && !summary && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
-          <CircularProgress />
+
+      {/* Analysis Type Selector */}
+      <Paper elevation={2} sx={{ backgroundColor: theme.palette.background.paper }}>
+        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+          <Tabs 
+            value={tabValue} 
+            onChange={handleTabChange}
+            aria-label="Financial analysis types"
+            sx={{
+              '& .MuiTab-root': {
+                textTransform: 'none',
+                fontWeight: 600,
+                minHeight: 72,
+                color: theme.palette.text.secondary,
+                '&.Mui-selected': {
+                  color: theme.palette.primary.main,
+                },
+              },
+              '& .MuiTabs-indicator': {
+                backgroundColor: theme.palette.primary.main,
+              },
+            }}
+          >
+            <Tab 
+              icon={<Savings sx={{ mb: 0.5 }} />} 
+              iconPosition="start"
+              label={
+                <Box>
+                  <Typography variant="body1" sx={{ fontWeight: 600, color: 'inherit' }}>Personal / SME Finance</Typography>
+                  <Typography variant="caption" sx={{ color: 'inherit', opacity: 0.7 }}>Monthly spend, savings, optimization</Typography>
+                </Box>
+              } 
+            />
+            <Tab 
+              icon={<Business sx={{ mb: 0.5 }} />} 
+              iconPosition="start"
+              label={
+                <Box>
+                  <Typography variant="body1" sx={{ fontWeight: 600, color: 'inherit' }}>Business Finance</Typography>
+                  <Typography variant="caption" sx={{ color: 'inherit', opacity: 0.7 }}>P&L, costs, suppliers, inventory</Typography>
+                </Box>
+              } 
+            />
+            <Tab 
+              icon={<ShowChart sx={{ mb: 0.5 }} />} 
+              iconPosition="start"
+              label={
+                <Box>
+                  <Typography variant="body1" sx={{ fontWeight: 600, color: 'inherit' }}>Investment Analysis</Typography>
+                  <Typography variant="caption" sx={{ color: 'inherit', opacity: 0.7 }}>Portfolio, risk, scenarios</Typography>
+                </Box>
+              } 
+            />
+          </Tabs>
         </Box>
-      )}
-      <Paper elevation={2} sx={{ p: 3, backgroundColor: theme.palette.background.paper }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+
+        <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box>
             <Typography variant="h5" sx={{ color: theme.palette.text.primary, fontWeight: 600, mb: 0.5 }}>
-              Spending Analytics
+              {analysisType === 'personal' && 'Personal / SME Finance Analysis'}
+              {analysisType === 'business' && 'Business Finance Analysis'}
+              {analysisType === 'investment' && 'Investment Analysis'}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Detailed breakdown of your spending patterns
+              {analysisType === 'personal' && 'Monthly spend analysis, savings suggestions, and category optimization'}
+              {analysisType === 'business' && 'Profit & loss analysis, cost optimization, supplier comparison, inventory vs sales'}
+              {analysisType === 'investment' && 'Portfolio diversification, risk scoring, and scenario simulation'}
             </Typography>
           </Box>
           <FormControl size="small" sx={{ minWidth: 150 }}>
-            <InputLabel id="period-select-label">Period</InputLabel>
+            <InputLabel id="period-select-label" sx={{ color: theme.palette.text.primary }}>Period</InputLabel>
             <Select
               labelId="period-select-label"
               value={period}
               onChange={(e) => setPeriod(e.target.value as any)}
               label="Period"
-              aria-label="Select time period for analytics"
+              sx={{
+                color: theme.palette.text.primary,
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderColor: theme.palette.divider,
+                },
+                '&:hover .MuiOutlinedInput-notchedOutline': {
+                  borderColor: theme.palette.primary.main,
+                },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                  borderColor: theme.palette.primary.main,
+                },
+                '& .MuiSvgIcon-root': {
+                  color: theme.palette.text.primary,
+                },
+              }}
             >
-              <MenuItem value="daily">Daily</MenuItem>
-              <MenuItem value="weekly">Weekly</MenuItem>
-              <MenuItem value="monthly">Monthly</MenuItem>
-              <MenuItem value="yearly">Yearly</MenuItem>
+              <MenuItem value="daily" sx={{ color: theme.palette.text.primary }}>Daily</MenuItem>
+              <MenuItem value="weekly" sx={{ color: theme.palette.text.primary }}>Weekly</MenuItem>
+              <MenuItem value="monthly" sx={{ color: theme.palette.text.primary }}>Monthly</MenuItem>
+              <MenuItem value="yearly" sx={{ color: theme.palette.text.primary }}>Yearly</MenuItem>
             </Select>
           </FormControl>
         </Box>
       </Paper>
 
-      {summary && (
-        <Paper elevation={2} sx={{ p: 3, backgroundColor: theme.palette.background.paper }}>
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary, fontWeight: 600 }}>
-              Spending Summary
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap', mb: 2 }}>
-              <Box>
-                <Typography variant="h3" sx={{ color: theme.palette.text.primary, fontWeight: 700 }}>
-                  Rs. {summary.summary.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Total spending ({period})
-                </Typography>
-              </Box>
-              <Box>
-                <Typography variant="h4" sx={{ color: theme.palette.text.primary, fontWeight: 600 }}>
-                  {summary.summary.transaction_count}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Transactions
+      {loading && !summary && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+          <CircularProgress />
+        </Box>
+      )}
+
+      {/* Personal / SME Finance Tab */}
+      <TabPanel value={tabValue} index={0}>
+        {summary && (
+          <>
+            {/* Monthly Spend Analysis */}
+            <Paper elevation={2} sx={{ p: 3, backgroundColor: theme.palette.background.paper, mb: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                <Assessment color="primary" />
+                <Typography variant="h6" sx={{ color: theme.palette.text.primary, fontWeight: 600 }}>
+                  Monthly Spend Analysis
                 </Typography>
               </Box>
-              {summary.summary.transaction_count > 0 && (
-                <Box>
-                  <Typography variant="h4" sx={{ color: theme.palette.text.primary, fontWeight: 600 }}>
-                    Rs. {(summary.summary.total / summary.summary.transaction_count).toFixed(2)}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Average per transaction
-                  </Typography>
+              
+              <Grid container spacing={3} sx={{ mb: 3 }}>
+                <Grid item xs={12} sm={4}>
+                  <Card elevation={0} sx={{ border: `1px solid ${theme.palette.divider}`, p: 2 }}>
+                    <Typography variant="h4" sx={{ color: theme.palette.text.primary, fontWeight: 700 }}>
+                      Rs. {summary.summary.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">Total Spending</Typography>
+                  </Card>
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <Card elevation={0} sx={{ border: `1px solid ${theme.palette.divider}`, p: 2 }}>
+                    <Typography variant="h4" sx={{ color: theme.palette.text.primary, fontWeight: 700 }}>
+                      {summary.summary.transaction_count}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">Transactions</Typography>
+                  </Card>
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <Card elevation={0} sx={{ border: `1px solid ${theme.palette.divider}`, p: 2 }}>
+                    <Typography variant="h4" sx={{ color: theme.palette.text.primary, fontWeight: 700 }}>
+                      Rs. {summary.summary.transaction_count > 0 ? (summary.summary.total / summary.summary.transaction_count).toFixed(2) : '0.00'}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">Avg per Transaction</Typography>
+                  </Card>
+                </Grid>
+              </Grid>
+
+              {barChartData.length > 0 && (
+                <Box sx={{ height: '400px', mb: 3 }}>
+                  <ResponsiveContainer width="100%" height={400}>
+                    <BarChart data={barChartData} margin={{ top: 10, right: 10, left: 10, bottom: 60 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
+                      <XAxis 
+                        dataKey="name" 
+                        angle={-45}
+                        textAnchor="end"
+                        height={80}
+                        stroke={theme.palette.text.secondary}
+                        tick={{ fontSize: 12 }}
+                      />
+                      <YAxis 
+                        stroke={theme.palette.text.secondary}
+                        tick={{ fontSize: 12 }}
+                        tickFormatter={(value) => `Rs. ${value}`}
+                      />
+                      <Tooltip 
+                        contentStyle={{
+                          backgroundColor: theme.palette.background.paper,
+                          border: `1px solid ${theme.palette.divider}`,
+                          color: theme.palette.text.primary,
+                        }}
+                        formatter={(value: number, payload: any) => [`Rs. ${value.toFixed(2)}`, payload[0]?.payload?.fullName || 'Amount']}
+                      />
+                      <Bar dataKey="amount" fill={theme.palette.primary.main} radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
                 </Box>
               )}
-            </Box>
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontStyle: 'italic' }}>
-              This shows your total spending and transaction count for the selected period. Use the chart below to see category breakdown.
-            </Typography>
-          </Box>
-          {summaryChartData && (
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ fontWeight: 600 }}>
-                Spending by Category
-              </Typography>
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
-                Visual breakdown showing how much you spent in each category
-              </Typography>
-              <Box sx={{ height: '400px' }}>
-                <Bar 
-                  data={summaryChartData} 
-                  options={{ 
-                    maintainAspectRatio: false,
-                    responsive: true,
-                    plugins: {
-                      legend: {
-                        display: false,
-                      },
-                      tooltip: {
-                        callbacks: {
-                          label: (context) => `Rs. ${context.parsed.y.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-                        },
-                      },
-                    },
-                  }}
-                  key={`summary-${period}`}
-                  aria-label="Bar chart showing spending by category"
-                />
+            </Paper>
+
+            {/* Savings Suggestions */}
+            <Paper elevation={2} sx={{ p: 3, backgroundColor: theme.palette.background.paper, mb: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                <Lightbulb color="warning" />
+                <Typography variant="h6" sx={{ color: theme.palette.text.primary, fontWeight: 600 }}>
+                  Savings Suggestions
+                </Typography>
               </Box>
-            </Box>
-          )}
-          <Box sx={{ mt: 3 }}>
-            <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ fontWeight: 600 }}>
-              Category Breakdown
-            </Typography>
-            <TableContainer>
-              <Table size="small" aria-label="Spending breakdown by category">
-                <TableHead>
-                  <TableRow>
-                    <TableCell sx={{ backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', color: theme.palette.text.primary, fontWeight: 600 }}>Category</TableCell>
-                    <TableCell align="right" sx={{ backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', color: theme.palette.text.primary, fontWeight: 600 }}>Amount</TableCell>
-                    <TableCell align="right" sx={{ backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', color: theme.palette.text.primary, fontWeight: 600 }}>Count</TableCell>
-                    <TableCell align="right" sx={{ backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', color: theme.palette.text.primary, fontWeight: 600 }}>Percentage</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {summary.summary.by_category.map((item) => (
-                    <TableRow key={item.category_id}>
-                      <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Box
-                            sx={{
-                              width: 12,
-                              height: 12,
-                              borderRadius: '50%',
-                              backgroundColor: summaryChartData?.datasets[0].backgroundColor[
-                                summary.summary.by_category.indexOf(item) % (summaryChartData?.datasets[0].backgroundColor.length || 1)
-                              ] || theme.palette.primary.main,
-                            }}
-                          />
-                          {item.category_name}
-                        </Box>
-                      </TableCell>
-                      <TableCell align="right">
-                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                          Rs. {item.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="right">{item.count}</TableCell>
-                      <TableCell align="right">
-                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                          {item.percentage.toFixed(1)}%
-                        </Typography>
-                      </TableCell>
+              
+              {isLoadingInsight ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+                  <CircularProgress />
+                </Box>
+              ) : currentInsight ? (
+                <Card elevation={0} sx={{ border: `1px solid ${theme.palette.divider}`, p: 2 }}>
+                  <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', color: theme.palette.text.primary }}>
+                    {currentInsight}
+                  </Typography>
+                </Card>
+              ) : (
+                <Alert severity="info">
+                  Click "Generate Insights" to get AI-powered savings suggestions based on your spending patterns.
+                </Alert>
+              )}
+            </Paper>
+
+            {/* Category Optimization */}
+            <Paper elevation={2} sx={{ p: 3, backgroundColor: theme.palette.background.paper }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                <TrendingUp color="success" />
+                <Typography variant="h6" sx={{ color: theme.palette.text.primary, fontWeight: 600 }}>
+                  Category Optimization
+                </Typography>
+              </Box>
+              
+              <TableContainer>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb' }}>Category</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb' }}>Amount</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb' }}>Percentage</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb' }}>Optimization</TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Box>
-        </Paper>
-      )}
+                  </TableHead>
+                  <TableBody>
+                    {summary.summary.by_category.map((item, index) => {
+                      const isHigh = item.percentage > 30;
+                      const isMedium = item.percentage > 15 && item.percentage <= 30;
+                      return (
+                        <TableRow key={item.category_id}>
+                          <TableCell sx={{ color: theme.palette.text.primary }}>{item.category_name}</TableCell>
+                          <TableCell align="right" sx={{ color: theme.palette.text.primary }}>Rs. {item.amount.toFixed(2)}</TableCell>
+                          <TableCell align="right" sx={{ color: theme.palette.text.primary }}>{item.percentage.toFixed(1)}%</TableCell>
+                          <TableCell align="right">
+                            {isHigh && <Chip label="High" color="error" size="small" />}
+                            {isMedium && <Chip label="Medium" color="warning" size="small" />}
+                            {!isHigh && !isMedium && <Chip label="Optimal" color="success" size="small" />}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
+          </>
+        )}
+      </TabPanel>
 
-      {trends && (
-        <Paper elevation={2} sx={{ p: 3, backgroundColor: theme.palette.background.paper }}>
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary, fontWeight: 600 }}>
-              Spending Trends
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-              <Typography variant="h5" sx={{ color: theme.palette.text.primary, fontWeight: 700 }}>
-                {trends.trends.overall_growth_rate >= 0 ? '+' : ''}
-                {trends.trends.overall_growth_rate.toFixed(2)}%
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Overall growth rate
-              </Typography>
-            </Box>
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontStyle: 'italic' }}>
-              Compare your spending across different time periods to identify trends and patterns.
-            </Typography>
-          </Box>
-          {trendsChartData && (
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ fontWeight: 600 }}>
-                Month-over-Month Comparison
-              </Typography>
-              <Box sx={{ height: '400px' }}>
-                <Line 
-                  data={trendsChartData} 
-                  options={{ 
-                    maintainAspectRatio: false,
-                    responsive: true,
-                    plugins: {
-                      legend: {
-                        display: true,
-                        position: 'top',
-                      },
-                      tooltip: {
-                        callbacks: {
-                          label: (context) => `${context.dataset.label}: Rs. ${context.parsed.y.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-                        },
-                      },
-                    },
-                    elements: {
-                      point: {
-                        radius: 5,
-                        hoverRadius: 7,
-                      },
-                    },
-                  }}
-                  key="trends-chart"
-                  aria-label="Line chart showing spending trends over time"
-                />
+      {/* Business Finance Tab */}
+      <TabPanel value={tabValue} index={1}>
+        {summary && (
+          <>
+            {/* Profit & Loss Analysis */}
+            <Paper elevation={2} sx={{ p: 3, backgroundColor: theme.palette.background.paper, mb: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                <Assessment color="primary" />
+                <Typography variant="h6" sx={{ color: theme.palette.text.primary, fontWeight: 600 }}>
+                  Profit & Loss Analysis
+                </Typography>
               </Box>
-            </Box>
-          )}
-        </Paper>
-      )}
+              
+              {isLoadingInsight ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+                  <CircularProgress />
+                </Box>
+              ) : currentInsight ? (
+                <Card elevation={0} sx={{ border: `1px solid ${theme.palette.divider}`, p: 2 }}>
+                  <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', color: theme.palette.text.primary }}>
+                    {currentInsight}
+                  </Typography>
+                </Card>
+              ) : (
+                <Alert severity="info">
+                  AI-powered P&L analysis will be generated based on your transaction data.
+                </Alert>
+              )}
+            </Paper>
 
-      {anomalies && anomalies.anomalies.length > 0 && (
-        <Paper elevation={2} sx={{ p: 3, backgroundColor: theme.palette.background.paper }}>
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary, fontWeight: 600 }}>
-              Unusual Transactions ({anomalies.count})
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-              These transactions appear unusual compared to your normal spending patterns. Review them to ensure accuracy.
-            </Typography>
-          </Box>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 2 }}>
-            {anomalies.anomalies.map((anomaly) => (
-              <Card key={anomaly._id} elevation={0} sx={{ border: `1px solid ${theme.palette.divider}`, backgroundColor: theme.palette.background.paper }}>
-                <CardContent>
-                  <Typography variant="subtitle2">
-                    Rs. {anomaly.amount.toFixed(2)}
+            {/* Cost Optimization */}
+            <Paper elevation={2} sx={{ p: 3, backgroundColor: theme.palette.background.paper, mb: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                <TrendingDown color="error" />
+                <Typography variant="h6" sx={{ color: theme.palette.text.primary, fontWeight: 600 }}>
+                  Cost Optimization Opportunities
+                </Typography>
+              </Box>
+              
+              <Grid container spacing={2}>
+                {summary.summary.by_category
+                  .sort((a, b) => b.amount - a.amount)
+                  .slice(0, 5)
+                  .map((item) => (
+                    <Grid item xs={12} sm={6} md={4} key={item.category_id}>
+                      <Card elevation={0} sx={{ border: `1px solid ${theme.palette.divider}`, p: 2 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: theme.palette.text.primary }}>
+                          {item.category_name}
+                        </Typography>
+                        <Typography variant="h6" sx={{ color: theme.palette.text.primary }}>
+                          Rs. {item.amount.toFixed(2)}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
+                          {item.percentage.toFixed(1)}% of total spending
+                        </Typography>
+                      </Card>
+                    </Grid>
+                  ))}
+              </Grid>
+            </Paper>
+
+            {/* Supplier Comparison */}
+            <Paper elevation={2} sx={{ p: 3, backgroundColor: theme.palette.background.paper, mb: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                <CompareArrows color="info" />
+                <Typography variant="h6" sx={{ color: theme.palette.text.primary, fontWeight: 600 }}>
+                  Supplier Comparison
+                </Typography>
+              </Box>
+              <Alert severity="info">
+                Supplier comparison analysis will be available once merchant data is enriched.
+              </Alert>
+            </Paper>
+
+            {/* Inventory vs Sales Mismatch */}
+            <Paper elevation={2} sx={{ p: 3, backgroundColor: theme.palette.background.paper }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                <Inventory color="warning" />
+                <Typography variant="h6" sx={{ color: theme.palette.text.primary, fontWeight: 600 }}>
+                  Inventory vs Sales Mismatch Detection
+                </Typography>
+              </Box>
+              <Alert severity="info">
+                Inventory analysis requires integration with inventory management systems.
+              </Alert>
+            </Paper>
+          </>
+        )}
+      </TabPanel>
+
+      {/* Investment Analysis Tab */}
+      <TabPanel value={tabValue} index={2}>
+        {summary && (
+          <>
+            {/* Portfolio Diversification */}
+            <Paper elevation={2} sx={{ p: 3, backgroundColor: theme.palette.background.paper, mb: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                <ShowChart color="primary" />
+                <Typography variant="h6" sx={{ color: theme.palette.text.primary, fontWeight: 600 }}>
+                  Portfolio Diversification Analysis
+                </Typography>
+              </Box>
+              
+              {pieChartData.length > 0 && (
+                <Box sx={{ height: '400px', mb: 2 }}>
+                  <ResponsiveContainer width="100%" height={400}>
+                    <PieChart>
+                      <Pie
+                        data={pieChartData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={120}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {pieChartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={chartColors[index % chartColors.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        contentStyle={{
+                          backgroundColor: theme.palette.background.paper,
+                          border: `1px solid ${theme.palette.divider}`,
+                          color: theme.palette.text.primary,
+                        }}
+                        formatter={(value: number) => `Rs. ${value.toFixed(2)}`}
+                      />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </Box>
+              )}
+              
+              {isLoadingInsight ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+                  <CircularProgress />
+                </Box>
+              ) : currentInsight ? (
+                <Card elevation={0} sx={{ border: `1px solid ${theme.palette.divider}`, p: 2 }}>
+                  <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', color: theme.palette.text.primary }}>
+                    {currentInsight}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {anomaly.anomaly_reason}
-                  </Typography>
-                  {(anomaly.merchant_name || anomaly.category_name) && (
-                    <Typography variant="caption" color="text.secondary">
-                      {anomaly.merchant_name && `Merchant: ${anomaly.merchant_name}`}
-                      {anomaly.merchant_name && anomaly.category_name && ' • '}
-                      {anomaly.category_name && `Category: ${anomaly.category_name}`}
+                </Card>
+              ) : (
+                <Alert severity="info">
+                  AI-powered portfolio diversification recommendations will be generated based on your spending patterns.
+                </Alert>
+              )}
+            </Paper>
+
+            {/* Risk Scoring */}
+            <Paper elevation={2} sx={{ p: 3, backgroundColor: theme.palette.background.paper, mb: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                <Security color="warning" />
+                <Typography variant="h6" sx={{ color: theme.palette.text.primary, fontWeight: 600 }}>
+                  Risk Scoring
+                </Typography>
+              </Box>
+              
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={4}>
+                  <Card elevation={0} sx={{ border: `1px solid ${theme.palette.divider}`, p: 2, textAlign: 'center' }}>
+                    <Typography variant="h4" sx={{ color: theme.palette.warning.main, fontWeight: 700 }}>
+                      {anomalies?.count || 0}
                     </Typography>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </Box>
-        </Paper>
-      )}
+                    <Typography variant="body2" color="text.secondary">Anomalies Detected</Typography>
+                  </Card>
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <Card elevation={0} sx={{ border: `1px solid ${theme.palette.divider}`, p: 2, textAlign: 'center' }}>
+                    <Typography variant="h4" sx={{ color: theme.palette.text.primary, fontWeight: 700 }}>
+                      {summary.summary.by_category.length}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">Categories</Typography>
+                  </Card>
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <Card elevation={0} sx={{ border: `1px solid ${theme.palette.divider}`, p: 2, textAlign: 'center' }}>
+                    <Typography variant="h4" sx={{ color: theme.palette.text.primary, fontWeight: 700 }}>
+                      {trends?.trends.overall_growth_rate ? `${trends.trends.overall_growth_rate >= 0 ? '+' : ''}${trends.trends.overall_growth_rate.toFixed(1)}%` : 'N/A'}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">Growth Rate</Typography>
+                  </Card>
+                </Grid>
+              </Grid>
+            </Paper>
+
+            {/* Scenario Simulation */}
+            <Paper elevation={2} sx={{ p: 3, backgroundColor: theme.palette.background.paper }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                <Psychology color="info" />
+                <Typography variant="h6" sx={{ color: theme.palette.text.primary, fontWeight: 600 }}>
+                  Scenario Simulation
+                </Typography>
+              </Box>
+              
+              {trendsChartData.length > 0 && (
+                <Box sx={{ height: '400px', mb: 2 }}>
+                  <ResponsiveContainer width="100%" height={400}>
+                    <LineChart data={trendsChartData} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
+                      <XAxis 
+                        dataKey="period" 
+                        stroke={theme.palette.text.secondary}
+                        tick={{ fontSize: 12 }}
+                      />
+                      <YAxis 
+                        stroke={theme.palette.text.secondary}
+                        tick={{ fontSize: 12 }}
+                        tickFormatter={(value) => `Rs. ${value}`}
+                      />
+                      <Tooltip 
+                        contentStyle={{
+                          backgroundColor: theme.palette.background.paper,
+                          border: `1px solid ${theme.palette.divider}`,
+                          color: theme.palette.text.primary,
+                        }}
+                      />
+                      <Legend />
+                      <Line type="monotone" dataKey="current" stroke={theme.palette.primary.main} strokeWidth={2} name="Current Period" />
+                      <Line type="monotone" dataKey="previous" stroke={theme.palette.success.main} strokeWidth={2} name="Previous Period" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </Box>
+              )}
+              
+              <Alert severity="info">
+                Use the trend chart above to simulate different scenarios. AI-powered scenario analysis coming soon.
+              </Alert>
+            </Paper>
+          </>
+        )}
+      </TabPanel>
     </Box>
   );
 }
+

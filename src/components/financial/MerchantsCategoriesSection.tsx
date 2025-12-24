@@ -223,3 +223,6 @@ export default function MerchantsCategoriesSection({ onDataChange }: MerchantsCa
       </Box>
     );
   }
+
+
+

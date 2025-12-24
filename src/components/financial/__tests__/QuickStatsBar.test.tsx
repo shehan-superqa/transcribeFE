@@ -128,3 +128,6 @@ describe('QuickStatsBar', () => {
     expect(screen.queryByText(/Total Spending/i)).not.toBeInTheDocument();
   });
 });
+
+
+

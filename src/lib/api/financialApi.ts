@@ -524,3 +524,6 @@ export function subscribeToBudgetUpdates(
     return () => {}; // Return no-op cleanup function
   }
 }
+
+
+

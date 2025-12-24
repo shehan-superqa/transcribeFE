@@ -20,8 +20,15 @@ import {
   Pagination,
   Snackbar,
   Alert,
+  Collapse,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
 } from '@mui/material';
-import { Edit, Delete, MergeType, FilterList, CloudUpload } from '@mui/icons-material';
+import { Edit, Delete, MergeType, FilterList, CloudUpload, ExpandMore, ExpandLess } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -74,6 +81,7 @@ export default function TransactionsSection({
     message: '',
     severity: 'info',
   });
+  const [expandedTransactions, setExpandedTransactions] = useState<Set<string>>(new Set());
   const itemsPerPage = 10;
 
   const getMerchantName = (merchantId: string | null) => {
@@ -86,6 +94,22 @@ export default function TransactionsSection({
     if (!categoryId) return 'Unknown Category';
     const category = categories.find((c) => c._id === categoryId);
     return category?.category_name || categoryId;
+  };
+
+  const toggleItemsExpansion = (transactionId: string) => {
+    setExpandedTransactions((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(transactionId)) {
+        newSet.delete(transactionId);
+      } else {
+        newSet.add(transactionId);
+      }
+      return newSet;
+    });
+  };
+
+  const getBillItems = (transaction: Transaction) => {
+    return transaction.normalized_output?.items || transaction.parsing_output?.items || [];
   };
 
   useEffect(() => {
@@ -351,6 +375,18 @@ export default function TransactionsSection({
                     <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
                       Confidence: {(transaction.confidence_category * 100).toFixed(1)}%
                     </Typography>
+                    
+                    {/* Bill Items Toggle */}
+                    {getBillItems(transaction).length > 0 && (
+                      <Button
+                        size="small"
+                        onClick={() => toggleItemsExpansion(transaction._id)}
+                        startIcon={expandedTransactions.has(transaction._id) ? <ExpandLess /> : <ExpandMore />}
+                        sx={{ mt: 1, textTransform: 'none' }}
+                      >
+                        {expandedTransactions.has(transaction._id) ? 'Hide Items' : `Show Items (${getBillItems(transaction).length})`}
+                      </Button>
+                    )}
                   </Box>
                   <Box sx={{ display: 'flex', gap: 1 }}>
                     <IconButton
@@ -382,6 +418,55 @@ export default function TransactionsSection({
                     </IconButton>
                   </Box>
                 </Box>
+                
+                {/* Bill Items List */}
+                {getBillItems(transaction).length > 0 && (
+                  <Collapse in={expandedTransactions.has(transaction._id)} timeout="auto" unmountOnExit>
+                    <Box sx={{ mt: 2, pt: 2, borderTop: `1px solid ${theme.palette.divider}` }}>
+                      <Typography variant="subtitle2" sx={{ mb: 1, color: theme.palette.text.primary, fontWeight: 600 }}>
+                        Bill Items
+                      </Typography>
+                      <TableContainer>
+                        <Table size="small">
+                          <TableHead>
+                            <TableRow>
+                              <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb' }}>Item Name</TableCell>
+                              <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb' }}>Quantity</TableCell>
+                              <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb' }}>Unit Price</TableCell>
+                              <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb' }}>Total Price</TableCell>
+                              {getBillItems(transaction).some((item: any) => item.category) && (
+                                <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb' }}>Category</TableCell>
+                              )}
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {getBillItems(transaction).map((item: any, index: number) => (
+                              <TableRow key={index}>
+                                <TableCell sx={{ color: theme.palette.text.primary }}>{item.name || 'N/A'}</TableCell>
+                                <TableCell align="right" sx={{ color: theme.palette.text.primary }}>{item.quantity || 1}</TableCell>
+                                <TableCell align="right" sx={{ color: theme.palette.text.primary }}>
+                                  {item.unit_price ? `Rs. ${item.unit_price.toFixed(2)}` : 'N/A'}
+                                </TableCell>
+                                <TableCell align="right" sx={{ color: theme.palette.text.primary, fontWeight: 500 }}>
+                                  {item.total_price ? `Rs. ${item.total_price.toFixed(2)}` : 'N/A'}
+                                </TableCell>
+                                {getBillItems(transaction).some((i: any) => i.category) && (
+                                  <TableCell sx={{ color: theme.palette.text.primary }}>
+                                    {item.category ? (
+                                      <Chip label={item.category} size="small" variant="outlined" />
+                                    ) : (
+                                      '-'
+                                    )}
+                                  </TableCell>
+                                )}
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                    </Box>
+                  </Collapse>
+                )}
               </CardContent>
             </Card>
           ))
@@ -521,3 +606,6 @@ export default function TransactionsSection({
       </Box>
     );
   }
+
+
+

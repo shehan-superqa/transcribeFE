@@ -44,3 +44,6 @@ global.EventSource = vi.fn().mockImplementation(() => ({
   OPEN: 1,
   CLOSED: 2,
 })) as any;
+
+
+
