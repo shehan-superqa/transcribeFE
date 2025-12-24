@@ -331,27 +331,14 @@ export default function TranscribeTab() {
       return;
     }
 
-    // Check authentication before proceeding
-    const executeTranscription = async () => {
-      const config: TranscriptionConfig = {
-        engine,
-        language,
-        model,
-        processing_mode: processingMode,
-        enable_punctuation: enablePunctuation,
-        enable_capitalization: enableCapitalization,
-      };
-
-      if (isBatchMode) {
-        // Batch processing
-        await handleStartBatch(config);
-      } else {
-        // Single file processing
-        const submittedJobId = await submitJob(singleFile!, config);
-        if (submittedJobId) {
-          setJobId(submittedJobId);
-        }
-      }
+    // Build transcription configuration
+    const config: TranscriptionConfig = {
+      engine,
+      language,
+      model,
+      processing_mode: processingMode,
+      enable_punctuation: enablePunctuation,
+      enable_capitalization: enableCapitalization,
     };
 
     if (isBatchMode) {
@@ -1155,8 +1142,8 @@ export default function TranscribeTab() {
 
       {/* Single File Results */}
       {(results || (status === 'completed' && (job?.result || result))) && !isBatchMode && (
-        <Paper sx={{ p: 3, backgroundColor: '#1e1e1e', border: '1px solid #333333' }}>
-          <Typography variant="h6" gutterBottom sx={{ color: '#e0e0e0', mb: 2 }}>
+        <Paper sx={{ p: 3, backgroundColor: '#ffffff', border: '1px solid #cccccc' }}>
+          <Typography variant="h6" gutterBottom sx={{ color: '#000000', mb: 2 }}>
             Transcription Results
           </Typography>
           <TextField
@@ -1168,9 +1155,9 @@ export default function TranscribeTab() {
             sx={{ 
               mb: 2,
               '& .MuiOutlinedInput-root': {
-                color: '#e0e0e0',
-                backgroundColor: '#121212',
-                '& fieldset': { borderColor: '#333333' },
+                color: '#000000',
+                backgroundColor: '#ffffff',
+                '& fieldset': { borderColor: '#cccccc' },
                 '&:hover fieldset': { borderColor: '#00c6ff' },
               },
             }}
@@ -1208,9 +1195,9 @@ export default function TranscribeTab() {
                 setIsBatchProcessing(false);
               }}
               sx={{
-                borderColor: '#333333',
-                color: '#e0e0e0',
-                '&:hover': { borderColor: '#00c6ff', backgroundColor: '#1a1a1a' },
+                borderColor: '#cccccc',
+                color: '#000000',
+                '&:hover': { borderColor: '#00c6ff', backgroundColor: '#f3f4f6' },
               }}
             >
               Clear
