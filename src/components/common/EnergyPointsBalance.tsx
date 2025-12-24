@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../lib/auth';
 import { getEnergyPointsBalance } from '../../lib/api/paymentApi';
+import { clearAuthData } from '../../lib/api';
 import { useState, useEffect } from 'react';
 
 interface EnergyPointsBalanceProps {
@@ -41,10 +42,19 @@ export default function EnergyPointsBalance({
         setBalance(user.energyPoints ?? 0);
       }
     } catch (err: any) {
-      console.warn('Could not fetch energy points balance:', err);
-      // Fallback to user object energyPoints if available
-      setBalance(user.energyPoints ?? 0);
-      setError('Failed to load balance');
+      // Handle "User not found" error specifically
+      if (err.message?.includes('User account not found')) {
+        console.warn('User account not found, clearing auth data');
+        // Clear auth data and redirect to login if user account doesn't exist
+        clearAuthData();
+        setError('Session expired. Please log in again.');
+        setBalance(0);
+      } else {
+        console.warn('Could not fetch energy points balance:', err);
+        // Fallback to user object energyPoints if available
+        setBalance(user.energyPoints ?? 0);
+        setError('Failed to load balance');
+      }
     } finally {
       setLoading(false);
     }

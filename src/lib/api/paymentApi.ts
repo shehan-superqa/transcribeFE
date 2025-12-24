@@ -49,6 +49,12 @@ export async function getEnergyPointsBalance(): Promise<BalanceResponse> {
     });
     return handleResponse<BalanceResponse>(response);
   } catch (error: any) {
+    // Handle "User not found" error gracefully
+    if (error.message?.includes('User not found') || error.message?.includes('404')) {
+      console.warn('User not found in database. This may indicate the user was deleted or the token is invalid.');
+      // Don't try to create user - just throw a clear error
+      throw new Error('User account not found. Please log out and log in again.');
+    }
     // If the error is about microservice API key, return a fallback response
     if (error.message?.includes('Microservice API key')) {
       console.warn('Energy points balance check failed, using fallback');

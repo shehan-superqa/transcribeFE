@@ -109,6 +109,10 @@ export class WebSocketClient {
         ...config,
         token: token,
       }, (response: any) => {
+        if (!response) {
+          reject(new Error('No response received from server'));
+          return;
+        }
         if (response.status === 'started' && response.session_id) {
           this.sessionId = response.session_id;
           resolve();
