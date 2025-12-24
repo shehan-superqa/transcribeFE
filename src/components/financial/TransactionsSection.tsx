@@ -217,17 +217,49 @@ export default function TransactionsSection({
   return (
     <Box>
       {/* Filters */}
-      <Paper elevation={1} sx={{ p: 2, mb: 2, backgroundColor: theme.palette.background.paper }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-          <FilterList sx={{ color: theme.palette.text.secondary }} />
-          <Typography variant="h6" sx={{ color: theme.palette.text.primary }}>Filters</Typography>
+      <Paper 
+        elevation={0} 
+        sx={{ 
+          p: '1.5rem', 
+          mb: '2rem', 
+          backgroundColor: theme.palette.background.paper,
+          border: `1px solid ${theme.palette.divider}`,
+          borderRadius: '12px',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.5rem', mb: '1.5rem' }}>
+          <FilterList sx={{ color: theme.palette.text.secondary, fontSize: '1.25rem' }} />
+          <Typography 
+            variant="h6" 
+            sx={{ 
+              fontFamily: "'Inter', sans-serif",
+              color: theme.palette.text.primary,
+              fontSize: '1rem',
+              fontWeight: 600,
+              lineHeight: 1.2,
+            }}
+          >
+            Filters
+          </Typography>
           {hasFilters && (
-            <Button size="small" onClick={clearFilters}>
+            <Button 
+              size="small" 
+              onClick={clearFilters}
+              sx={{
+                fontFamily: "'Inter', sans-serif",
+                fontSize: '0.875rem',
+                fontWeight: 500,
+                padding: '0.5rem 0.75rem',
+                borderRadius: '8px',
+                textTransform: 'none',
+              }}
+            >
               Clear
             </Button>
           )}
         </Box>
-        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+        <Box sx={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
           <LocalizationProvider dateAdapter={AdapterDateFns}>
             <DatePicker
               label="Date From"
@@ -276,26 +308,48 @@ export default function TransactionsSection({
       </Paper>
 
       {/* Transactions List */}
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         {paginatedTransactions.length === 0 ? (
           <Paper
-            elevation={2}
+            elevation={0}
             sx={{
-              p: 6,
+              p: '3rem',
               textAlign: 'center',
               backgroundColor: theme.palette.background.paper,
-              border: `2px dashed ${theme.palette.divider}`,
-              borderRadius: 3,
+              border: `1px dashed ${theme.palette.divider}`,
+              borderRadius: '12px',
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
             }}
             role="status"
             aria-live="polite"
           >
             {transactions.length === 0 ? (
               <>
-                <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary, fontWeight: 600, mb: 2 }}>
+                <Typography 
+                  variant="h6" 
+                  gutterBottom 
+                  sx={{ 
+                    fontFamily: "'Inter', sans-serif",
+                    color: theme.palette.text.primary, 
+                    fontWeight: 600, 
+                    fontSize: '1rem',
+                    lineHeight: 1.2,
+                    mb: '1rem',
+                  }}
+                >
                   No Transactions Yet
                 </Typography>
-                <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+                <Typography 
+                  variant="body1" 
+                  sx={{ 
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: '0.875rem',
+                    fontWeight: 400,
+                    lineHeight: 1.5,
+                    color: theme.palette.text.secondary,
+                    mb: '1.5rem',
+                  }}
+                >
                   Get started by uploading your first bill or receipt. We'll automatically extract the details and track your spending.
                 </Typography>
                 <Button
@@ -309,16 +363,45 @@ export default function TransactionsSection({
                     window.dispatchEvent(new CustomEvent('financial:openUpload'));
                   }}
                   aria-label="Upload your first bill"
+                  sx={{
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
+                    padding: '0.625rem 1rem',
+                    borderRadius: '8px',
+                    textTransform: 'none',
+                  }}
                 >
                   Upload Your First Bill
                 </Button>
               </>
             ) : (
               <>
-                <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary, fontWeight: 600, mb: 2 }}>
+                <Typography 
+                  variant="h6" 
+                  gutterBottom 
+                  sx={{ 
+                    fontFamily: "'Inter', sans-serif",
+                    color: theme.palette.text.primary, 
+                    fontWeight: 600,
+                    fontSize: '1rem',
+                    lineHeight: 1.2,
+                    mb: '1rem',
+                  }}
+                >
                   No Transactions Match Your Filters
                 </Typography>
-                <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+                <Typography 
+                  variant="body1" 
+                  sx={{ 
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: '0.875rem',
+                    fontWeight: 400,
+                    lineHeight: 1.5,
+                    color: theme.palette.text.secondary,
+                    mb: '1rem',
+                  }}
+                >
                   Try adjusting your filters to see more transactions.
                 </Typography>
                 <Button
@@ -328,6 +411,14 @@ export default function TransactionsSection({
                     onFiltersChange({});
                   }}
                   aria-label="Clear all filters"
+                  sx={{
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
+                    padding: '0.625rem 1rem',
+                    borderRadius: '8px',
+                    textTransform: 'none',
+                  }}
                 >
                   Clear Filters
                 </Button>
@@ -336,14 +427,44 @@ export default function TransactionsSection({
           </Paper>
         ) : (
           paginatedTransactions.map((transaction) => (
-            <Card key={transaction._id} elevation={1} sx={{ backgroundColor: theme.palette.background.paper }}>
-              <CardContent>
+            <Card 
+              key={transaction._id} 
+              elevation={0} 
+              sx={{ 
+                backgroundColor: theme.palette.background.paper,
+                border: `1px solid ${theme.palette.divider}`,
+                borderRadius: '12px',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+              }}
+            >
+              <CardContent sx={{ p: '1.5rem' }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                   <Box sx={{ flex: 1 }}>
-                    <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary }}>
+                    <Typography 
+                      variant="h6" 
+                      gutterBottom 
+                      sx={{ 
+                        fontFamily: "'Inter', sans-serif",
+                        color: theme.palette.text.primary,
+                        fontSize: '1rem',
+                        fontWeight: 600,
+                        lineHeight: 1.2,
+                        mb: '0.5rem',
+                      }}
+                    >
                       Rs. {transaction.amount.toFixed(2)}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                    <Typography 
+                      variant="body2" 
+                      sx={{
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: '0.875rem',
+                        fontWeight: 400,
+                        lineHeight: 1.5,
+                        color: theme.palette.text.secondary,
+                        mb: '0.5rem',
+                      }}
+                    >
                       {new Date(transaction.date).toLocaleDateString()}
                     </Typography>
                     <Box sx={{ display: 'flex', gap: 1, mt: 1, flexWrap: 'wrap' }}>
@@ -606,6 +727,7 @@ export default function TransactionsSection({
       </Box>
     );
   }
+
 
 
 
