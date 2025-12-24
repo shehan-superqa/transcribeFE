@@ -63,7 +63,7 @@ export default function Home() {
   };
 
   return (
-    <div style={{ overflowX: 'hidden', maxWidth: '100vw', width: '100%' }}>
+    <div style={{ overflowX: 'hidden', overflowY: 'hidden', maxWidth: '100vw', width: '100%' }}>
       {/* HERO SECTION */}
       <section className="hero-section">
         <div className="hero-bg-layer hero-bg-layer-1"></div>

@@ -24,7 +24,7 @@
     text-align: center;
     overflow: hidden;
     overflow-x: hidden;
-    overflow-y: visible;
+    overflow-y: hidden;
     background: radial-gradient(ellipse at center, var(--background-dark) 0%, var(--bg-primary) 100%);
     color: var(--text-light);
     --mouse-x: 50%;

@@ -300,7 +300,7 @@ export default function Header() {
   const [productDropdownOpen, setProductDropdownOpen] = useState(false);
   const [toolsDropdownOpen, setToolsDropdownOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(typeof window !== 'undefined' && window.innerWidth > 1024);
-  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth <= 768);
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth <= 1024);
   const toolsDropdownRef = useRef<HTMLDivElement>(null);
   const [toolsDropdownPosition, setToolsDropdownPosition] = useState<React.CSSProperties>({});
 
@@ -321,7 +321,7 @@ export default function Header() {
   useEffect(() => {
     const handleResize = () => {
       setIsDesktop(window.innerWidth > 1024);
-      setIsMobile(window.innerWidth <= 768);
+      setIsMobile(window.innerWidth <= 1024);
     };
     handleResize();
     window.addEventListener('resize', handleResize);
@@ -427,7 +427,7 @@ export default function Header() {
     productDropdownMenu: { position: 'absolute' as const, top: '100%', left: '0', paddingTop: '4px', zIndex: 201, overflow: 'visible', maxWidth: 'calc(100vw - 2rem)', maxHeight: 'calc(100vh - 150px)' },
     productDropdownMenuMobile: { position: 'absolute' as const, top: '100%', left: '0', paddingTop: '4px', zIndex: 201, width: '100%' },
     rightAuthSection: { display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'nowrap' as const, flexShrink: 0, minWidth: 0, overflowX: 'hidden' as const },
-    mobileMenuIcon: { cursor: 'pointer' },
+    mobileMenuIcon: { cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '32px', minHeight: '32px', flexShrink: 0 },
     mobileMenu: { display: 'flex', flexDirection: 'column' as const, gap: '0.6rem', backgroundColor: headerBg, padding: '1rem 2rem', borderTop: `1px solid ${headerBorder}`, maxHeight: 'calc(100vh - 80px)', overflowY: 'auto' as const, overflowX: 'hidden' as const },
     mobileDropdownContainer: { position: 'relative' as const, width: '100%' },
     mobileDropdownMenu: { backgroundColor: dropdownBg, borderRadius: '4px', padding: '0.5rem 0', marginTop: '0.5rem', display: 'flex', flexDirection: 'column' as const, gap: '0', maxHeight: 'calc(100vh - 300px)', overflowY: 'auto' as const, overflowX: 'hidden' as const },
@@ -457,7 +457,7 @@ export default function Header() {
         <div style={styles.container}>
         {/* Left Section */}
         <div style={styles.leftNavSection}>
-          <Link to="/" style={styles.logo}>
+          <Link to="/" style={{ ...styles.logo, display: 'flex' }}>
             <div style={styles.logoSvgContainer}>
               <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
                 <path d="M7 16C7 11.5817 10.5817 8 15 8H17C21.4183 8 25 11.5817 25 16V24" stroke="url(#logoGradient)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
@@ -560,8 +560,8 @@ export default function Header() {
         </div>
 
         {/* Mobile Hamburger */}
-        <div style={{ ...styles.mobileMenuIcon, display: isDesktop ? 'none' : 'block' }} onClick={handleToggleMobile}>
-          {mobileOpen ? <FiX color="#fff" size={24} /> : <FiMenu color="#fff" size={24} />}
+        <div style={{ ...styles.mobileMenuIcon, display: isDesktop ? 'none' : 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={handleToggleMobile}>
+          {mobileOpen ? <FiX color={textColor} size={24} /> : <FiMenu color={textColor} size={24} />}
         </div>
       </div>
 
