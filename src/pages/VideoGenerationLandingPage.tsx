@@ -53,7 +53,14 @@ export default function VideoGenerationLandingPage() {
     <Box className="video-generation-landing">
       <Box className="landing-content">
         <Box className="landing-header">
-          <Typography variant="h2" className="landing-title">
+          <Typography
+            variant="h2"
+            component="h1"
+            className="landing-title"
+            sx={{
+              color: '#000000 !important',
+            }}
+          >
             Video Generation Tools
           </Typography>
           <Typography variant="body1" className="landing-subtitle">
@@ -68,15 +75,15 @@ export default function VideoGenerationLandingPage() {
               className="tool-card"
               onClick={() => navigate(tool.path)}
               sx={{
-                background: 'linear-gradient(135deg, #000000 0%, #1a1a2e 50%, #4a5568 100%)',
-                border: '1px solid rgba(74, 144, 226, 0.3)',
+                background: '#ffffff',
+                border: '1px solid #cccccc',
                 transition: 'all 0.3s ease',
                 cursor: 'pointer',
                 '&:hover': {
                   transform: 'translateY(-4px)',
-                  boxShadow: '0 8px 24px rgba(74, 144, 226, 0.5)',
-                  borderColor: 'rgba(74, 144, 226, 0.6)',
-                  background: 'linear-gradient(135deg, #0a0a0a 0%, #1e2a3e 50%, #5a6578 100%)',
+                  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.1)',
+                  borderColor: '#00c6ff',
+                  background: '#f9fafb',
                 },
               }}
             >
@@ -88,10 +95,10 @@ export default function VideoGenerationLandingPage() {
                 sx={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
               >
                 <CardContent sx={{ width: '100%', p: 2 }}>
-                  <Typography variant="h6" className="tool-title" sx={{ color: '#e0e0e0', mb: 1, fontWeight: 600, fontSize: '1.1rem' }}>
+                  <Typography variant="h6" className="tool-title" sx={{ color: '#000000', mb: 1, fontWeight: 600, fontSize: '1.1rem' }}>
                     {tool.title}
                   </Typography>
-                  <Typography variant="body2" className="tool-description" sx={{ color: '#a0a0a0', lineHeight: 1.5, fontSize: '0.875rem' }}>
+                  <Typography variant="body2" className="tool-description" sx={{ color: '#000000', lineHeight: 1.5, fontSize: '0.875rem' }}>
                     {tool.description}
                   </Typography>
                 </CardContent>

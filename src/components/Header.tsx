@@ -474,7 +474,6 @@ export default function Header() {
               {toolsDropdownOpen && isDesktop && <div style={styles.productDropdownMenu}><ToolsDropdown isMobile={false} theme={theme} /></div>}
             </div>
             <NavLink to="/use-cases" theme={theme}>Use Cases</NavLink>
-            <NavLink to="/cases" theme={theme}>Cases</NavLink>
             <NavLink to="/academy" theme={theme}>Academy</NavLink>
             <NavLink to="/pricing" theme={theme}>Pricing</NavLink>
           </nav>
