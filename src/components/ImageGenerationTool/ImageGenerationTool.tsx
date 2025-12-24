@@ -256,6 +256,9 @@ const getStyles = () => ({
   historyCardMeta: {
     fontSize: '0.75rem',
     color: 'var(--text-tertiary)',
+    display: 'flex',
+    gap: '0.5rem',
+    flexWrap: 'wrap' as const,
   },
   emptyHistory: {
     textAlign: 'center' as const,
@@ -270,54 +273,13 @@ const getStyles = () => ({
     maxWidth: '400px',
     flexShrink: 0,
   },
-});
-  historyTitle: {
-    margin: 0,
-    fontSize: '1.25rem',
-    fontWeight: 600,
-    color: 'var(--text-primary)',
-  },
-  historyCard: {
-    padding: '1rem',
-    background: 'var(--bg-primary)',
-    borderRadius: '0.75rem',
-    border: '1px solid var(--border-color)',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-  },
-  historyCardHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '0.5rem',
-  },
-  historyCardPrompt: {
-    fontSize: '0.9rem',
-    color: 'var(--text-secondary)',
-    marginBottom: '0.5rem',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap' as const,
-  },
-  historyCardMeta: {
-    fontSize: '0.75rem',
-    color: 'var(--text-tertiary)',
-    display: 'flex',
-    gap: '0.5rem',
-    flexWrap: 'wrap' as const,
-  },
-  emptyHistory: {
-    textAlign: 'center' as const,
-    padding: '2rem',
-    color: 'var(--text-tertiary)',
-  },
   charCount: {
     fontSize: '0.75rem',
     color: 'var(--text-secondary)',
     textAlign: 'right' as const,
     marginTop: '0.25rem',
   },
-};
+});
 
 export default function ImageGenerationTool() {
   const { user } = useAuth();

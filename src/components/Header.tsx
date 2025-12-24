@@ -402,8 +402,8 @@ export default function Header() {
     logo: { display: 'flex', alignItems: 'center', textDecoration: 'none' },
     logoSvgContainer: { marginRight: '0.75rem' },
     logoText: { fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 'clamp(1rem, 3vw, 1.2rem)', color: textColor, letterSpacing: '0.5px' },
-    desktopNavLinks: { display: 'flex', alignItems: 'baseline' as const, gap: 'clamp(0.75rem, 2vw, 1.25rem)', flexWrap: 'wrap' as const },
-    productDropdownContainer: { position: 'relative' as const, marginBottom: '-4px' },
+    desktopNavLinks: { display: 'flex', alignItems: 'center' as const, gap: 'clamp(0.75rem, 2vw, 1.25rem)', flexWrap: 'wrap' as const },
+    productDropdownContainer: { position: 'relative' as const, display: 'flex', alignItems: 'center' },
     productDropdownMenu: { position: 'absolute' as const, top: '100%', left: '0', paddingTop: '4px', zIndex: 201, overflow: 'visible' },
     productDropdownMenuMobile: { position: 'absolute' as const, top: '100%', left: '0', paddingTop: '4px', zIndex: 201, width: '100%' },
     rightAuthSection: { display: 'flex', alignItems: 'center', gap: '0.75rem' },
@@ -492,20 +492,20 @@ export default function Header() {
           
           {user ? (
             <>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginRight: '0.5rem', flexWrap: 'wrap' }}>
-                <span style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.85rem', color: textColor, fontWeight: 500 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginRight: '0.5rem', flexWrap: 'nowrap' }}>
+                <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 'clamp(0.75rem, 2vw, 0.85rem)', color: textColor, fontWeight: 500, whiteSpace: 'nowrap' }}>
                   Welcome, {user?.name || user?.email}
                 </span>
                 <EnergyPointsBalance showLabel={false} />
                 {user.isEmailVerified ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.75rem', backgroundColor: '#d4edda', borderRadius: '9999px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.75rem', backgroundColor: '#d4edda', borderRadius: '9999px', flexShrink: 0 }}>
                     <FaCheckCircle style={{ color: '#155724', fontSize: '0.75rem' }} />
                     <span style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.7rem', color: '#155724', fontWeight: 500 }}>
                       Email verified
                     </span>
                   </div>
                 ) : (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.75rem', backgroundColor: '#fff3cd', borderRadius: '9999px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.75rem', backgroundColor: '#fff3cd', borderRadius: '9999px', flexShrink: 0 }}>
                     <FaExclamationTriangle style={{ color: '#856404', fontSize: '0.75rem' }} />
                     <Link
                       to="/auth/verify-email"
@@ -518,18 +518,19 @@ export default function Header() {
               </div>
               <NavLink to="/voice/transcribe" theme={theme}>Dashboard</NavLink>
               <NavLink
-  onClick={() => {
-    signOut();
-    navigate('/auth/login');
-  }}
->
-  Sign Out
-</NavLink>
+                onClick={() => {
+                  signOut();
+                  navigate('/auth/login');
+                }}
+                theme={theme}
+              >
+                Sign Out
+              </NavLink>
             </>
           ) : (
             <>
-              <NavLink to="/auth/signup">Sign up</NavLink>
-              <NavLink to="/auth/login">Sign in</NavLink>
+              <NavLink to="/auth/signup" theme={theme}>Sign up</NavLink>
+              <NavLink to="/auth/login" theme={theme}>Sign in</NavLink>
             </>
           )}
           <PrimaryButton onClick={() => navigate('/demo')}>Watch a demo &gt;</PrimaryButton>

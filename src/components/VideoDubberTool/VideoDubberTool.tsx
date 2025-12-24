@@ -857,7 +857,8 @@ export default function VideoDubberTool() {
         subtitle=""
         instructions="Upload a video file using drag & drop, paste from clipboard, or click to browse. You can also paste a video URL. Select the target language for dubbing. Click 'Dub Video' to start the process. The system will translate and dub your video with natural-sounding voice in the selected language."
       />
-      <div style={styles.formContainer}>
+      <div style={styles.container}>
+        <div style={styles.formContainer}>
         <form style={styles.form} onSubmit={handleSubmit} onPaste={handlePaste}>
             <div style={styles.inputGroup}>
               <label style={styles.label}>Video File *</label>
