@@ -101,11 +101,119 @@ export default function Sidebar({ onRealTimeExpand, open, onClose }: SidebarProp
   const location = useLocation();
   const { theme } = useTheme();
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const isCollapsed = useMediaQuery('(max-width: 1439px)'); // Collapse at 1440px and below
   const [activeItem, setActiveItem] = useState<string>('');
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set()); // Default: all collapsed
   const [userCollapsedItems, setUserCollapsedItems] = useState<Set<string>>(new Set());
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const isManuallyTogglingRef = useRef<string | null>(null);
+  
+  // Get sidebar state from window (set by Header component) if open/onClose not provided
+  const [sidebarOpen, setSidebarOpen] = useState(open ?? false);
+  
+  // Listen for custom events for immediate updates (primary method)
+  useEffect(() => {
+    const handleSidebarToggle = (event: CustomEvent) => {
+      if (open === undefined && event.detail?.open !== undefined) {
+        // Immediately update state when event is received
+        setSidebarOpen(event.detail.open);
+      }
+    };
+    
+    // Add event listener with capture to catch events early
+    window.addEventListener('sidebarToggle' as any, handleSidebarToggle as EventListener, true);
+    
+    // Also check initial state
+    const state = (window as any).__sidebarState;
+    if (state && open === undefined) {
+      setSidebarOpen(state.open);
+    }
+    
+    return () => {
+      window.removeEventListener('sidebarToggle' as any, handleSidebarToggle as EventListener, true);
+    };
+  }, [open]);
+
+  // Fallback: Listen for sidebar state changes from Header via window state
+  useEffect(() => {
+    if (open !== undefined) return; // Don't sync if prop is provided
+    
+    const checkSidebarState = () => {
+      const state = (window as any).__sidebarState;
+      if (state) {
+        // Use functional update to get latest state
+        setSidebarOpen(prev => {
+          if (state.open !== prev) {
+            return state.open;
+          }
+          return prev;
+        });
+      }
+    };
+    
+    // Check immediately
+    checkSidebarState();
+    
+    // Set up interval for state sync (fallback method)
+    const interval = setInterval(checkSidebarState, 100);
+    
+    return () => {
+      clearInterval(interval);
+    };
+  }, [open]);
+  
+  // Use open prop if provided, otherwise use local sidebarOpen state
+  // The sidebarOpen state is kept in sync via useEffect hooks above
+  const isOpen = open !== undefined ? open : sidebarOpen;
+  
+  // Prevent body scrolling when drawer is open on mobile
+  useEffect(() => {
+    if (isMobile && isOpen) {
+      // Save current scroll position
+      const scrollY = window.scrollY;
+      
+      // Prevent body scrolling
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
+      
+      // Prevent touch scrolling on iOS
+      const preventTouchMove = (e: TouchEvent) => {
+        // Allow scrolling within the drawer
+        const target = e.target as HTMLElement;
+        const drawer = target.closest('.MuiDrawer-paper, .sidebar');
+        if (!drawer) {
+          e.preventDefault();
+        }
+      };
+      
+      document.addEventListener('touchmove', preventTouchMove, { passive: false });
+      
+      return () => {
+        // Restore scrolling
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+        
+        // Restore scroll position
+        window.scrollTo(0, scrollY);
+        
+        // Remove touch event listener
+        document.removeEventListener('touchmove', preventTouchMove);
+      };
+    }
+  }, [isMobile, isOpen]);
+  
+  const handleClose = onClose || (() => {
+    const state = (window as any).__sidebarState;
+    if (state) {
+      state.setOpen(false); // This will trigger the Header's state update
+    }
+    setSidebarOpen(false);
+  });
 
   useEffect(() => {
     const path = location.pathname;
@@ -178,8 +286,8 @@ export default function Sidebar({ onRealTimeExpand, open, onClose }: SidebarProp
     setActiveItem(parentId);
     navigate(subItem.path);
     // Close drawer on mobile when item is selected
-    if (isMobile && onClose) {
-      onClose();
+    if (isMobile) {
+      handleClose();
     }
     // Ensure parent is expanded and remove from collapsed items
     if (!expandedItems.has(parentId)) {
@@ -257,8 +365,8 @@ export default function Sidebar({ onRealTimeExpand, open, onClose }: SidebarProp
       setActiveItem(item.id);
       navigate(item.path);
       // Close drawer on mobile when item is selected
-      if (isMobile && onClose) {
-        onClose();
+      if (isMobile) {
+        handleClose();
       }
     }
   };
@@ -314,23 +422,29 @@ export default function Sidebar({ onRealTimeExpand, open, onClose }: SidebarProp
   }, []);
 
   const sidebarContent = (
-    <div className="sidebar" ref={sidebarRef}>
+    <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`} ref={sidebarRef}>
       <div className="sidebar-content">
         {menuItems.map((item) => (
-          <div key={item.id} data-menu-id={item.id}>
+          <div 
+            key={item.id} 
+            data-menu-id={item.id}
+            onMouseEnter={() => isCollapsed && setHoveredItem(item.id)}
+            onMouseLeave={() => isCollapsed && setHoveredItem(null)}
+          >
             <button
               className={`sidebar-item ${activeItem === item.id ? 'active' : ''} ${expandedItems.has(item.id) ? 'expanded' : ''}`}
               onClick={() => handleItemClick(item)}
+              title={isCollapsed ? item.label : undefined}
             >
               <span className="sidebar-icon">{item.icon}</span>
               <span className="sidebar-label">{item.label}</span>
-              {item.isExpandable && (
+              {item.isExpandable && !isCollapsed && (
                 <span className="sidebar-chevron">
                   {expandedItems.has(item.id) ? '▼' : '▶'}
                 </span>
               )}
             </button>
-            {item.isExpandable && item.subItems && expandedItems.has(item.id) && (
+            {item.isExpandable && item.subItems && expandedItems.has(item.id) && !isCollapsed && (
               <div className="sidebar-submenu">
                 {item.subItems.map((subItem) => {
                   const isActive = location.pathname === subItem.path || location.pathname.startsWith(subItem.path + '/');
@@ -349,6 +463,21 @@ export default function Sidebar({ onRealTimeExpand, open, onClose }: SidebarProp
                 })}
               </div>
             )}
+            {/* Tooltip for collapsed state */}
+            {isCollapsed && hoveredItem === item.id && (
+              <div className="sidebar-tooltip">
+                {item.label}
+                {item.isExpandable && item.subItems && expandedItems.has(item.id) && (
+                  <div className="sidebar-tooltip-submenu">
+                    {item.subItems.map((subItem) => (
+                      <div key={subItem.id} className="sidebar-tooltip-subitem">
+                        {subItem.label}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         ))}
         
@@ -357,14 +486,26 @@ export default function Sidebar({ onRealTimeExpand, open, onClose }: SidebarProp
           {bottomMenuItems.map((item) => {
             const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
             return (
-              <button
+              <div
                 key={item.id}
-                className={`sidebar-item ${activeItem === item.id || isActive ? 'active' : ''}`}
-                onClick={() => handleItemClick(item)}
+                onMouseEnter={() => isCollapsed && setHoveredItem(item.id)}
+                onMouseLeave={() => isCollapsed && setHoveredItem(null)}
               >
-                <span className="sidebar-icon">{item.icon}</span>
-                <span className="sidebar-label">{item.label}</span>
-              </button>
+                <button
+                  className={`sidebar-item ${activeItem === item.id || isActive ? 'active' : ''}`}
+                  onClick={() => handleItemClick(item)}
+                  title={isCollapsed ? item.label : undefined}
+                >
+                  <span className="sidebar-icon">{item.icon}</span>
+                  <span className="sidebar-label">{item.label}</span>
+                </button>
+                {/* Tooltip for collapsed state */}
+                {isCollapsed && hoveredItem === item.id && (
+                  <div className="sidebar-tooltip">
+                    {item.label}
+                  </div>
+                )}
+              </div>
             );
           })}
         </div>
@@ -377,23 +518,40 @@ export default function Sidebar({ onRealTimeExpand, open, onClose }: SidebarProp
     return (
       <Drawer
         anchor="left"
-        open={open ?? false}
-        onClose={onClose}
+        open={isOpen}
+        onClose={(event, reason) => {
+          // Close drawer when backdrop is clicked or escape is pressed
+          // The icon click is handled via state toggle in Header
+          if (reason === 'backdropClick' || reason === 'escapeKeyDown') {
+            handleClose();
+          }
+        }}
         ModalProps={{
           keepMounted: true, // Better mobile performance
+          disableScrollLock: false, // Enable scroll lock to prevent background scrolling
+          disableEnforceFocus: false, // Keep focus management
         }}
         sx={{
-          display: { xs: 'block', sm: 'none' },
+          display: { xs: 'block', sm: 'block', md: 'none' }, // Show on mobile and tablet, hide on desktop
+          zIndex: 1200, // Below header (zIndex: 1000-2000)
+          '& .MuiBackdrop-root': {
+            top: 'var(--header-height, 64px)', // Position below header
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            // Prevent backdrop from allowing scroll
+            touchAction: 'none',
+          },
           '& .MuiDrawer-paper': {
-            width: 280,
-            maxWidth: '85vw',
+            width: { xs: 280, sm: 300 },
+            maxWidth: { xs: '85vw', sm: '90vw' },
             boxSizing: 'border-box',
-            zIndex: 1300,
+            zIndex: 1201,
             backgroundColor: theme.palette.mode === 'dark' ? '#121212' : '#ffffff',
             borderRight: `1px solid ${theme.palette.divider}`,
-            height: '100%',
+            top: 'var(--header-height, 64px)', // Position below header
+            height: 'calc(100% - var(--header-height, 64px))',
             display: 'flex',
             flexDirection: 'column',
+            transition: 'transform 0.3s ease-in-out', // Smooth slide animation
           },
         }}
       >
@@ -410,6 +568,15 @@ export default function Sidebar({ onRealTimeExpand, open, onClose }: SidebarProp
   }
 
   // Desktop: Render as fixed sidebar (always visible)
+  // When collapsed (< 1440px), make it float
+  if (isCollapsed && !isMobile) {
+    return (
+      <div style={{ position: 'relative' }}>
+        {sidebarContent}
+      </div>
+    );
+  }
+  
   return sidebarContent;
 }
 

@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { ThemeProvider, useMediaQuery, Button, ButtonGroup, Box, IconButton } from '@mui/material';
+import { ThemeProvider, useMediaQuery, Button, ButtonGroup, Box } from '@mui/material';
 import CssBaseline from '@mui/material/CssBaseline';
-import MenuIcon from '@mui/icons-material/Menu';
 import { useTheme } from '../contexts/ThemeContext';
 import Sidebar from '../components/Sidebar';
 import ImageGenerationPage from './tools/ImageGenerationPage';
@@ -19,12 +18,10 @@ export default function ImagesDashboard() {
   const { theme } = useTheme();
   const location = useLocation();
   const [activeMobileTab, setActiveMobileTab] = useState<'tool' | 'history'>('tool');
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   
   // Detect if we're on a small screen - using custom breakpoint to include 981.60px viewport
   // Toggle buttons show when viewport width is <= 982px
   const isSmallScreen = useMediaQuery('(max-width: 982px)');
-  const isMobile = useMediaQuery('(max-width: 768px)');
   
   // Only show toggle buttons on small screens, and only when on image tool routes
   const showToggleButtons = isSmallScreen && (
@@ -50,28 +47,8 @@ export default function ImagesDashboard() {
   return (
     <div className="dashboard-container">
       <div className="dashboard-content-wrapper">
-        {/* Mobile Hamburger Menu Button */}
-        {isMobile && (
-          <IconButton
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            sx={{
-              position: 'fixed',
-              top: 16,
-              left: 16,
-              zIndex: 1301,
-              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(18, 18, 18, 0.9)' : 'rgba(255, 255, 255, 0.9)',
-              border: `1px solid ${theme.palette.divider}`,
-              boxShadow: theme.shadows[2],
-              '&:hover': {
-                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(18, 18, 18, 1)' : 'rgba(255, 255, 255, 1)',
-              },
-            }}
-          >
-            <MenuIcon />
-          </IconButton>
-        )}
-        
-        <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        {/* Sidebar Navigation - Uses Header's drawer icon state */}
+        <Sidebar />
         <div className="dashboard-main-layout">
           {/* Mobile Toggle Buttons - Only visible on small screens and when on image tool routes */}
           {showToggleButtons && (

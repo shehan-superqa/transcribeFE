@@ -138,6 +138,21 @@
   }
 }
 
+/* Inspect/Minimized views: 481px – 982px */
+@media (min-width: 481px) and (max-width: 982px) {
+  .transcribe-tab-container {
+    padding: clamp(1rem, 2.5vw, 1.5rem);
+  }
+
+  .transcribe-header-section {
+    margin-bottom: clamp(1.25rem, 3vw, 1.75rem);
+  }
+
+  .transcribe-settings-grid {
+    gap: clamp(1.25rem, 2.5vw, 1.75rem);
+  }
+}
+
 /* Mobile-specific: ≤ 480px */
 @media (max-width: 480px) {
   .transcribe-header-section {

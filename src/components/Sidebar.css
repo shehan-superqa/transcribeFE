@@ -283,6 +283,117 @@
   }
 }
 
+/* Collapsed Sidebar: < 1440px (Laptop L and below) */
+@media (max-width: 1439px) and (min-width: 769px) {
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: var(--header-height, 64px);
+    height: calc(100vh - var(--header-height, 64px));
+    width: 64px;
+    min-width: 64px;
+    max-width: 64px;
+    padding: 0.75rem 0.5rem;
+    border-radius: 0;
+    border-right: 1px solid var(--border-color);
+    z-index: 1100;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+    transition: width 0.3s ease, padding 0.3s ease;
+  }
+
+  .sidebar.collapsed .sidebar-item {
+    justify-content: center;
+    padding: 0.75rem;
+    width: 100%;
+    min-width: auto;
+    position: relative;
+  }
+
+  .sidebar.collapsed .sidebar-label {
+    display: none;
+  }
+
+  .sidebar.collapsed .sidebar-chevron {
+    display: none;
+  }
+
+  .sidebar.collapsed .sidebar-submenu {
+    display: none;
+  }
+
+  .sidebar.collapsed .sidebar-icon {
+    font-size: 1.5rem;
+    width: 32px;
+    height: 32px;
+  }
+
+  .sidebar.collapsed .sidebar-bottom {
+    border-top: 1px solid var(--border-color);
+    padding-top: 0.75rem;
+    margin-top: auto;
+  }
+
+  /* Tooltip for collapsed items */
+  .sidebar-tooltip {
+    position: absolute;
+    left: calc(100% + 8px);
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--bg-paper);
+    color: var(--text-primary);
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    white-space: nowrap;
+    z-index: 1200;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid var(--border-color);
+    pointer-events: none;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .sidebar-tooltip::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-right: 6px solid var(--bg-paper);
+  }
+
+  .sidebar-tooltip-submenu {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .sidebar-tooltip-subitem {
+    padding: 0.375rem 0;
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    font-weight: 400;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-50%) translateX(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(-50%) translateX(0);
+    }
+  }
+}
+
 /* Mobile: Sidebar is handled by Drawer component, so base styles apply */
 /* The Drawer component manages visibility on mobile */
 

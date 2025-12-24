@@ -67,7 +67,12 @@ export function useJobPolling(jobId: string | null, pollInterval: number = 2000)
     setIsLoading(true);
 
     const pollJobStatus = async () => {
+      // Check if polling should continue before making the request
       if (!isPollingRef.current || !jobId) {
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+        }
         return;
       }
 
@@ -207,37 +212,59 @@ export function useJobPolling(jobId: string | null, pollInterval: number = 2000)
               calculatedProgress = 100;
               statusMessage = 'Job completed successfully';
               setResult(jobData.result || null);
+              setProgress(calculatedProgress);
+              setMessage(statusMessage);
               // Stop polling when completed
+              isPollingRef.current = false;
+              setIsLoading(false);
               if (intervalRef.current) {
                 clearInterval(intervalRef.current);
                 intervalRef.current = null;
               }
-              isPollingRef.current = false;
-              setIsLoading(false);
+              return; // Exit early to prevent further polling
             } else if (jobData.status === 'error' || jobData.status === 'cancelled') {
               calculatedProgress = 0;
               statusMessage = jobData.error || `Job ${jobData.status}`;
               setError(jobData.error || `Job ${jobData.status}`);
+              setProgress(calculatedProgress);
+              setMessage(statusMessage);
               // Stop polling when error or cancelled
+              isPollingRef.current = false;
+              setIsLoading(false);
               if (intervalRef.current) {
                 clearInterval(intervalRef.current);
                 intervalRef.current = null;
               }
-              isPollingRef.current = false;
-              setIsLoading(false);
+              return; // Exit early to prevent further polling
             }
           }
 
+          // Set progress and message for non-terminal states
           setProgress(calculatedProgress);
           setMessage(statusMessage);
         } else {
           setError('Failed to get job status');
           setIsLoading(false);
+          // Stop polling if we can't get job status
+          isPollingRef.current = false;
+          if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
+          }
         }
       } catch (err: any) {
         console.error('Error polling job status:', err);
         setError(err.message || 'Failed to get job status');
         // Don't stop polling on error, might be temporary network issue
+        // But check if jobId is still valid
+        if (!jobId) {
+          isPollingRef.current = false;
+          setIsLoading(false);
+          if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
+          }
+        }
       }
     };
 
