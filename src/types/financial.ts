@@ -465,9 +465,336 @@ export interface DeleteItemResponse {
   message: string;
 }
 
+// Recurring Payments Types
 
+export interface RecurringPayment {
+  _id: string;
+  user_id: string;
+  name: string;
+  type: 'earning' | 'expense';
+  amount: number;
+  currency: string;
+  frequency: 'daily' | 'weekly' | 'monthly' | 'yearly' | 'custom';
+  custom_interval_days?: number;
+  start_date: string;
+  end_date?: string | null;
+  next_occurrence: string;
+  category_id?: string;
+  merchant_id?: string;
+  is_variable: boolean;
+  variable_amounts?: Array<{
+    date: string;
+    amount: number;
+  }>;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
 
+export interface UpcomingPayment {
+  recurring_payment_id: string;
+  name: string;
+  type: 'earning' | 'expense';
+  amount: number;
+  due_date: string;
+  days_until_due: number;
+  category_name?: string;
+  merchant_name?: string;
+}
 
+export interface UpcomingPaymentsSummary {
+  total_upcoming_expenses: number;
+  total_upcoming_earnings: number;
+  net_upcoming: number;
+  current_budget: number;
+  remaining_after_upcoming: number;
+  remaining_percentage: number;
+  upcoming_payments: UpcomingPayment[];
+}
+
+export interface CreateRecurringPaymentRequest {
+  name: string;
+  type: 'earning' | 'expense';
+  amount: number;
+  frequency: 'daily' | 'weekly' | 'monthly' | 'yearly' | 'custom';
+  custom_interval_days?: number;
+  start_date: string;
+  end_date?: string | null;
+  category_id?: string;
+  merchant_id?: string;
+  is_variable?: boolean;
+}
+
+export interface UpdateRecurringPaymentRequest {
+  name?: string;
+  amount?: number;
+  frequency?: 'daily' | 'weekly' | 'monthly' | 'yearly' | 'custom';
+  custom_interval_days?: number;
+  end_date?: string | null;
+  category_id?: string;
+  merchant_id?: string;
+  is_active?: boolean;
+}
+
+// Multi-User / Family Types
+
+export interface FamilyMember {
+  _id: string;
+  user_id: string;
+  family_group_id: string;
+  name: string;
+  email: string;
+  role: 'owner' | 'admin' | 'member';
+  avatar_url?: string;
+  joined_at: string;
+  status: 'active' | 'invited' | 'inactive';
+}
+
+export interface FamilyGroup {
+  _id: string;
+  name: string;
+  owner_id: string;
+  members: FamilyMember[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UserFinancialSummary {
+  user_id: string;
+  name: string;
+  email: string;
+  total_earnings: number;
+  total_expenses: number;
+  net_balance: number;
+  transaction_count: number;
+  top_categories: Array<{
+    category_name: string;
+    amount: number;
+    percentage: number;
+  }>;
+}
+
+export interface FamilyAnalytics {
+  family_group_id: string;
+  period: string;
+  total_earnings: number;
+  total_expenses: number;
+  net_balance: number;
+  member_summaries: UserFinancialSummary[];
+  top_spender: {
+    user_id: string;
+    name: string;
+    amount: number;
+  };
+  top_earner: {
+    user_id: string;
+    name: string;
+    amount: number;
+  };
+  category_breakdown: Array<{
+    category_name: string;
+    total_amount: number;
+    by_user: Array<{
+      user_id: string;
+      name: string;
+      amount: number;
+    }>;
+  }>;
+}
+
+export interface InviteMemberRequest {
+  email: string;
+  name?: string;
+  role?: 'admin' | 'member';
+}
+
+export interface InviteMemberResponse {
+  success: boolean;
+  invitation_id: string;
+  message: string;
+}
+
+export interface RemoveMemberRequest {
+  user_id: string;
+}
+
+// Savings Types
+
+export interface SavingsGoal {
+  _id: string;
+  family_group_id?: string;
+  user_id: string;
+  name: string;
+  description?: string;
+  target_amount: number;
+  current_amount: number;
+  currency: string;
+  deadline?: string;
+  category?: string;
+  is_shared: boolean;
+  contributors: Array<{
+    user_id: string;
+    name: string;
+    contribution_amount: number;
+    contribution_percentage: number;
+  }>;
+  auto_save_rules?: {
+    enabled: boolean;
+    frequency: 'daily' | 'weekly' | 'monthly';
+    amount: number;
+    per_user?: boolean;
+  };
+  status: 'active' | 'completed' | 'cancelled';
+  created_at: string;
+  updated_at: string;
+  completed_at?: string;
+}
+
+export interface SavingsContribution {
+  _id: string;
+  savings_goal_id: string;
+  user_id: string;
+  amount: number;
+  note?: string;
+  created_at: string;
+}
+
+export interface CreateSavingsGoalRequest {
+  name: string;
+  description?: string;
+  target_amount: number;
+  deadline?: string;
+  category?: string;
+  is_shared?: boolean;
+  auto_save_rules?: {
+    enabled: boolean;
+    frequency: 'daily' | 'weekly' | 'monthly';
+    amount: number;
+    per_user?: boolean;
+  };
+}
+
+export interface UpdateSavingsGoalRequest {
+  name?: string;
+  description?: string;
+  target_amount?: number;
+  deadline?: string;
+  auto_save_rules?: {
+    enabled?: boolean;
+    frequency?: 'daily' | 'weekly' | 'monthly';
+    amount?: number;
+    per_user?: boolean;
+  };
+  status?: 'active' | 'completed' | 'cancelled';
+}
+
+export interface AddSavingsContributionRequest {
+  amount: number;
+  note?: string;
+}
+
+// Loans Types
+
+export interface Loan {
+  _id: string;
+  user_id: string;
+  type: 'borrowed' | 'lent';
+  counterparty_name: string;
+  counterparty_user_id?: string;
+  principal_amount: number;
+  outstanding_balance: number;
+  currency: string;
+  interest_rate?: number;
+  start_date: string;
+  due_date?: string;
+  repayment_schedule?: 'one-time' | 'weekly' | 'monthly' | 'custom';
+  installment_amount?: number;
+  description?: string;
+  status: 'active' | 'paid' | 'overdue' | 'cancelled';
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LoanPayment {
+  _id: string;
+  loan_id: string;
+  amount: number;
+  payment_date: string;
+  note?: string;
+  created_at: string;
+}
+
+export interface LoanSummary {
+  total_borrowed: number;
+  total_lent: number;
+  total_borrowed_outstanding: number;
+  total_lent_outstanding: number;
+  active_loans_count: number;
+  overdue_loans_count: number;
+  loans: Loan[];
+}
+
+export interface CreateLoanRequest {
+  type: 'borrowed' | 'lent';
+  counterparty_name: string;
+  counterparty_user_id?: string;
+  principal_amount: number;
+  interest_rate?: number;
+  start_date: string;
+  due_date?: string;
+  repayment_schedule?: 'one-time' | 'weekly' | 'monthly' | 'custom';
+  installment_amount?: number;
+  description?: string;
+}
+
+export interface UpdateLoanRequest {
+  counterparty_name?: string;
+  due_date?: string;
+  repayment_schedule?: 'one-time' | 'weekly' | 'monthly' | 'custom';
+  installment_amount?: number;
+  description?: string;
+  status?: 'active' | 'paid' | 'overdue' | 'cancelled';
+}
+
+export interface AddLoanPaymentRequest {
+  amount: number;
+  payment_date?: string;
+  note?: string;
+}
+
+// Pending Transaction Types
+
+export interface PendingTransaction extends Transaction {
+  needs_confirmation: boolean;
+  transaction_type?: 'earning' | 'expense';
+  editable_fields: string[];
+}
+
+export interface ConfirmTransactionRequest {
+  transaction_type: 'earning' | 'expense';
+  confirmed_amount?: number;
+  confirmed_category?: string;
+  confirmed_merchant?: string;
+  confirmed_date?: string;
+}
+
+// Manual Transaction Types
+
+export interface CreateManualTransactionRequest {
+  type: 'earning' | 'expense';
+  amount: number;
+  merchant_name?: string;
+  category_id?: string;
+  date: string;
+  payment_method?: string;
+  note?: string;
+}
+
+export interface CreateManualTransactionResponse {
+  success: boolean;
+  transaction: Transaction;
+  message: string;
+}
 
 
 

@@ -31,6 +31,14 @@ import CategoryCapSection from '../components/financial/CategoryCapSection';
 import AlertsPanel from '../components/financial/AlertsPanel';
 import DashboardOverview from '../components/financial/DashboardOverview';
 import ItemsSection from '../components/financial/ItemsSection';
+import RecurringPaymentsSection from '../components/financial/RecurringPaymentsSection';
+import UpcomingPaymentsSection from '../components/financial/UpcomingPaymentsSection';
+import PendingTransactionsSection from '../components/financial/PendingTransactionsSection';
+import MultiUserAnalyticsSection from '../components/financial/MultiUserAnalyticsSection';
+import SavingsSection from '../components/financial/SavingsSection';
+import UserManagementSection from '../components/financial/UserManagementSection';
+import LoansSection from '../components/financial/LoansSection';
+import ManualTransactionDialog from '../components/financial/ManualTransactionDialog';
 import SearchIcon from '@mui/icons-material/Search';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
@@ -82,6 +90,7 @@ export default function FinancialToolApp() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [filters, setFilters] = useState<TransactionFilters>({});
   const [loading, setLoading] = useState(true);
+  const [showManualTransactionDialog, setShowManualTransactionDialog] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -416,13 +425,20 @@ export default function FinancialToolApp() {
                 <Tab label="Dashboard" {...a11yProps(0)} />
                 <Tab label="Upload Bills" {...a11yProps(1)} />
                 <Tab label="Transactions" {...a11yProps(2)} />
-                <Tab label="Items" {...a11yProps(3)} />
-                <Tab label="Merchants" {...a11yProps(4)} />
-                <Tab label="Analytics" {...a11yProps(5)} />
-                <Tab label="Budgets" {...a11yProps(6)} />
-                <Tab label="Alerts" {...a11yProps(7)} />
-                <Tab label="AI Chat" {...a11yProps(8)} />
-                <Tab label="Model Status" {...a11yProps(9)} />
+                <Tab label="Pending" {...a11yProps(3)} />
+                <Tab label="Recurring" {...a11yProps(4)} />
+                <Tab label="Upcoming" {...a11yProps(5)} />
+                <Tab label="Items" {...a11yProps(6)} />
+                <Tab label="Merchants" {...a11yProps(7)} />
+                <Tab label="Analytics" {...a11yProps(8)} />
+                <Tab label="Family" {...a11yProps(9)} />
+                <Tab label="Budgets" {...a11yProps(10)} />
+                <Tab label="Savings" {...a11yProps(11)} />
+                <Tab label="Loans" {...a11yProps(12)} />
+                <Tab label="Users" {...a11yProps(13)} />
+                <Tab label="Alerts" {...a11yProps(14)} />
+                <Tab label="AI Chat" {...a11yProps(15)} />
+                <Tab label="Model Status" {...a11yProps(16)} />
               </Tabs>
             </Paper>
 
@@ -465,33 +481,61 @@ export default function FinancialToolApp() {
                   </TabPanel>
 
                   <TabPanel value={value} index={3}>
-                    <ItemsSection />
+                    <PendingTransactionsSection />
                   </TabPanel>
 
                   <TabPanel value={value} index={4}>
-                    <MerchantsCategoriesSection onDataChange={handleTransactionsChange} />
+                    <RecurringPaymentsSection />
                   </TabPanel>
 
                   <TabPanel value={value} index={5}>
-                    <AnalyticsSection />
+                    <UpcomingPaymentsSection />
                   </TabPanel>
 
                   <TabPanel value={value} index={6}>
-                    <BudgetSection categories={categories} onBudgetChange={handleTransactionsChange} />
+                    <ItemsSection />
                   </TabPanel>
 
                   <TabPanel value={value} index={7}>
+                    <MerchantsCategoriesSection onDataChange={handleTransactionsChange} />
+                  </TabPanel>
+
+                  <TabPanel value={value} index={8}>
+                    <AnalyticsSection />
+                  </TabPanel>
+
+                  <TabPanel value={value} index={9}>
+                    <MultiUserAnalyticsSection />
+                  </TabPanel>
+
+                  <TabPanel value={value} index={10}>
+                    <BudgetSection categories={categories} onBudgetChange={handleTransactionsChange} />
+                  </TabPanel>
+
+                  <TabPanel value={value} index={11}>
+                    <SavingsSection />
+                  </TabPanel>
+
+                  <TabPanel value={value} index={12}>
+                    <LoansSection />
+                  </TabPanel>
+
+                  <TabPanel value={value} index={13}>
+                    <UserManagementSection />
+                  </TabPanel>
+
+                  <TabPanel value={value} index={14}>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                       <AlertsPanel />
                       <CategoryCapSection categories={categories} onCapChange={handleTransactionsChange} />
                     </Box>
                   </TabPanel>
 
-                  <TabPanel value={value} index={8}>
+                  <TabPanel value={value} index={15}>
                     <AIChatSection />
                   </TabPanel>
 
-                  <TabPanel value={value} index={9}>
+                  <TabPanel value={value} index={16}>
                     <ModelStatusSection />
                   </TabPanel>
                 </Paper>
@@ -579,6 +623,9 @@ export default function FinancialToolApp() {
                     <Button variant="contained" onClick={handleUploadClick} sx={{ borderRadius: '12px', textTransform: 'none' }}>
                       Upload Bill
                     </Button>
+                    <Button variant="outlined" onClick={() => setShowManualTransactionDialog(true)} sx={{ borderRadius: '12px', textTransform: 'none' }}>
+                      Add Manual Transaction
+                    </Button>
                     <Button variant="outlined" onClick={handleViewTransactions} sx={{ borderRadius: '12px', textTransform: 'none' }}>
                       View Transactions
                     </Button>
@@ -661,6 +708,18 @@ export default function FinancialToolApp() {
               onMinimize={() => setShowChatWidget(false)}
             />
           )}
+
+          {/* Manual Transaction Dialog */}
+          <ManualTransactionDialog
+            open={showManualTransactionDialog}
+            onClose={() => setShowManualTransactionDialog(false)}
+            onSave={(transaction) => {
+              console.log('Manual transaction created:', transaction);
+              handleTransactionCreated();
+              setShowManualTransactionDialog(false);
+            }}
+            categories={categories}
+          />
         </Container>
       </Box>
     </ThemeProvider>
