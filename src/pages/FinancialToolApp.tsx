@@ -19,6 +19,7 @@ import RightPanel from '../components/financial/RightPanel';
 import QuickStatsBar from '../components/financial/QuickStatsBar';
 import DashboardOverview from '../components/financial/DashboardOverview';
 import QuickActions from '../components/financial/QuickActions';
+import ItemsSection from '../components/financial/ItemsSection';
 import { CollapsibleSection } from '../components/design-system';
 import EditIcon from '@mui/icons-material/Edit';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
@@ -251,8 +252,6 @@ export default function FinancialToolApp() {
                   backgroundColor: theme.palette.background.paper,
                   border: `1px solid ${theme.palette.divider}`,
                   height: 'fit-content',
-                  position: 'sticky',
-                  top: '1.25rem',
                   boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
                   width: '100%',
                   maxWidth: '280px',
@@ -494,12 +493,13 @@ export default function FinancialToolApp() {
               >
                 <Tab label="Upload Bills" {...a11yProps(0)} />
                 <Tab label="Transactions" {...a11yProps(1)} />
-                <Tab label="Merchants & Categories" {...a11yProps(2)} />
-                <Tab label="Analytics" {...a11yProps(3)} />
-                <Tab label="AI Chat" {...a11yProps(4)} />
-                <Tab label="Model Status" {...a11yProps(5)} />
-                <Tab label="Budgets" {...a11yProps(6)} />
-                <Tab label="Alerts" {...a11yProps(7)} />
+                <Tab label="Items" {...a11yProps(2)} />
+                <Tab label="Merchants & Categories" {...a11yProps(3)} />
+                <Tab label="Analytics" {...a11yProps(4)} />
+                <Tab label="AI Chat" {...a11yProps(5)} />
+                <Tab label="Model Status" {...a11yProps(6)} />
+                <Tab label="Budgets" {...a11yProps(7)} />
+                <Tab label="Alerts" {...a11yProps(8)} />
               </Tabs>
 
                 <Box sx={{ p: '1.5rem' }}>
@@ -518,26 +518,30 @@ export default function FinancialToolApp() {
                   </TabPanel>
 
                   <TabPanel value={value} index={2}>
-                    <MerchantsCategoriesSection onDataChange={handleTransactionsChange} />
+                    <ItemsSection />
                   </TabPanel>
 
                   <TabPanel value={value} index={3}>
-                    <AnalyticsSection />
+                    <MerchantsCategoriesSection onDataChange={handleTransactionsChange} />
                   </TabPanel>
 
                   <TabPanel value={value} index={4}>
-                    <AIChatSection />
+                    <AnalyticsSection />
                   </TabPanel>
 
                   <TabPanel value={value} index={5}>
-                    <ModelStatusSection />
+                    <AIChatSection />
                   </TabPanel>
 
                   <TabPanel value={value} index={6}>
-                    <BudgetSection categories={categories} onBudgetChange={handleTransactionsChange} />
+                    <ModelStatusSection />
                   </TabPanel>
 
                   <TabPanel value={value} index={7}>
+                    <BudgetSection categories={categories} onBudgetChange={handleTransactionsChange} />
+                  </TabPanel>
+
+                  <TabPanel value={value} index={8}>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                       <AlertsPanel />
                       <CategoryCapSection categories={categories} onCapChange={handleTransactionsChange} />
@@ -748,18 +752,18 @@ export default function FinancialToolApp() {
                               border: `1px solid ${theme.palette.divider}`,
                             }}
                           >
-                            <Typography 
-                              variant="body2" 
-                              sx={{ 
+                            <Typography
+                              variant="body2"
+                              sx={{
                                 fontFamily: "'Inter', sans-serif",
-                                fontWeight: 500, 
+                                fontWeight: 500,
                                 fontSize: '0.8125rem',
                                 lineHeight: 1.5,
                                 color: theme.palette.text.primary,
                                 mb: '0.25rem',
                               }}
                             >
-                              {transaction.merchant_name || 'Transaction'}
+                              {transaction.merchant_id || 'Transaction'}
                             </Typography>
                             <Typography 
                               variant="caption" 

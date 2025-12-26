@@ -425,6 +425,23 @@ export interface TransactionItemsResponse {
   items: TransactionItem[];
 }
 
+export interface ItemsListResponse {
+  success: boolean;
+  items: TransactionItem[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface ItemsListParams {
+  date_from?: string;
+  date_to?: string;
+  category?: string;
+  merchant?: string;
+  limit?: number;
+  offset?: number;
+}
+
 export interface TransactionItemResponse {
   success: boolean;
   item: TransactionItem;

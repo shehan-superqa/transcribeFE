@@ -26,15 +26,15 @@
   font-size: 1.125rem;
 }
 
-/* Three Column Layout - Matching Service Requests Design */
+/* Three Column Layout - Modified to stick left sidebar to left wall */
 .financial-three-column-layout {
-  display: grid;
-  grid-template-columns: minmax(250px, 280px) 1fr minmax(280px, 320px);
+  display: flex;
   gap: 1.5rem;
   align-items: start;
   max-width: 100%;
   width: 100%;
   box-sizing: border-box;
+  position: relative;
 }
 
 .financial-left-sidebar {
@@ -43,6 +43,10 @@
   max-width: 280px;
   flex-shrink: 0;
   box-sizing: border-box;
+  position: sticky;
+  left: 0;
+  top: 1.25rem;
+  align-self: flex-start;
 }
 
 .financial-main-content {
@@ -52,6 +56,7 @@
   padding: 0;
   box-sizing: border-box;
   overflow-x: hidden;
+  flex: 1;
 }
 
 .financial-right-sidebar {
@@ -185,24 +190,36 @@
 /* Responsive Design */
 @media (max-width: 1440px) {
   .financial-three-column-layout {
-    grid-template-columns: 240px 1fr 280px;
     gap: 1rem;
+  }
+
+  .financial-left-sidebar {
+    width: 240px;
+    max-width: 240px;
+  }
+
+  .financial-right-sidebar {
+    width: 280px;
+    max-width: 280px;
   }
 }
 
 @media (max-width: 1024px) {
   .financial-three-column-layout {
-    grid-template-columns: 1fr;
+    flex-direction: column;
     gap: 1.5rem;
   }
 
   .financial-left-sidebar,
   .financial-right-sidebar {
-    order: 2;
+    position: relative;
+    left: auto;
+    width: 100%;
+    max-width: 100%;
   }
 
   .financial-main-content {
-    order: 1;
+    width: 100%;
   }
 
   .two-column-layout {

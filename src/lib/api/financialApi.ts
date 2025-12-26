@@ -38,6 +38,8 @@ import {
   UpdateItemRequest,
   UpdateItemResponse,
   DeleteItemResponse,
+  ItemsListResponse,
+  ItemsListParams,
 } from '../../types/financial';
 
 const FINANCIAL_API_BASE_URL = 'http://localhost:5000';
@@ -532,6 +534,32 @@ export function subscribeToBudgetUpdates(
 }
 
 // Transaction Items
+
+/**
+ * Get all items with optional filters
+ */
+export async function listItems(
+  params?: ItemsListParams
+): Promise<ItemsListResponse> {
+  const queryParams = new URLSearchParams();
+  if (params?.date_from) queryParams.append('date_from', params.date_from);
+  if (params?.date_to) queryParams.append('date_to', params.date_to);
+  if (params?.category) queryParams.append('category', params.category);
+  if (params?.merchant) queryParams.append('merchant', params.merchant);
+  if (params?.limit) queryParams.append('limit', params.limit.toString());
+  if (params?.offset) queryParams.append('offset', params.offset.toString());
+
+  const queryString = queryParams.toString();
+  const endpoint = `/api/financial/items${queryString ? `?${queryString}` : ''}`;
+
+  const response = await authenticatedFetch(
+    endpoint,
+    { method: 'GET' },
+    true,
+    FINANCIAL_API_BASE_URL
+  );
+  return handleResponse<ItemsListResponse>(response);
+}
 
 /**
  * Get all items for a transaction
