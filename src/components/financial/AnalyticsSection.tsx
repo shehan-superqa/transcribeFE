@@ -227,8 +227,8 @@ export default function AnalyticsSection() {
                 textTransform: 'none',
                 fontWeight: 500,
                 fontSize: '0.875rem',
-                minHeight: 72,
-                padding: '0.75rem 1rem',
+                minHeight: { xs: 64, sm: 72 },
+                padding: { xs: '0.5rem 0.75rem', sm: '0.75rem 1rem' },
                 color: theme.palette.text.secondary,
                 '&.Mui-selected': {
                   color: theme.palette.primary.main,
@@ -340,7 +340,7 @@ export default function AnalyticsSection() {
           </Tabs>
         </Box>
 
-        <Box sx={{ p: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box sx={{ p: '1.5rem', display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: { xs: 2, sm: 0 }, justifyContent: { xs: 'flex-start', sm: 'space-between' }, alignItems: { xs: 'flex-start', sm: 'center' } }}>
           <Box>
             <Typography 
               variant="h5" 
@@ -499,7 +499,7 @@ export default function AnalyticsSection() {
                 </Typography>
               </Box>
               
-              <Grid container spacing={3} sx={{ mb: '2rem' }}>
+              <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ mb: '2rem' }}>
                 <Grid item xs={12} sm={4}>
                   <Card 
                     elevation={0} 
@@ -614,7 +614,7 @@ export default function AnalyticsSection() {
               </Grid>
 
               {barChartData.length > 0 && (
-                <Box sx={{ height: '400px', mb: '2rem' }}>
+                <Box sx={{ height: { xs: '300px', sm: '350px', md: '400px' }, mb: '2rem' }}>
                   <ResponsiveContainer width="100%" height={400}>
                     <BarChart data={barChartData} margin={{ top: 10, right: 10, left: 10, bottom: 60 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
@@ -724,7 +724,6 @@ export default function AnalyticsSection() {
                 </Typography>
               </Box>
               
-              <TableContainer>
                 <Table size="small">
                   <TableHead>
                     <TableRow>
@@ -822,7 +821,6 @@ export default function AnalyticsSection() {
                     })}
                   </TableBody>
                 </Table>
-              </TableContainer>
             </Paper>
           </>
         )}
@@ -932,7 +930,7 @@ export default function AnalyticsSection() {
               </Box>
               
               {pieChartData.length > 0 && (
-                <Box sx={{ height: '400px', mb: 2 }}>
+                <Box sx={{ height: { xs: '300px', sm: '350px', md: '400px' }, mb: 2 }}>
                   <ResponsiveContainer width="100%" height={400}>
                     <PieChart>
                       <Pie
@@ -1027,7 +1025,7 @@ export default function AnalyticsSection() {
               </Box>
               
               {trendsChartData.length > 0 && (
-                <Box sx={{ height: '400px', mb: 2 }}>
+                <Box sx={{ height: { xs: '300px', sm: '350px', md: '400px' }, mb: 2 }}>
                   <ResponsiveContainer width="100%" height={400}>
                     <LineChart data={trendsChartData} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
@@ -1066,3 +1064,4 @@ export default function AnalyticsSection() {
     </Box>
   );
 }
+
