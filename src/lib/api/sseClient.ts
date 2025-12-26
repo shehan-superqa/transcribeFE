@@ -27,14 +27,44 @@ export class SSEClient {
     // Use provided stream_url or construct from jobId
     let url: string;
     if (streamUrl) {
-      url = streamUrl;
-      this.streamUrl = streamUrl;
+      // If streamUrl is relative (starts with /), construct full URL with SSE_BASE_URL
+      if (streamUrl.startsWith('/')) {
+        url = `${SSE_BASE_URL}${streamUrl}`;
+      } 
+      // If streamUrl is absolute but uses wrong port, normalize to port 5002
+      else if (streamUrl.startsWith('http://localhost:') || streamUrl.startsWith('http://127.0.0.1:')) {
+        // Replace any port with 5002
+        url = streamUrl.replace(/http:\/\/(localhost|127\.0\.0\.1):\d+/, `http://localhost:5002`);
+      }
+      // If already absolute with correct format, use as-is
+      else if (streamUrl.startsWith('http://') || streamUrl.startsWith('https://')) {
+        url = streamUrl;
+      }
+      // Otherwise, treat as relative
+      else {
+        url = `${SSE_BASE_URL}/${streamUrl.startsWith('/') ? streamUrl.slice(1) : streamUrl}`;
+      }
+      this.streamUrl = url;
     } else {
       url = `${SSE_BASE_URL}/progress/stream/${jobId}`;
     }
     
     // Normalize URL to use localhost instead of 127.0.0.1 to avoid CORS issues
-    const normalizedUrl = url.replace('http://127.0.0.1:', 'http://localhost:');
+    // Also ensure port is 5002
+    let normalizedUrl = url.replace('http://127.0.0.1:', 'http://localhost:');
+    
+    // Ensure port is 5002 if it's localhost
+    if (normalizedUrl.startsWith('http://localhost:')) {
+      const portMatch = normalizedUrl.match(/http:\/\/localhost:(\d+)/);
+      if (portMatch && portMatch[1] !== '5002') {
+        normalizedUrl = normalizedUrl.replace(/http:\/\/localhost:\d+/, 'http://localhost:5002');
+      }
+    }
+    
+    // Log the final URL for debugging (only in development)
+    if (import.meta.env.DEV) {
+      console.log('[SSE Client] Connecting to:', normalizedUrl);
+    }
     
     this.eventSource = new EventSource(normalizedUrl);
 

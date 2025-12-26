@@ -32,6 +32,12 @@ import {
   CreateCategoryCapRequest,
   BudgetAlert,
   AlertsResponse,
+  TransactionItem,
+  TransactionItemsResponse,
+  TransactionItemResponse,
+  UpdateItemRequest,
+  UpdateItemResponse,
+  DeleteItemResponse,
 } from '../../types/financial';
 
 const FINANCIAL_API_BASE_URL = 'http://localhost:5000';
@@ -519,11 +525,69 @@ export function subscribeToBudgetUpdates(
         eventSource = null;
       }
     };
-  } catch (error) {
+      } catch (error) {
     onError?.(error as Error);
     return () => {}; // Return no-op cleanup function
   }
 }
+
+// Transaction Items
+
+/**
+ * Get all items for a transaction
+ */
+export async function getTransactionItems(transactionId: string): Promise<TransactionItemsResponse> {
+  const response = await authenticatedFetch(
+    `/api/financial/transactions/${transactionId}/items`
+  );
+  return handleResponse<TransactionItemsResponse>(response);
+}
+
+/**
+ * Get a single item by ID
+ */
+export async function getItem(itemId: string): Promise<TransactionItemResponse> {
+  const response = await authenticatedFetch(
+    `/api/financial/items/${itemId}`
+  );
+  return handleResponse<TransactionItemResponse>(response);
+}
+
+/**
+ * Update an item
+ */
+export async function updateItem(
+  itemId: string,
+  data: UpdateItemRequest
+): Promise<UpdateItemResponse> {
+  const response = await authenticatedFetch(
+    `/api/financial/items/${itemId}`,
+    {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    }
+  );
+  return handleResponse<UpdateItemResponse>(response);
+}
+
+/**
+ * Delete an item
+ */
+export async function deleteItem(itemId: string): Promise<DeleteItemResponse> {
+  const response = await authenticatedFetch(
+    `/api/financial/items/${itemId}`,
+    {
+      method: 'DELETE',
+    }
+  );
+  return handleResponse<DeleteItemResponse>(response);
+}
+
+
+
 
 
 

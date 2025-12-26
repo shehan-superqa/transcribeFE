@@ -45,7 +45,7 @@ export default function MerchantsCategoriesSection({ onDataChange }: MerchantsCa
   const handleEditMerchant = (merchant: Merchant) => {
     setSelectedMerchant(merchant);
     setMerchantForm({
-      aliases: merchant.aliases.join(', '),
+      aliases: (merchant.aliases && Array.isArray(merchant.aliases)) ? merchant.aliases.join(', ') : '',
       category: merchant.merchant_category || '',
     });
     setEditMerchantDialog(true);
@@ -146,7 +146,7 @@ export default function MerchantsCategoriesSection({ onDataChange }: MerchantsCa
                       <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary }}>
                         {merchant.merchant_name}
                       </Typography>
-                      {merchant.aliases.length > 0 && (
+                      {merchant.aliases && Array.isArray(merchant.aliases) && merchant.aliases.length > 0 && (
                         <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1 }}>
                           {merchant.aliases.map((alias, idx) => (
                             <Chip key={idx} label={alias} size="small" variant="outlined" />
@@ -263,6 +263,8 @@ export default function MerchantsCategoriesSection({ onDataChange }: MerchantsCa
       </Box>
     );
   }
+
+
 
 
 

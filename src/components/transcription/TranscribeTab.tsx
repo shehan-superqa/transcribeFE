@@ -44,7 +44,7 @@ import { transcriptionStore } from '../../stores/transcriptionStore';
 import { jobStore } from '../../stores/jobStore';
 import { useAuth } from '../../lib/auth';
 import { useRequireAuth } from '../../hooks/useRequireAuth';
-import { useJobPolling } from '../../hooks/useJobPolling';
+import { useSSE } from '../../hooks/useSSE';
 import { getAvailableModels, submitTranscriptionJob } from '../../lib/api/transcriptionApi';
 import { cancelJob } from '../../lib/api/jobsApi';
 import { useAuthModal } from '../../contexts/AuthModalContext';
@@ -60,6 +60,7 @@ interface BatchFile {
   result?: TranscriptionResult;
   error?: string;
   jobId?: string;
+  streamUrl?: string; // SSE stream URL for real-time progress
 }
 
 export default function TranscribeTab() {
@@ -77,6 +78,7 @@ export default function TranscribeTab() {
   const [enablePunctuation, setEnablePunctuation] = useState(true);
   const [enableCapitalization, setEnableCapitalization] = useState(true);
   const [jobId, setJobId] = useState<string | null>(null);
+  const [streamUrl, setStreamUrl] = useState<string | undefined>(undefined);
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [availableLanguages, setAvailableLanguages] = useState<string[]>([]);
   const [enginesData, setEnginesData] = useState<Array<{ name: string; models: string[] }>>([]);
@@ -95,7 +97,31 @@ export default function TranscribeTab() {
   const clearResults = transcriptionStore((state) => state.clearResults);
   const fetchJobs = jobStore((state) => state.fetchJobs);
   const updateJob = jobStore((state) => state.updateJob);
-  const { progress, message, result, status, progressDetails, job } = useJobPolling(jobId);
+  
+  // Use SSE (socket) for real-time progress updates instead of polling
+  const { progress, status: sseStatus, message: sseMessage, result: sseResult, error: sseError, isConnected } = useSSE(jobId, streamUrl);
+  
+  // Map SSE status to job status format
+  const status = sseStatus || '';
+  const message = sseMessage || '';
+  const result = sseResult || null;
+  
+  // Extract progress details from SSE message if available
+  // SSE ProgressEvent may contain progress_details with audio timing info
+  const progressDetails = message ? {
+    percentage: progress,
+    message: message,
+    // Parse message for additional details if available
+  } : null;
+  
+  // Create a job-like object from SSE data for compatibility
+  const job = jobId ? {
+    _id: jobId,
+    status: status || 'processing',
+    progress: progress,
+    result: result,
+    error: sseError || undefined,
+  } as any : null;
 
   // Language code to full name mapping
   const getLanguageDisplayName = (code: string): string => {
@@ -320,9 +346,10 @@ export default function TranscribeTab() {
       // Switching from batch to single mode
       setBatchFiles([]);
     }
-    // If removing the file that's currently being processed, stop polling
+    // If removing the file that's currently being processed, stop SSE connection
     if (fileToRemove === singleFile && jobId) {
       setJobId(null);
+      setStreamUrl(undefined);
     }
     clearResults();
     setBatchError(null);
@@ -352,13 +379,19 @@ export default function TranscribeTab() {
       // Batch processing
       await handleStartBatch(config);
     } else {
-      // Single file processing
-      const submittedJobId = await submitJob(singleFile!, config);
-      if (submittedJobId && user?.id) {
-        setJobId(submittedJobId);
-        // Fetch job data immediately after getting API response
-        // This will update the store and trigger HistoryTab to re-render automatically
-        await fetchJobs(user.id);
+      // Single file processing - get full API response to capture stream_url
+      try {
+        const response = await submitTranscriptionJob(singleFile!, config);
+        if (response.job_id && user?.id) {
+          setJobId(response.job_id);
+          setStreamUrl(response.stream_url); // Capture stream_url for SSE connection
+          // Fetch job data immediately after getting API response
+          // This will update the store and trigger HistoryTab to re-render automatically
+          await fetchJobs(user.id);
+        }
+      } catch (err: any) {
+        const errorMessage = err.response?.data?.error || err.message || 'Failed to submit job';
+        setError(errorMessage);
       }
     }
   };
@@ -421,6 +454,7 @@ export default function TranscribeTab() {
           return {
             file: batchFile.file,
             jobId: response.job_id,
+            streamUrl: response.stream_url, // Capture stream_url for SSE
             success: true,
           };
         } catch (err: any) {
@@ -461,6 +495,7 @@ export default function TranscribeTab() {
                 ...batchFile,
                 status: 'processing' as const,
                 jobId: jobResult.jobId,
+                streamUrl: jobResult.streamUrl, // Store stream_url for SSE
               };
             } else {
               return {
@@ -612,6 +647,7 @@ export default function TranscribeTab() {
     if (jobId) {
       cancelJobStore(jobId);
       setJobId(null);
+      setStreamUrl(undefined);
     }
   };
 
@@ -865,8 +901,8 @@ export default function TranscribeTab() {
                   </Box>
                 </Box>
                 
-                {/* Progress Details in File Upload Area */}
-                {isProcessing && progressDetails && (
+                {/* Progress Details in File Upload Area - Real-time from SSE */}
+                {isProcessing && (
                   <Box sx={{ 
                     mt: 2, 
                     p: 2, 
@@ -875,61 +911,44 @@ export default function TranscribeTab() {
                     border: `1px solid ${theme.palette.divider}` 
                   }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
-                      <Typography variant="subtitle2" sx={{ color: theme.palette.text.primary, fontWeight: 600 }}>
-                        Processing Progress
-                      </Typography>
-                      {progressDetails.percentage !== undefined && (
-                        <Typography variant="body2" sx={{ color: theme.palette.primary.main, fontWeight: 600 }}>
-                          {progressDetails.percentage}%
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography variant="subtitle2" sx={{ color: theme.palette.text.primary, fontWeight: 600 }}>
+                          Processing Progress
                         </Typography>
-                      )}
+                        {isConnected && (
+                          <Chip 
+                            label="Live" 
+                            size="small" 
+                            color="success" 
+                            sx={{ 
+                              height: 20, 
+                              fontSize: '0.7rem',
+                              '& .MuiChip-label': { px: 0.75 }
+                            }} 
+                          />
+                        )}
+                      </Box>
+                      <Typography variant="body2" sx={{ color: theme.palette.primary.main, fontWeight: 600 }}>
+                        {Math.round(progress)}%
+                      </Typography>
                     </Box>
                     <Box sx={{ mb: 2 }}>
-                      <ProgressBar value={progress} />
+                      <ProgressBar value={progress} label={message || status || 'Processing...'} />
                     </Box>
-                    <Box 
-                      className="transcribe-progress-details-grid"
-                      sx={{ 
-                        display: 'grid', 
-                        gridTemplateColumns: { 
-                          xs: '1fr', 
-                          sm: 'repeat(2, 1fr)', 
-                          md: 'repeat(3, 1fr)' 
-                        }, 
-                        gap: { xs: 1, sm: 1.5 } 
-                      }}
-                    >
-                      {progressDetails.audio_time_processed !== undefined && progressDetails.audio_duration !== undefined && (
-                        <Box>
-                          <Typography variant="caption" sx={{ color: theme.palette.text.secondary, display: 'block', mb: 0.5 }}>
-                            Audio Processed
-                          </Typography>
-                          <Typography variant="body2" sx={{ color: theme.palette.text.primary }}>
-                            {formatTime(progressDetails.audio_time_processed)} / {formatTime(progressDetails.audio_duration)}
-                          </Typography>
-                        </Box>
-                      )}
-                      {progressDetails.audio_time_remaining !== undefined && (
-                        <Box>
-                          <Typography variant="caption" sx={{ color: theme.palette.text.secondary, display: 'block', mb: 0.5 }}>
-                            Time Remaining
-                          </Typography>
-                          <Typography variant="body2" sx={{ color: theme.palette.text.primary }}>
-                            {formatTime(progressDetails.audio_time_remaining)}
-                          </Typography>
-                        </Box>
-                      )}
-                      {progressDetails.frames_progress && (
-                        <Box>
-                          <Typography variant="caption" sx={{ color: theme.palette.text.secondary, display: 'block', mb: 0.5 }}>
-                            Frames Progress
-                          </Typography>
-                          <Typography variant="body2" sx={{ color: theme.palette.text.primary }}>
-                            {progressDetails.frames_progress}
-                          </Typography>
-                        </Box>
-                      )}
-                    </Box>
+                    {message && (
+                      <Box sx={{ mt: 1 }}>
+                        <Typography variant="body2" sx={{ color: theme.palette.text.secondary, fontStyle: 'italic' }}>
+                          {message}
+                        </Typography>
+                      </Box>
+                    )}
+                    {sseError && (
+                      <Box sx={{ mt: 1 }}>
+                        <Alert severity="error" sx={{ py: 0.5 }}>
+                          {sseError}
+                        </Alert>
+                      </Box>
+                    )}
                   </Box>
                 )}
               </Box>
@@ -1249,14 +1268,24 @@ export default function TranscribeTab() {
       </SectionCard>
 
       {/* Single File Progress - Status Message Only (detailed progress shown in file upload area) */}
-      {isProcessing && !isBatchMode && !progressDetails && (
+      {isProcessing && !isBatchMode && !message && (
         <SectionCard padding="1.5rem">
-          <StatusLabel
-            status={isProcessing ? 'processing' : 'ready'}
-            message={message || 'Processing...'}
-          />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+            <StatusLabel
+              status={isProcessing ? 'processing' : 'ready'}
+              message={status || 'Processing...'}
+            />
+            {isConnected && (
+              <Chip 
+                label="Live" 
+                size="small" 
+                color="success" 
+                sx={{ height: 24, fontSize: '0.75rem' }} 
+              />
+            )}
+          </Box>
           <Box sx={{ mt: 2 }}>
-            <ProgressBar value={progress} />
+            <ProgressBar value={progress} label={status || 'Processing...'} />
           </Box>
         </SectionCard>
       )}
@@ -1353,6 +1382,7 @@ export default function TranscribeTab() {
                 clearResults();
                 setFiles([]);
                 setJobId(null);
+                setStreamUrl(undefined);
                 setBatchFiles([]);
                 setBatchError(null);
                 setBatchProgress(0);

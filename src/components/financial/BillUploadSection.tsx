@@ -6,6 +6,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { uploadBill, getBillStatus } from '../../lib/api/financialApi';
 import { Transaction } from '../../types/financial';
 import CameraCapture from './CameraCapture';
+import { useFinancialJobProgress } from '../../hooks/useFinancialJobProgress';
 
 interface BillUploadSectionProps {
   onTransactionCreated?: (transaction: Transaction) => void;
@@ -15,8 +16,7 @@ export default function BillUploadSection({ onTransactionCreated }: BillUploadSe
   const { theme } = useTheme();
   const [uploading, setUploading] = useState(false);
   const [jobId, setJobId] = useState<string | null>(null);
-  const [progress, setProgress] = useState(0);
-  const [status, setStatus] = useState<string>('');
+  const [streamUrl, setStreamUrl] = useState<string | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
   const [transaction, setTransaction] = useState<Transaction | null>(null);
   const [showCamera, setShowCamera] = useState(false);
@@ -24,65 +24,15 @@ export default function BillUploadSection({ onTransactionCreated }: BillUploadSe
   const [merchantOverride, setMerchantOverride] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const pollJobStatus = useCallback(async (jobId: string) => {
-    const maxAttempts = 60; // 60 seconds max
-    let attempts = 0;
-
-    const poll = async () => {
-      try {
-        const result = await getBillStatus(jobId);
-        attempts++;
-
-        if (result.job.status === 'completed') {
-          setProgress(100);
-          setStatus('Processing completed!');
-          setUploading(false);
-          if (result.transaction) {
-            setTransaction(result.transaction);
-            onTransactionCreated?.(result.transaction);
-          }
-        } else if (result.job.status === 'failed') {
-          setError('Bill processing failed');
-          setUploading(false);
-          setStatus('');
-        } else if (result.job.status === 'processing') {
-          setProgress(Math.min(attempts * 2, 90)); // Progress indicator
-          setStatus('Processing bill...');
-          if (attempts < maxAttempts) {
-            setTimeout(poll, 1000); // Poll every second
-          } else {
-            setError('Processing timeout');
-            setUploading(false);
-            setStatus('');
-          }
-        } else {
-          // Pending
-          setProgress(10);
-          setStatus('Waiting for processing to start...');
-          if (attempts < maxAttempts) {
-            setTimeout(poll, 1000);
-          } else {
-            setError('Processing timeout');
-            setUploading(false);
-            setStatus('');
-          }
-        }
-      } catch (err: any) {
-        setError(err.message || 'Failed to check status');
-        setUploading(false);
-        setStatus('');
-      }
-    };
-
-    poll();
-  }, [onTransactionCreated]);
+  // Use SSE for real-time progress updates
+  const { progress, status, message, step, details, error: progressError, isConnected } = useFinancialJobProgress(jobId, streamUrl);
 
   const handleUpload = useCallback(async (file: File) => {
     setUploading(true);
     setError(null);
-    setProgress(0);
-    setStatus('Uploading file...');
     setTransaction(null);
+    setJobId(null);
+    setStreamUrl(undefined);
 
     try {
       const result = await uploadBill(
@@ -93,17 +43,44 @@ export default function BillUploadSection({ onTransactionCreated }: BillUploadSe
 
       if (result.success && result.job_id) {
         setJobId(result.job_id);
-        setStatus('Processing bill...');
-        pollJobStatus(result.job_id);
+        setStreamUrl(result.stream_url); // Use stream_url from API response
+        setUploading(true);
       } else {
         throw new Error('Failed to upload bill');
       }
     } catch (err: any) {
       setError(err.message || 'Failed to upload bill');
       setUploading(false);
-      setStatus('');
+      setJobId(null);
+      setStreamUrl(undefined);
     }
-  }, [categoryOverride, merchantOverride, pollJobStatus]);
+  }, [categoryOverride, merchantOverride]);
+
+  // Handle progress updates and completion
+  useEffect(() => {
+    if (status === 'completed' && jobId) {
+      // Fetch the final transaction when job completes
+      const fetchTransaction = async () => {
+        try {
+          const result = await getBillStatus(jobId);
+          if (result.transaction) {
+            setTransaction(result.transaction);
+            onTransactionCreated?.(result.transaction);
+          }
+          setUploading(false);
+        } catch (err: any) {
+          setError(err.message || 'Failed to fetch transaction');
+          setUploading(false);
+        }
+      };
+      fetchTransaction();
+    } else if (status === 'error' || status === 'failed') {
+      setError(progressError || message || 'Bill processing failed');
+      setUploading(false);
+    } else if (status === 'processing' || status === 'idle') {
+      setUploading(true);
+    }
+  }, [status, jobId, progressError, message, onTransactionCreated]);
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (acceptedFiles.length === 0) return;
@@ -173,8 +150,7 @@ export default function BillUploadSection({ onTransactionCreated }: BillUploadSe
   const reset = () => {
     setUploading(false);
     setJobId(null);
-    setProgress(0);
-    setStatus('');
+    setStreamUrl(undefined);
     setError(null);
     setTransaction(null);
     setCategoryOverride('');
@@ -406,43 +382,111 @@ export default function BillUploadSection({ onTransactionCreated }: BillUploadSe
           </Box>
         </Box>
 
-        {/* Progress */}
+        {/* Progress - Real-time from SSE */}
         {uploading && (
-          <Box sx={{ mb: '1.5rem' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: '0.5rem' }}>
+          <Box sx={{ mb: '1.5rem', p: 2, backgroundColor: theme.palette.background.default, borderRadius: 1, border: `1px solid ${theme.palette.divider}` }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography 
+                  variant="subtitle2"
+                  sx={{
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: '0.875rem',
+                    fontWeight: 600,
+                    lineHeight: 1.5,
+                    color: theme.palette.text.primary,
+                  }}
+                >
+                  Processing Progress
+                </Typography>
+                {isConnected && (
+                  <Chip 
+                    label="Live" 
+                    size="small" 
+                    color="success" 
+                    sx={{ 
+                      height: 20, 
+                      fontSize: '0.7rem',
+                      '& .MuiChip-label': { px: 0.75 }
+                    }} 
+                  />
+                )}
+              </Box>
               <Typography 
                 variant="body2"
                 sx={{
                   fontFamily: "'Inter', sans-serif",
                   fontSize: '0.875rem',
-                  fontWeight: 400,
+                  fontWeight: 600,
                   lineHeight: 1.5,
-                  color: theme.palette.text.primary,
+                  color: theme.palette.primary.main,
                 }}
               >
-                {status}
-              </Typography>
-              <Typography 
-                variant="body2"
-                sx={{
-                  fontFamily: "'Inter', sans-serif",
-                  fontSize: '0.875rem',
-                  fontWeight: 400,
-                  lineHeight: 1.5,
-                  color: theme.palette.text.primary,
-                }}
-              >
-                {progress}%
+                {Math.round(progress)}%
               </Typography>
             </Box>
-            <LinearProgress variant="determinate" value={progress} />
+            <LinearProgress 
+              variant="determinate" 
+              value={progress}
+              sx={{
+                height: 8,
+                borderRadius: 1,
+                backgroundColor: theme.palette.mode === 'dark' ? '#333333' : '#e5e7eb',
+                mb: 1.5,
+                '& .MuiLinearProgress-bar': {
+                  backgroundColor: theme.palette.primary.main,
+                },
+              }}
+            />
+            {message && (
+              <Typography 
+                variant="body2"
+                sx={{
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '0.875rem',
+                  fontWeight: 400,
+                  lineHeight: 1.5,
+                  color: theme.palette.text.secondary,
+                  mb: step ? 0.5 : 0,
+                }}
+              >
+                {message}
+              </Typography>
+            )}
+            {step && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+                <Typography 
+                  variant="caption"
+                  sx={{
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: '0.75rem',
+                    fontWeight: 500,
+                    color: theme.palette.text.secondary,
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  Current Step:
+                </Typography>
+                <Chip
+                  label={step.charAt(0).toUpperCase() + step.slice(1)}
+                  size="small"
+                  color="primary"
+                  variant="outlined"
+                  sx={{
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: '0.75rem',
+                    height: 22,
+                  }}
+                />
+              </Box>
+            )}
           </Box>
         )}
 
         {/* Error */}
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
-            {error}
+        {(error || progressError) && (
+          <Alert severity="error" sx={{ mb: 2 }} onClose={() => { setError(null); }}>
+            {error || progressError}
           </Alert>
         )}
 

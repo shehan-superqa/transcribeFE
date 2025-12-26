@@ -46,3 +46,6 @@ export default function SceneCard({ scene, index, strategy }: SceneCardProps) {
 
 
 
+
+
+

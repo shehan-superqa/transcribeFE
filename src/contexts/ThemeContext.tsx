@@ -65,7 +65,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
       root.style.setProperty('--hover-bg', '#2a2a2a');
       root.style.setProperty('--shadow', 'rgba(0, 0, 0, 0.5)');
       root.style.setProperty('--shadow-light', 'rgba(0, 0, 0, 0.25)');
-      root.style.setProperty('--primary-color', '#9333ea');
+      root.style.setProperty('--primary-color', '#6b21a8');
       root.style.setProperty('--primary-hover', '#a855f7');
       root.style.setProperty('--gradient-start', '#0f172a');
       root.style.setProperty('--gradient-end', '#1e293b');

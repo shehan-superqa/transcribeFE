@@ -230,7 +230,15 @@ export default function FinancialToolApp() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Box className="financial-tool-page">
-        <Container maxWidth={false} sx={{ maxWidth: '100%', px: 0 }}>
+        <Container 
+          maxWidth={false} 
+          sx={{ 
+            maxWidth: '100%', 
+            px: { xs: 1, sm: 2, md: 3 },
+            width: '100%',
+            boxSizing: 'border-box',
+          }}
+        >
           {/* Three Column Layout */}
           <Box className="financial-three-column-layout">
             {/* Left Sidebar - Narrow */}
@@ -246,6 +254,10 @@ export default function FinancialToolApp() {
                   position: 'sticky',
                   top: '1.25rem',
                   boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+                  width: '100%',
+                  maxWidth: '280px',
+                  boxSizing: 'border-box',
+                  zIndex: 1,
                 }}
               >
                 {/* About Section */}
@@ -366,7 +378,7 @@ export default function FinancialToolApp() {
                         }}
                       >
                         Categories
-                      </Typography>
+            </Typography>
                       <Typography 
                         variant="body2" 
                         sx={{ 
@@ -378,8 +390,8 @@ export default function FinancialToolApp() {
                         }}
                       >
                         {categories.length}
-                      </Typography>
-                    </Box>
+            </Typography>
+          </Box>
                   </Box>
                 </CollapsibleSection>
 
@@ -396,13 +408,13 @@ export default function FinancialToolApp() {
                   <Box sx={{ mt: 1 }}>
                     <QuickStatsBar
                       onStatClick={(stat) => {
-                        if (stat === 'spending' || stat === 'category') {
-                          handleViewAnalytics();
-                        } else if (stat === 'transactions') {
-                          handleViewTransactions();
-                        } else if (stat === 'alerts') {
-                          handleViewBudgets();
-                        }
+            if (stat === 'spending' || stat === 'category') {
+              handleViewAnalytics();
+            } else if (stat === 'transactions') {
+              handleViewTransactions();
+            } else if (stat === 'alerts') {
+              handleViewBudgets();
+            }
                       }}
                     />
                   </Box>
@@ -411,7 +423,7 @@ export default function FinancialToolApp() {
             </Box>
 
             {/* Main Content Area - Wide */}
-            <Box className="financial-main-content">
+            <Box className="financial-main-content" sx={{ position: 'relative', zIndex: 0 }}>
               {/* Header */}
               <Box sx={{ mb: '2rem' }}>
                 <Typography
@@ -442,53 +454,53 @@ export default function FinancialToolApp() {
               </Box>
 
               {/* Main Content Tabs */}
-              <Paper
+            <Paper
                 elevation={0}
-                sx={{
+              sx={{
                   borderRadius: '12px',
                   border: `1px solid ${theme.palette.divider}`,
                   overflow: 'hidden',
                   mb: '2rem',
-                  backgroundColor: theme.palette.background.paper,
+                backgroundColor: theme.palette.background.paper,
                   boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-                }}
-              >
-                <Tabs
-                  value={value}
-                  onChange={handleChange}
-                  variant="scrollable"
-                  scrollButtons="auto"
-                  sx={{
+              }}
+            >
+              <Tabs
+                value={value}
+                onChange={handleChange}
+                variant="scrollable"
+                scrollButtons="auto"
+                sx={{
                     borderBottom: `1px solid ${theme.palette.divider}`,
                     minHeight: '48px',
-                    '& .MuiTab-root': {
+                  '& .MuiTab-root': {
                       fontFamily: "'Inter', sans-serif",
                       fontWeight: 500,
                       textTransform: 'none',
                       fontSize: '0.875rem',
-                      color: theme.palette.text.secondary,
+                    color: theme.palette.text.secondary,
                       minHeight: 48,
                       padding: '0.75rem 1rem',
-                      '&.Mui-selected': {
-                        color: theme.palette.primary.main,
+                    '&.Mui-selected': {
+                      color: theme.palette.primary.main,
                         fontWeight: 600,
-                      },
                     },
+                  },
                     '& .MuiTabs-indicator': {
                       backgroundColor: theme.palette.primary.main,
                       height: 2,
                     },
-                  }}
-                >
-                  <Tab label="Upload Bills" {...a11yProps(0)} />
-                  <Tab label="Transactions" {...a11yProps(1)} />
-                  <Tab label="Merchants & Categories" {...a11yProps(2)} />
-                  <Tab label="Analytics" {...a11yProps(3)} />
-                  <Tab label="AI Chat" {...a11yProps(4)} />
-                  <Tab label="Model Status" {...a11yProps(5)} />
-                  <Tab label="Budgets" {...a11yProps(6)} />
-                  <Tab label="Alerts" {...a11yProps(7)} />
-                </Tabs>
+                }}
+              >
+                <Tab label="Upload Bills" {...a11yProps(0)} />
+                <Tab label="Transactions" {...a11yProps(1)} />
+                <Tab label="Merchants & Categories" {...a11yProps(2)} />
+                <Tab label="Analytics" {...a11yProps(3)} />
+                <Tab label="AI Chat" {...a11yProps(4)} />
+                <Tab label="Model Status" {...a11yProps(5)} />
+                <Tab label="Budgets" {...a11yProps(6)} />
+                <Tab label="Alerts" {...a11yProps(7)} />
+              </Tabs>
 
                 <Box sx={{ p: '1.5rem' }}>
                   <TabPanel value={value} index={0}>
@@ -546,6 +558,10 @@ export default function FinancialToolApp() {
                   position: 'sticky',
                   top: '1.25rem',
                   maxHeight: 'calc(100vh - 2.5rem)',
+                  width: '100%',
+                  maxWidth: '320px',
+                  boxSizing: 'border-box',
+                  zIndex: 1,
                   display: 'flex',
                   flexDirection: 'column',
                   backgroundColor: theme.palette.background.paper,
@@ -759,8 +775,8 @@ export default function FinancialToolApp() {
                             </Typography>
                           </Box>
                         ))}
-                      </Box>
-                    </Box>
+                </Box>
+              </Box>
                   )}
                 </Box>
               </Paper>

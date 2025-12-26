@@ -390,5 +390,51 @@ export interface AlertsResponse {
   unread_count: number;
 }
 
+// Transaction Item Types
+
+export interface TransactionItem {
+  _id: string;
+  transaction_id: string;
+  name: string;
+  quantity: number;
+  unit_price: number;
+  total_price: number;
+  category?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TransactionItemsResponse {
+  success: boolean;
+  items: TransactionItem[];
+}
+
+export interface TransactionItemResponse {
+  success: boolean;
+  item: TransactionItem;
+}
+
+export interface UpdateItemRequest {
+  name?: string;
+  quantity?: number;
+  unit_price?: number;
+  total_price?: number;
+  category?: string;
+}
+
+export interface UpdateItemResponse {
+  success: boolean;
+  item: TransactionItem;
+}
+
+export interface DeleteItemResponse {
+  success: boolean;
+  message: string;
+}
+
+
+
+
+
 
 
