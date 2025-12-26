@@ -117,12 +117,24 @@ export default function TransactionsSection({
   };
 
   const getBillItems = (transaction: Transaction) => {
-    // First try to get items from API (if loaded), otherwise fall back to transaction data
-    if (transactionItems[transaction._id] && transactionItems[transaction._id].length > 0) {
-      return transactionItems[transaction._id];
+    // First try to get items from API (if loaded), otherwise fall back to transaction data.
+    // Important: return the API result even when it's an empty array (means "loaded but no items").
+    if (Object.prototype.hasOwnProperty.call(transactionItems, transaction._id)) {
+      return transactionItems[transaction._id] ?? [];
     }
+
     // Fallback to transaction's embedded items
-    return transaction.normalized_output?.items || transaction.parsing_output?.items || [];
+    const embedded = transaction.normalized_output?.items || transaction.parsing_output?.items;
+    if (embedded && embedded.length > 0) return embedded as unknown as TransactionItem[];
+
+    // Some API variants return items directly on the transaction object.
+    const txAny = transaction as unknown as {
+      items?: unknown[];
+      transactions?: unknown[];
+      transaction_items?: unknown[];
+    };
+
+    return (txAny.items || txAny.transaction_items || txAny.transactions || []) as unknown as TransactionItem[];
   };
 
   const loadTransactionItems = async (transactionId: string) => {
@@ -1088,7 +1100,5 @@ export default function TransactionsSection({
       </Box>
     );
   }
-
-
 
 

@@ -566,9 +566,20 @@ export async function listItems(
  */
 export async function getTransactionItems(transactionId: string): Promise<TransactionItemsResponse> {
   const response = await authenticatedFetch(
-    `/api/financial/transactions/${transactionId}/items`
+    `/api/financial/transactions/${transactionId}/items`,
+    { method: 'GET' },
+    true,
+    FINANCIAL_API_BASE_URL
   );
-  return handleResponse<TransactionItemsResponse>(response);
+
+  // Backend responses have varied between { items: [...] } and { transactions: [...] }.
+  // Normalize into the frontend shape { success, items }.
+  const data = await handleResponse<any>(response);
+  const items = (data?.items || data?.transactions || data?.transaction_items || []) as TransactionItem[];
+  return {
+    success: Boolean(data?.success ?? true),
+    items,
+  };
 }
 
 /**
@@ -576,7 +587,10 @@ export async function getTransactionItems(transactionId: string): Promise<Transa
  */
 export async function getItem(itemId: string): Promise<TransactionItemResponse> {
   const response = await authenticatedFetch(
-    `/api/financial/items/${itemId}`
+    `/api/financial/items/${itemId}`,
+    { method: 'GET' },
+    true,
+    FINANCIAL_API_BASE_URL
   );
   return handleResponse<TransactionItemResponse>(response);
 }
@@ -597,6 +611,9 @@ export async function updateItem(
       },
       body: JSON.stringify(data),
     }
+    ,
+    true,
+    FINANCIAL_API_BASE_URL
   );
   return handleResponse<UpdateItemResponse>(response);
 }
@@ -609,12 +626,12 @@ export async function deleteItem(itemId: string): Promise<DeleteItemResponse> {
     `/api/financial/items/${itemId}`,
     {
       method: 'DELETE',
-    }
+    },
+    true,
+    FINANCIAL_API_BASE_URL
   );
   return handleResponse<DeleteItemResponse>(response);
 }
-
-
 
 
 

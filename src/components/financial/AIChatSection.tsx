@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { Box, Paper, Typography, TextField, Button, List, ListItem, Avatar, Chip, IconButton, Collapse } from '@mui/material';
-import { Send, SmartToy, Person, Close, ExpandMore, ExpandLess } from '@mui/icons-material';
+import { Box, Paper, Typography, TextField, Button, List, ListItem, Avatar, Chip, IconButton } from '@mui/material';
+import { Send, SmartToy, Person, Close, ExpandMore } from '@mui/icons-material';
 import { useTheme } from '../../contexts/ThemeContext';
 import { sendAIChat } from '../../lib/api/financialApi';
 import { AIChatResponse } from '../../types/financial';
@@ -16,6 +16,8 @@ interface AIChatSectionProps {
   minimized?: boolean;
   onMinimize?: () => void;
   onClose?: () => void;
+  /** Optional query to auto-send when the chat mounts (used by the top "Ask" bar). */
+  initialQuery?: string;
 }
 
 const QUICK_QUESTIONS = [
@@ -25,13 +27,20 @@ const QUICK_QUESTIONS = [
   'How can I save money?',
 ];
 
-export default function AIChatSection({ floating = false, minimized = false, onMinimize, onClose }: AIChatSectionProps) {
+export default function AIChatSection({
+  floating = false,
+  minimized = false,
+  onMinimize,
+  onClose,
+  initialQuery,
+}: AIChatSectionProps) {
   const { theme } = useTheme();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [isMinimized, setIsMinimized] = useState(minimized);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const hasSentInitialRef = useRef(false);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -71,7 +80,22 @@ export default function AIChatSection({ floating = false, minimized = false, onM
     } finally {
       setLoading(false);
     }
-  };
+
+};
+  useEffect(() => {
+    if (hasSentInitialRef.current) return;
+    if (!initialQuery) return;
+    if (floating && isMinimized) return;
+    const q = initialQuery.trim();
+    if (!q) return;
+
+    hasSentInitialRef.current = true;
+    const userMessage: Message = { role: 'user', content: q };
+    setMessages((prev) => [...prev, userMessage]);
+    setInput('');
+    handleSendMessage(q);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialQuery, floating, isMinimized]);
 
   const handleSend = () => {
     if (!input.trim() || loading) return;
