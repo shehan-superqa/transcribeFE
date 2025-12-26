@@ -1,36 +1,19 @@
-/* Input field borders and focus states */
-.video-generation-tool-container textarea,
-.video-generation-tool-container input[type="text"],
+/* Dark theme styles for select dropdowns */
 .video-generation-tool-container select {
-  border-bottom: 2px solid rgba(0, 0, 0, 0.2) !important;
-}
-
-.video-generation-tool-container textarea:focus,
-.video-generation-tool-container input[type="text"]:focus,
-.video-generation-tool-container select:focus {
-  outline: none !important;
-  border-color: rgba(59, 130, 246, 0.5) !important;
-  border-bottom: 2px solid #3b82f6 !important;
-}
-
-.video-generation-tool-container textarea:hover,
-.video-generation-tool-container input[type="text"]:hover,
-.video-generation-tool-container select:hover {
-  border-color: rgba(59, 130, 246, 0.3) !important;
-  border-bottom: 2px solid rgba(59, 130, 246, 0.4) !important;
-}
-
-/* Select dropdowns */
-.video-generation-tool-container select {
-  background-color: #ffffff !important;
-  color: #1a1a1a !important;
-  border: 1px solid rgba(0, 0, 0, 0.15) !important;
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
 }
 
 .video-generation-tool-container select option {
-  background-color: #ffffff !important;
-  color: #1a1a1a !important;
+  background-color: var(--bg-paper) !important;
+  color: var(--text-primary) !important;
   padding: 0.5rem !important;
+}
+
+.video-generation-tool-container select:focus {
+  outline: none !important;
+  border-color: var(--primary-color) !important;
 }
 
 /* Responsive styles for VideoGenerationTool */

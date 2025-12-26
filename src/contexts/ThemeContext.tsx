@@ -65,10 +65,14 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
       root.style.setProperty('--hover-bg', '#2a2a2a');
       root.style.setProperty('--shadow', 'rgba(0, 0, 0, 0.5)');
       root.style.setProperty('--shadow-light', 'rgba(0, 0, 0, 0.25)');
-      root.style.setProperty('--primary-color', '#00c6ff');
-      root.style.setProperty('--primary-hover', '#33d1ff');
+      root.style.setProperty('--primary-color', '#9333ea');
+      root.style.setProperty('--primary-hover', '#a855f7');
       root.style.setProperty('--gradient-start', '#0f172a');
       root.style.setProperty('--gradient-end', '#1e293b');
+      root.style.setProperty('--color-purple-800', '#9333ea');
+      root.style.setProperty('--color-status-awaiting', '#9333ea');
+      root.style.setProperty('--color-status-open', '#10b981');
+      root.style.setProperty('--color-status-completed', '#9ca3af');
     } else {
       // Light theme CSS variables
       root.style.setProperty('--bg-primary', '#f9fafb');
@@ -83,10 +87,14 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
       root.style.setProperty('--hover-bg', '#f3f4f6');
       root.style.setProperty('--shadow', 'rgba(0, 0, 0, 0.1)');
       root.style.setProperty('--shadow-light', 'rgba(0, 0, 0, 0.05)');
-      root.style.setProperty('--primary-color', '#2563eb');
-      root.style.setProperty('--primary-hover', '#1d4ed8');
+      root.style.setProperty('--primary-color', '#6b21a8');
+      root.style.setProperty('--primary-hover', '#581c87');
       root.style.setProperty('--gradient-start', '#ffffff');
       root.style.setProperty('--gradient-end', '#f9fafb');
+      root.style.setProperty('--color-purple-800', '#6b21a8');
+      root.style.setProperty('--color-status-awaiting', '#6b21a8');
+      root.style.setProperty('--color-status-open', '#10b981');
+      root.style.setProperty('--color-status-completed', '#6b7280');
     }
   }, [mode]);
 
@@ -112,6 +120,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     </ThemeContext.Provider>
   );
 };
+
 
 
 

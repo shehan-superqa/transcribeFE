@@ -5,9 +5,9 @@ export const createLightTheme = (): Theme => {
     palette: {
       mode: 'light',
       primary: {
-        main: '#2563eb',
-        light: '#60a5fa',
-        dark: '#1d4ed8',
+        main: '#6b21a8', // Purple accent - primary color
+        light: '#9333ea',
+        dark: '#581c87',
       },
       secondary: {
         main: '#10b981',
@@ -32,6 +32,28 @@ export const createLightTheme = (): Theme => {
         800: '#1f2937',
         900: '#111827',
       },
+      // Purple color scale for design system
+      purple: {
+        50: '#faf5ff',
+        100: '#f3e8ff',
+        200: '#e9d5ff',
+        300: '#d8b4fe',
+        400: '#c084fc',
+        500: '#a855f7',
+        600: '#9333ea',
+        700: '#7e22ce',
+        800: '#6b21a8',
+        900: '#581c87',
+      },
+      // Status colors
+      status: {
+        awaiting: '#6b21a8',
+        open: '#10b981',
+        completed: '#6b7280',
+        error: '#ef4444',
+        warning: '#f59e0b',
+        success: '#10b981',
+      },
     },
     components: {
       MuiPaper: {
@@ -45,18 +67,18 @@ export const createLightTheme = (): Theme => {
       MuiButton: {
         styleOverrides: {
           contained: {
-            backgroundColor: '#2563eb',
+            backgroundColor: '#6b21a8',
             color: '#ffffff',
             '&:hover': {
-              backgroundColor: '#1d4ed8',
+              backgroundColor: '#581c87',
             },
           },
           outlined: {
             borderColor: '#e5e7eb',
             color: '#111827',
             '&:hover': {
-              borderColor: '#2563eb',
-              backgroundColor: '#f0f9ff',
+              borderColor: '#6b21a8',
+              backgroundColor: '#faf5ff',
             },
           },
         },
@@ -66,7 +88,7 @@ export const createLightTheme = (): Theme => {
           root: {
             color: '#6b7280',
             '&.Mui-selected': {
-              color: '#2563eb',
+              color: '#6b21a8',
             },
           },
         },
@@ -103,13 +125,13 @@ export const createLightTheme = (): Theme => {
                 borderColor: '#9ca3af',
               },
               '&.Mui-focused fieldset': {
-                borderColor: '#2563eb',
+                borderColor: '#6b21a8',
               },
             },
             '& .MuiInputLabel-root': {
               color: '#6b7280',
               '&.Mui-focused': {
-                color: '#2563eb',
+                color: '#6b21a8',
               },
             },
           },
@@ -127,7 +149,7 @@ export const createLightTheme = (): Theme => {
               borderColor: '#9ca3af',
             },
             '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-              borderColor: '#2563eb',
+              borderColor: '#6b21a8',
             },
           },
         },
@@ -146,7 +168,7 @@ export const createLightTheme = (): Theme => {
             '& .MuiInputLabel-root': {
               color: '#6b7280',
               '&.Mui-focused': {
-                color: '#2563eb',
+                color: '#6b21a8',
               },
             },
           },
@@ -159,7 +181,7 @@ export const createLightTheme = (): Theme => {
             borderBottom: '1px solid #e5e7eb',
           },
           indicator: {
-            backgroundColor: '#2563eb',
+            backgroundColor: '#6b21a8',
           },
         },
       },
@@ -172,10 +194,10 @@ export const createLightTheme = (): Theme => {
               backgroundColor: '#f3f4f6',
             },
             '&.Mui-selected': {
-              backgroundColor: '#f0f9ff',
-              color: '#2563eb',
+              backgroundColor: '#faf5ff',
+              color: '#6b21a8',
               '&:hover': {
-                backgroundColor: '#e0f2fe',
+                backgroundColor: '#f3e8ff',
               },
             },
           },
@@ -274,6 +296,7 @@ export const createLightTheme = (): Theme => {
     },
   });
 };
+
 
 
 

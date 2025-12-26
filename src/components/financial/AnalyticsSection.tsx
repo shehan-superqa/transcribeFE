@@ -199,7 +199,7 @@ export default function AnalyticsSection() {
   const isLoadingInsight = loadingInsights[insightKey];
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       {error && (
         <Alert severity="error" onClose={() => setError(null)}>
           {error}
@@ -207,82 +207,201 @@ export default function AnalyticsSection() {
       )}
 
       {/* Analysis Type Selector */}
-      <Paper elevation={2} sx={{ backgroundColor: theme.palette.background.paper }}>
-        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+      <Paper 
+        elevation={0} 
+        sx={{ 
+          backgroundColor: theme.palette.background.paper,
+          border: `1px solid ${theme.palette.divider}`,
+          borderRadius: '12px',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+        }}
+      >
+        <Box sx={{ borderBottom: `1px solid ${theme.palette.divider}` }}>
           <Tabs 
             value={tabValue} 
             onChange={handleTabChange}
             aria-label="Financial analysis types"
             sx={{
               '& .MuiTab-root': {
+                fontFamily: "'Inter', sans-serif",
                 textTransform: 'none',
-                fontWeight: 600,
+                fontWeight: 500,
+                fontSize: '0.875rem',
                 minHeight: 72,
+                padding: '0.75rem 1rem',
                 color: theme.palette.text.secondary,
                 '&.Mui-selected': {
                   color: theme.palette.primary.main,
+                  fontWeight: 600,
                 },
               },
               '& .MuiTabs-indicator': {
                 backgroundColor: theme.palette.primary.main,
+                height: 2,
               },
             }}
           >
             <Tab 
-              icon={<Savings sx={{ mb: 0.5 }} />} 
+              icon={<Savings sx={{ mb: 0.5, fontSize: '1.25rem' }} />} 
               iconPosition="start"
               label={
                 <Box>
-                  <Typography variant="body1" sx={{ fontWeight: 600, color: 'inherit' }}>Personal / SME Finance</Typography>
-                  <Typography variant="caption" sx={{ color: 'inherit', opacity: 0.7 }}>Monthly spend, savings, optimization</Typography>
+                  <Typography 
+                    variant="body1" 
+                    sx={{ 
+                      fontFamily: "'Inter', sans-serif",
+                      fontWeight: 600, 
+                      fontSize: '0.875rem',
+                      lineHeight: 1.2,
+                      color: 'inherit',
+                    }}
+                  >
+                    Personal / SME Finance
+                  </Typography>
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: '0.75rem',
+                      lineHeight: 1.5,
+                      color: 'inherit', 
+                      opacity: 0.7,
+                    }}
+                  >
+                    Monthly spend, savings, optimization
+                  </Typography>
                 </Box>
               } 
             />
             <Tab 
-              icon={<Business sx={{ mb: 0.5 }} />} 
+              icon={<Business sx={{ mb: 0.5, fontSize: '1.25rem' }} />} 
               iconPosition="start"
               label={
                 <Box>
-                  <Typography variant="body1" sx={{ fontWeight: 600, color: 'inherit' }}>Business Finance</Typography>
-                  <Typography variant="caption" sx={{ color: 'inherit', opacity: 0.7 }}>P&L, costs, suppliers, inventory</Typography>
+                  <Typography 
+                    variant="body1" 
+                    sx={{ 
+                      fontFamily: "'Inter', sans-serif",
+                      fontWeight: 600, 
+                      fontSize: '0.875rem',
+                      lineHeight: 1.2,
+                      color: 'inherit',
+                    }}
+                  >
+                    Business Finance
+                  </Typography>
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: '0.75rem',
+                      lineHeight: 1.5,
+                      color: 'inherit', 
+                      opacity: 0.7,
+                    }}
+                  >
+                    P&L, costs, suppliers, inventory
+                  </Typography>
                 </Box>
               } 
             />
             <Tab 
-              icon={<ShowChart sx={{ mb: 0.5 }} />} 
+              icon={<ShowChart sx={{ mb: 0.5, fontSize: '1.25rem' }} />} 
               iconPosition="start"
               label={
                 <Box>
-                  <Typography variant="body1" sx={{ fontWeight: 600, color: 'inherit' }}>Investment Analysis</Typography>
-                  <Typography variant="caption" sx={{ color: 'inherit', opacity: 0.7 }}>Portfolio, risk, scenarios</Typography>
+                  <Typography 
+                    variant="body1" 
+                    sx={{ 
+                      fontFamily: "'Inter', sans-serif",
+                      fontWeight: 600, 
+                      fontSize: '0.875rem',
+                      lineHeight: 1.2,
+                      color: 'inherit',
+                    }}
+                  >
+                    Investment Analysis
+                  </Typography>
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: '0.75rem',
+                      lineHeight: 1.5,
+                      color: 'inherit', 
+                      opacity: 0.7,
+                    }}
+                  >
+                    Portfolio, risk, scenarios
+                  </Typography>
                 </Box>
               } 
             />
           </Tabs>
         </Box>
 
-        <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box sx={{ p: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box>
-            <Typography variant="h5" sx={{ color: theme.palette.text.primary, fontWeight: 600, mb: 0.5 }}>
+            <Typography 
+              variant="h5" 
+              sx={{ 
+                fontFamily: "'Inter', sans-serif",
+                color: theme.palette.text.primary, 
+                fontWeight: 700, 
+                fontSize: '1.75rem',
+                lineHeight: 1.2,
+                mb: '0.5rem',
+              }}
+            >
               {analysisType === 'personal' && 'Personal / SME Finance Analysis'}
               {analysisType === 'business' && 'Business Finance Analysis'}
               {analysisType === 'investment' && 'Investment Analysis'}
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography 
+              variant="body2" 
+              sx={{
+                fontFamily: "'Inter', sans-serif",
+                fontSize: '0.875rem',
+                fontWeight: 400,
+                lineHeight: 1.5,
+                color: theme.palette.text.secondary,
+              }}
+            >
               {analysisType === 'personal' && 'Monthly spend analysis, savings suggestions, and category optimization'}
               {analysisType === 'business' && 'Profit & loss analysis, cost optimization, supplier comparison, inventory vs sales'}
               {analysisType === 'investment' && 'Portfolio diversification, risk scoring, and scenario simulation'}
             </Typography>
           </Box>
-          <FormControl size="small" sx={{ minWidth: 150 }}>
-            <InputLabel id="period-select-label" sx={{ color: theme.palette.text.primary }}>Period</InputLabel>
+          <FormControl 
+            size="small" 
+            sx={{ 
+              minWidth: 150,
+              '& .MuiInputLabel-root': {
+                fontFamily: "'Inter', sans-serif",
+                fontSize: '0.875rem',
+              },
+            }}
+          >
+            <InputLabel 
+              id="period-select-label" 
+              sx={{ 
+                fontFamily: "'Inter', sans-serif",
+                color: theme.palette.text.primary,
+                fontSize: '0.875rem',
+              }}
+            >
+              Period
+            </InputLabel>
             <Select
               labelId="period-select-label"
               value={period}
               onChange={(e) => setPeriod(e.target.value as any)}
               label="Period"
               sx={{
+                fontFamily: "'Inter', sans-serif",
+                fontSize: '0.875rem',
                 color: theme.palette.text.primary,
+                borderRadius: '8px',
                 '& .MuiOutlinedInput-notchedOutline': {
                   borderColor: theme.palette.divider,
                 },
@@ -297,10 +416,46 @@ export default function AnalyticsSection() {
                 },
               }}
             >
-              <MenuItem value="daily" sx={{ color: theme.palette.text.primary }}>Daily</MenuItem>
-              <MenuItem value="weekly" sx={{ color: theme.palette.text.primary }}>Weekly</MenuItem>
-              <MenuItem value="monthly" sx={{ color: theme.palette.text.primary }}>Monthly</MenuItem>
-              <MenuItem value="yearly" sx={{ color: theme.palette.text.primary }}>Yearly</MenuItem>
+              <MenuItem 
+                value="daily" 
+                sx={{ 
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '0.875rem',
+                  color: theme.palette.text.primary,
+                }}
+              >
+                Daily
+              </MenuItem>
+              <MenuItem 
+                value="weekly" 
+                sx={{ 
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '0.875rem',
+                  color: theme.palette.text.primary,
+                }}
+              >
+                Weekly
+              </MenuItem>
+              <MenuItem 
+                value="monthly" 
+                sx={{ 
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '0.875rem',
+                  color: theme.palette.text.primary,
+                }}
+              >
+                Monthly
+              </MenuItem>
+              <MenuItem 
+                value="yearly" 
+                sx={{ 
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '0.875rem',
+                  color: theme.palette.text.primary,
+                }}
+              >
+                Yearly
+              </MenuItem>
             </Select>
           </FormControl>
         </Box>
@@ -317,43 +472,149 @@ export default function AnalyticsSection() {
         {summary && (
           <>
             {/* Monthly Spend Analysis */}
-            <Paper elevation={2} sx={{ p: 3, backgroundColor: theme.palette.background.paper, mb: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                <Assessment color="primary" />
-                <Typography variant="h6" sx={{ color: theme.palette.text.primary, fontWeight: 600 }}>
+            <Paper 
+              elevation={0} 
+              sx={{ 
+                p: '1.5rem', 
+                backgroundColor: theme.palette.background.paper,
+                border: `1px solid ${theme.palette.divider}`,
+                borderRadius: '12px',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+                mb: '2rem',
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.5rem', mb: '2rem' }}>
+                <Assessment color="primary" sx={{ fontSize: '1.25rem' }} />
+                <Typography 
+                  variant="h6" 
+                  sx={{ 
+                    fontFamily: "'Inter', sans-serif",
+                    color: theme.palette.text.primary, 
+                    fontWeight: 600,
+                    fontSize: '1.25rem',
+                    lineHeight: 1.2,
+                  }}
+                >
                   Monthly Spend Analysis
                 </Typography>
               </Box>
               
-              <Grid container spacing={3} sx={{ mb: 3 }}>
+              <Grid container spacing={3} sx={{ mb: '2rem' }}>
                 <Grid item xs={12} sm={4}>
-                  <Card elevation={0} sx={{ border: `1px solid ${theme.palette.divider}`, p: 2 }}>
-                    <Typography variant="h4" sx={{ color: theme.palette.text.primary, fontWeight: 700 }}>
+                  <Card 
+                    elevation={0} 
+                    sx={{ 
+                      border: `1px solid ${theme.palette.divider}`, 
+                      p: '1.5rem',
+                      borderRadius: '12px',
+                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+                    }}
+                  >
+                    <Typography 
+                      variant="h4" 
+                      sx={{ 
+                        fontFamily: "'Inter', sans-serif",
+                        color: theme.palette.text.primary, 
+                        fontWeight: 700,
+                        fontSize: '2rem',
+                        lineHeight: 1.2,
+                        mb: '0.25rem',
+                      }}
+                    >
                       Rs. {summary.summary.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">Total Spending</Typography>
+                    <Typography 
+                      variant="body2" 
+                      sx={{
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: '0.875rem',
+                        fontWeight: 400,
+                        lineHeight: 1.5,
+                        color: theme.palette.text.secondary,
+                      }}
+                    >
+                      Total Spending
+                    </Typography>
                   </Card>
                 </Grid>
                 <Grid item xs={12} sm={4}>
-                  <Card elevation={0} sx={{ border: `1px solid ${theme.palette.divider}`, p: 2 }}>
-                    <Typography variant="h4" sx={{ color: theme.palette.text.primary, fontWeight: 700 }}>
+                  <Card 
+                    elevation={0} 
+                    sx={{ 
+                      border: `1px solid ${theme.palette.divider}`, 
+                      p: '1.5rem',
+                      borderRadius: '12px',
+                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+                    }}
+                  >
+                    <Typography 
+                      variant="h4" 
+                      sx={{ 
+                        fontFamily: "'Inter', sans-serif",
+                        color: theme.palette.text.primary, 
+                        fontWeight: 700,
+                        fontSize: '2rem',
+                        lineHeight: 1.2,
+                        mb: '0.25rem',
+                      }}
+                    >
                       {summary.summary.transaction_count}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">Transactions</Typography>
+                    <Typography 
+                      variant="body2" 
+                      sx={{
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: '0.875rem',
+                        fontWeight: 400,
+                        lineHeight: 1.5,
+                        color: theme.palette.text.secondary,
+                      }}
+                    >
+                      Transactions
+                    </Typography>
                   </Card>
                 </Grid>
                 <Grid item xs={12} sm={4}>
-                  <Card elevation={0} sx={{ border: `1px solid ${theme.palette.divider}`, p: 2 }}>
-                    <Typography variant="h4" sx={{ color: theme.palette.text.primary, fontWeight: 700 }}>
+                  <Card 
+                    elevation={0} 
+                    sx={{ 
+                      border: `1px solid ${theme.palette.divider}`, 
+                      p: '1.5rem',
+                      borderRadius: '12px',
+                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+                    }}
+                  >
+                    <Typography 
+                      variant="h4" 
+                      sx={{ 
+                        fontFamily: "'Inter', sans-serif",
+                        color: theme.palette.text.primary, 
+                        fontWeight: 700,
+                        fontSize: '2rem',
+                        lineHeight: 1.2,
+                        mb: '0.25rem',
+                      }}
+                    >
                       Rs. {summary.summary.transaction_count > 0 ? (summary.summary.total / summary.summary.transaction_count).toFixed(2) : '0.00'}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">Avg per Transaction</Typography>
+                    <Typography 
+                      variant="body2" 
+                      sx={{
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: '0.875rem',
+                        fontWeight: 400,
+                        lineHeight: 1.5,
+                        color: theme.palette.text.secondary,
+                      }}
+                    >
+                      Avg per Transaction
+                    </Typography>
                   </Card>
                 </Grid>
               </Grid>
 
               {barChartData.length > 0 && (
-                <Box sx={{ height: '400px', mb: 3 }}>
+                <Box sx={{ height: '400px', mb: '2rem' }}>
                   <ResponsiveContainer width="100%" height={400}>
                     <BarChart data={barChartData} margin={{ top: 10, right: 10, left: 10, bottom: 60 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
@@ -363,11 +624,17 @@ export default function AnalyticsSection() {
                         textAnchor="end"
                         height={80}
                         stroke={theme.palette.text.secondary}
-                        tick={{ fontSize: 12 }}
+                        tick={{ 
+                          fontSize: 12,
+                          fontFamily: "'Inter', sans-serif",
+                        }}
                       />
                       <YAxis 
                         stroke={theme.palette.text.secondary}
-                        tick={{ fontSize: 12 }}
+                        tick={{ 
+                          fontSize: 12,
+                          fontFamily: "'Inter', sans-serif",
+                        }}
                         tickFormatter={(value) => `Rs. ${value}`}
                       />
                       <Tooltip 
@@ -386,10 +653,29 @@ export default function AnalyticsSection() {
             </Paper>
 
             {/* Savings Suggestions */}
-            <Paper elevation={2} sx={{ p: 3, backgroundColor: theme.palette.background.paper, mb: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                <Lightbulb color="warning" />
-                <Typography variant="h6" sx={{ color: theme.palette.text.primary, fontWeight: 600 }}>
+            <Paper 
+              elevation={0} 
+              sx={{ 
+                p: '1.5rem', 
+                backgroundColor: theme.palette.background.paper,
+                border: `1px solid ${theme.palette.divider}`,
+                borderRadius: '12px',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+                mb: '2rem',
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.5rem', mb: '1.5rem' }}>
+                <Lightbulb color="warning" sx={{ fontSize: '1.25rem' }} />
+                <Typography 
+                  variant="h6" 
+                  sx={{ 
+                    fontFamily: "'Inter', sans-serif",
+                    color: theme.palette.text.primary, 
+                    fontWeight: 600,
+                    fontSize: '1.25rem',
+                    lineHeight: 1.2,
+                  }}
+                >
                   Savings Suggestions
                 </Typography>
               </Box>
@@ -412,10 +698,28 @@ export default function AnalyticsSection() {
             </Paper>
 
             {/* Category Optimization */}
-            <Paper elevation={2} sx={{ p: 3, backgroundColor: theme.palette.background.paper }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                <TrendingUp color="success" />
-                <Typography variant="h6" sx={{ color: theme.palette.text.primary, fontWeight: 600 }}>
+            <Paper 
+              elevation={0} 
+              sx={{ 
+                p: '1.5rem', 
+                backgroundColor: theme.palette.background.paper,
+                border: `1px solid ${theme.palette.divider}`,
+                borderRadius: '12px',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.5rem', mb: '1.5rem' }}>
+                <TrendingUp color="success" sx={{ fontSize: '1.25rem' }} />
+                <Typography 
+                  variant="h6" 
+                  sx={{ 
+                    fontFamily: "'Inter', sans-serif",
+                    color: theme.palette.text.primary, 
+                    fontWeight: 600,
+                    fontSize: '1.25rem',
+                    lineHeight: 1.2,
+                  }}
+                >
                   Category Optimization
                 </Typography>
               </Box>
@@ -424,10 +728,53 @@ export default function AnalyticsSection() {
                 <Table size="small">
                   <TableHead>
                     <TableRow>
-                      <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb' }}>Category</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb' }}>Amount</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb' }}>Percentage</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb' }}>Optimization</TableCell>
+                      <TableCell 
+                        sx={{ 
+                          fontFamily: "'Inter', sans-serif",
+                          fontWeight: 600, 
+                          fontSize: '0.875rem',
+                          color: theme.palette.text.primary, 
+                          backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb',
+                        }}
+                      >
+                        Category
+                      </TableCell>
+                      <TableCell 
+                        align="right" 
+                        sx={{ 
+                          fontFamily: "'Inter', sans-serif",
+                          fontWeight: 600, 
+                          fontSize: '0.875rem',
+                          color: theme.palette.text.primary, 
+                          backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb',
+                        }}
+                      >
+                        Amount
+                      </TableCell>
+                      <TableCell 
+                        align="right" 
+                        sx={{ 
+                          fontFamily: "'Inter', sans-serif",
+                          fontWeight: 600, 
+                          fontSize: '0.875rem',
+                          color: theme.palette.text.primary, 
+                          backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb',
+                        }}
+                      >
+                        Percentage
+                      </TableCell>
+                      <TableCell 
+                        align="right" 
+                        sx={{ 
+                          fontFamily: "'Inter', sans-serif",
+                          fontWeight: 600, 
+                          fontSize: '0.875rem',
+                          color: theme.palette.text.primary, 
+                          backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb',
+                        }}
+                      >
+                        Optimization
+                      </TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -436,13 +783,39 @@ export default function AnalyticsSection() {
                       const isMedium = item.percentage > 15 && item.percentage <= 30;
                       return (
                         <TableRow key={item.category_id}>
-                          <TableCell sx={{ color: theme.palette.text.primary }}>{item.category_name}</TableCell>
-                          <TableCell align="right" sx={{ color: theme.palette.text.primary }}>Rs. {item.amount.toFixed(2)}</TableCell>
-                          <TableCell align="right" sx={{ color: theme.palette.text.primary }}>{item.percentage.toFixed(1)}%</TableCell>
+                          <TableCell 
+                            sx={{ 
+                              fontFamily: "'Inter', sans-serif",
+                              fontSize: '0.875rem',
+                              color: theme.palette.text.primary,
+                            }}
+                          >
+                            {item.category_name}
+                          </TableCell>
+                          <TableCell 
+                            align="right" 
+                            sx={{ 
+                              fontFamily: "'Inter', sans-serif",
+                              fontSize: '0.875rem',
+                              color: theme.palette.text.primary,
+                            }}
+                          >
+                            Rs. {item.amount.toFixed(2)}
+                          </TableCell>
+                          <TableCell 
+                            align="right" 
+                            sx={{ 
+                              fontFamily: "'Inter', sans-serif",
+                              fontSize: '0.875rem',
+                              color: theme.palette.text.primary,
+                            }}
+                          >
+                            {item.percentage.toFixed(1)}%
+                          </TableCell>
                           <TableCell align="right">
-                            {isHigh && <Chip label="High" color="error" size="small" />}
-                            {isMedium && <Chip label="Medium" color="warning" size="small" />}
-                            {!isHigh && !isMedium && <Chip label="Optimal" color="success" size="small" />}
+                            {isHigh && <Chip label="High" color="error" size="small" sx={{ fontFamily: "'Inter', sans-serif", fontSize: '0.75rem' }} />}
+                            {isMedium && <Chip label="Medium" color="warning" size="small" sx={{ fontFamily: "'Inter', sans-serif", fontSize: '0.75rem' }} />}
+                            {!isHigh && !isMedium && <Chip label="Optimal" color="success" size="small" sx={{ fontFamily: "'Inter', sans-serif", fontSize: '0.75rem' }} />}
                           </TableCell>
                         </TableRow>
                       );
@@ -693,4 +1066,3 @@ export default function AnalyticsSection() {
     </Box>
   );
 }
-

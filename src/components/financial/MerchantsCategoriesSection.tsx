@@ -85,8 +85,37 @@ export default function MerchantsCategoriesSection({ onDataChange }: MerchantsCa
 
   return (
     <Box>
-      <Paper elevation={1} sx={{ mb: 2, backgroundColor: theme.palette.background.paper }}>
-        <Tabs value={tabValue} onChange={(_, v) => setTabValue(v)}>
+      <Paper 
+        elevation={0} 
+        sx={{ 
+          mb: '2rem', 
+          backgroundColor: theme.palette.background.paper,
+          border: `1px solid ${theme.palette.divider}`,
+          borderRadius: '12px',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+        }}
+      >
+        <Tabs 
+          value={tabValue} 
+          onChange={(_, v) => setTabValue(v)}
+          sx={{
+            '& .MuiTab-root': {
+              fontFamily: "'Inter', sans-serif",
+              fontSize: '0.875rem',
+              fontWeight: 500,
+              textTransform: 'none',
+              padding: '0.75rem 1rem',
+              '&.Mui-selected': {
+                color: theme.palette.primary.main,
+                fontWeight: 600,
+              },
+            },
+            '& .MuiTabs-indicator': {
+              backgroundColor: theme.palette.primary.main,
+              height: 2,
+            },
+          }}
+        >
           <Tab label="Merchants" />
           <Tab label="Categories" />
         </Tabs>
@@ -94,10 +123,21 @@ export default function MerchantsCategoriesSection({ onDataChange }: MerchantsCa
 
       {tabValue === 0 && (
         <Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-            <Typography variant="h6" sx={{ color: theme.palette.text.primary }}>Merchants</Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: '1.5rem' }}>
+            <Typography 
+              variant="h6" 
+              sx={{ 
+                fontFamily: "'Inter', sans-serif",
+                color: theme.palette.text.primary,
+                fontSize: '1rem',
+                fontWeight: 600,
+                lineHeight: 1.2,
+              }}
+            >
+              Merchants
+            </Typography>
           </Box>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {merchants.map((merchant) => (
               <Card key={merchant._id} elevation={1} sx={{ backgroundColor: theme.palette.background.paper }}>
                 <CardContent>
@@ -223,6 +263,7 @@ export default function MerchantsCategoriesSection({ onDataChange }: MerchantsCa
       </Box>
     );
   }
+
 
 
 

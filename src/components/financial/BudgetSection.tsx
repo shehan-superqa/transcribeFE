@@ -168,8 +168,17 @@ export default function BudgetSection({ categories = [], onBudgetChange }: Budge
         </Box>
 
         {/* Filters */}
-        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mt: 2 }}>
-          <FormControl size="small" sx={{ minWidth: 150 }}>
+        <Box sx={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', mt: '1.5rem' }}>
+          <FormControl 
+            size="small" 
+            sx={{ 
+              minWidth: 150,
+              '& .MuiInputLabel-root': {
+                fontFamily: "'Inter', sans-serif",
+                fontSize: '0.875rem',
+              },
+            }}
+          >
             <InputLabel id="filter-label">Filter</InputLabel>
             <Select
               labelId="filter-label"
@@ -177,10 +186,30 @@ export default function BudgetSection({ categories = [], onBudgetChange }: Budge
               onChange={(e) => setFilter(e.target.value as any)}
               label="Filter"
               aria-label="Filter budgets"
+              sx={{
+                fontFamily: "'Inter', sans-serif",
+                fontSize: '0.875rem',
+                borderRadius: '8px',
+              }}
             >
-              <MenuItem value="all">All Budgets</MenuItem>
-              <MenuItem value="active">Active Only</MenuItem>
-              <MenuItem value="category">By Category</MenuItem>
+              <MenuItem 
+                value="all"
+                sx={{ fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}
+              >
+                All Budgets
+              </MenuItem>
+              <MenuItem 
+                value="active"
+                sx={{ fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}
+              >
+                Active Only
+              </MenuItem>
+              <MenuItem 
+                value="category"
+                sx={{ fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}
+              >
+                By Category
+              </MenuItem>
             </Select>
           </FormControl>
 
@@ -286,6 +315,7 @@ export default function BudgetSection({ categories = [], onBudgetChange }: Budge
     </Box>
   );
 }
+
 
 
 

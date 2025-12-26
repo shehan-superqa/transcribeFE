@@ -2,7 +2,7 @@
  * Tab navigation component for transcription features
  */
 
-import { Box, Tabs, Tab } from '@mui/material';
+import { Box, Tabs, Tab, useTheme } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import MicIcon from '@mui/icons-material/Mic';
 import HistoryIcon from '@mui/icons-material/History';
@@ -29,6 +29,7 @@ const tabs = [
 export default function TabNavigation({ currentTab }: TabNavigationProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const theme = useTheme();
 
   const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
     const tab = tabs[newValue];
@@ -48,7 +49,7 @@ export default function TabNavigation({ currentTab }: TabNavigationProps) {
   };
 
   return (
-    <Box sx={{ borderBottom: 1, borderColor: '#333333', mb: 3 }}>
+    <Box sx={{ borderBottom: 1, borderColor: theme.palette.divider, mb: 3 }}>
       <Tabs
         value={getCurrentTab()}
         onChange={handleChange}
@@ -56,17 +57,17 @@ export default function TabNavigation({ currentTab }: TabNavigationProps) {
         scrollButtons="auto"
         sx={{
           '& .MuiTab-root': {
-            color: '#a0a0a0',
+            color: theme.palette.text.secondary,
             minHeight: 64,
             '&:hover': {
-              color: '#00c6ff',
+              color: theme.palette.primary.main,
             },
             '&.Mui-selected': {
-              color: '#00c6ff',
+              color: theme.palette.primary.main,
             },
           },
           '& .MuiTabs-indicator': {
-            backgroundColor: '#00c6ff',
+            backgroundColor: theme.palette.primary.main,
           },
         }}
       >

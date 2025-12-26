@@ -2,11 +2,12 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../../lib/auth';
 import { useRequireAuth } from '../../hooks/useRequireAuth';
 import { submitVideoJob, getVideoJobStatus } from '../../lib/api/videoApi';
+import { getUserJobs } from '../../lib/api/jobsApi';
 import { useSSE } from '../../hooks/useSSE';
 import { useAuthModal } from '../../contexts/AuthModalContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { checkAuthAndTriggerModal } from '../../lib/authCheck';
-import type { VideoJobRequest, VideoJobResult, VideoJob } from '../../types/api';
+import type { VideoJobRequest, VideoJobResult, VideoJob, Job } from '../../types/api';
 import HowToUse from '../../components/common/HowToUse';
 import '../../components/common/HowToUse.css';
 import '../../pages/Dashboard.css';
@@ -30,9 +31,9 @@ const getStyles = () => ({
     flex: 1,
     padding: '2rem',
     borderRadius: '1.25rem',
-    background: 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)',
-    color: '#1a1a1a',
-    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+    background: 'linear-gradient(145deg, var(--gradient-start), var(--gradient-end))',
+    color: 'var(--text-primary)',
+    boxShadow: '0 10px 25px var(--shadow)',
     fontFamily: 'Inter, system-ui, sans-serif',
   },
   form: {
@@ -44,55 +45,46 @@ const getStyles = () => ({
     display: 'flex',
     flexDirection: 'column' as const,
     gap: '0.5rem',
-    paddingBottom: '1.5rem',
-    borderBottom: '1px solid rgba(0, 0, 0, 0.1)',
-    marginBottom: '0.5rem',
   },
   label: {
     fontWeight: 600,
     fontSize: '0.95rem',
-    color: '#1a1a1a',
+    color: '#f8fafc',
   },
   textarea: {
     padding: '0.75rem 1rem',
     borderRadius: '0.75rem',
-    border: '1px solid rgba(0, 0, 0, 0.15)',
-    borderBottom: '2px solid rgba(0, 0, 0, 0.2)',
-    background: '#ffffff',
-    color: '#1a1a1a',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+    background: 'rgba(255, 255, 255, 0.05)',
+    color: '#f8fafc',
     outline: 'none',
     fontFamily: 'inherit',
     fontSize: '0.95rem',
     resize: 'vertical' as const,
     minHeight: '120px',
-    transition: 'border-color 0.3s ease',
   },
   input: {
     padding: '0.75rem 1rem',
     borderRadius: '0.75rem',
-    border: '1px solid rgba(0, 0, 0, 0.15)',
-    borderBottom: '2px solid rgba(0, 0, 0, 0.2)',
-    background: '#ffffff',
-    color: '#1a1a1a',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+    background: 'rgba(255, 255, 255, 0.05)',
+    color: '#f8fafc',
     outline: 'none',
     fontSize: '0.95rem',
-    transition: 'border-color 0.3s ease',
   },
   select: {
     padding: '0.75rem 1rem',
     borderRadius: '0.75rem',
-    border: '1px solid rgba(0, 0, 0, 0.15)',
-    borderBottom: '2px solid rgba(0, 0, 0, 0.2)',
-    background: '#ffffff',
-    backgroundColor: '#ffffff',
-    color: '#1a1a1a',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+    background: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(30, 41, 59, 0.8)',
+    color: '#f8fafc',
     outline: 'none',
     fontSize: '0.95rem',
     cursor: 'pointer',
     appearance: 'none' as const,
     WebkitAppearance: 'none' as const,
     MozAppearance: 'none' as const,
-    transition: 'border-color 0.3s ease',
   },
   checkboxGroup: {
     display: 'flex',
@@ -280,10 +272,75 @@ export default function VideoGenerationTool() {
   const [pollingProgress, setPollingProgress] = useState<number>(0);
   const [pollingStatus, setPollingStatus] = useState<string>('');
   const [pollingMessage, setPollingMessage] = useState<string>('');
+  const [videoHistory, setVideoHistory] = useState<VideoJob[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState<string | null>(null);
 
   // Use SSE hook for progress tracking
   const { progress, status, message, result, error: sseError, isConnected } = useSSE(jobId);
 
+  // Fetch video job history
+  useEffect(() => {
+    const fetchVideoHistory = async () => {
+      if (!user) return;
+      
+      setHistoryLoading(true);
+      setHistoryError(null);
+      
+      try {
+        const response = await getUserJobs(user.id);
+        if (response.success && response.jobs) {
+          // Filter for video jobs only
+          const videoJobs = response.jobs.filter(
+            (job: Job) => (job as any).job_type === 'video'
+          ).map((job: Job) => job as unknown as VideoJob);
+          
+          // Sort by created_at (newest first)
+          videoJobs.sort((a, b) => {
+            const dateA = new Date(a.created_at).getTime();
+            const dateB = new Date(b.created_at).getTime();
+            return dateB - dateA;
+          });
+          
+          setVideoHistory(videoJobs);
+        }
+      } catch (err: any) {
+        console.error('Error fetching video history:', err);
+        setHistoryError(err?.message || 'Failed to load video history');
+      } finally {
+        setHistoryLoading(false);
+      }
+    };
+
+    fetchVideoHistory();
+  }, [user]);
+
+  // Refresh history when a job completes
+  useEffect(() => {
+    if (videoUrl && user) {
+      const fetchVideoHistory = async () => {
+        try {
+          const response = await getUserJobs(user.id);
+          if (response.success && response.jobs) {
+            const videoJobs = response.jobs.filter(
+              (job: Job) => (job as any).job_type === 'video'
+            ).map((job: Job) => job as unknown as VideoJob);
+            
+            videoJobs.sort((a, b) => {
+              const dateA = new Date(a.created_at).getTime();
+              const dateB = new Date(b.created_at).getTime();
+              return dateB - dateA;
+            });
+            
+            setVideoHistory(videoJobs);
+          }
+        } catch (err) {
+          console.error('Error refreshing video history:', err);
+        }
+      };
+      fetchVideoHistory();
+    }
+  }, [videoUrl, user]);
 
   const startPolling = useCallback(() => {
     if (!jobId) return;
@@ -600,7 +657,44 @@ export default function VideoGenerationTool() {
     ? (message || (currentStatus === 'queued' ? 'Job queued...' : currentStatus === 'processing' ? 'Generating video...' : ''))
     : (pollingMessage || (currentStatus === 'queued' ? 'Job queued...' : currentStatus === 'processing' ? 'Generating video...' : currentStatus === 'starting' ? 'Starting video generation...' : ''));
 
+  // Helper functions
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "completed":
+        return theme.palette.success.main;
+      case "processing":
+      case "starting":
+        return theme.palette.warning.main;
+      case "error":
+      case "cancelled":
+        return theme.palette.error.main;
+      case "queued":
+        return theme.palette.info.main;
+      default:
+        return theme.palette.text.secondary;
+    }
+  };
+
+  const handleVideoJobClick = (job: VideoJob) => {
+    if (job.result?.video_url || job.video_output_url) {
+      const url = job.result?.video_url || job.video_output_url;
+      if (url) {
+        setVideoUrl(url);
+        setJobId(job._id);
+      }
+    }
+  };
 
   return (
     <div>
@@ -843,6 +937,79 @@ export default function VideoGenerationTool() {
           </div>
         )}
 
+        {/* Video History Section */}
+        <div style={styles.historyContainer}>
+        <h3 style={styles.historyTitle}>Video History</h3>
+        
+        {historyLoading ? (
+          <div style={styles.emptyHistory}>Loading history...</div>
+        ) : historyError ? (
+          <div style={{ ...styles.emptyHistory, color: theme.palette.error.main }}>
+            {historyError}
+          </div>
+        ) : videoHistory.length === 0 ? (
+          <div style={styles.emptyHistory}>
+            <p>No video generations yet</p>
+            <p style={{ fontSize: '0.85rem', marginTop: '0.5rem' }}>
+              Start generating videos using the form on the left.
+            </p>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {videoHistory.map((job) => {
+              const hasVideo = !!(job.result?.video_url || job.video_output_url);
+              return (
+                <div
+                  key={job._id}
+                  style={{
+                    ...styles.historyCard,
+                    ...(hasVideo ? {} : { opacity: 0.7 }),
+                  }}
+                  onClick={() => hasVideo && handleVideoJobClick(job)}
+                  onMouseEnter={(e) => {
+                    if (hasVideo) {
+                      e.currentTarget.style.borderColor = 'var(--primary-color)';
+                      e.currentTarget.style.background = 'var(--hover-bg)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (hasVideo) {
+                      e.currentTarget.style.borderColor = 'var(--border-color)';
+                      e.currentTarget.style.background = 'var(--bg-paper)';
+                    }
+                  }}
+                >
+                  <div style={styles.historyCardHeader}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                      {job.prompt.length > 30 ? `${job.prompt.substring(0, 30)}...` : job.prompt}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        color: getStatusColor(job.status),
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      {job.status}
+                    </span>
+                  </div>
+                  <div style={styles.historyCardMeta}>
+                    <span>{formatDate(job.created_at)}</span>
+                    {(job as any).duration && <span>• {(job as any).duration}s</span>}
+                    {(job as any).resolution && <span>• {(job as any).resolution}</span>}
+                  </div>
+                  {hasVideo && (
+                    <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: theme.palette.success.main }}>
+                      ✓ Video available - Click to view
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+        </div>
       </div>
       </div>
     </div>

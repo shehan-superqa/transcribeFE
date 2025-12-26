@@ -145,12 +145,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshUserData = async () => {
     try {
-      const accessToken = getAccessToken();
-      // Only try to refresh if we have a token
-      if (!accessToken) {
-        return;
-      }
-      
       const userResponse = await getCurrentUser();
       if (userResponse.success && userResponse.data) {
         setUser(userResponse.data);
@@ -198,29 +192,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshUser = async () => {
     try {
-      const accessToken = getAccessToken();
-      // Only try to refresh if we have a token
-      if (!accessToken) {
-        setUser(null);
-        return;
-      }
-      
       const userResponse = await getCurrentUser();
       if (userResponse.success && userResponse.data) {
         setUser(userResponse.data);
         setStoredUser(userResponse.data);
-      } else {
-        // If response is not successful, clear user
-        await logoutUser();
-        setUser(null);
       }
     } catch (error) {
       console.error("Error refreshing user:", error);
-      // Only logout if we had a token (meaning it's an auth error, not just no token)
-      const accessToken = getAccessToken();
-      if (accessToken) {
-        await logoutUser();
-      }
+      await logoutUser();
       setUser(null);
     }
   };
