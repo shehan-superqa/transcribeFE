@@ -1,43 +1,25 @@
 import { useState, useEffect, useRef } from 'react';
-import {
-  Box,
-  Paper,
-  Typography,
-  TextField,
-  Button,
-  Card,
-  CardContent,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  MenuItem,
-  Select,
-  FormControl,
-  InputLabel,
-  Chip,
-  Pagination,
-  Snackbar,
-  Alert,
-  Collapse,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-} from '@mui/material';
-import { Edit, Delete, MergeType, FilterList, CloudUpload, ExpandMore, ExpandLess, ViewList, ViewModule, Search, Sort, OpenInFull, Close } from '@mui/icons-material';
-import ToggleButton from '@mui/material/ToggleButton';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { Box, Paper, Typography, Button, FormControl, InputLabel, Select, MenuItem, Snackbar, Alert, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Chip, IconButton, ToggleButtonGroup, ToggleButton, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Collapse } from '@mui/material';
+import { FilterList, CloudUpload, Search, ViewModule, ViewList, OpenInFull, Close, Edit, Delete, MergeType, ExpandLess, ExpandMore, Sort } from '@mui/icons-material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { updateTransaction, deleteTransaction, mergeTransaction, getTransactionItems, updateItem, deleteItem } from '../../lib/api/financialApi';
-import { Transaction, Merchant, Category, TransactionItem } from '../../types/financial';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { updateTransaction, deleteTransaction, mergeTransaction, getTransactionItems, updateItem, deleteItem, listTransactions } from '../../lib/api/financialApi';
+import { Transaction, Merchant, Category, TransactionItem, FlattenedItem } from '../../types/financial';
 import { useAuth } from '../../lib/auth';
 import { useTheme } from '../../contexts/ThemeContext';
+import TransactionFiltersSection from './TransactionFiltersSection';
+import TransactionControlsSection from './TransactionControlsSection';
+import TransactionsList from './TransactionsList';
+import TransactionPagination from './TransactionPagination';
+import {
+  EditTransactionDialog,
+  DeleteTransactionDialog,
+  MergeTransactionDialog,
+  EditItemDialog,
+  DeleteItemDialog
+} from './TransactionDialogs';
+import FullScreenTransactions from './FullScreenTransactions';
 
 interface TransactionsSectionProps {
   transactions: Transaction[];
@@ -428,24 +410,8 @@ export default function TransactionsSection({
   const [itemsSortBy, setItemsSortBy] = useState<'itemName' | 'transactionId' | 'merchant' | 'category' | 'quantity' | 'unitPrice' | 'totalPrice' | 'transactionDate'>('transactionDate');
   const [itemsSortOrder, setItemsSortOrder] = useState<'asc' | 'desc'>('desc');
 
-  // Flatten all items from all transactions with transaction reference
-  interface TransactionItem {
-    id: string; // Unique ID for the item
-    transactionId: string;
-    transactionDate: Date;
-    transactionAmount: number;
-    transactionStatus: string;
-    merchantName: string;
-    categoryName: string;
-    itemName: string;
-    quantity: number;
-    unitPrice: number;
-    totalPrice: number;
-    itemCategory?: string;
-  }
-
-  const getAllItems = (): TransactionItem[] => {
-    const allItems: TransactionItem[] = [];
+  const getAllItems = (): FlattenedItem[] => {
+    const allItems: FlattenedItem[] = [];
     
     transactions.forEach((transaction) => {
       const items = getBillItems(transaction);
@@ -540,983 +506,79 @@ export default function TransactionsSection({
   return (
     <Box>
       {/* Filters */}
-      <Paper 
-        elevation={0} 
-        sx={{ 
-          p: '1.5rem', 
-          mb: '2rem', 
-          backgroundColor: theme.palette.background.paper,
-          border: `1px solid ${theme.palette.divider}`,
-          borderRadius: '12px',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.5rem', mb: '1.5rem' }}>
-          <FilterList sx={{ color: theme.palette.text.secondary, fontSize: '1.25rem' }} />
-          <Typography 
-            variant="h6" 
-            sx={{ 
-              fontFamily: "'Inter', sans-serif",
-              color: theme.palette.text.primary,
-              fontSize: '1rem',
-              fontWeight: 600,
-              lineHeight: 1.2,
-            }}
-          >
-            Filters
-          </Typography>
-          {hasFilters && (
-            <Button 
-              size="small" 
-              onClick={clearFilters}
-              sx={{
-                fontFamily: "'Inter', sans-serif",
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                padding: '0.5rem 0.75rem',
-                borderRadius: '8px',
-                textTransform: 'none',
-              }}
-            >
-              Clear
-            </Button>
-          )}
-        </Box>
-        <Box sx={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-          <LocalizationProvider dateAdapter={AdapterDateFns}>
-            <DatePicker
-              label="Date From"
-              value={filters.dateFrom}
-              onChange={(date) => handleFilterChange('dateFrom', date)}
-              slotProps={{ textField: { size: 'small' } }}
-            />
-            <DatePicker
-              label="Date To"
-              value={filters.dateTo}
-              onChange={(date) => handleFilterChange('dateTo', date)}
-              slotProps={{ textField: { size: 'small' } }}
-            />
-          </LocalizationProvider>
-          <FormControl size="small" sx={{ minWidth: 200 }}>
-            <InputLabel>Category</InputLabel>
-            <Select
-              value={filters.category || ''}
-              onChange={(e) => handleFilterChange('category', e.target.value || undefined)}
-              label="Category"
-            >
-              <MenuItem value="">All</MenuItem>
-              {categories.map((cat) => (
-                <MenuItem key={cat._id} value={cat._id}>
-                  {cat.category_name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl size="small" sx={{ minWidth: 200 }}>
-            <InputLabel>Merchant</InputLabel>
-            <Select
-              value={filters.merchant || ''}
-              onChange={(e) => handleFilterChange('merchant', e.target.value || undefined)}
-              label="Merchant"
-            >
-              <MenuItem value="">All</MenuItem>
-              {merchants.map((merchant) => (
-                <MenuItem key={merchant._id} value={merchant._id}>
-                  {merchant.merchant_name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Box>
-      </Paper>
+      <TransactionFiltersSection
+        filters={filters}
+        categories={categories}
+        merchants={merchants}
+        onFilterChange={handleFilterChange}
+        onClearFilters={clearFilters}
+        hasFilters={hasFilters}
+      />
 
       {/* Controls Bar */}
-      <Paper 
-        elevation={0} 
-        sx={{ 
-          p: '1rem', 
-          mb: '1.5rem', 
-          backgroundColor: theme.palette.background.paper,
-          border: `1px solid ${theme.palette.divider}`,
-          borderRadius: '12px',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+      <TransactionControlsSection
+        layout={layout}
+        searchQuery={layout === 'items' ? itemsSearchQuery : searchQuery}
+        itemsPerPage={itemsPerPage}
+        paginatedCount={paginatedTransactions.length > 0 ? (page - 1) * itemsPerPage + 1 : 0}
+        totalCount={layout === 'items' ? sortedItems.length : sortedTransactions.length}
+        currentPage={page}
+        onLayoutChange={setLayout}
+        onSearchChange={(query) => {
+          if (layout === 'items') {
+            setItemsSearchQuery(query);
+          } else {
+            setSearchQuery(query);
+          }
+          setPage(1);
         }}
-      >
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', justifyContent: 'space-between' }}>
-          {/* Search */}
-          <TextField
-            size="small"
-            placeholder={layout === 'items' ? "Search items..." : "Search transactions..."}
-            value={layout === 'items' ? itemsSearchQuery : searchQuery}
-            onChange={(e) => {
-              if (layout === 'items') {
-                setItemsSearchQuery(e.target.value);
-              } else {
-                setSearchQuery(e.target.value);
-              }
-              setPage(1);
-            }}
-            InputProps={{
-              startAdornment: <Search sx={{ mr: 1, color: theme.palette.text.secondary }} />,
-            }}
-            sx={{
-              flex: '1 1 300px',
-              minWidth: '200px',
-              '& .MuiOutlinedInput-root': {
-                fontFamily: "'Inter', sans-serif",
-                fontSize: '0.875rem',
-              },
-            }}
-          />
-
-          {/* Layout Toggle */}
-          <ToggleButtonGroup
-            value={layout}
-            exclusive
-            onChange={(_, newLayout) => newLayout && setLayout(newLayout)}
-            size="small"
-            sx={{
-              '& .MuiToggleButton-root': {
-                fontFamily: "'Inter', sans-serif",
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                textTransform: 'none',
-                padding: '0.5rem 0.75rem',
-              },
-            }}
-          >
-            <ToggleButton value="card">
-              <ViewModule sx={{ mr: 0.5, fontSize: '1rem' }} />
-              Cards
-            </ToggleButton>
-            <ToggleButton value="table">
-              <ViewList sx={{ mr: 0.5, fontSize: '1rem' }} />
-              Table
-            </ToggleButton>
-            <ToggleButton value="items">
-              <ViewList sx={{ mr: 0.5, fontSize: '1rem' }} />
-              Items
-            </ToggleButton>
-          </ToggleButtonGroup>
-
-          {/* Items Per Page */}
-          <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel>Per Page</InputLabel>
-            <Select
-              value={itemsPerPage}
-              onChange={(e) => {
-                setItemsPerPage(Number(e.target.value));
-                setPage(1);
-              }}
-              label="Per Page"
-              sx={{
-                fontFamily: "'Inter', sans-serif",
-                fontSize: '0.875rem',
-              }}
-            >
-              <MenuItem value={10}>10</MenuItem>
-              <MenuItem value={25}>25</MenuItem>
-              <MenuItem value={50}>50</MenuItem>
-              <MenuItem value={100}>100</MenuItem>
-            </Select>
-          </FormControl>
-
-          {/* Results Count */}
-          <Typography 
-            variant="body2" 
-            sx={{ 
-              fontFamily: "'Inter', sans-serif",
-              fontSize: '0.875rem',
-              color: theme.palette.text.secondary,
-              whiteSpace: 'nowrap',
-            }}
-          >
-            Showing {paginatedTransactions.length > 0 ? (page - 1) * itemsPerPage + 1 : 0} - {Math.min(page * itemsPerPage, sortedTransactions.length)} of {sortedTransactions.length}
-          </Typography>
-
-          {/* Open Full Screen Button */}
-          <Button
-            variant="outlined"
-            startIcon={<OpenInFull />}
-            onClick={() => setFullScreenDialogOpen(true)}
-            sx={{
-              fontFamily: "'Inter', sans-serif",
-              fontSize: '0.875rem',
-              fontWeight: 500,
-              padding: '0.5rem 1rem',
-              borderRadius: '8px',
-              textTransform: 'none',
-              borderColor: theme.palette.primary.main,
-              color: theme.palette.primary.main,
-              '&:hover': {
-                borderColor: theme.palette.primary.dark,
-                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(107, 33, 168, 0.1)' : 'rgba(107, 33, 168, 0.05)',
-              },
-            }}
-          >
-            View All
-          </Button>
-        </Box>
-      </Paper>
+        onItemsPerPageChange={(value) => {
+          setItemsPerPage(value);
+          setPage(1);
+        }}
+        onOpenFullScreen={() => setFullScreenDialogOpen(true)}
+      />
 
       {/* Transactions List */}
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        {paginatedTransactions.length === 0 ? (
-          <Paper
-            elevation={0}
-            sx={{
-              p: '3rem',
-              textAlign: 'center',
-              backgroundColor: theme.palette.background.paper,
-              border: `1px dashed ${theme.palette.divider}`,
-              borderRadius: '12px',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-            }}
-            role="status"
-            aria-live="polite"
-          >
-            {transactions.length === 0 ? (
-              <>
-                <Typography 
-                  variant="h6" 
-                  gutterBottom 
-                  sx={{ 
-                    fontFamily: "'Inter', sans-serif",
-                    color: theme.palette.text.primary, 
-                    fontWeight: 600, 
-                    fontSize: '1rem',
-                    lineHeight: 1.2,
-                    mb: '1rem',
-                  }}
-                >
-                  No Transactions Yet
-                </Typography>
-                <Typography 
-                  variant="body1" 
-                  sx={{ 
-                    fontFamily: "'Inter', sans-serif",
-                    fontSize: '0.875rem',
-                    fontWeight: 400,
-                    lineHeight: 1.5,
-                    color: theme.palette.text.secondary,
-                    mb: '1.5rem',
-                  }}
-                >
-                  Get started by uploading your first bill or receipt. We'll automatically extract the details and track your spending.
-                </Typography>
-                <Button
-                  variant="contained"
-                  size="large"
-                  startIcon={<CloudUpload />}
-                  onClick={() => {
-                    // Scroll to top where upload section would be
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                    // Dispatch custom event that parent can listen to
-                    window.dispatchEvent(new CustomEvent('financial:openUpload'));
-                  }}
-                  aria-label="Upload your first bill"
-                  sx={{
-                    fontFamily: "'Inter', sans-serif",
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    padding: '0.625rem 1rem',
-                    borderRadius: '8px',
-                    textTransform: 'none',
-                  }}
-                >
-                  Upload Your First Bill
-                </Button>
-              </>
-            ) : (
-              <>
-                <Typography 
-                  variant="h6" 
-                  gutterBottom 
-                  sx={{ 
-                    fontFamily: "'Inter', sans-serif",
-                    color: theme.palette.text.primary, 
-                    fontWeight: 600,
-                    fontSize: '1rem',
-                    lineHeight: 1.2,
-                    mb: '1rem',
-                  }}
-                >
-                  No Transactions Match Your Filters
-                </Typography>
-                <Typography 
-                  variant="body1" 
-                  sx={{ 
-                    fontFamily: "'Inter', sans-serif",
-                    fontSize: '0.875rem',
-                    fontWeight: 400,
-                    lineHeight: 1.5,
-                    color: theme.palette.text.secondary,
-                    mb: '1rem',
-                  }}
-                >
-                  Try adjusting your filters to see more transactions.
-                </Typography>
-                <Button
-                  variant="outlined"
-                  onClick={() => {
-                    setFilters({});
-                    onFiltersChange({});
-                  }}
-                  aria-label="Clear all filters"
-                  sx={{
-                    fontFamily: "'Inter', sans-serif",
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    padding: '0.625rem 1rem',
-                    borderRadius: '8px',
-                    textTransform: 'none',
-                  }}
-                >
-                  Clear Filters
-                </Button>
-              </>
-            )}
-          </Paper>
-        ) : layout === 'items' ? (
-          /* Items View - All items from all transactions */
-          <TableContainer 
-            component={Paper}
-            elevation={0}
-            sx={{
-              backgroundColor: theme.palette.background.paper,
-              border: `1px solid ${theme.palette.divider}`,
-              borderRadius: '12px',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-              maxHeight: 'calc(100vh - 400px)',
-              overflow: 'auto',
-            }}
-          >
-            <Table stickyHeader size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell 
-                    sx={{ 
-                      fontWeight: 600, 
-                      color: theme.palette.text.primary,
-                      backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb',
-                      cursor: 'pointer',
-                      userSelect: 'none',
-                      fontFamily: "'Inter', sans-serif",
-                      fontSize: '0.875rem',
-                      minWidth: '150px',
-                    }}
-                    onClick={() => handleItemsSort('itemName')}
-                  >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      Item Name
-                      <Sort sx={{ fontSize: '1rem', opacity: itemsSortBy === 'itemName' ? 1 : 0.3 }} />
-                    </Box>
-                  </TableCell>
-                  <TableCell 
-                    sx={{ 
-                      fontWeight: 600, 
-                      color: theme.palette.text.primary,
-                      backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb',
-                      cursor: 'pointer',
-                      userSelect: 'none',
-                      fontFamily: "'Inter', sans-serif",
-                      fontSize: '0.875rem',
-                      minWidth: '200px',
-                    }}
-                    onClick={() => handleItemsSort('transactionId')}
-                  >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      Transaction ID
-                      <Sort sx={{ fontSize: '1rem', opacity: itemsSortBy === 'transactionId' ? 1 : 0.3 }} />
-                    </Box>
-                  </TableCell>
-                  <TableCell 
-                    sx={{ 
-                      fontWeight: 600, 
-                      color: theme.palette.text.primary,
-                      backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb',
-                      cursor: 'pointer',
-                      userSelect: 'none',
-                      fontFamily: "'Inter', sans-serif",
-                      fontSize: '0.875rem',
-                      minWidth: '120px',
-                    }}
-                    onClick={() => handleItemsSort('transactionDate')}
-                  >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      Date
-                      <Sort sx={{ fontSize: '1rem', opacity: itemsSortBy === 'transactionDate' ? 1 : 0.3 }} />
-                    </Box>
-                  </TableCell>
-                  <TableCell 
-                    sx={{ 
-                      fontWeight: 600, 
-                      color: theme.palette.text.primary,
-                      backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb',
-                      cursor: 'pointer',
-                      userSelect: 'none',
-                      fontFamily: "'Inter', sans-serif",
-                      fontSize: '0.875rem',
-                      minWidth: '150px',
-                    }}
-                    onClick={() => handleItemsSort('merchant')}
-                  >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      Merchant
-                      <Sort sx={{ fontSize: '1rem', opacity: itemsSortBy === 'merchant' ? 1 : 0.3 }} />
-                    </Box>
-                  </TableCell>
-                  <TableCell 
-                    sx={{ 
-                      fontWeight: 600, 
-                      color: theme.palette.text.primary,
-                      backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb',
-                      cursor: 'pointer',
-                      userSelect: 'none',
-                      fontFamily: "'Inter', sans-serif",
-                      fontSize: '0.875rem',
-                      minWidth: '150px',
-                    }}
-                    onClick={() => handleItemsSort('category')}
-                  >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      Category
-                      <Sort sx={{ fontSize: '1rem', opacity: itemsSortBy === 'category' ? 1 : 0.3 }} />
-                    </Box>
-                  </TableCell>
-                  <TableCell 
-                    align="right"
-                    sx={{ 
-                      fontWeight: 600, 
-                      color: theme.palette.text.primary,
-                      backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb',
-                      cursor: 'pointer',
-                      userSelect: 'none',
-                      fontFamily: "'Inter', sans-serif",
-                      fontSize: '0.875rem',
-                      minWidth: '80px',
-                    }}
-                    onClick={() => handleItemsSort('quantity')}
-                  >
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5 }}>
-                      Qty
-                      <Sort sx={{ fontSize: '1rem', opacity: itemsSortBy === 'quantity' ? 1 : 0.3 }} />
-                    </Box>
-                  </TableCell>
-                  <TableCell 
-                    align="right"
-                    sx={{ 
-                      fontWeight: 600, 
-                      color: theme.palette.text.primary,
-                      backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb',
-                      cursor: 'pointer',
-                      userSelect: 'none',
-                      fontFamily: "'Inter', sans-serif",
-                      fontSize: '0.875rem',
-                      minWidth: '100px',
-                    }}
-                    onClick={() => handleItemsSort('unitPrice')}
-                  >
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5 }}>
-                      Unit Price
-                      <Sort sx={{ fontSize: '1rem', opacity: itemsSortBy === 'unitPrice' ? 1 : 0.3 }} />
-                    </Box>
-                  </TableCell>
-                  <TableCell 
-                    align="right"
-                    sx={{ 
-                      fontWeight: 600, 
-                      color: theme.palette.text.primary,
-                      backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb',
-                      cursor: 'pointer',
-                      userSelect: 'none',
-                      fontFamily: "'Inter', sans-serif",
-                      fontSize: '0.875rem',
-                      minWidth: '100px',
-                    }}
-                    onClick={() => handleItemsSort('totalPrice')}
-                  >
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5 }}>
-                      Total Price
-                      <Sort sx={{ fontSize: '1rem', opacity: itemsSortBy === 'totalPrice' ? 1 : 0.3 }} />
-                    </Box>
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {paginatedItems.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
-                      <Typography variant="body2" color="text.secondary" sx={{ fontFamily: "'Inter', sans-serif" }}>
-                        No items found
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  paginatedItems.map((item, index) => (
-                    <TableRow 
-                      key={item.id}
-                      hover
-                      sx={{
-                        backgroundColor: index % 2 === 0 ? theme.palette.background.paper : (theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb'),
-                        '&:hover': {
-                          backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f3f4f6',
-                        },
-                      }}
-                    >
-                      <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
-                        {item.itemName}
-                      </TableCell>
-                      <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
-                        <Typography 
-                          variant="body2" 
-                          sx={{ 
-                            fontSize: '0.75rem',
-                            color: theme.palette.primary.main,
-                            fontFamily: 'monospace',
-                            wordBreak: 'break-all',
-                          }}
-                        >
-                          {item.transactionId}
-                        </Typography>
-                      </TableCell>
-                      <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
-                        {item.transactionDate.toLocaleDateString()}
-                      </TableCell>
-                      <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
-                        {item.merchantName}
-                      </TableCell>
-                      <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
-                        {item.categoryName}
-                      </TableCell>
-                      <TableCell align="right" sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
-                        {item.quantity}
-                      </TableCell>
-                      <TableCell align="right" sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
-                        Rs. {item.unitPrice.toFixed(2)}
-                      </TableCell>
-                      <TableCell align="right" sx={{ color: theme.palette.text.primary, fontWeight: 500, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
-                        Rs. {item.totalPrice.toFixed(2)}
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        ) : layout === 'table' ? (
-          /* Table Layout */
-          <TableContainer 
-            component={Paper}
-            elevation={0}
-            sx={{
-              backgroundColor: theme.palette.background.paper,
-              border: `1px solid ${theme.palette.divider}`,
-              borderRadius: '12px',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-              maxHeight: 'calc(100vh - 400px)',
-              overflow: 'auto',
-            }}
-          >
-            <Table stickyHeader size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell 
-                    sx={{ 
-                      fontWeight: 600, 
-                      color: theme.palette.text.primary,
-                      backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb',
-                      cursor: 'pointer',
-                      userSelect: 'none',
-                      fontFamily: "'Inter', sans-serif",
-                      fontSize: '0.875rem',
-                    }}
-                    onClick={() => handleSort('date')}
-                  >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      Date
-                      <Sort sx={{ fontSize: '1rem', opacity: sortBy === 'date' ? 1 : 0.3 }} />
-                    </Box>
-                  </TableCell>
-                  <TableCell 
-                    sx={{ 
-                      fontWeight: 600, 
-                      color: theme.palette.text.primary,
-                      backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb',
-                      cursor: 'pointer',
-                      userSelect: 'none',
-                      fontFamily: "'Inter', sans-serif",
-                      fontSize: '0.875rem',
-                    }}
-                    onClick={() => handleSort('merchant')}
-                  >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      Merchant
-                      <Sort sx={{ fontSize: '1rem', opacity: sortBy === 'merchant' ? 1 : 0.3 }} />
-                    </Box>
-                  </TableCell>
-                  <TableCell 
-                    sx={{ 
-                      fontWeight: 600, 
-                      color: theme.palette.text.primary,
-                      backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb',
-                      cursor: 'pointer',
-                      userSelect: 'none',
-                      fontFamily: "'Inter', sans-serif",
-                      fontSize: '0.875rem',
-                    }}
-                    onClick={() => handleSort('category')}
-                  >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      Category
-                      <Sort sx={{ fontSize: '1rem', opacity: sortBy === 'category' ? 1 : 0.3 }} />
-                    </Box>
-                  </TableCell>
-                  <TableCell 
-                    align="right"
-                    sx={{ 
-                      fontWeight: 600, 
-                      color: theme.palette.text.primary,
-                      backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb',
-                      cursor: 'pointer',
-                      userSelect: 'none',
-                      fontFamily: "'Inter', sans-serif",
-                      fontSize: '0.875rem',
-                    }}
-                    onClick={() => handleSort('amount')}
-                  >
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5 }}>
-                      Amount
-                      <Sort sx={{ fontSize: '1rem', opacity: sortBy === 'amount' ? 1 : 0.3 }} />
-                    </Box>
-                  </TableCell>
-                  <TableCell 
-                    sx={{ 
-                      fontWeight: 600, 
-                      color: theme.palette.text.primary,
-                      backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb',
-                      fontFamily: "'Inter', sans-serif",
-                      fontSize: '0.875rem',
-                    }}
-                  >
-                    Status
-                  </TableCell>
-                  <TableCell 
-                    sx={{ 
-                      fontWeight: 600, 
-                      color: theme.palette.text.primary,
-                      backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb',
-                      fontFamily: "'Inter', sans-serif",
-                      fontSize: '0.875rem',
-                    }}
-                  >
-                    Actions
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {paginatedTransactions.map((transaction, index) => (
-                  <TableRow 
-                    key={transaction._id}
-                    hover
-                    sx={{
-                      backgroundColor: index % 2 === 0 ? theme.palette.background.paper : (theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb'),
-                      '&:hover': {
-                        backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f3f4f6',
-                      },
-                    }}
-                  >
-                    <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
-                      {new Date(transaction.date).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
-                      {getMerchantName(transaction.merchant_id)}
-                    </TableCell>
-                    <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
-                      {getCategoryName(transaction.category_id)}
-                    </TableCell>
-                    <TableCell align="right" sx={{ color: theme.palette.text.primary, fontWeight: 500, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
-                      Rs. {transaction.amount.toFixed(2)}
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={transaction.status}
-                        size="small"
-                        color={
-                          transaction.status === 'confirmed'
-                            ? 'success'
-                            : transaction.status === 'pending'
-                            ? 'warning'
-                            : 'error'
-                        }
-                        sx={{ fontFamily: "'Inter', sans-serif", fontSize: '0.75rem' }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', gap: 0.5 }}>
-                        <IconButton
-                          size="small"
-                          onClick={() => handleEdit(transaction)}
-                          color="primary"
-                          sx={{ padding: '0.25rem' }}
-                        >
-                          <Edit sx={{ fontSize: '1rem' }} />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          onClick={() => {
-                            setSelectedTransaction(transaction);
-                            setDeleteDialogOpen(true);
-                          }}
-                          color="error"
-                          sx={{ padding: '0.25rem' }}
-                        >
-                          <Delete sx={{ fontSize: '1rem' }} />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          onClick={() => {
-                            setSelectedTransaction(transaction);
-                            setMergeDialogOpen(true);
-                          }}
-                          color="secondary"
-                          sx={{ padding: '0.25rem' }}
-                        >
-                          <MergeType sx={{ fontSize: '1rem' }} />
-                        </IconButton>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        ) : (
-          /* Card Layout */
-          paginatedTransactions.map((transaction) => (
-            <Card 
-              key={transaction._id} 
-              elevation={0} 
-              sx={{ 
-                backgroundColor: theme.palette.background.paper,
-                border: `1px solid ${theme.palette.divider}`,
-                borderRadius: '12px',
-                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-              }}
-            >
-              <CardContent sx={{ p: '1.5rem' }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                  <Box sx={{ flex: 1 }}>
-                    <Typography 
-                      variant="h6" 
-                      gutterBottom 
-                      sx={{ 
-                        fontFamily: "'Inter', sans-serif",
-                        color: theme.palette.text.primary,
-                        fontSize: '1rem',
-                        fontWeight: 600,
-                        lineHeight: 1.2,
-                        mb: '0.5rem',
-                      }}
-                    >
-                      Rs. {transaction.amount.toFixed(2)}
-                    </Typography>
-                    <Typography 
-                      variant="body2" 
-                      sx={{
-                        fontFamily: "'Inter', sans-serif",
-                        fontSize: '0.875rem',
-                        fontWeight: 400,
-                        lineHeight: 1.5,
-                        color: theme.palette.text.secondary,
-                        mb: '0.5rem',
-                      }}
-                    >
-                      {new Date(transaction.date).toLocaleDateString()}
-                    </Typography>
-                    <Box sx={{ display: 'flex', gap: 1, mt: 1, flexWrap: 'wrap' }}>
-                      <Chip
-                        label={getMerchantName(transaction.merchant_id)}
-                        size="small"
-                        variant="outlined"
-                      />
-                      <Chip
-                        label={getCategoryName(transaction.category_id)}
-                        size="small"
-                        variant="outlined"
-                      />
-                      <Chip
-                        label={transaction.status}
-                        size="small"
-                        color={
-                          transaction.status === 'confirmed'
-                            ? 'success'
-                            : transaction.status === 'pending'
-                            ? 'warning'
-                            : 'error'
-                        }
-                      />
-                      {transaction.anomaly_flag && (
-                        <Chip label="Anomaly" size="small" color="error" />
-                      )}
-                    </Box>
-                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                      Confidence: {(transaction.confidence_category * 100).toFixed(1)}%
-                    </Typography>
-                    
-                    {/* Bill Items Toggle */}
-                    {getBillItems(transaction).length > 0 && (
-                      <Button
-                        size="small"
-                        onClick={() => toggleItemsExpansion(transaction._id)}
-                        startIcon={expandedTransactions.has(transaction._id) ? <ExpandLess /> : <ExpandMore />}
-                        sx={{ mt: 1, textTransform: 'none' }}
-                      >
-                        {expandedTransactions.has(transaction._id) ? 'Hide Items' : `Show Items (${getBillItems(transaction).length})`}
-                      </Button>
-                    )}
-                  </Box>
-                  <Box sx={{ display: 'flex', gap: 1 }}>
-                    <IconButton
-                      size="small"
-                      onClick={() => handleEdit(transaction)}
-                      color="primary"
-                    >
-                      <Edit />
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      onClick={() => {
-                        setSelectedTransaction(transaction);
-                        setDeleteDialogOpen(true);
-                      }}
-                      color="error"
-                    >
-                      <Delete />
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      onClick={() => {
-                        setSelectedTransaction(transaction);
-                        setMergeDialogOpen(true);
-                      }}
-                      color="secondary"
-                    >
-                      <MergeType />
-                    </IconButton>
-                  </Box>
-                </Box>
-                
-                {/* Bill Items List */}
-                {getBillItems(transaction).length > 0 && (
-                  <Collapse in={expandedTransactions.has(transaction._id)} timeout="auto" unmountOnExit>
-                    <Box sx={{ mt: 2, pt: 2, borderTop: `1px solid ${theme.palette.divider}` }}>
-                      <Typography variant="subtitle2" sx={{ mb: 1, color: theme.palette.text.primary, fontWeight: 600 }}>
-                        Bill Items
-                      </Typography>
-                      <TableContainer>
-                        <Table size="small">
-                          <TableHead>
-                            <TableRow>
-                              <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb' }}>Item Name</TableCell>
-                              <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb' }}>Quantity</TableCell>
-                              <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb' }}>Unit Price</TableCell>
-                              <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb' }}>Total Price</TableCell>
-                              {getBillItems(transaction).some((item: any) => item.category || (item as TransactionItem).category) && (
-                                <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb' }}>Category</TableCell>
-                              )}
-                              {transactionItems[transaction._id] && transactionItems[transaction._id].length > 0 && (
-                                <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb' }}>Actions</TableCell>
-                              )}
-                            </TableRow>
-                          </TableHead>
-                          <TableBody>
-                            {getBillItems(transaction).map((item: any, index: number) => {
-                              // Check if this is an API item (has _id) or embedded item
-                              const itemId = (item as TransactionItem)._id;
-                              const apiItem = itemId && transactionItems[transaction._id] 
-                                ? transactionItems[transaction._id].find(apiItem => apiItem._id === itemId)
-                                : null;
-                              const displayItem = apiItem || item;
-                              const isApiItem = !!apiItem;
-                              
-                              return (
-                                <TableRow key={itemId || index} hover>
-                                  <TableCell sx={{ color: theme.palette.text.primary }}>{displayItem.name || 'N/A'}</TableCell>
-                                  <TableCell align="right" sx={{ color: theme.palette.text.primary }}>{displayItem.quantity || 1}</TableCell>
-                                  <TableCell align="right" sx={{ color: theme.palette.text.primary }}>
-                                    {displayItem.unit_price ? `Rs. ${displayItem.unit_price.toFixed(2)}` : 'N/A'}
-                                  </TableCell>
-                                  <TableCell align="right" sx={{ color: theme.palette.text.primary, fontWeight: 500 }}>
-                                    {displayItem.total_price ? `Rs. ${displayItem.total_price.toFixed(2)}` : 'N/A'}
-                                  </TableCell>
-                                  {getBillItems(transaction).some((i: any) => i.category || (i as TransactionItem).category) && (
-                                    <TableCell sx={{ color: theme.palette.text.primary }}>
-                                      {displayItem.category ? (
-                                        <Chip label={displayItem.category} size="small" variant="outlined" />
-                                      ) : (
-                                        '-'
-                                      )}
-                                    </TableCell>
-                                  )}
-                                  {apiItem && (
-                                    <TableCell>
-                                      <Box sx={{ display: 'flex', gap: 0.5 }}>
-                                        <IconButton
-                                          size="small"
-                                          onClick={() => handleItemEdit(apiItem)}
-                                          color="primary"
-                                          sx={{ padding: '0.25rem' }}
-                                        >
-                                          <Edit fontSize="small" />
-                                        </IconButton>
-                                        <IconButton
-                                          size="small"
-                                          onClick={() => {
-                                            setSelectedItem(apiItem);
-                                            setItemDeleteDialogOpen(true);
-                                          }}
-                                          color="error"
-                                          sx={{ padding: '0.25rem' }}
-                                        >
-                                          <Delete fontSize="small" />
-                                        </IconButton>
-                                      </Box>
-                                    </TableCell>
-                                  )}
-                                </TableRow>
-                              );
-                            })}
-                          </TableBody>
-                        </Table>
-                      </TableContainer>
-                    </Box>
-                  </Collapse>
-                )}
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </Box>
+      <TransactionsList
+        layout={layout}
+        transactions={transactions}
+        merchants={merchants}
+        categories={categories}
+        expandedTransactions={expandedTransactions}
+        transactionItems={transactionItems}
+        loadingItems={loadingItems}
+        paginatedTransactions={paginatedTransactions}
+        paginatedItems={paginatedItems}
+        itemsPerPage={itemsPerPage}
+        page={page}
+        onToggleItemsExpansion={toggleItemsExpansion}
+        onEditTransaction={handleEdit}
+        onDeleteTransaction={(transaction) => {
+          setSelectedTransaction(transaction);
+          setDeleteDialogOpen(true);
+        }}
+        onMergeTransaction={(transaction) => {
+          setSelectedTransaction(transaction);
+          setMergeDialogOpen(true);
+        }}
+        onEditItem={handleItemEdit}
+        onDeleteItem={(item) => {
+          setSelectedItem(item);
+          setItemDeleteDialogOpen(true);
+        }}
+        getMerchantName={getMerchantName}
+        getCategoryName={getCategoryName}
+        getBillItems={getBillItems}
+      />
 
       {/* Pagination */}
       {(layout === 'items' ? sortedItems.length : sortedTransactions.length) > itemsPerPage && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2, mt: 3 }}>
-          <Pagination
-            count={Math.ceil((layout === 'items' ? sortedItems.length : sortedTransactions.length) / itemsPerPage)}
-            page={page}
-            onChange={(_, value) => setPage(value)}
-            color="primary"
-            showFirstButton
-            showLastButton
-            sx={{
-              '& .MuiPaginationItem-root': {
-                fontFamily: "'Inter', sans-serif",
-                fontSize: '0.875rem',
-              },
-            }}
-          />
-        </Box>
+        <TransactionPagination
+          count={Math.ceil((layout === 'items' ? sortedItems.length : sortedTransactions.length) / itemsPerPage)}
+          page={page}
+          onPageChange={setPage}
+        />
       )}
 
       {/* Edit Dialog */}

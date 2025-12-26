@@ -404,6 +404,22 @@ export interface TransactionItem {
   updated_at: string;
 }
 
+export interface FlattenedItem {
+  id: string;
+  transactionId: string;
+  transactionDate: Date;
+  transactionAmount: number;
+  transactionStatus: string;
+  merchantName: string;
+  categoryName: string;
+  itemName: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+  itemCategory?: string;
+  _id?: string;
+}
+
 export interface TransactionItemsResponse {
   success: boolean;
   items: TransactionItem[];
