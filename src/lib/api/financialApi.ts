@@ -2,6 +2,10 @@ import { authenticatedFetch, handleResponse, getAccessToken, refreshAccessToken,
 import {
   BillUploadResponse,
   BillStatusResponse,
+  BulkUploadResponse,
+  BulkUploadStatusResponse,
+  ManualTransactionRequest,
+  ManualTransactionResponse,
   TransactionsListResponse,
   TransactionsListParams,
   UpdateTransactionRequest,
@@ -48,13 +52,33 @@ const FINANCIAL_API_BASE_URL = 'http://localhost:5000';
 
 export async function uploadBill(
   file: File,
-  category?: string,
-  merchant?: string
+  options?: {
+    transaction_type?: 'expense' | 'earning';
+    category_override?: string;
+    merchant_override?: string;
+  }
 ): Promise<BillUploadResponse> {
   const formData = new FormData();
   formData.append('file', file);
-  if (category) formData.append('category', category);
-  if (merchant) formData.append('merchant', merchant);
+  
+  // Support new parameters
+  if (options?.transaction_type) {
+    formData.append('transaction_type', options.transaction_type);
+  }
+  if (options?.category_override) {
+    formData.append('category_override', options.category_override);
+  }
+  if (options?.merchant_override) {
+    formData.append('merchant_override', options.merchant_override);
+  }
+  
+  // Legacy support (for backward compatibility)
+  if (options?.category_override && !formData.has('category_override')) {
+    formData.append('category', options.category_override);
+  }
+  if (options?.merchant_override && !formData.has('merchant_override')) {
+    formData.append('merchant', options.merchant_override);
+  }
 
   let token = getAccessToken();
   
@@ -97,6 +121,91 @@ export async function getBillStatus(billId: string): Promise<BillStatusResponse>
     FINANCIAL_API_BASE_URL
   );
   return handleResponse<BillStatusResponse>(response);
+}
+
+// Bulk Upload
+export async function uploadBillsBulk(
+  files: File[],
+  options?: {
+    transaction_type?: 'expense' | 'earning';
+    category_override?: string;
+    merchant_override?: string;
+  }
+): Promise<BulkUploadResponse> {
+  const formData = new FormData();
+  
+  // Append all files
+  files.forEach((file) => {
+    formData.append('files[]', file);
+  });
+  
+  // Add transaction type and overrides
+  if (options?.transaction_type) {
+    formData.append('transaction_type', options.transaction_type);
+  }
+  if (options?.category_override) {
+    formData.append('category_override', options.category_override);
+  }
+  if (options?.merchant_override) {
+    formData.append('merchant_override', options.merchant_override);
+  }
+
+  let token = getAccessToken();
+  
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  let response = await fetch(`${FINANCIAL_API_BASE_URL}/api/financial/bills/bulk`, {
+    method: 'POST',
+    headers,
+    body: formData,
+  });
+
+  // Handle 401 and retry with token refresh
+  if (response.status === 401 && token) {
+    const newToken = await refreshAccessToken();
+    if (newToken) {
+      headers['Authorization'] = `Bearer ${newToken}`;
+      response = await fetch(`${FINANCIAL_API_BASE_URL}/api/financial/bills/bulk`, {
+        method: 'POST',
+        headers,
+        body: formData,
+      });
+    } else {
+      clearAuthData();
+      throw new Error('Authentication failed. Please log in again.');
+    }
+  }
+
+  return handleResponse<BulkUploadResponse>(response);
+}
+
+export async function getBulkUploadStatus(batchJobId: string): Promise<BulkUploadStatusResponse> {
+  const response = await authenticatedFetch(
+    `/api/financial/bills/bulk/${batchJobId}`,
+    { method: 'GET' },
+    true,
+    FINANCIAL_API_BASE_URL
+  );
+  return handleResponse<BulkUploadStatusResponse>(response);
+}
+
+// Manual Transaction Entry
+export async function createManualTransaction(
+  request: ManualTransactionRequest
+): Promise<ManualTransactionResponse> {
+  const response = await authenticatedFetch(
+    '/api/financial/transactions/manual',
+    {
+      method: 'POST',
+      body: JSON.stringify(request),
+    },
+    true,
+    FINANCIAL_API_BASE_URL
+  );
+  return handleResponse<ManualTransactionResponse>(response);
 }
 
 export async function listTransactions(

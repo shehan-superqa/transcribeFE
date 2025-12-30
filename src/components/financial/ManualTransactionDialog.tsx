@@ -21,6 +21,7 @@ import {
   TrendingDown as TrendingDownIcon,
 } from '@mui/icons-material';
 import { Category } from '../../types/financial';
+import { createManualTransaction } from '../../lib/api/financialApi';
 
 interface ManualTransactionDialogProps {
   open: boolean;
@@ -43,9 +44,11 @@ export default function ManualTransactionDialog({
     date: new Date().toISOString().split('T')[0],
     payment_method: '',
     note: '',
+    currency: 'USD',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
 
   const handleTypeChange = (_event: React.MouseEvent<HTMLElement>, newType: 'earning' | 'expense' | null) => {
     if (newType !== null) {
@@ -68,25 +71,42 @@ export default function ManualTransactionDialog({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validateForm()) {
       return;
     }
 
-    const transaction = {
-      type: formData.type,
-      amount: parseFloat(formData.amount),
-      merchant_name: formData.merchant_name || 'Manual Entry',
-      category_id: formData.category_id || undefined,
-      date: formData.date,
-      payment_method: formData.payment_method || 'Manual',
-      note: formData.note,
-      status: 'confirmed',
-      created_at: new Date().toISOString(),
-    };
+    setLoading(true);
+    try {
+      // Convert date to ISO 8601 format with time (use current time for the date)
+      const dateObj = new Date(formData.date);
+      dateObj.setHours(new Date().getHours(), new Date().getMinutes(), new Date().getSeconds());
+      
+      const request = {
+        transaction_type: formData.type,
+        amount: parseFloat(formData.amount),
+        date: dateObj.toISOString(),
+        merchant_name: formData.merchant_name || undefined,
+        category_id: formData.category_id || undefined,
+        description: formData.note || undefined,
+        payment_method: formData.payment_method || undefined,
+        currency: formData.currency,
+      };
 
-    onSave(transaction);
-    handleClose();
+      const response = await createManualTransaction(request);
+      
+      if (response.success) {
+        onSave(response.transaction);
+        handleClose();
+      } else {
+        setErrors({ general: 'Failed to create transaction. Please try again.' });
+      }
+    } catch (error: any) {
+      console.error('Error creating manual transaction:', error);
+      setErrors({ general: error.message || 'Failed to create transaction. Please try again.' });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleClose = () => {
@@ -98,8 +118,10 @@ export default function ManualTransactionDialog({
       date: new Date().toISOString().split('T')[0],
       payment_method: '',
       note: '',
+      currency: 'USD',
     });
     setErrors({});
+    setLoading(false);
     onClose();
   };
 
@@ -185,7 +207,7 @@ export default function ManualTransactionDialog({
             error={!!errors.amount}
             helperText={errors.amount}
             InputProps={{
-              startAdornment: <Typography sx={{ mr: 1 }}>$</Typography>,
+              startAdornment: <Typography sx={{ mr: 1 }}>{formData.currency === 'USD' ? '$' : formData.currency === 'EUR' ? '€' : formData.currency === 'GBP' ? '£' : formData.currency === 'LKR' ? 'Rs.' : formData.currency === 'INR' ? '₹' : ''}</Typography>,
             }}
             inputProps={{
               step: '0.01',
@@ -256,9 +278,25 @@ export default function ManualTransactionDialog({
             </Select>
           </FormControl>
 
+          {/* Currency */}
+          <FormControl fullWidth>
+            <InputLabel>Currency</InputLabel>
+            <Select
+              value={formData.currency}
+              label="Currency"
+              onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+            >
+              <MenuItem value="USD">USD ($)</MenuItem>
+              <MenuItem value="EUR">EUR (€)</MenuItem>
+              <MenuItem value="GBP">GBP (£)</MenuItem>
+              <MenuItem value="LKR">LKR (Rs.)</MenuItem>
+              <MenuItem value="INR">INR (₹)</MenuItem>
+            </Select>
+          </FormControl>
+
           {/* Note */}
           <TextField
-            label="Note"
+            label="Description / Note"
             value={formData.note}
             onChange={(e) => setFormData({ ...formData, note: e.target.value })}
             fullWidth
@@ -266,11 +304,19 @@ export default function ManualTransactionDialog({
             rows={3}
             placeholder="Add any additional details about this transaction..."
           />
+
+          {/* Error Message */}
+          {errors.general && (
+            <Alert severity="error" sx={{ borderRadius: '12px' }}>
+              {errors.general}
+            </Alert>
+          )}
         </Box>
       </DialogContent>
       <DialogActions sx={{ p: 2, gap: 1 }}>
         <Button 
           onClick={handleClose}
+          disabled={loading}
           sx={{ borderRadius: '12px', textTransform: 'none' }}
         >
           Cancel
@@ -278,10 +324,10 @@ export default function ManualTransactionDialog({
         <Button
           onClick={handleSave}
           variant="contained"
-          disabled={!formData.amount || !formData.date}
+          disabled={!formData.amount || !formData.date || loading}
           sx={{ borderRadius: '12px', textTransform: 'none', minWidth: 100 }}
         >
-          Add Transaction
+          {loading ? 'Creating...' : 'Add Transaction'}
         </Button>
       </DialogActions>
     </Dialog>

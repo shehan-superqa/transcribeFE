@@ -144,7 +144,7 @@ function AppContentInner() {
                 <Route path="/financialtool" element={<FinancialToolPage />} />
 
                 {/* Financial Tool Application */}
-                <Route path="/financialtool/app" element={<FinancialToolApp />} />
+                <Route path="/financialtool/app/*" element={<FinancialToolApp />} />
 
                 {/* Fallback */}
                 <Route path="*" element={<Navigate to="/" replace />} />

@@ -76,6 +76,57 @@ export interface BillUploadResponse {
   message: string;
 }
 
+export interface BulkUploadResponse {
+  success: boolean;
+  batch_job_id: string;
+  individual_job_ids: string[];
+  message: string;
+}
+
+export interface BulkUploadStatusResponse {
+  success: boolean;
+  batch_job_id: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  summary: {
+    total: number;
+    completed: number;
+    failed: number;
+    in_progress: number;
+  };
+  results: Array<{
+    job_id: string;
+    file_name: string;
+    status: 'pending' | 'processing' | 'completed' | 'failed';
+    transaction?: Transaction;
+    error?: string;
+  }>;
+}
+
+export interface ManualTransactionRequest {
+  transaction_type: 'expense' | 'earning';
+  amount: number;
+  date: string;
+  merchant_name?: string;
+  merchant_id?: string;
+  category_name?: string;
+  category_id?: string;
+  description?: string;
+  payment_method?: string;
+  currency?: string;
+  items?: Array<{
+    name: string;
+    quantity: number;
+    unit_price: number;
+    total_price: number;
+  }>;
+}
+
+export interface ManualTransactionResponse {
+  success: boolean;
+  transaction: Transaction;
+  message: string;
+}
+
 export interface JobStatus {
   job_id: string;
   status: 'pending' | 'processing' | 'completed' | 'failed';

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate, useLocation, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import {
@@ -20,10 +21,12 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../lib/auth';
 import { listTransactions, listMerchants, listCategories } from '../lib/api/financialApi';
 import { Transaction, Merchant, Category } from '../types/financial';
-import BillUploadSection from '../components/financial/BillUploadSection';
+import EnhancedBillUploadSection from '../components/financial/EnhancedBillUploadSection';
 import TransactionsSection, { TransactionFilters } from '../components/financial/TransactionsSection';
-import MerchantsCategoriesSection from '../components/financial/MerchantsCategoriesSection';
+import EnhancedMerchantsSection from '../components/financial/EnhancedMerchantsSection';
+import EnhancedCategorySection from '../components/financial/EnhancedCategorySection';
 import AnalyticsSection from '../components/financial/AnalyticsSection';
+import AdvancedAnalyticsSection from '../components/financial/AdvancedAnalyticsSection';
 import AIChatSection from '../components/financial/AIChatSection';
 import ModelStatusSection from '../components/financial/ModelStatusSection';
 import BudgetSection from '../components/financial/BudgetSection';
@@ -39,31 +42,12 @@ import SavingsSection from '../components/financial/SavingsSection';
 import UserManagementSection from '../components/financial/UserManagementSection';
 import LoansSection from '../components/financial/LoansSection';
 import ManualTransactionDialog from '../components/financial/ManualTransactionDialog';
+import ShoppingListSection from '../components/financial/ShoppingListSection';
+import UserProfileSection from '../components/financial/UserProfileSection';
 import SearchIcon from '@mui/icons-material/Search';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 import './FinancialToolApp.css';
-
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`financial-tabpanel-${index}`}
-      aria-labelledby={`financial-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ p: { xs: 1.25, sm: 2 } }}>{children}</Box>}
-    </div>
-  );
-}
 
 function a11yProps(index: number) {
   return {
@@ -72,13 +56,79 @@ function a11yProps(index: number) {
   };
 }
 
+// Tab to path mapping
+const TAB_PATHS = [
+  'dashboard',
+  'upload',
+  'transactions',
+  'pending',
+  'recurring',
+  'upcoming',
+  'items',
+  'merchants',
+  'categories',
+  'analytics',
+  'advanced-analytics',
+  'family',
+  'budgets',
+  'savings',
+  'loans',
+  'shopping-lists',
+  'user-profile',
+  'users',
+  'alerts',
+  'ai-chat',
+  'model-status',
+];
+
+// Path to tab index mapping
+const PATH_TO_TAB: Record<string, number> = {
+  'dashboard': 0,
+  'upload': 1,
+  'transactions': 2,
+  'pending': 3,
+  'recurring': 4,
+  'upcoming': 5,
+  'items': 6,
+  'merchants': 7,
+  'categories': 8,
+  'analytics': 9,
+  'advanced-analytics': 10,
+  'family': 11,
+  'budgets': 12,
+  'savings': 13,
+  'loans': 14,
+  'shopping-lists': 15,
+  'user-profile': 16,
+  'users': 17,
+  'alerts': 18,
+  'ai-chat': 19,
+  'model-status': 20,
+};
+
 export default function FinancialToolApp() {
   const { user } = useAuth();
   const { theme } = useTheme();
   const isSmallLayout = useMediaQuery(theme.breakpoints.down('lg'));
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  // Nav (top tabs)
-  const [value, setValue] = useState(0);
+  // Get current tab from URL path
+  const getTabFromPath = useCallback(() => {
+    const path = location.pathname.replace('/financialtool/app/', '').split('/')[0] || 'dashboard';
+    return PATH_TO_TAB[path] ?? 0;
+  }, [location.pathname]);
+
+  // Nav (top tabs) - sync with URL
+  const [value, setValue] = useState(() => getTabFromPath());
+
+  // Update tab when URL changes
+  useEffect(() => {
+    const tabFromPath = getTabFromPath();
+    if (tabFromPath !== value) {
+      setValue(tabFromPath);
+    }
+  }, [location.pathname, getTabFromPath]);
 
   // AI chat widget (floating)
   const [showChatWidget, setShowChatWidget] = useState(false);
@@ -93,6 +143,12 @@ export default function FinancialToolApp() {
   const [showManualTransactionDialog, setShowManualTransactionDialog] = useState(false);
 
   useEffect(() => {
+    // Redirect to dashboard if on base path
+    if (location.pathname === '/financialtool/app' || location.pathname === '/financialtool/app/') {
+      navigate('/financialtool/app/dashboard', { replace: true });
+      return;
+    }
+
     if (user) {
       loadInitialData();
     }
@@ -100,14 +156,14 @@ export default function FinancialToolApp() {
     // Listen for upload trigger from empty states
     const handleOpenUpload = () => {
       // Upload Bills tab
-      setValue(1);
+      navigate('/financialtool/app/upload', { replace: true });
     };
     window.addEventListener('financial:openUpload', handleOpenUpload);
 
     return () => {
       window.removeEventListener('financial:openUpload', handleOpenUpload);
     };
-  }, [user]);
+  }, [user, location.pathname, navigate]);
 
   const loadInitialData = async () => {
     setLoading(true);
@@ -161,22 +217,24 @@ export default function FinancialToolApp() {
 
   const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
+    const path = TAB_PATHS[newValue] || 'dashboard';
+    navigate(`/financialtool/app/${path}`, { replace: true });
   };
 
   const handleViewTransactions = () => {
-    setValue(2);
+    navigate('/financialtool/app/transactions', { replace: true });
   };
 
   const handleViewAnalytics = () => {
-    setValue(5);
+    navigate('/financialtool/app/analytics', { replace: true });
   };
 
   const handleViewBudgets = () => {
-    setValue(6);
+    navigate('/financialtool/app/budgets', { replace: true });
   };
 
   const handleUploadClick = () => {
-    setValue(1);
+    navigate('/financialtool/app/upload', { replace: true });
   };
 
   const handleChatClick = () => {
@@ -430,15 +488,19 @@ export default function FinancialToolApp() {
                 <Tab label="Upcoming" {...a11yProps(5)} />
                 <Tab label="Items" {...a11yProps(6)} />
                 <Tab label="Merchants" {...a11yProps(7)} />
-                <Tab label="Analytics" {...a11yProps(8)} />
-                <Tab label="Family" {...a11yProps(9)} />
-                <Tab label="Budgets" {...a11yProps(10)} />
-                <Tab label="Savings" {...a11yProps(11)} />
-                <Tab label="Loans" {...a11yProps(12)} />
-                <Tab label="Users" {...a11yProps(13)} />
-                <Tab label="Alerts" {...a11yProps(14)} />
-                <Tab label="AI Chat" {...a11yProps(15)} />
-                <Tab label="Model Status" {...a11yProps(16)} />
+                <Tab label="Categories" {...a11yProps(8)} />
+                <Tab label="Analytics" {...a11yProps(9)} />
+                <Tab label="Advanced Analytics" {...a11yProps(10)} />
+                <Tab label="Family" {...a11yProps(11)} />
+                <Tab label="Budgets" {...a11yProps(12)} />
+                <Tab label="Savings" {...a11yProps(13)} />
+                <Tab label="Loans" {...a11yProps(14)} />
+                <Tab label="Shopping Lists" {...a11yProps(15)} />
+                <Tab label="User Profile" {...a11yProps(16)} />
+                <Tab label="Users" {...a11yProps(17)} />
+                <Tab label="Alerts" {...a11yProps(18)} />
+                <Tab label="AI Chat" {...a11yProps(19)} />
+                <Tab label="Model Status" {...a11yProps(20)} />
               </Tabs>
             </Paper>
 
@@ -456,88 +518,61 @@ export default function FinancialToolApp() {
                     overflow: 'hidden',
                   }}
                 >
-                  <TabPanel value={value} index={0}>
-                    <DashboardOverview
-                      onViewTransactions={handleViewTransactions}
-                      onViewAnalytics={handleViewAnalytics}
-                      onUploadClick={handleUploadClick}
-                      onViewBudgets={handleViewBudgets}
-                      categories={categories as any}
-                    />
-                  </TabPanel>
-
-                  <TabPanel value={value} index={1}>
-                    <BillUploadSection onTransactionCreated={handleTransactionCreated} />
-                  </TabPanel>
-
-                  <TabPanel value={value} index={2}>
-                    <TransactionsSection
-                      transactions={transactions}
-                      merchants={merchants}
-                      categories={categories}
-                      onTransactionsChange={handleTransactionsChange}
-                      onFiltersChange={handleFiltersChange}
-                    />
-                  </TabPanel>
-
-                  <TabPanel value={value} index={3}>
-                    <PendingTransactionsSection />
-                  </TabPanel>
-
-                  <TabPanel value={value} index={4}>
-                    <RecurringPaymentsSection />
-                  </TabPanel>
-
-                  <TabPanel value={value} index={5}>
-                    <UpcomingPaymentsSection />
-                  </TabPanel>
-
-                  <TabPanel value={value} index={6}>
-                    <ItemsSection />
-                  </TabPanel>
-
-                  <TabPanel value={value} index={7}>
-                    <MerchantsCategoriesSection onDataChange={handleTransactionsChange} />
-                  </TabPanel>
-
-                  <TabPanel value={value} index={8}>
-                    <AnalyticsSection />
-                  </TabPanel>
-
-                  <TabPanel value={value} index={9}>
-                    <MultiUserAnalyticsSection />
-                  </TabPanel>
-
-                  <TabPanel value={value} index={10}>
-                    <BudgetSection categories={categories} onBudgetChange={handleTransactionsChange} />
-                  </TabPanel>
-
-                  <TabPanel value={value} index={11}>
-                    <SavingsSection />
-                  </TabPanel>
-
-                  <TabPanel value={value} index={12}>
-                    <LoansSection />
-                  </TabPanel>
-
-                  <TabPanel value={value} index={13}>
-                    <UserManagementSection />
-                  </TabPanel>
-
-                  <TabPanel value={value} index={14}>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                      <AlertsPanel />
-                      <CategoryCapSection categories={categories} onCapChange={handleTransactionsChange} />
-                    </Box>
-                  </TabPanel>
-
-                  <TabPanel value={value} index={15}>
-                    <AIChatSection />
-                  </TabPanel>
-
-                  <TabPanel value={value} index={16}>
-                    <ModelStatusSection />
-                  </TabPanel>
+                  <Box sx={{ p: { xs: 1.25, sm: 2 } }}>
+                    <Routes>
+                      <Route path="/" element={<Navigate to="/financialtool/app/dashboard" replace />} />
+                      <Route path="dashboard" element={
+                        <DashboardOverview
+                          onViewTransactions={handleViewTransactions}
+                          onViewAnalytics={handleViewAnalytics}
+                          onUploadClick={handleUploadClick}
+                          onViewBudgets={handleViewBudgets}
+                          categories={categories as any}
+                        />
+                      } />
+                      <Route path="upload" element={
+                        <EnhancedBillUploadSection
+                          onTransactionCreated={handleTransactionCreated}
+                          categories={categories}
+                        />
+                      } />
+                      <Route path="transactions" element={
+                        <TransactionsSection
+                          transactions={transactions}
+                          merchants={merchants}
+                          categories={categories}
+                          onTransactionsChange={handleTransactionsChange}
+                          onFiltersChange={handleFiltersChange}
+                        />
+                      } />
+                      <Route path="pending" element={<PendingTransactionsSection />} />
+                      <Route path="recurring" element={<RecurringPaymentsSection />} />
+                      <Route path="upcoming" element={<UpcomingPaymentsSection />} />
+                      <Route path="items" element={<ItemsSection />} />
+                      <Route path="merchants" element={<EnhancedMerchantsSection />} />
+                      <Route path="categories" element={<EnhancedCategorySection />} />
+                      <Route path="analytics" element={<AnalyticsSection />} />
+                      <Route path="advanced-analytics" element={<AdvancedAnalyticsSection />} />
+                      <Route path="family" element={<MultiUserAnalyticsSection />} />
+                      <Route path="budgets" element={
+                        <BudgetSection categories={categories} onBudgetChange={handleTransactionsChange} />
+                      } />
+                      <Route path="savings" element={<SavingsSection />} />
+                      <Route path="loans" element={<LoansSection />} />
+                      <Route path="shopping-lists" element={<ShoppingListSection />} />
+                      <Route path="user-profile" element={<UserProfileSection />} />
+                      <Route path="users" element={<UserManagementSection />} />
+                      <Route path="alerts" element={
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                          <AlertsPanel />
+                          <CategoryCapSection categories={categories} onCapChange={handleTransactionsChange} />
+                        </Box>
+                      } />
+                      <Route path="ai-chat" element={<AIChatSection />} />
+                      <Route path="model-status" element={<ModelStatusSection />} />
+                      <Route path="*" element={<Navigate to="/financialtool/app/dashboard" replace />} />
+                    </Routes>
+                  </Box>
                 </Paper>
               </Box>
 
