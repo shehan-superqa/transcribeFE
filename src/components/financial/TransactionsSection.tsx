@@ -1,16 +1,14 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Box, Paper, Typography, Button, FormControl, InputLabel, Select, MenuItem, Snackbar, Alert, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Chip, IconButton, ToggleButtonGroup, ToggleButton, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Collapse, Tooltip } from '@mui/material';
-import { FilterList, CloudUpload, Search, ViewModule, ViewList, OpenInFull, Close, Edit, Delete, MergeType, ExpandLess, ExpandMore, Sort, Warning } from '@mui/icons-material';
+import { Box, Paper, Typography, Button, FormControl, InputLabel, Select, MenuItem, Snackbar, Alert, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Chip, IconButton, ToggleButtonGroup, ToggleButton, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Collapse, Tooltip, Tabs, Tab } from '@mui/material';
+import { FilterList, CloudUpload, Search, ViewModule, ViewList, OpenInFull, Close, Edit, Delete, MergeType, ExpandLess, ExpandMore, Sort, Warning, TrendingDown, TrendingUp, Receipt, Inventory } from '@mui/icons-material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { updateTransaction, deleteTransaction, mergeTransaction, getTransactionItems, updateItem, deleteItem, listTransactions } from '../../lib/api/financialApi';
+import { updateTransaction, deleteTransaction, mergeTransaction, getTransactionItems, updateItem, deleteItem, listTransactions, listItems } from '../../lib/api/financialApi';
 import { Transaction, Merchant, Category, TransactionItem, FlattenedItem } from '../../types/financial';
 import { useAuth } from '../../lib/auth';
 import { useTheme } from '../../contexts/ThemeContext';
-import { getDisplayCategoryName, formatCurrency, getDisplayMerchantName, formatPaymentMethod, transactionHasMissingFields, getMissingFieldRowStyle } from '../../utils/transactionHelpers';
-import TransactionFiltersSection from './TransactionFiltersSection';
-import TransactionControlsSection from './TransactionControlsSection';
+import { getDisplayCategoryName, formatCurrency, getDisplayMerchantName, formatPaymentMethod, transactionHasMissingFields, getMissingFieldRowStyle, getExpenseAmount, getEarningAmount, getTaxAmount } from '../../utils/transactionHelpers';
 import TransactionsList from './TransactionsList';
 import TransactionPagination from './TransactionPagination';
 import {
@@ -69,8 +67,13 @@ export default function TransactionsSection({
     severity: 'info',
   });
   const [expandedTransactions, setExpandedTransactions] = useState<Set<string>>(new Set());
-  const [layout, setLayout] = useState<'card' | 'table' | 'items'>('table');
+  const [layout, setLayout] = useState<'card' | 'table'>('table');
+  const [activeTab, setActiveTab] = useState<0 | 1 | 2 | 3>(0); // 0: All, 1: Expenses, 2: Earnings, 3: Items
   const [itemsPerPage, setItemsPerPage] = useState(25);
+  // State for all items from backend
+  const [backendItems, setBackendItems] = useState<TransactionItem[]>([]);
+  const [isLoadingAllItems, setIsLoadingAllItems] = useState(false);
+  const [totalItems, setTotalItems] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'date' | 'amount' | 'merchant' | 'category'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -275,12 +278,12 @@ export default function TransactionsSection({
   };
 
   // Load transactions with pagination
-  const loadTransactionsWithPagination = useCallback(async () => {
+  const loadTransactionsWithPagination = useCallback(async (currentPage: number = page, currentTab: 0 | 1 | 2 | 3 = activeTab) => {
     setIsLoadingTransactions(true);
     try {
       const params: any = {
         limit: itemsPerPage,
-        offset: (page - 1) * itemsPerPage,
+        offset: (currentPage - 1) * itemsPerPage,
         sort_by: apiSortBy,
         sort_order: apiSortOrder,
       };
@@ -289,6 +292,16 @@ export default function TransactionsSection({
       if (filters.dateTo) params.date_to = filters.dateTo.toISOString();
       if (filters.category) params.category = filters.category;
       if (filters.merchant) params.merchant = filters.merchant;
+      
+      // Add transaction_type filter based on active tab
+      if (currentTab === 1) {
+        params.transaction_type = 'expense';
+      } else if (currentTab === 2) {
+        params.transaction_type = 'earning';
+      }
+      // currentTab === 0 means "All", so no filter is applied
+
+      console.log('Loading transactions with params:', params); // Debug log
 
       const response = await listTransactions(params);
       if (response.success) {
@@ -305,18 +318,60 @@ export default function TransactionsSection({
     } finally {
       setIsLoadingTransactions(false);
     }
-  }, [page, itemsPerPage, filters.dateFrom, filters.dateTo, filters.category, filters.merchant, apiSortBy, apiSortOrder]);
+  }, [page, itemsPerPage, filters.dateFrom, filters.dateTo, filters.category, filters.merchant, apiSortBy, apiSortOrder, activeTab]);
+
+  // Load all items from backend
+  const loadAllItems = useCallback(async (currentPage: number = page) => {
+    setIsLoadingAllItems(true);
+    try {
+      const params: any = {
+        limit: itemsPerPage,
+        offset: (currentPage - 1) * itemsPerPage,
+      };
+      
+      if (filters.dateFrom) params.date_from = filters.dateFrom.toISOString();
+      if (filters.dateTo) params.date_to = filters.dateTo.toISOString();
+      if (filters.category) params.category = filters.category;
+      if (filters.merchant) params.merchant = filters.merchant;
+
+      console.log('Loading all items with params:', params); // Debug log
+
+      const response = await listItems(params);
+      if (response.success) {
+        setBackendItems(response.items || []);
+        setTotalItems(response.total || response.items?.length || 0);
+      } else {
+        console.error('Failed to load items: API returned success=false');
+        setSnackbar({ open: true, message: 'Failed to load items', severity: 'error' });
+      }
+    } catch (error) {
+      console.error('Failed to load items:', error);
+      setSnackbar({ open: true, message: 'Failed to load items: ' + (error instanceof Error ? error.message : 'Unknown error'), severity: 'error' });
+    } finally {
+      setIsLoadingAllItems(false);
+    }
+  }, [page, itemsPerPage, filters.dateFrom, filters.dateTo, filters.category, filters.merchant]);
 
   // Load transactions when page, itemsPerPage, or filters change
+  // Note: Tab changes are handled directly in handleTabChange to ensure immediate request
   useEffect(() => {
-    // Always load with pagination - the API will handle the pagination
-    loadTransactionsWithPagination();
-  }, [loadTransactionsWithPagination]);
+    // Only load transactions if not on Items tab
+    if (activeTab !== 3) {
+      loadTransactionsWithPagination();
+    }
+  }, [loadTransactionsWithPagination, activeTab]);
 
-  // Reset to page 1 when filters or sort changes
+  // Load items when on Items tab and dependencies change
+  useEffect(() => {
+    if (activeTab === 3) {
+      loadAllItems();
+    }
+  }, [loadAllItems, activeTab]);
+
+  // Reset to page 1 when filters, sort, or tab changes
   useEffect(() => {
     setPage(1);
-  }, [filters.dateFrom, filters.dateTo, filters.category, filters.merchant, apiSortBy, apiSortOrder]);
+  }, [filters.dateFrom, filters.dateTo, filters.category, filters.merchant, apiSortBy, apiSortOrder, activeTab]);
 
   const handleFilterChange: (key: keyof TransactionFilters, value: any) => void = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -589,103 +644,526 @@ export default function TransactionsSection({
 
   const hasFilters = !!(filters.dateFrom || filters.dateTo || filters.category || filters.merchant);
 
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: 0 | 1 | 2 | 3) => {
+    const tabNames = ['All', 'Expenses', 'Earnings', 'Items'];
+    const tabName = tabNames[newValue];
+    console.log('Tab changed to:', tabName); // Debug log
+    setActiveTab(newValue);
+    setPage(1); // Reset to first page when tab changes
+    
+    // Immediately trigger load with new tab value to ensure request is sent
+    if (newValue === 3) {
+      // Load items for Items tab
+      loadAllItems(1);
+    } else {
+      // Load transactions for other tabs
+      loadTransactionsWithPagination(1, newValue);
+    }
+  };
+
   return (
     <Box>
-      {/* Filters */}
-      <TransactionFiltersSection
-        filters={filters}
-        categories={categories}
-        merchants={merchants}
-        onFilterChange={(key, value) => handleFilterChange(key as keyof TransactionFilters, value)}
-        onClearFilters={clearFilters}
-        hasFilters={hasFilters}
-      />
+      {/* Tabs */}
+      <Paper
+        elevation={0}
+        sx={{
+          mb: 2,
+          backgroundColor: theme.palette.background.paper,
+          border: `1px solid ${theme.palette.divider}`,
+          borderRadius: '12px',
+        }}
+      >
+        <Tabs
+          value={activeTab}
+          onChange={handleTabChange}
+          sx={{
+            borderBottom: `1px solid ${theme.palette.divider}`,
+            '& .MuiTab-root': {
+              fontFamily: "'Inter', sans-serif",
+              fontWeight: 600,
+              textTransform: 'none',
+              fontSize: '0.875rem',
+              minHeight: 48,
+              color: theme.palette.text.secondary,
+            },
+            '& .MuiTab-root.Mui-selected': {
+              color: theme.palette.primary.main,
+            },
+            '& .MuiTabs-indicator': {
+              backgroundColor: theme.palette.primary.main,
+              height: 3,
+            },
+          }}
+        >
+          <Tab label="All Transactions" />
+          <Tab 
+            label={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <TrendingDown sx={{ fontSize: '1rem' }} />
+                Expenses
+              </Box>
+            } 
+          />
+          <Tab 
+            label={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <TrendingUp sx={{ fontSize: '1rem' }} />
+                Earnings
+              </Box>
+            } 
+          />
+          <Tab 
+            label={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Inventory sx={{ fontSize: '1rem' }} />
+                Items
+              </Box>
+            } 
+          />
+        </Tabs>
+      </Paper>
 
-      {/* Controls Bar */}
-      <TransactionControlsSection
-        layout={layout}
-        searchQuery={layout === 'items' ? itemsSearchQuery : searchQuery}
-        itemsPerPage={itemsPerPage}
-        paginatedCount={paginatedTransactions.length > 0 ? (page - 1) * itemsPerPage + 1 : 0}
-        totalCount={layout === 'items' ? sortedItems.length : totalTransactions}
-        currentPage={page}
-        apiSortBy={apiSortBy}
-        apiSortOrder={apiSortOrder}
-        onLayoutChange={setLayout}
-        onSearchChange={(query) => {
-          if (layout === 'items') {
-            setItemsSearchQuery(query);
-          } else {
-            setSearchQuery(query);
-          }
-          setPage(1);
-        }}
-        onItemsPerPageChange={(value) => {
-          setItemsPerPage(value);
-          setPage(1);
-        }}
-        onApiSortChange={(sortBy, sortOrder) => {
-          setApiSortBy(sortBy);
-          setApiSortOrder(sortOrder);
-          setPage(1);
-        }}
-        onOpenFullScreen={() => setFullScreenDialogOpen(true)}
-      />
+      {/* Combined Filters and Controls - Hide when on Items tab */}
+      {activeTab !== 3 && (
+        <Paper
+          elevation={0}
+          sx={{
+            p: '1.5rem',
+            mb: '2rem',
+            backgroundColor: theme.palette.background.paper,
+            border: `1px solid ${theme.palette.divider}`,
+            borderRadius: '12px',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+          }}
+        >
+          {/* Filters Section */}
+          <Box sx={{ mb: '1.5rem' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.5rem', mb: '1.5rem' }}>
+              <FilterList sx={{ color: theme.palette.text.secondary, fontSize: '1.25rem' }} />
+              <Typography
+                variant="h6"
+                sx={{
+                  fontFamily: "'Inter', sans-serif",
+                  color: theme.palette.text.primary,
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  lineHeight: 1.2,
+                }}
+              >
+                Filters
+              </Typography>
+              {hasFilters && (
+                <Button
+                  size="small"
+                  onClick={clearFilters}
+                  sx={{
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
+                    padding: '0.5rem 0.75rem',
+                    borderRadius: '8px',
+                    textTransform: 'none',
+                  }}
+                >
+                  Clear
+                </Button>
+              )}
+            </Box>
+            <Box sx={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', mb: '1.5rem' }}>
+              <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <DatePicker
+                  label="Date From"
+                  value={filters.dateFrom}
+                  onChange={(date) => handleFilterChange('dateFrom', date)}
+                  slotProps={{ textField: { size: 'small' } }}
+                />
+                <DatePicker
+                  label="Date To"
+                  value={filters.dateTo}
+                  onChange={(date) => handleFilterChange('dateTo', date)}
+                  slotProps={{ textField: { size: 'small' } }}
+                />
+              </LocalizationProvider>
+              <FormControl size="small" sx={{ minWidth: 200 }}>
+                <InputLabel>Category</InputLabel>
+                <Select
+                  value={filters.category || ''}
+                  onChange={(e) => handleFilterChange('category', e.target.value || undefined)}
+                  label="Category"
+                >
+                  <MenuItem value="">All</MenuItem>
+                  {categories.map((cat) => (
+                    <MenuItem key={cat._id} value={cat._id}>
+                      {cat.category_name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormControl size="small" sx={{ minWidth: 200 }}>
+                <InputLabel>Merchant</InputLabel>
+                <Select
+                  value={filters.merchant || ''}
+                  onChange={(e) => handleFilterChange('merchant', e.target.value || undefined)}
+                  label="Merchant"
+                >
+                  <MenuItem value="">All</MenuItem>
+                  {merchants.map((merchant) => (
+                    <MenuItem key={merchant._id} value={merchant._id}>
+                      {merchant.merchant_name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+          </Box>
 
-      {/* Transactions List */}
-      {isLoadingTransactions && transactions.length === 0 ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
-          <Typography variant="body2" color="text.secondary">
-            Loading transactions...
-          </Typography>
-        </Box>
-      ) : (
+          {/* Controls Section */}
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', justifyContent: 'space-between', pt: '1rem', borderTop: `1px solid ${theme.palette.divider}` }}>
+            {/* Search */}
+            <TextField
+              size="small"
+              placeholder="Search transactions..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setPage(1);
+              }}
+              InputProps={{
+                startAdornment: <Search sx={{ mr: 1, color: theme.palette.text.secondary }} />,
+              }}
+              sx={{
+                flex: '1 1 300px',
+                minWidth: '200px',
+                '& .MuiOutlinedInput-root': {
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '0.875rem',
+                },
+              }}
+            />
+
+            {/* Layout Toggle */}
+            <ToggleButtonGroup
+              value={layout}
+              exclusive
+              onChange={(_, newLayout) => newLayout && setLayout(newLayout)}
+              size="small"
+              sx={{
+                '& .MuiToggleButton-root': {
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  textTransform: 'none',
+                  padding: '0.5rem 0.75rem',
+                },
+              }}
+            >
+              <ToggleButton value="card">
+                <ViewModule sx={{ mr: 0.5, fontSize: '1rem' }} />
+                Cards
+              </ToggleButton>
+              <ToggleButton value="table">
+                <ViewList sx={{ mr: 0.5, fontSize: '1rem' }} />
+                Table
+              </ToggleButton>
+            </ToggleButtonGroup>
+
+            {/* Sort By */}
+            <FormControl size="small" sx={{ minWidth: 160 }}>
+              <InputLabel>Sort By</InputLabel>
+              <Select
+                value={apiSortBy}
+                onChange={(e) => {
+                  setApiSortBy(e.target.value as 'date' | 'scanned_date');
+                  setPage(1);
+                }}
+                label="Sort By"
+                sx={{
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '0.875rem',
+                }}
+              >
+                <MenuItem value="date">Transaction Date</MenuItem>
+                <MenuItem value="scanned_date">Scanned Date</MenuItem>
+              </Select>
+            </FormControl>
+
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <InputLabel>Order</InputLabel>
+              <Select
+                value={apiSortOrder}
+                onChange={(e) => {
+                  setApiSortOrder(e.target.value as 'asc' | 'desc');
+                  setPage(1);
+                }}
+                label="Order"
+                sx={{
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '0.875rem',
+                }}
+              >
+                <MenuItem value="desc">Newest First</MenuItem>
+                <MenuItem value="asc">Oldest First</MenuItem>
+              </Select>
+            </FormControl>
+
+            {/* Items Per Page */}
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <InputLabel>Per Page</InputLabel>
+              <Select
+                value={itemsPerPage}
+                onChange={(e) => {
+                  setItemsPerPage(Number(e.target.value));
+                  setPage(1);
+                }}
+                label="Per Page"
+                sx={{
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '0.875rem',
+                }}
+              >
+                <MenuItem value={10}>10</MenuItem>
+                <MenuItem value={25}>25</MenuItem>
+                <MenuItem value={50}>50</MenuItem>
+                <MenuItem value={100}>100</MenuItem>
+              </Select>
+            </FormControl>
+
+            {/* Results Count */}
+            <Typography
+              variant="body2"
+              sx={{
+                fontFamily: "'Inter', sans-serif",
+                fontSize: '0.875rem',
+                color: theme.palette.text.secondary,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Showing {paginatedTransactions.length > 0 ? (page - 1) * itemsPerPage + 1 : 0} - {Math.min(page * itemsPerPage, totalTransactions)} of {totalTransactions}
+            </Typography>
+
+            {/* Open Full Screen Button */}
+            <Button
+              variant="outlined"
+              startIcon={<OpenInFull />}
+              onClick={() => setFullScreenDialogOpen(true)}
+              sx={{
+                fontFamily: "'Inter', sans-serif",
+                fontSize: '0.875rem',
+                fontWeight: 500,
+                padding: '0.5rem 1rem',
+                borderRadius: '8px',
+                textTransform: 'none',
+                borderColor: theme.palette.primary.main,
+                color: theme.palette.primary.main,
+                '&:hover': {
+                  borderColor: theme.palette.primary.dark,
+                  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(107, 33, 168, 0.1)' : 'rgba(107, 33, 168, 0.05)',
+                },
+              }}
+            >
+              View All
+            </Button>
+          </Box>
+        </Paper>
+      )}
+      {/* Items Tab Controls */}
+      {activeTab === 3 && (
+        <Paper
+          elevation={0}
+          sx={{
+            p: '1rem',
+            mb: '1.5rem',
+            backgroundColor: theme.palette.background.paper,
+            border: `1px solid ${theme.palette.divider}`,
+            borderRadius: '12px',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+          }}
+        >
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Typography
+              variant="body2"
+              sx={{
+                fontFamily: "'Inter', sans-serif",
+                fontSize: '0.875rem',
+                color: theme.palette.text.secondary,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Showing {backendItems.length > 0 ? (page - 1) * itemsPerPage + 1 : 0} - {Math.min(page * itemsPerPage, totalItems)} of {totalItems} items
+            </Typography>
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <InputLabel>Per Page</InputLabel>
+              <Select
+                value={itemsPerPage}
+                onChange={(e) => {
+                  setItemsPerPage(Number(e.target.value));
+                  setPage(1);
+                }}
+                label="Per Page"
+                sx={{
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '0.875rem',
+                }}
+              >
+                <MenuItem value={10}>10</MenuItem>
+                <MenuItem value={25}>25</MenuItem>
+                <MenuItem value={50}>50</MenuItem>
+                <MenuItem value={100}>100</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
+        </Paper>
+      )}
+
+      {/* Items Tab Content */}
+      {activeTab === 3 ? (
         <>
-          {isLoadingTransactions && transactions.length > 0 && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 1, mb: 2 }}>
-              <Typography variant="caption" color="text.secondary">
-                Loading...
+          {isLoadingAllItems && backendItems.length === 0 ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
+              <Typography variant="body2" color="text.secondary">
+                Loading items...
               </Typography>
             </Box>
+          ) : (
+            <>
+              {isLoadingAllItems && backendItems.length > 0 && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 1, mb: 2 }}>
+                  <Typography variant="caption" color="text.secondary">
+                    Loading...
+                  </Typography>
+                </Box>
+              )}
+              {backendItems.length === 0 ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    No items found
+                  </Typography>
+                </Box>
+              ) : (
+                <TableContainer 
+                  component={Paper}
+                  elevation={0}
+                  sx={{
+                    border: `1px solid ${theme.palette.divider}`,
+                    borderRadius: '12px',
+                    overflow: 'auto',
+                  }}
+                >
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: 600 }}>Item Name</TableCell>
+                        <TableCell sx={{ fontWeight: 600 }}>Quantity</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 600 }}>Unit Price</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 600 }}>Total Price</TableCell>
+                        <TableCell sx={{ fontWeight: 600 }}>Category</TableCell>
+                        <TableCell sx={{ fontWeight: 600 }}>Transaction ID</TableCell>
+                        <TableCell sx={{ fontWeight: 600 }}>Actions</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {backendItems.map((item) => (
+                        <TableRow key={item._id} hover>
+                          <TableCell>{item.name}</TableCell>
+                          <TableCell>{item.quantity}</TableCell>
+                          <TableCell align="right">{formatCurrency(item.unit_price, 'LKR')}</TableCell>
+                          <TableCell align="right">{formatCurrency(item.total_price, 'LKR')}</TableCell>
+                          <TableCell>{item.category || 'N/A'}</TableCell>
+                          <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>
+                            {item.transaction_id?.substring(0, 8)}...
+                          </TableCell>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', gap: 0.5 }}>
+                              <IconButton
+                                size="small"
+                                onClick={() => handleItemEdit(item)}
+                                color="primary"
+                              >
+                                <Edit sx={{ fontSize: '1rem' }} />
+                              </IconButton>
+                              <IconButton
+                                size="small"
+                                onClick={() => {
+                                  setSelectedItem(item);
+                                  setItemDeleteDialogOpen(true);
+                                }}
+                                color="error"
+                              >
+                                <Delete sx={{ fontSize: '1rem' }} />
+                              </IconButton>
+                            </Box>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              )}
+            </>
           )}
-          <TransactionsList
-            layout={layout}
-            transactions={transactions}
-            merchants={merchants}
-            categories={categories}
-            expandedTransactions={expandedTransactions}
-            transactionItems={transactionItems}
-            loadingItems={loadingItems}
-            paginatedTransactions={paginatedTransactions}
-            paginatedItems={paginatedItems}
-            itemsPerPage={itemsPerPage}
-            page={page}
-            onToggleItemsExpansion={toggleItemsExpansion}
-            onEditTransaction={handleEdit}
-            onDeleteTransaction={(transaction) => {
-              setSelectedTransaction(transaction);
-              setDeleteDialogOpen(true);
-            }}
-            onMergeTransaction={(transaction) => {
-              setSelectedTransaction(transaction);
-              setMergeDialogOpen(true);
-            }}
-            onEditItem={handleItemEdit}
-            onDeleteItem={(item) => {
-              setSelectedItem(item);
-              setItemDeleteDialogOpen(true);
-            }}
-            onItemFieldUpdate={handleItemFieldUpdate}
-            getMerchantName={getMerchantName}
-            getCategoryName={getCategoryName}
-            getBillItems={getBillItems}
-          />
+        </>
+      ) : (
+        /* Transactions List */
+        <>
+          {isLoadingTransactions && transactions.length === 0 ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
+              <Typography variant="body2" color="text.secondary">
+                Loading transactions...
+              </Typography>
+            </Box>
+          ) : (
+            <>
+              {isLoadingTransactions && transactions.length > 0 && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 1, mb: 2 }}>
+                  <Typography variant="caption" color="text.secondary">
+                    Loading...
+                  </Typography>
+                </Box>
+              )}
+              <TransactionsList
+                layout={layout}
+                transactions={transactions}
+                merchants={merchants}
+                categories={categories}
+                expandedTransactions={expandedTransactions}
+                transactionItems={transactionItems}
+                loadingItems={loadingItems}
+                paginatedTransactions={paginatedTransactions}
+                paginatedItems={paginatedItems}
+                itemsPerPage={itemsPerPage}
+                page={page}
+                onToggleItemsExpansion={toggleItemsExpansion}
+                onEditTransaction={handleEdit}
+                onDeleteTransaction={(transaction) => {
+                  setSelectedTransaction(transaction);
+                  setDeleteDialogOpen(true);
+                }}
+                onMergeTransaction={(transaction) => {
+                  setSelectedTransaction(transaction);
+                  setMergeDialogOpen(true);
+                }}
+                onEditItem={handleItemEdit}
+                onDeleteItem={(item) => {
+                  setSelectedItem(item);
+                  setItemDeleteDialogOpen(true);
+                }}
+                onItemFieldUpdate={handleItemFieldUpdate}
+                getMerchantName={getMerchantName}
+                getCategoryName={getCategoryName}
+                getBillItems={getBillItems}
+              />
+            </>
+          )}
         </>
       )}
 
       {/* Pagination - Only show if total count is greater than items per page */}
-      {!isLoadingTransactions && (() => {
-        const totalCount = layout === 'items' ? sortedItems.length : totalTransactions;
+      {(() => {
+        const totalCount = activeTab === 3 ? totalItems : totalTransactions;
+        const isLoading = activeTab === 3 ? isLoadingAllItems : isLoadingTransactions;
+        
+        if (isLoading) return null;
+        
         // Only show pagination if we have more items than can fit on one page
         if (totalCount <= itemsPerPage) {
           return null;
@@ -1107,6 +1585,54 @@ export default function TransactionsSection({
                       Payment Method
                     </TableCell>
                     <TableCell 
+                      align="right"
+                      sx={{ 
+                        fontWeight: 600, 
+                        color: theme.palette.text.primary,
+                        backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb',
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: '0.875rem',
+                        minWidth: '100px',
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5 }}>
+                        <TrendingDown sx={{ fontSize: '0.875rem', color: theme.palette.error.main }} />
+                        Expense
+                      </Box>
+                    </TableCell>
+                    <TableCell 
+                      align="right"
+                      sx={{ 
+                        fontWeight: 600, 
+                        color: theme.palette.text.primary,
+                        backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb',
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: '0.875rem',
+                        minWidth: '100px',
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5 }}>
+                        <TrendingUp sx={{ fontSize: '0.875rem', color: theme.palette.success.main }} />
+                        Earning
+                      </Box>
+                    </TableCell>
+                    <TableCell 
+                      align="right"
+                      sx={{ 
+                        fontWeight: 600, 
+                        color: theme.palette.text.primary,
+                        backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb',
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: '0.875rem',
+                        minWidth: '80px',
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5 }}>
+                        <Receipt sx={{ fontSize: '0.875rem', color: theme.palette.warning.main }} />
+                        Tax
+                      </Box>
+                    </TableCell>
+                    <TableCell 
                       sx={{ 
                         fontWeight: 600, 
                         color: theme.palette.text.primary,
@@ -1135,7 +1661,7 @@ export default function TransactionsSection({
                 <TableBody>
                   {fullScreenSortedTransactions.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
+                      <TableCell colSpan={10} align="center" sx={{ py: 4 }}>
                         <Typography variant="body2" color="text.secondary" sx={{ fontFamily: "'Inter', sans-serif" }}>
                           No transactions found
                         </Typography>
@@ -1180,6 +1706,15 @@ export default function TransactionsSection({
                         </TableCell>
                         <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
                           {formatPaymentMethod(transaction.payment_method)}
+                        </TableCell>
+                        <TableCell align="right" sx={{ color: theme.palette.error.main, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem', fontWeight: 500 }}>
+                          {getExpenseAmount(transaction) > 0 ? formatCurrency(getExpenseAmount(transaction), transaction.currency) : '-'}
+                        </TableCell>
+                        <TableCell align="right" sx={{ color: theme.palette.success.main, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem', fontWeight: 500 }}>
+                          {getEarningAmount(transaction) > 0 ? formatCurrency(getEarningAmount(transaction), transaction.currency) : '-'}
+                        </TableCell>
+                        <TableCell align="right" sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
+                          {getTaxAmount(transaction) > 0 ? formatCurrency(getTaxAmount(transaction), transaction.currency) : '-'}
                         </TableCell>
                         <TableCell>
                           <Chip

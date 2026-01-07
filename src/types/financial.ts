@@ -197,6 +197,7 @@ export interface TransactionsListParams {
   date_to?: string;
   category?: string;
   merchant?: string;
+  transaction_type?: 'expense' | 'earning';
   limit?: number;
   offset?: number;
 }

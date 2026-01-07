@@ -3,7 +3,7 @@ import { Search, ViewModule, ViewList, OpenInFull } from '@mui/icons-material';
 import { useTheme } from '../../contexts/ThemeContext';
 
 interface TransactionControlsSectionProps {
-  layout: 'card' | 'table' | 'items';
+  layout: 'card' | 'table';
   searchQuery: string;
   itemsPerPage: number;
   paginatedCount: number;
@@ -11,7 +11,7 @@ interface TransactionControlsSectionProps {
   currentPage: number;
   apiSortBy?: 'date' | 'scanned_date';
   apiSortOrder?: 'asc' | 'desc';
-  onLayoutChange: (newLayout: 'card' | 'table' | 'items') => void;
+  onLayoutChange: (newLayout: 'card' | 'table') => void;
   onSearchChange: (query: string) => void;
   onItemsPerPageChange: (value: number) => void;
   onApiSortChange?: (sortBy: 'date' | 'scanned_date', sortOrder: 'asc' | 'desc') => void;
@@ -51,7 +51,7 @@ export default function TransactionControlsSection({
         {/* Search */}
         <TextField
           size="small"
-          placeholder={layout === 'items' ? "Search items..." : "Search transactions..."}
+          placeholder="Search transactions..."
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
           InputProps={{
@@ -91,14 +91,10 @@ export default function TransactionControlsSection({
             <ViewList sx={{ mr: 0.5, fontSize: '1rem' }} />
             Table
           </ToggleButton>
-          <ToggleButton value="items">
-            <ViewList sx={{ mr: 0.5, fontSize: '1rem' }} />
-            Items
-          </ToggleButton>
         </ToggleButtonGroup>
 
-        {/* Sort By (only show when not in items layout) */}
-        {layout !== 'items' && onApiSortChange && (
+        {/* Sort By */}
+        {onApiSortChange && (
           <>
             <FormControl size="small" sx={{ minWidth: 160 }}>
               <InputLabel>Sort By</InputLabel>

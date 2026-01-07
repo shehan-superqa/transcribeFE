@@ -1,9 +1,9 @@
 import React from 'react';
 import { Box, Paper, Typography, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Card, CardContent, Chip, IconButton, Collapse, CircularProgress, Divider, Avatar, Tooltip } from '@mui/material';
-import { CloudUpload, Edit, Delete, MergeType, ExpandLess, ExpandMore, ShoppingCart, AttachMoney, CalendarToday, Store, Category as CategoryIcon, Warning } from '@mui/icons-material';
+import { CloudUpload, Edit, Delete, MergeType, ExpandLess, ExpandMore, ShoppingCart, AttachMoney, CalendarToday, Store, Category as CategoryIcon, Warning, TrendingDown, TrendingUp, Receipt } from '@mui/icons-material';
 import { Transaction, Merchant, Category, TransactionItem, FlattenedItem } from '../../types/financial';
 import { useTheme } from '../../contexts/ThemeContext';
-import { getDisplayCategoryName, formatCurrency, getDisplayMerchantName, formatPaymentMethod, checkMissingPriceFields, getMissingFieldStyle, getMissingFieldRowStyle, transactionHasMissingFields } from '../../utils/transactionHelpers';
+import { getDisplayCategoryName, formatCurrency, getDisplayMerchantName, formatPaymentMethod, checkMissingPriceFields, getMissingFieldStyle, getMissingFieldRowStyle, transactionHasMissingFields, getExpenseAmount, getEarningAmount, getTaxAmount } from '../../utils/transactionHelpers';
 import EditableItemCell from './EditableItemCell';
 import TransactionCard from './TransactionCard';
 

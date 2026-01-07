@@ -70,6 +70,14 @@ export default function TransactionCard({
     ? `${(transaction.confidence_category * 100).toFixed(1)}%`
     : 'N/A';
 
+  const handleItemFieldUpdate = (itemId: string, field: string, value: number) => {
+    onItemFieldUpdate?.(itemId, field, value);
+  };
+
+  const handleItemUpdateError = (error: string) => {
+    console.error('Failed to update item:', error);
+  };
+
   // Get transaction metadata using helper functions
   const metadata = getTransactionMetadata(
     transaction,

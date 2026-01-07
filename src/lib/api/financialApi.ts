@@ -235,6 +235,7 @@ export async function listTransactions(
   if (params?.date_to) queryParams.append('date_to', params.date_to);
   if (params?.category) queryParams.append('category', params.category);
   if (params?.merchant) queryParams.append('merchant', params.merchant);
+  if (params?.transaction_type) queryParams.append('transaction_type', params.transaction_type);
   
   // Pagination parameters
   if (params?.limit) queryParams.append('limit', params.limit.toString());

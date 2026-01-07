@@ -40,20 +40,30 @@ export default function ItemsSection() {
       
       if (response.success && response.items) {
         // Transform the API response to match the ItemsTable interface
-        const transformedItems = response.items.map(item => ({
-          id: item._id,
-          transactionId: item.transaction_id || 'N/A',
-          transactionDate: new Date(item.created_at || Date.now()),
-          transactionAmount: 0, // Default value
-          transactionStatus: 'confirmed', // Default status
-          merchantName: 'N/A', // Placeholder for merchant name
-          categoryName: item.category || 'Uncategorized',
-          itemName: item.name || 'Unnamed Item',
-          quantity: item.quantity || 0,
-          unitPrice: item.unit_price || 0,
-          totalPrice: item.total_price || 0,
-          itemCategory: item.category
-        }));
+        const transformedItems = response.items.map(item => {
+          // Use item.category if it exists, is not empty, and is not 'Uncategorized'
+          // Show 'N/A' if category is missing or is 'Uncategorized'
+          const itemCategory = (item.category && 
+                                item.category.trim() !== '' && 
+                                item.category.trim() !== 'Uncategorized')
+            ? item.category.trim()
+            : 'N/A';
+          
+          return {
+            id: item._id,
+            transactionId: item.transaction_id || 'N/A',
+            transactionDate: new Date(item.created_at || Date.now()),
+            transactionAmount: 0, // Default value
+            transactionStatus: 'confirmed', // Default status
+            merchantName: 'N/A', // Placeholder for merchant name
+            categoryName: itemCategory,
+            itemName: item.name || 'Unnamed Item',
+            quantity: item.quantity || 0,
+            unitPrice: item.unit_price || 0,
+            totalPrice: item.total_price || 0,
+            itemCategory: item.category
+          };
+        });
         
         setItems(transformedItems);
       } else {

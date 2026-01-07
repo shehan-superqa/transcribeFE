@@ -299,6 +299,41 @@ export function transactionHasMissingFields(transaction: Transaction, items?: an
 }
 
 /**
+ * Get transaction type (expense or earning)
+ */
+export function getTransactionType(transaction: Transaction): 'expense' | 'earning' {
+  const transactionType = (transaction as any).transaction_type || (transaction as any).type;
+  if (transactionType === 'earning' || transactionType === 'expense') {
+    return transactionType;
+  }
+  // Default to expense if not specified (most bills are expenses)
+  return 'expense';
+}
+
+/**
+ * Get expense amount for a transaction
+ */
+export function getExpenseAmount(transaction: Transaction): number {
+  const type = getTransactionType(transaction);
+  return type === 'expense' ? transaction.amount : 0;
+}
+
+/**
+ * Get earning amount for a transaction
+ */
+export function getEarningAmount(transaction: Transaction): number {
+  const type = getTransactionType(transaction);
+  return type === 'earning' ? transaction.amount : 0;
+}
+
+/**
+ * Get tax amount for a transaction
+ */
+export function getTaxAmount(transaction: Transaction): number {
+  return transaction.taxes || 0;
+}
+
+/**
  * Get all transaction metadata for display
  */
 export function getTransactionMetadata(transaction: Transaction, items: TransactionItem[] = []) {

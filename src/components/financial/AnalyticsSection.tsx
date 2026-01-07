@@ -91,9 +91,10 @@ export default function AnalyticsSection() {
   const [aiInsights, setAiInsights] = useState<{ [key: string]: string }>({});
   const [loadingInsights, setLoadingInsights] = useState<{ [key: string]: boolean }>({});
 
+  // Load data when period or tab changes - fetch fresh data for each tab
   useEffect(() => {
     loadAnalytics();
-  }, [period]);
+  }, [period, tabValue, analysisType]);
 
   useEffect(() => {
     if (summary) {
@@ -105,6 +106,7 @@ export default function AnalyticsSection() {
     setLoading(true);
     setError(null);
     try {
+      // Fetch data based on current analysis type and period
       const [summaryRes, trendsRes, anomaliesRes] = await Promise.all([
         getSpendingSummary({ period }),
         getSpendingTrends({ period: 'monthly' }),
@@ -158,6 +160,7 @@ export default function AnalyticsSection() {
     setTabValue(newValue);
     const types: AnalysisType[] = ['personal', 'business', 'investment'];
     setAnalysisType(types[newValue]);
+    // Data will be loaded by the useEffect hook when tabValue changes
   };
 
   const barChartData = summary

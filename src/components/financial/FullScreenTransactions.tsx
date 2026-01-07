@@ -1,8 +1,8 @@
-import { Dialog, DialogTitle, DialogContent, Box, IconButton, TextField, Table, TableBody, TableCell, TableHead, TableRow, TableContainer, Paper, Typography } from '@mui/material';
-import { Close, Sort } from '@mui/icons-material';
+import { Dialog, DialogTitle, DialogContent, Box, IconButton, TextField, Table, TableBody, TableCell, TableHead, TableRow, TableContainer, Paper, Typography, Tooltip } from '@mui/material';
+import { Close, Sort, Warning, TrendingDown, TrendingUp, Receipt } from '@mui/icons-material';
 import { Transaction } from '../../types/financial';
 import { useTheme } from '../../contexts/ThemeContext';
-import { getDisplayCategoryName, formatCurrency, getDisplayMerchantName, formatPaymentMethod, transactionHasMissingFields, getMissingFieldRowStyle } from '../../utils/transactionHelpers';
+import { getDisplayCategoryName, formatCurrency, getDisplayMerchantName, formatPaymentMethod, transactionHasMissingFields, getMissingFieldRowStyle, getExpenseAmount, getEarningAmount, getTaxAmount } from '../../utils/transactionHelpers';
 
 interface FullScreenTransactionsProps {
   open: boolean;
@@ -260,6 +260,54 @@ export default function FullScreenTransactions({
                   Payment Method
                 </TableCell>
                 <TableCell
+                  align="right"
+                  sx={{
+                    fontWeight: 600,
+                    color: theme.palette.text.primary,
+                    backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb',
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: '0.875rem',
+                    minWidth: '100px',
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5 }}>
+                    <TrendingDown sx={{ fontSize: '0.875rem', color: theme.palette.error.main }} />
+                    Expense
+                  </Box>
+                </TableCell>
+                <TableCell
+                  align="right"
+                  sx={{
+                    fontWeight: 600,
+                    color: theme.palette.text.primary,
+                    backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb',
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: '0.875rem',
+                    minWidth: '100px',
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5 }}>
+                    <TrendingUp sx={{ fontSize: '0.875rem', color: theme.palette.success.main }} />
+                    Earning
+                  </Box>
+                </TableCell>
+                <TableCell
+                  align="right"
+                  sx={{
+                    fontWeight: 600,
+                    color: theme.palette.text.primary,
+                    backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb',
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: '0.875rem',
+                    minWidth: '80px',
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5 }}>
+                    <Receipt sx={{ fontSize: '0.875rem', color: theme.palette.warning.main }} />
+                    Tax
+                  </Box>
+                </TableCell>
+                <TableCell
                   sx={{
                     fontWeight: 600,
                     color: theme.palette.text.primary,
@@ -288,7 +336,7 @@ export default function FullScreenTransactions({
             <TableBody>
               {sortedTransactions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={10} align="center" sx={{ py: 4 }}>
                     <Typography variant="body2" color="text.secondary" sx={{ fontFamily: "'Inter', sans-serif" }}>
                       No transactions found
                     </Typography>
@@ -332,6 +380,15 @@ export default function FullScreenTransactions({
                     </TableCell>
                     <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
                       {formatPaymentMethod(transaction.payment_method)}
+                    </TableCell>
+                    <TableCell align="right" sx={{ color: theme.palette.error.main, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem', fontWeight: 500 }}>
+                      {getExpenseAmount(transaction) > 0 ? formatCurrency(getExpenseAmount(transaction), transaction.currency) : '-'}
+                    </TableCell>
+                    <TableCell align="right" sx={{ color: theme.palette.success.main, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem', fontWeight: 500 }}>
+                      {getEarningAmount(transaction) > 0 ? formatCurrency(getEarningAmount(transaction), transaction.currency) : '-'}
+                    </TableCell>
+                    <TableCell align="right" sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
+                      {getTaxAmount(transaction) > 0 ? formatCurrency(getTaxAmount(transaction), transaction.currency) : '-'}
                     </TableCell>
                     <TableCell>
                       <span style={{
