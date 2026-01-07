@@ -18,7 +18,8 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import { useTheme } from '../contexts/ThemeContext';
-import { useAuth } from '../lib/auth';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../store';
 import { listTransactions, listMerchants, listCategories } from '../lib/api/financialApi';
 import { Transaction, Merchant, Category } from '../types/financial';
 import EnhancedBillUploadSection from '../components/financial/EnhancedBillUploadSection';
@@ -107,7 +108,7 @@ const PATH_TO_TAB: Record<string, number> = {
 };
 
 export default function FinancialToolApp() {
-  const { user } = useAuth();
+  const { user } = useSelector((state: RootState) => state.auth);
   const { theme } = useTheme();
   const isSmallLayout = useMediaQuery(theme.breakpoints.down('lg'));
   const navigate = useNavigate();
@@ -280,27 +281,29 @@ export default function FinancialToolApp() {
     loadFiltered();
   }, []);
 
-  // NOTE: filters are managed inside the Transactions view; keep state here for API fetching.
+  // Helper function to get merchant name
+  const getMerchantName = useCallback((merchantId: string | null | undefined) => {
+    if (!merchantId) return 'Unknown Merchant';
+    const merchant = merchants.find((m) => m._id === merchantId);
+    return merchant?.merchant_name || merchantId;
+  }, [merchants]);
 
-  if (!user) {
-    return (
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Box className="financial-tool-page">
-          <Container maxWidth="xl">
-            <Paper elevation={1} sx={{ p: 4, textAlign: 'center' }}>
-              <Typography variant="h6" gutterBottom>
-                Authentication Required
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Please log in to access the financial tool.
-              </Typography>
-            </Paper>
-          </Container>
-        </Box>
-      </ThemeProvider>
-    );
-  }
+  // Helper function to determine transaction type (expense or earning)
+  // Check if transaction has type field, otherwise infer from amount sign
+  const getTransactionType = useCallback((transaction: Transaction): 'expense' | 'earning' => {
+    // Check if transaction has a type field (might be in normalized_output or as a direct field)
+    const transactionType = (transaction as any).transaction_type || (transaction as any).type;
+    if (transactionType === 'earning' || transactionType === 'expense') {
+      return transactionType;
+    }
+    // Infer from amount: negative amounts are typically expenses, positive are earnings
+    // But in most financial systems, expenses are positive and marked with type
+    // For now, default to expense if not specified
+    return 'expense';
+  }, []);
+
+  // NOTE: filters are managed inside the Transactions view; keep state here for API fetching.
+  // Note: Authentication is handled by ProtectedRoute, so user should always be available here
 
   if (loading) {
     return (
@@ -709,24 +712,67 @@ export default function FinancialToolApp() {
                         No transactions yet.
                       </Typography>
                     ) : (
-                      transactions.slice(0, isSmallLayout ? 3 : 5).map((transaction, index) => (
-                        <Box
-                          key={index}
-                          sx={{
-                            p: 1.25,
-                            borderRadius: '12px',
-                            border: `1px solid ${theme.palette.divider}`,
-                            backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(15, 23, 42, 0.03)',
-                          }}
-                        >
-                          <Typography variant="body2" sx={{ fontWeight: 700, color: theme.palette.text.primary }} noWrap>
-                            {transaction.merchant_id || 'Transaction'}
-                          </Typography>
-                          <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
-                            {transaction.date ? new Date(transaction.date).toLocaleDateString() : 'N/A'}
-                          </Typography>
-                        </Box>
-                      ))
+                      transactions.slice(0, isSmallLayout ? 3 : 5).map((transaction) => {
+                        const merchantName = getMerchantName(transaction.merchant_id);
+                        const transactionType = getTransactionType(transaction);
+                        const isEarning = transactionType === 'earning';
+                        const amount = transaction.amount || 0;
+                        const currency = transaction.currency || 'USD';
+                        
+                        return (
+                          <Box
+                            key={transaction._id}
+                            sx={{
+                              p: 1.25,
+                              borderRadius: '12px',
+                              border: `1px solid ${theme.palette.divider}`,
+                              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(15, 23, 42, 0.03)',
+                            }}
+                          >
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 0.5 }}>
+                              <Typography 
+                                variant="body2" 
+                                sx={{ 
+                                  fontWeight: 700, 
+                                  color: theme.palette.text.primary,
+                                  flex: 1,
+                                  minWidth: 0,
+                                }} 
+                                noWrap
+                              >
+                                {merchantName}
+                              </Typography>
+                              <Typography 
+                                variant="body2" 
+                                sx={{ 
+                                  fontWeight: 700,
+                                  color: isEarning ? theme.palette.success.main : theme.palette.error.main,
+                                  ml: 1,
+                                }}
+                              >
+                                {isEarning ? '+' : '-'}{amount.toLocaleString('en-US', { 
+                                  minimumFractionDigits: 2, 
+                                  maximumFractionDigits: 2 
+                                })} {currency}
+                              </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <Typography 
+                                variant="caption" 
+                                sx={{ 
+                                  color: theme.palette.text.secondary,
+                                  textTransform: 'capitalize',
+                                }}
+                              >
+                                {transactionType}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
+                                {transaction.date ? new Date(transaction.date).toLocaleDateString() : 'N/A'}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        );
+                      })
                     )}
                   </Box>
                 </Paper>

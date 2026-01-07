@@ -3,14 +3,22 @@
 export interface Transaction {
   _id: string;
   user_id: string;
+  name?: string; // Transaction name/description (overall bill caption)
   merchant_id: string;
+  merchant_name?: string; // Populated merchant name
   category_id: string;
+  category_name?: string; // Populated category name
   amount: number;
-  currency: string;
-  date: string;
+  currency: string; // Currency code (USD, CAD, LKR, etc.)
+  date: string; // Transaction date
   payment_method?: string;
   bill_image_url?: string;
   ocr_text?: string;
+  invoice_number?: string; // Invoice/receipt number
+  subtotal?: number; // Subtotal amount
+  taxes?: number; // Tax amount
+  discount?: number; // Discount amount
+  items?: any[]; // Transaction items array
   parsing_output?: {
     merchant: string;
     date: string;
@@ -44,7 +52,7 @@ export interface Transaction {
   confidence_parsing?: number;
   versions?: TransactionVersion[];
   status: 'confirmed' | 'pending' | 'deleted';
-  created_at: string;
+  created_at: string; // Scanned date (when bill was uploaded)
   updated_at: string;
 }
 
@@ -72,7 +80,8 @@ export interface Category {
 export interface BillUploadResponse {
   success: boolean;
   job_id: string;
-  stream_url: string;
+  transaction_type?: string;
+  stream_url: string | null;
   message: string;
 }
 
@@ -144,6 +153,29 @@ export interface JobStatus {
   };
 }
 
+export interface ActiveJob {
+  job_id: string;
+  user_id: string;
+  status: 'queued' | 'processing' | 'completed' | 'failed';
+  job_type: string;
+  created_at: string;
+  started_at?: string | null;
+  updated_at: string;
+  file_info: {
+    filename: string;
+    path: string;
+    size: number;
+  };
+  result?: any;
+  error?: string | null;
+}
+
+export interface ActiveBillsResponse {
+  success: boolean;
+  active_jobs: ActiveJob[];
+  count: number;
+}
+
 export interface BillStatusResponse {
   success: boolean;
   job: JobStatus;
@@ -159,6 +191,8 @@ export interface TransactionsListResponse {
 }
 
 export interface TransactionsListParams {
+  sort_by?: 'date' | 'scanned_date';
+  sort_order?: 'asc' | 'desc';
   date_from?: string;
   date_to?: string;
   category?: string;

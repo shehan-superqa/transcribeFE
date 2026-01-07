@@ -5,6 +5,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { sseClient } from '../lib/api/sseClient';
+import { progressWebSocketClient } from '../lib/api/progressWebSocketClient';
 
 export interface FinancialProgressData {
   status: 'idle' | 'processing' | 'completed' | 'error';
@@ -30,7 +31,8 @@ export interface UseFinancialJobProgressReturn {
 }
 
 /**
- * Hook to listen to SSE progress stream for a financial job
+ * Hook to listen to progress stream for a financial job
+ * Tries WebSocket first (port 5002), falls back to SSE if WebSocket is not available
  * @param jobId - Job ID to stream progress for
  * @param streamUrl - Optional stream URL from API response (e.g., from uploadBill response)
  */
@@ -46,6 +48,7 @@ export function useFinancialJobProgress(
   const [error, setError] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [data, setData] = useState<FinancialProgressData | null>(null);
+  const connectionTypeRef = useRef<'websocket' | 'sse' | null>(null);
   const callbackRef = useRef<((event: any) => void) | null>(null);
 
   useEffect(() => {
@@ -58,12 +61,9 @@ export function useFinancialJobProgress(
       setError(null);
       setIsConnected(false);
       setData(null);
+      connectionTypeRef.current = null;
       return;
     }
-
-    // Connect to SSE stream
-    sseClient.connect(jobId, streamUrl);
-    setIsConnected(true);
 
     // Set up progress callback
     const callback = (event: any) => {
@@ -96,7 +96,11 @@ export function useFinancialJobProgress(
           // If completed or failed, close connection after a delay
           if (progressData.status === 'completed' || progressData.status === 'error' || progressData.status === 'failed') {
             setTimeout(() => {
-              sseClient.close();
+              if (connectionTypeRef.current === 'websocket') {
+                progressWebSocketClient.close();
+              } else {
+                sseClient.close();
+              }
               setIsConnected(false);
             }, 5000);
           }
@@ -108,15 +112,89 @@ export function useFinancialJobProgress(
     };
 
     callbackRef.current = callback;
-    sseClient.onProgress(callback);
 
-    // Cleanup
-    return () => {
-      if (callbackRef.current) {
-        sseClient.offProgress(callbackRef.current);
+    // Try WebSocket first (as per backend documentation - port 5002 is WebSocket)
+    const tryWebSocket = () => {
+      try {
+        progressWebSocketClient.connect(jobId, streamUrl);
+        progressWebSocketClient.onProgress(callback);
+        connectionTypeRef.current = 'websocket';
+        
+        // Check if WebSocket connects successfully
+        const checkTimeout = setTimeout(() => {
+          if (progressWebSocketClient.isConnected()) {
+            setIsConnected(true);
+            if (import.meta.env.DEV) {
+              console.log('[Progress] Using WebSocket connection');
+            }
+          } else {
+            // WebSocket failed, try SSE
+            console.log('[Progress] WebSocket not available, falling back to SSE');
+            progressWebSocketClient.close();
+            trySSE();
+          }
+        }, 2000);
+
+        // Monitor WebSocket connection
+        const wsCheck = setInterval(() => {
+          if (progressWebSocketClient.isConnected()) {
+            setIsConnected(true);
+          } else if (progressWebSocketClient.getReadyState() === WebSocket.CLOSED && connectionTypeRef.current === 'websocket') {
+            // WebSocket closed unexpectedly, try SSE
+            clearInterval(wsCheck);
+            clearTimeout(checkTimeout);
+            trySSE();
+          }
+        }, 1000);
+
+        return () => {
+          clearTimeout(checkTimeout);
+          clearInterval(wsCheck);
+          if (callbackRef.current) {
+            progressWebSocketClient.offProgress(callbackRef.current);
+          }
+          progressWebSocketClient.close();
+        };
+      } catch (err) {
+        console.error('[Progress] WebSocket error, trying SSE:', err);
+        trySSE();
+        return () => {};
       }
-      sseClient.close();
+    };
+
+    // Fallback to SSE
+    const trySSE = () => {
+      sseClient.connect(jobId, streamUrl);
+      sseClient.onProgress(callback);
+      connectionTypeRef.current = 'sse';
+      setIsConnected(sseClient.isConnected());
+
+      if (import.meta.env.DEV) {
+        console.log('[Progress] Using SSE connection');
+      }
+
+      // Monitor SSE connection
+      const sseCheck = setInterval(() => {
+        setIsConnected(sseClient.isConnected());
+      }, 1000);
+
+      return () => {
+        clearInterval(sseCheck);
+        if (callbackRef.current) {
+          sseClient.offProgress(callbackRef.current);
+        }
+        sseClient.close();
+      };
+    };
+
+    // Start with WebSocket
+    const cleanup = tryWebSocket();
+
+    // Cleanup on unmount
+    return () => {
+      if (cleanup) cleanup();
       setIsConnected(false);
+      connectionTypeRef.current = null;
     };
   }, [jobId, streamUrl]);
 

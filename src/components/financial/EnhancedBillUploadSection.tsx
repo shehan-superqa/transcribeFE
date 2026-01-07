@@ -21,6 +21,9 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Tabs,
+  Tab,
+  Badge,
 } from '@mui/material';
 import { 
   CloudUpload, 
@@ -31,13 +34,16 @@ import {
   Edit,
   TrendingUp,
   TrendingDown,
+  SwapHoriz,
+  PlayArrow,
 } from '@mui/icons-material';
 import { useTheme } from '../../contexts/ThemeContext';
-import { uploadBill, uploadBillsBulk, getBillStatus, getBulkUploadStatus } from '../../lib/api/financialApi';
+import { uploadBill, uploadBillsBulk, getBillStatus, getBulkUploadStatus, getActiveBills } from '../../lib/api/financialApi';
 import { Transaction } from '../../types/financial';
 import CameraCapture from './CameraCapture';
 import { useFinancialJobProgress } from '../../hooks/useFinancialJobProgress';
 import ManualTransactionDialog from './ManualTransactionDialog';
+import ProgressTab from './ProgressTab';
 
 interface BillUploadSectionProps {
   onTransactionCreated?: (transaction: Transaction) => void;
@@ -47,7 +53,7 @@ interface BillUploadSectionProps {
 interface UploadItem {
   id: string;
   file: File;
-  type: 'earning' | 'expense';
+  type: 'earning' | 'expense' | 'mix';
   status: 'pending' | 'uploading' | 'analyzing' | 'completed' | 'error';
   progress: number;
   jobId?: string;
@@ -58,9 +64,151 @@ interface UploadItem {
   message?: string;
 }
 
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`upload-tabpanel-${index}`}
+      aria-labelledby={`upload-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ pt: 3 }}>{children}</Box>}
+    </div>
+  );
+}
+
+function a11yProps(index: number) {
+  return {
+    id: `upload-tab-${index}`,
+    'aria-controls': `upload-tabpanel-${index}`,
+  };
+}
+
+// Component to monitor upload item progress via SSE
+interface UploadItemProgressMonitorProps {
+  item: UploadItem;
+  onUpdate: (item: UploadItem) => void;
+  theme: any;
+}
+
+function UploadItemProgressMonitor({ item, onUpdate, theme }: UploadItemProgressMonitorProps) {
+  const { progress, status, message, isConnected } = useFinancialJobProgress(
+    item.jobId || null,
+    item.streamUrl
+  );
+
+  useEffect(() => {
+    if (!item.jobId) return;
+
+    const updated: UploadItem = {
+      ...item,
+      progress: progress !== undefined ? progress : item.progress,
+      message: message || item.message,
+    };
+
+    // Handle completion
+    if (status === 'completed') {
+      // Fetch final result
+      getBillStatus(item.jobId).then(result => {
+        if (result.job.status === 'completed' && result.transaction) {
+          onUpdate({
+            ...updated,
+            status: 'completed',
+            transaction: result.transaction,
+            progress: 100,
+          });
+        }
+      }).catch(() => {
+        // Ignore errors
+      });
+    } else if (status === 'error' || status === 'failed') {
+      onUpdate({
+        ...updated,
+        status: 'error',
+        error: message || 'Processing failed',
+      });
+    } else if (status && status !== item.status && (status === 'processing' || status === 'queued')) {
+      // Update status if changed to processing/queued
+      onUpdate({
+        ...updated,
+        status: status as any,
+      });
+    } else if (progress !== undefined && progress !== item.progress) {
+      // Update progress
+      onUpdate(updated);
+    }
+  }, [status, progress, message, item.jobId, item.id, item.status, item.progress, onUpdate]);
+
+  const currentProgress = progress !== undefined ? progress : item.progress;
+  const currentStatus = status || item.status;
+
+  return (
+    <Box sx={{ mb: '1.5rem', p: 2, backgroundColor: theme.palette.background.default, borderRadius: 1, border: `1px solid ${theme.palette.divider}` }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+        <Typography 
+          variant="subtitle2"
+          sx={{
+            fontFamily: "'Inter', sans-serif",
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            color: theme.palette.text.primary,
+          }}
+        >
+          Processing: {item.file.name}
+          {message && (
+            <Typography 
+              variant="caption"
+              sx={{
+                fontFamily: "'Inter', sans-serif",
+                fontSize: '0.7rem',
+                color: theme.palette.text.secondary,
+                display: 'block',
+                mt: 0.5,
+              }}
+            >
+              {message}
+            </Typography>
+          )}
+        </Typography>
+        <Chip 
+          label={currentStatus} 
+          size="small" 
+          color={currentStatus === 'error' ? 'error' : 'info'}
+        />
+      </Box>
+      <LinearProgress 
+        variant={currentProgress > 0 ? 'determinate' : 'indeterminate'}
+        value={currentProgress}
+        sx={{
+          height: 8,
+          borderRadius: 1,
+          backgroundColor: theme.palette.mode === 'dark' ? '#333333' : '#e5e7eb',
+        }}
+      />
+      {isConnected && (
+        <Chip
+          label="Live"
+          size="small"
+          color="success"
+          sx={{ mt: 1, fontSize: '0.65rem', height: '20px' }}
+        />
+      )}
+    </Box>
+  );
+}
+
 export default function EnhancedBillUploadSection({ onTransactionCreated, categories }: BillUploadSectionProps) {
   const { theme } = useTheme();
-  const [uploadType, setUploadType] = useState<'earning' | 'expense'>('expense');
+  const [tabValue, setTabValue] = useState(0);
+  const [uploadType, setUploadType] = useState<'earning' | 'expense' | 'mix'>('expense');
   const [uploadMode, setUploadMode] = useState<'single' | 'bulk'>('single');
   const [showCamera, setShowCamera] = useState(false);
   const [showManualDialog, setShowManualDialog] = useState(false);
@@ -68,9 +216,10 @@ export default function EnhancedBillUploadSection({ onTransactionCreated, catego
   const [merchantOverride, setMerchantOverride] = useState('');
   const [uploadQueue, setUploadQueue] = useState<UploadItem[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [hasActiveJobs, setHasActiveJobs] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const handleAddToQueue = useCallback((files: File[], type: 'earning' | 'expense') => {
+  const handleAddToQueue = useCallback((files: File[], type: 'earning' | 'expense' | 'mix') => {
     const newItems: UploadItem[] = files.map(file => ({
       id: `${Date.now()}-${Math.random()}`,
       file,
@@ -85,7 +234,7 @@ export default function EnhancedBillUploadSection({ onTransactionCreated, catego
     setUploadQueue(prev => prev.filter(item => item.id !== id));
   }, []);
 
-  const handleUploadSingle = useCallback(async (file: File, type: 'earning' | 'expense') => {
+  const handleUploadSingle = useCallback(async (file: File, type: 'earning' | 'expense' | 'mix') => {
     const itemId = `${Date.now()}-${Math.random()}`;
     const newItem: UploadItem = {
       id: itemId,
@@ -100,7 +249,7 @@ export default function EnhancedBillUploadSection({ onTransactionCreated, catego
 
     try {
       const result = await uploadBill(file, {
-        transaction_type: type,
+        transaction_type: type, // Send 'expense', 'earning', or 'mix'
         category_override: categoryOverride || undefined,
         merchant_override: merchantOverride || undefined,
       });
@@ -178,7 +327,7 @@ export default function EnhancedBillUploadSection({ onTransactionCreated, catego
       // Use bulk upload API for multiple files
       const files = pendingItems.map(item => item.file);
       const result = await uploadBillsBulk(files, {
-        transaction_type: uploadType,
+        transaction_type: uploadType, // Send 'expense', 'earning', or 'mix'
         category_override: categoryOverride || undefined,
         merchant_override: merchantOverride || undefined,
       });
@@ -290,56 +439,80 @@ export default function EnhancedBillUploadSection({ onTransactionCreated, catego
     };
   }, [handlePaste]);
 
-  // Monitor job progress for items in queue (single upload mode)
+  // Monitor job progress via SSE for items in queue
   useEffect(() => {
     const analyzingItems = uploadQueue.filter(
-      item => item.status === 'analyzing' && item.jobId && !item.batchJobId
+      item => item.status === 'analyzing' && item.jobId && !item.batchJobId && item.streamUrl
     );
     
-    if (analyzingItems.length === 0) return;
-
-    const checkInterval = setInterval(async () => {
-      for (const item of analyzingItems) {
-        try {
-          const result = await getBillStatus(item.jobId!);
-          
-          if (result.job.status === 'completed' && result.transaction) {
-            setUploadQueue(prev => prev.map(i => 
-              i.id === item.id 
-                ? { ...i, status: 'completed', transaction: result.transaction, progress: 100 }
-                : i
-            ));
-            onTransactionCreated?.(result.transaction);
-          } else if (result.job.status === 'failed') {
-            setUploadQueue(prev => prev.map(i => 
-              i.id === item.id 
-                ? { ...i, status: 'error', error: 'Processing failed' }
-                : i
-            ));
-          }
-        } catch (err: any) {
-          console.error('Error checking job status:', err);
-        }
-      }
-
-      // Check if all single upload items are completed or errored
+    if (analyzingItems.length === 0) {
+      // Check if all items are done
       const allDone = uploadQueue.every(item => 
         item.status === 'completed' || item.status === 'error' || (item.batchJobId && item.status === 'analyzing')
       );
       if (allDone && uploadQueue.length > 0 && !uploadQueue.some(item => item.batchJobId)) {
         setIsProcessing(false);
-        clearInterval(checkInterval);
       }
-    }, 2000); // Poll every 2 seconds
+      return;
+    }
 
-    // Cleanup after 5 minutes
-    const timeout = setTimeout(() => clearInterval(checkInterval), 5 * 60 * 1000);
+    // Set up SSE monitoring for each analyzing item
+    // Each item will be monitored via useFinancialJobProgress hook in the UI
+    // We handle completion updates via the progress hook callbacks
+  }, [uploadQueue]);
 
-    return () => {
-      clearInterval(checkInterval);
-      clearTimeout(timeout);
+
+  // Check for active jobs once on mount and when upload queue changes
+  useEffect(() => {
+    const checkActiveJobs = async () => {
+      try {
+        const response = await getActiveBills();
+        if (response.success) {
+          const active = response.active_jobs.filter(
+            job => job.status === 'queued' || job.status === 'processing'
+          );
+          setHasActiveJobs(active.length > 0);
+        }
+      } catch (err) {
+        console.error('Error checking active jobs:', err);
+      }
     };
-  }, [uploadQueue, onTransactionCreated]);
+
+    // Check once on mount
+    checkActiveJobs();
+
+    // Also check when upload queue changes (new uploads started)
+    // No polling - rely on SSE updates for real-time status changes
+  }, []);
+
+  // Update hasActiveJobs based on upload queue status
+  useEffect(() => {
+    const hasActiveInQueue = uploadQueue.some(
+      item => item.status === 'analyzing' || item.status === 'uploading'
+    );
+    if (hasActiveInQueue) {
+      setHasActiveJobs(true);
+    } else {
+      // Only set to false if queue is empty, otherwise check API
+      if (uploadQueue.length === 0) {
+        // Check API once to see if there are other active jobs
+        getActiveBills().then(response => {
+          if (response.success) {
+            const active = response.active_jobs.filter(
+              job => job.status === 'queued' || job.status === 'processing'
+            );
+            setHasActiveJobs(active.length > 0);
+          }
+        }).catch(() => {
+          // Ignore errors
+        });
+      }
+    }
+  }, [uploadQueue]);
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue);
+  };
 
   const reset = () => {
     setUploadQueue([]);
@@ -382,7 +555,7 @@ export default function EnhancedBillUploadSection({ onTransactionCreated, catego
           boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
         }}
       >
-        <Box sx={{ mb: '2rem' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: '2rem' }}>
           <Typography 
             variant="h5" 
             gutterBottom 
@@ -392,23 +565,128 @@ export default function EnhancedBillUploadSection({ onTransactionCreated, catego
               fontWeight: 600,
               fontSize: '1.25rem',
               lineHeight: 1.2,
-              mb: '0.5rem',
+              mb: 0,
             }}
           >
             Upload Bills & Receipts
           </Typography>
-          <Typography 
-            variant="body1" 
+          {hasActiveJobs && (
+            <Badge
+              badgeContent=""
+              color="error"
+              sx={{
+                '& .MuiBadge-badge': {
+                  animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                  boxShadow: `0 0 0 0 ${theme.palette.error.main}`,
+                },
+                '@keyframes pulse': {
+                  '0%, 100%': {
+                    opacity: 1,
+                  },
+                  '50%': {
+                    opacity: 0.5,
+                  },
+                },
+              }}
+            >
+              <Button
+                variant="contained"
+                startIcon={<PlayArrow />}
+                onClick={() => setTabValue(1)}
+                sx={{
+                  fontFamily: "'Inter', sans-serif",
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  backgroundColor: theme.palette.error.main,
+                  boxShadow: hasActiveJobs
+                    ? `0 0 20px ${theme.palette.error.main}40, 0 0 40px ${theme.palette.error.main}20`
+                    : 'none',
+                  animation: hasActiveJobs ? 'glow 2s ease-in-out infinite' : 'none',
+                  '@keyframes glow': {
+                    '0%, 100%': {
+                      boxShadow: `0 0 20px ${theme.palette.error.main}40, 0 0 40px ${theme.palette.error.main}20`,
+                    },
+                    '50%': {
+                      boxShadow: `0 0 30px ${theme.palette.error.main}60, 0 0 60px ${theme.palette.error.main}40`,
+                    },
+                  },
+                  '&:hover': {
+                    backgroundColor: theme.palette.error.dark,
+                  },
+                }}
+              >
+                View Progress
+              </Button>
+            </Badge>
+          )}
+        </Box>
+
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+          <Tabs
+            value={tabValue}
+            onChange={handleTabChange}
             sx={{
+              '& .MuiTab-root': {
+                fontFamily: "'Inter', sans-serif",
+                fontWeight: 600,
+                textTransform: 'none',
+                fontSize: '0.875rem',
+                minHeight: 48,
+                color: theme.palette.text.secondary,
+              },
+              '& .MuiTab-root.Mui-selected': {
+                color: theme.palette.primary.main,
+              },
+              '& .MuiTabs-indicator': {
+                backgroundColor: theme.palette.primary.main,
+                height: 3,
+              },
+            }}
+          >
+            <Tab label="Upload" {...a11yProps(0)} />
+            <Tab 
+              label={
+                <Badge 
+                  badgeContent={hasActiveJobs ? '!' : 0} 
+                  color="error"
+                  invisible={!hasActiveJobs}
+                >
+                  Progress
+                </Badge>
+              } 
+              {...a11yProps(1)} 
+            />
+          </Tabs>
+        </Box>
+
+        <TabPanel value={tabValue} index={0}>
+          <Box sx={{ mb: '2rem' }}>
+            <Typography 
+              variant="body1" 
+              sx={{
+                fontFamily: "'Inter', sans-serif",
+                fontSize: '0.875rem',
+                fontWeight: 400,
+                lineHeight: 1.5,
+                color: theme.palette.text.secondary,
+                mb: '0.5rem',
+              }}
+            >
+              Upload bills, receipts, or documents for automatic processing. Select whether it's an expense, earning, or mix of both.
+            </Typography>
+          <Typography 
+            variant="caption" 
+            sx={{ 
               fontFamily: "'Inter', sans-serif",
-              fontSize: '0.875rem',
+              fontSize: '0.75rem',
               fontWeight: 400,
               lineHeight: 1.5,
               color: theme.palette.text.secondary,
-              mb: '0.5rem',
+              display: 'block',
+              mt: '0.5rem',
             }}
           >
-            Upload bills, receipts, or documents for automatic processing. Select whether it's an expense or earning first.
+            Supports: Images, PDF, Excel, CSV • You can also paste an image (Ctrl+V / Cmd+V)
           </Typography>
         </Box>
 
@@ -449,6 +727,18 @@ export default function EnhancedBillUploadSection({ onTransactionCreated, catego
               }}
             >
               Earning
+            </Button>
+            <Button
+              variant={uploadType === 'mix' ? 'contained' : 'outlined'}
+              onClick={() => setUploadType('mix')}
+              startIcon={<SwapHoriz />}
+              sx={{
+                fontFamily: "'Inter', sans-serif",
+                textTransform: 'none',
+                fontWeight: 600,
+              }}
+            >
+              Mix
             </Button>
           </ButtonGroup>
         </Box>
@@ -556,6 +846,54 @@ export default function EnhancedBillUploadSection({ onTransactionCreated, catego
             }}
           >
             Take Photo
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<ContentPaste />}
+            onClick={async () => {
+              // Try to read from clipboard API if available
+              try {
+                const clipboardItems = await navigator.clipboard.read();
+                for (const clipboardItem of clipboardItems) {
+                  for (const type of clipboardItem.types) {
+                    if (type.startsWith('image/')) {
+                      const blob = await clipboardItem.getType(type);
+                      const file = new File([blob], `pasted-image-${Date.now()}.png`, {
+                        type: blob.type || 'image/png',
+                      });
+                      if (uploadMode === 'single') {
+                        await handleUploadSingle(file, uploadType);
+                      } else {
+                        handleAddToQueue([file], uploadType);
+                      }
+                      return;
+                    }
+                  }
+                }
+              } catch (err) {
+                // Clipboard API not available or permission denied
+                // Focus container so user can paste manually with Ctrl+V/Cmd+V
+                containerRef.current?.focus();
+              }
+            }}
+            disabled={isProcessing && uploadMode === 'single'}
+            sx={{ 
+              fontFamily: "'Inter', sans-serif",
+              flex: '1 1 auto', 
+              minWidth: '120px',
+              padding: '0.625rem 1rem',
+              borderRadius: '8px',
+              fontSize: '0.875rem',
+              fontWeight: 500,
+              borderColor: theme.palette.divider,
+              color: theme.palette.text.primary,
+              '&:hover': {
+                borderColor: theme.palette.primary.main,
+                backgroundColor: theme.palette.action.hover,
+              },
+            }}
+          >
+            Paste Image
           </Button>
           <Button
             variant="outlined"
@@ -686,10 +1024,18 @@ export default function EnhancedBillUploadSection({ onTransactionCreated, catego
                       <TableCell>{item.file.name}</TableCell>
                       <TableCell>
                         <Chip 
-                          label={item.type} 
+                          label={item.type === 'mix' ? 'Mix' : item.type === 'earning' ? 'Earning' : 'Expense'} 
                           size="small" 
-                          color={item.type === 'earning' ? 'success' : 'warning'}
-                          icon={item.type === 'earning' ? <TrendingUp /> : <TrendingDown />}
+                          color={
+                            item.type === 'earning' ? 'success' : 
+                            item.type === 'mix' ? 'info' : 
+                            'warning'
+                          }
+                          icon={
+                            item.type === 'earning' ? <TrendingUp /> : 
+                            item.type === 'mix' ? <SwapHoriz /> : 
+                            <TrendingDown />
+                          }
                         />
                       </TableCell>
                       <TableCell>
@@ -737,36 +1083,23 @@ export default function EnhancedBillUploadSection({ onTransactionCreated, catego
           </Box>
         )}
 
-        {/* Single Upload Progress */}
-        {uploadMode === 'single' && uploadQueue.length > 0 && uploadQueue[0].status !== 'completed' && (
-          <Box sx={{ mb: '1.5rem', p: 2, backgroundColor: theme.palette.background.default, borderRadius: 1, border: `1px solid ${theme.palette.divider}` }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
-              <Typography 
-                variant="subtitle2"
-                sx={{
-                  fontFamily: "'Inter', sans-serif",
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
-                  color: theme.palette.text.primary,
-                }}
-              >
-                Processing: {uploadQueue[0].file.name}
-              </Typography>
-              <Chip 
-                label={uploadQueue[0].status} 
-                size="small" 
-                color={uploadQueue[0].status === 'error' ? 'error' : 'info'}
-              />
-            </Box>
-            <LinearProgress 
-              variant="indeterminate"
-              sx={{
-                height: 8,
-                borderRadius: 1,
-                backgroundColor: theme.palette.mode === 'dark' ? '#333333' : '#e5e7eb',
-              }}
-            />
-          </Box>
+        {/* Single Upload Progress with SSE */}
+        {uploadMode === 'single' && uploadQueue.length > 0 && uploadQueue[0].status !== 'completed' && uploadQueue[0].jobId && (
+          <UploadItemProgressMonitor
+            item={uploadQueue[0]}
+            onUpdate={(updatedItem) => {
+              setUploadQueue(prev => prev.map(i => 
+                i.id === updatedItem.id ? updatedItem : i
+              ));
+              if (updatedItem.status === 'completed' && updatedItem.transaction) {
+                onTransactionCreated?.(updatedItem.transaction);
+                setIsProcessing(false);
+              } else if (updatedItem.status === 'error') {
+                setIsProcessing(false);
+              }
+            }}
+            theme={theme}
+          />
         )}
 
         {/* Success Messages */}
@@ -811,6 +1144,11 @@ export default function EnhancedBillUploadSection({ onTransactionCreated, catego
             <Typography variant="body2">{item.error}</Typography>
           </Alert>
         ))}
+        </TabPanel>
+
+        <TabPanel value={tabValue} index={1}>
+          <ProgressTab />
+        </TabPanel>
       </Paper>
     </Box>
   );

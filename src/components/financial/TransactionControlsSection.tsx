@@ -9,9 +9,12 @@ interface TransactionControlsSectionProps {
   paginatedCount: number;
   totalCount: number;
   currentPage: number;
+  apiSortBy?: 'date' | 'scanned_date';
+  apiSortOrder?: 'asc' | 'desc';
   onLayoutChange: (newLayout: 'card' | 'table' | 'items') => void;
   onSearchChange: (query: string) => void;
   onItemsPerPageChange: (value: number) => void;
+  onApiSortChange?: (sortBy: 'date' | 'scanned_date', sortOrder: 'asc' | 'desc') => void;
   onOpenFullScreen: () => void;
 }
 
@@ -22,9 +25,12 @@ export default function TransactionControlsSection({
   paginatedCount,
   totalCount,
   currentPage,
+  apiSortBy = 'date',
+  apiSortOrder = 'desc',
   onLayoutChange,
   onSearchChange,
   onItemsPerPageChange,
+  onApiSortChange,
   onOpenFullScreen,
 }: TransactionControlsSectionProps) {
   const { theme } = useTheme();
@@ -90,6 +96,43 @@ export default function TransactionControlsSection({
             Items
           </ToggleButton>
         </ToggleButtonGroup>
+
+        {/* Sort By (only show when not in items layout) */}
+        {layout !== 'items' && onApiSortChange && (
+          <>
+            <FormControl size="small" sx={{ minWidth: 160 }}>
+              <InputLabel>Sort By</InputLabel>
+              <Select
+                value={apiSortBy}
+                onChange={(e) => onApiSortChange(e.target.value as 'date' | 'scanned_date', apiSortOrder)}
+                label="Sort By"
+                sx={{
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '0.875rem',
+                }}
+              >
+                <MenuItem value="date">Transaction Date</MenuItem>
+                <MenuItem value="scanned_date">Scanned Date</MenuItem>
+              </Select>
+            </FormControl>
+
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <InputLabel>Order</InputLabel>
+              <Select
+                value={apiSortOrder}
+                onChange={(e) => onApiSortChange(apiSortBy, e.target.value as 'asc' | 'desc')}
+                label="Order"
+                sx={{
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '0.875rem',
+                }}
+              >
+                <MenuItem value="desc">Newest First</MenuItem>
+                <MenuItem value="asc">Oldest First</MenuItem>
+              </Select>
+            </FormControl>
+          </>
+        )}
 
         {/* Items Per Page */}
         <FormControl size="small" sx={{ minWidth: 120 }}>

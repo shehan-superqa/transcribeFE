@@ -99,9 +99,20 @@ export class SSEClient {
     });
 
     this.eventSource.onerror = (error) => {
-      console.error('SSE connection error:', error);
+      console.error('[SSE Client] Connection error:', error);
       // EventSource will automatically reconnect
+      // Log connection state for debugging
+      if (this.eventSource) {
+        const states = ['CONNECTING', 'OPEN', 'CLOSED'];
+        console.log('[SSE Client] Connection state:', states[this.eventSource.readyState] || 'UNKNOWN');
+      }
     };
+
+    this.eventSource.addEventListener('open', () => {
+      if (import.meta.env.DEV) {
+        console.log('[SSE Client] Connected for job:', jobId);
+      }
+    });
   }
 
   /**

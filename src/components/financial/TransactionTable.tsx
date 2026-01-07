@@ -122,6 +122,17 @@ export default function TransactionTable({
                 fontSize: '0.875rem',
               }}
             >
+              Payment Method
+            </TableCell>
+            <TableCell
+              sx={{
+                fontWeight: 600,
+                color: theme.palette.text.primary,
+                backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb',
+                fontFamily: "'Inter', sans-serif",
+                fontSize: '0.875rem',
+              }}
+            >
               Status
             </TableCell>
             <TableCell
@@ -138,28 +149,43 @@ export default function TransactionTable({
           </TableRow>
         </TableHead>
         <TableBody>
-          {transactions.map((transaction, index) => (
-            <TableRow
-              key={transaction._id}
-              hover
-              sx={{
-                backgroundColor: index % 2 === 0 ? theme.palette.background.paper : (theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb'),
-                '&:hover': {
-                  backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f3f4f6',
-                },
-              }}
-            >
+          {transactions.map((transaction, index) => {
+            // Check if transaction has items with missing fields
+            const hasMissingFields = transactionHasMissingFields(transaction);
+            
+            return (
+              <TableRow
+                key={transaction._id}
+                hover
+                sx={{
+                  backgroundColor: index % 2 === 0 ? theme.palette.background.paper : (theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb'),
+                  ...getMissingFieldRowStyle(hasMissingFields, theme),
+                  '&:hover': {
+                    backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f3f4f6',
+                  },
+                }}
+              >
+                <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    {new Date(transaction.date).toLocaleDateString()}
+                    {hasMissingFields && (
+                      <Tooltip title="This transaction has items with missing price fields">
+                        <Warning sx={{ fontSize: '1rem', color: theme.palette.warning.main }} />
+                      </Tooltip>
+                    )}
+                  </Box>
+                </TableCell>
+                <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
+                  {getDisplayMerchantName(transaction, getMerchantName(transaction.merchant_id))}
+                </TableCell>
               <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
-                {new Date(transaction.date).toLocaleDateString()}
-              </TableCell>
-              <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
-                {getMerchantName(transaction.merchant_id)}
-              </TableCell>
-              <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
-                {getCategoryName(transaction.category_id)}
+                {getDisplayCategoryName(transaction, getCategoryName(transaction.category_id), [])}
               </TableCell>
               <TableCell align="right" sx={{ color: theme.palette.text.primary, fontWeight: 500, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
-                Rs. {transaction.amount.toFixed(2)}
+                {formatCurrency(transaction.amount, transaction.currency)}
+              </TableCell>
+              <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
+                {formatPaymentMethod(transaction.payment_method)}
               </TableCell>
               <TableCell>
                 <Chip
@@ -204,7 +230,8 @@ export default function TransactionTable({
                 </Box>
               </TableCell>
             </TableRow>
-          ))}
+            );
+          })}
         </TableBody>
       </Table>
     </TableContainer>

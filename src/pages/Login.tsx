@@ -315,7 +315,12 @@ export default function Login() {
         <div className="login-footer">
           <p className="toggle-text">
             {isSignUpMode ? "Already have an account?" : "New User? Deploy an account."}
-            <Link to={isSignUpMode ? "/auth/login" : "/auth/signup"} className="toggle-button">
+            <Link 
+              to={isSignUpMode 
+                ? `/auth/login${location.search}` 
+                : `/auth/signup${location.search}`} 
+              className="toggle-button"
+            >
               {isSignUpMode ? "Sign In" : "Sign Up"}
             </Link>
           </p>

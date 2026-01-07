@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
-import { Box, Paper, Typography, Button, FormControl, InputLabel, Select, MenuItem, Snackbar, Alert, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Chip, IconButton, ToggleButtonGroup, ToggleButton, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Collapse } from '@mui/material';
-import { FilterList, CloudUpload, Search, ViewModule, ViewList, OpenInFull, Close, Edit, Delete, MergeType, ExpandLess, ExpandMore, Sort } from '@mui/icons-material';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Box, Paper, Typography, Button, FormControl, InputLabel, Select, MenuItem, Snackbar, Alert, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Chip, IconButton, ToggleButtonGroup, ToggleButton, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Collapse, Tooltip } from '@mui/material';
+import { FilterList, CloudUpload, Search, ViewModule, ViewList, OpenInFull, Close, Edit, Delete, MergeType, ExpandLess, ExpandMore, Sort, Warning } from '@mui/icons-material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -8,6 +8,7 @@ import { updateTransaction, deleteTransaction, mergeTransaction, getTransactionI
 import { Transaction, Merchant, Category, TransactionItem, FlattenedItem } from '../../types/financial';
 import { useAuth } from '../../lib/auth';
 import { useTheme } from '../../contexts/ThemeContext';
+import { getDisplayCategoryName, formatCurrency, getDisplayMerchantName, formatPaymentMethod, transactionHasMissingFields, getMissingFieldRowStyle } from '../../utils/transactionHelpers';
 import TransactionFiltersSection from './TransactionFiltersSection';
 import TransactionControlsSection from './TransactionControlsSection';
 import TransactionsList from './TransactionsList';
@@ -60,21 +61,29 @@ export default function TransactionsSection({
   const [mergeWithId, setMergeWithId] = useState('');
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [totalTransactions, setTotalTransactions] = useState(initialTransactions.length || 0);
+  const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' | 'info' | 'warning' }>({
     open: false,
     message: '',
     severity: 'info',
   });
   const [expandedTransactions, setExpandedTransactions] = useState<Set<string>>(new Set());
-  const [layout, setLayout] = useState<'card' | 'table' | 'items'>('card');
+  const [layout, setLayout] = useState<'card' | 'table' | 'items'>('table');
   const [itemsPerPage, setItemsPerPage] = useState(25);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'date' | 'amount' | 'merchant' | 'category'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  // API sorting - for server-side sorting
+  const [apiSortBy, setApiSortBy] = useState<'date' | 'scanned_date'>('date');
+  const [apiSortOrder, setApiSortOrder] = useState<'asc' | 'desc'>('desc');
   const [fullScreenDialogOpen, setFullScreenDialogOpen] = useState(false);
   const [fullScreenSearchQuery, setFullScreenSearchQuery] = useState('');
   const [fullScreenSortBy, setFullScreenSortBy] = useState<'date' | 'amount' | 'merchant' | 'category'>('date');
   const [fullScreenSortOrder, setFullScreenSortOrder] = useState<'asc' | 'desc'>('desc');
+  // Full screen API sorting
+  const [fullScreenApiSortBy, setFullScreenApiSortBy] = useState<'date' | 'scanned_date'>('date');
+  const [fullScreenApiSortOrder, setFullScreenApiSortOrder] = useState<'asc' | 'desc'>('desc');
   
   // Item management state
   const [transactionItems, setTransactionItems] = useState<Record<string, TransactionItem[]>>({});
@@ -167,6 +176,47 @@ export default function TransactionsSection({
     setItemEditDialogOpen(true);
   };
 
+  const handleItemFieldUpdate = async (itemId: string, field: string, value: number) => {
+    // Find the item to get its transaction_id
+    let foundItem: TransactionItem | null = null;
+    let transactionId: string | null = null;
+    
+    for (const txId in transactionItems) {
+      const items = transactionItems[txId];
+      const item = items.find(i => i._id === itemId);
+      if (item) {
+        foundItem = item;
+        transactionId = txId;
+        break;
+      }
+    }
+
+    if (!foundItem || !transactionId) return;
+
+    try {
+      const updateData: any = { [field]: value };
+      const response = await updateItem(itemId, updateData);
+      
+      if (response.success) {
+        // Update the item in local state
+        setTransactionItems((prev) => {
+          const items = prev[transactionId!] || [];
+          const updatedItems = items.map((item) => 
+            item._id === itemId ? response.item : item
+          );
+          return { ...prev, [transactionId!]: updatedItems };
+        });
+        
+        // Refresh transactions to get updated totals
+        loadTransactionsWithPagination();
+        onTransactionsChange();
+        setSnackbar({ open: true, message: 'Item updated successfully', severity: 'success' });
+      }
+    } catch (error: any) {
+      setSnackbar({ open: true, message: 'Failed to update item: ' + error.message, severity: 'error' });
+    }
+  };
+
   const handleItemSave = async () => {
     if (!selectedItem) return;
 
@@ -191,7 +241,9 @@ export default function TransactionsSection({
         });
         setItemEditDialogOpen(false);
         setSnackbar({ open: true, message: 'Item updated successfully', severity: 'success' });
-        onTransactionsChange(); // Refresh transactions to get updated totals
+        onTransactionsChange();
+      // Reload transactions after update/delete/merge
+      loadTransactionsWithPagination(); // Refresh transactions to get updated totals
       }
     } catch (error: any) {
       setSnackbar({ open: true, message: 'Failed to update item: ' + error.message, severity: 'error' });
@@ -213,46 +265,62 @@ export default function TransactionsSection({
         });
         setItemDeleteDialogOpen(false);
         setSnackbar({ open: true, message: 'Item deleted successfully', severity: 'success' });
-        onTransactionsChange(); // Refresh transactions to get updated totals
+        onTransactionsChange();
+      // Reload transactions after update/delete/merge
+      loadTransactionsWithPagination(); // Refresh transactions to get updated totals
       }
     } catch (error: any) {
       setSnackbar({ open: true, message: 'Failed to delete item: ' + error.message, severity: 'error' });
     }
   };
 
-  useEffect(() => {
-    setTransactions(initialTransactions);
-  }, [initialTransactions]);
+  // Load transactions with pagination
+  const loadTransactionsWithPagination = useCallback(async () => {
+    setIsLoadingTransactions(true);
+    try {
+      const params: any = {
+        limit: itemsPerPage,
+        offset: (page - 1) * itemsPerPage,
+        sort_by: apiSortBy,
+        sort_order: apiSortOrder,
+      };
+      
+      if (filters.dateFrom) params.date_from = filters.dateFrom.toISOString();
+      if (filters.dateTo) params.date_to = filters.dateTo.toISOString();
+      if (filters.category) params.category = filters.category;
+      if (filters.merchant) params.merchant = filters.merchant;
 
-  const prevFiltersRef = useRef<TransactionFilters | null>(null);
-  const isInitialMount = useRef(true);
-  
-  useEffect(() => {
-    // Skip on initial mount - parent already loads transactions
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      prevFiltersRef.current = filters;
-      return;
+      const response = await listTransactions(params);
+      if (response.success) {
+        setTransactions(response.transactions || []);
+        setTotalTransactions(response.total || response.transactions?.length || 0);
+      } else {
+        console.error('Failed to load transactions: API returned success=false');
+        setSnackbar({ open: true, message: 'Failed to load transactions', severity: 'error' });
+      }
+    } catch (error) {
+      console.error('Failed to load transactions:', error);
+      setSnackbar({ open: true, message: 'Failed to load transactions: ' + (error instanceof Error ? error.message : 'Unknown error'), severity: 'error' });
+      // Don't clear transactions on error - keep previous page visible
+    } finally {
+      setIsLoadingTransactions(false);
     }
-    
-    // Only call onFiltersChange if filters actually changed
-    const prev = prevFiltersRef.current;
-    const filtersChanged = 
-      !prev ||
-      prev.dateFrom?.getTime() !== filters.dateFrom?.getTime() ||
-      prev.dateTo?.getTime() !== filters.dateTo?.getTime() ||
-      prev.category !== filters.category ||
-      prev.merchant !== filters.merchant;
-    
-    if (filtersChanged) {
-      prevFiltersRef.current = filters;
-      onFiltersChange(filters);
-    }
-  }, [filters, onFiltersChange]);
+  }, [page, itemsPerPage, filters.dateFrom, filters.dateTo, filters.category, filters.merchant, apiSortBy, apiSortOrder]);
 
-  const handleFilterChange = (key: keyof TransactionFilters, value: any) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
+  // Load transactions when page, itemsPerPage, or filters change
+  useEffect(() => {
+    // Always load with pagination - the API will handle the pagination
+    loadTransactionsWithPagination();
+  }, [loadTransactionsWithPagination]);
+
+  // Reset to page 1 when filters or sort changes
+  useEffect(() => {
     setPage(1);
+  }, [filters.dateFrom, filters.dateTo, filters.category, filters.merchant, apiSortBy, apiSortOrder]);
+
+  const handleFilterChange: (key: keyof TransactionFilters, value: any) => void = (key, value) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+    // Page will be reset in useEffect when filters change
   };
 
   const clearFilters = () => {
@@ -284,6 +352,8 @@ export default function TransactionsSection({
       setEditDialogOpen(false);
       setSnackbar({ open: true, message: 'Transaction updated successfully', severity: 'success' });
       onTransactionsChange();
+      // Reload transactions after update/delete/merge
+      loadTransactionsWithPagination();
     } catch (error: any) {
       setSnackbar({ open: true, message: 'Failed to update transaction: ' + error.message, severity: 'error' });
     }
@@ -297,6 +367,8 @@ export default function TransactionsSection({
       setDeleteDialogOpen(false);
       setSnackbar({ open: true, message: 'Transaction deleted successfully', severity: 'success' });
       onTransactionsChange();
+      // Reload transactions after update/delete/merge
+      loadTransactionsWithPagination();
     } catch (error: any) {
       setSnackbar({ open: true, message: 'Failed to delete transaction: ' + error.message, severity: 'error' });
     }
@@ -310,6 +382,8 @@ export default function TransactionsSection({
       setMergeDialogOpen(false);
       setSnackbar({ open: true, message: 'Transactions merged successfully', severity: 'success' });
       onTransactionsChange();
+      // Reload transactions after update/delete/merge
+      loadTransactionsWithPagination();
     } catch (error: any) {
       setSnackbar({ open: true, message: 'Failed to merge transactions: ' + error.message, severity: 'error' });
     }
@@ -353,12 +427,12 @@ export default function TransactionsSection({
     return sortOrder === 'asc' ? comparison : -comparison;
   });
 
-  const paginatedTransactions = sortedTransactions.slice(
-    (page - 1) * itemsPerPage,
-    page * itemsPerPage
-  );
-
-  const totalPages = Math.ceil(sortedTransactions.length / itemsPerPage);
+  // For client-side filtering/searching, we still need to filter the loaded transactions
+  // But pagination is handled server-side
+  const paginatedTransactions = sortedTransactions;
+  
+  // Calculate total pages based on server-side total
+  const totalPages = Math.ceil(totalTransactions / itemsPerPage);
 
   const handleSort = (field: 'date' | 'amount' | 'merchant' | 'category') => {
     if (sortBy === field) {
@@ -367,7 +441,7 @@ export default function TransactionsSection({
       setSortBy(field);
       setSortOrder('asc');
     }
-    setPage(1);
+    // Note: Sorting is client-side, so we don't need to reload from API
   };
 
   // Full screen dialog filtering and sorting
@@ -522,7 +596,7 @@ export default function TransactionsSection({
         filters={filters}
         categories={categories}
         merchants={merchants}
-        onFilterChange={handleFilterChange}
+        onFilterChange={(key, value) => handleFilterChange(key as keyof TransactionFilters, value)}
         onClearFilters={clearFilters}
         hasFilters={hasFilters}
       />
@@ -533,8 +607,10 @@ export default function TransactionsSection({
         searchQuery={layout === 'items' ? itemsSearchQuery : searchQuery}
         itemsPerPage={itemsPerPage}
         paginatedCount={paginatedTransactions.length > 0 ? (page - 1) * itemsPerPage + 1 : 0}
-        totalCount={layout === 'items' ? sortedItems.length : sortedTransactions.length}
+        totalCount={layout === 'items' ? sortedItems.length : totalTransactions}
         currentPage={page}
+        apiSortBy={apiSortBy}
+        apiSortOrder={apiSortOrder}
         onLayoutChange={setLayout}
         onSearchChange={(query) => {
           if (layout === 'items') {
@@ -548,50 +624,91 @@ export default function TransactionsSection({
           setItemsPerPage(value);
           setPage(1);
         }}
+        onApiSortChange={(sortBy, sortOrder) => {
+          setApiSortBy(sortBy);
+          setApiSortOrder(sortOrder);
+          setPage(1);
+        }}
         onOpenFullScreen={() => setFullScreenDialogOpen(true)}
       />
 
       {/* Transactions List */}
-      <TransactionsList
-        layout={layout}
-        transactions={transactions}
-        merchants={merchants}
-        categories={categories}
-        expandedTransactions={expandedTransactions}
-        transactionItems={transactionItems}
-        loadingItems={loadingItems}
-        paginatedTransactions={paginatedTransactions}
-        paginatedItems={paginatedItems}
-        itemsPerPage={itemsPerPage}
-        page={page}
-        onToggleItemsExpansion={toggleItemsExpansion}
-        onEditTransaction={handleEdit}
-        onDeleteTransaction={(transaction) => {
-          setSelectedTransaction(transaction);
-          setDeleteDialogOpen(true);
-        }}
-        onMergeTransaction={(transaction) => {
-          setSelectedTransaction(transaction);
-          setMergeDialogOpen(true);
-        }}
-        onEditItem={handleItemEdit}
-        onDeleteItem={(item) => {
-          setSelectedItem(item);
-          setItemDeleteDialogOpen(true);
-        }}
-        getMerchantName={getMerchantName}
-        getCategoryName={getCategoryName}
-        getBillItems={getBillItems}
-      />
-
-      {/* Pagination */}
-      {(layout === 'items' ? sortedItems.length : sortedTransactions.length) > itemsPerPage && (
-        <TransactionPagination
-          count={Math.ceil((layout === 'items' ? sortedItems.length : sortedTransactions.length) / itemsPerPage)}
-          page={page}
-          onPageChange={setPage}
-        />
+      {isLoadingTransactions && transactions.length === 0 ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
+          <Typography variant="body2" color="text.secondary">
+            Loading transactions...
+          </Typography>
+        </Box>
+      ) : (
+        <>
+          {isLoadingTransactions && transactions.length > 0 && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 1, mb: 2 }}>
+              <Typography variant="caption" color="text.secondary">
+                Loading...
+              </Typography>
+            </Box>
+          )}
+          <TransactionsList
+            layout={layout}
+            transactions={transactions}
+            merchants={merchants}
+            categories={categories}
+            expandedTransactions={expandedTransactions}
+            transactionItems={transactionItems}
+            loadingItems={loadingItems}
+            paginatedTransactions={paginatedTransactions}
+            paginatedItems={paginatedItems}
+            itemsPerPage={itemsPerPage}
+            page={page}
+            onToggleItemsExpansion={toggleItemsExpansion}
+            onEditTransaction={handleEdit}
+            onDeleteTransaction={(transaction) => {
+              setSelectedTransaction(transaction);
+              setDeleteDialogOpen(true);
+            }}
+            onMergeTransaction={(transaction) => {
+              setSelectedTransaction(transaction);
+              setMergeDialogOpen(true);
+            }}
+            onEditItem={handleItemEdit}
+            onDeleteItem={(item) => {
+              setSelectedItem(item);
+              setItemDeleteDialogOpen(true);
+            }}
+            onItemFieldUpdate={handleItemFieldUpdate}
+            getMerchantName={getMerchantName}
+            getCategoryName={getCategoryName}
+            getBillItems={getBillItems}
+          />
+        </>
       )}
+
+      {/* Pagination - Only show if total count is greater than items per page */}
+      {!isLoadingTransactions && (() => {
+        const totalCount = layout === 'items' ? sortedItems.length : totalTransactions;
+        // Only show pagination if we have more items than can fit on one page
+        if (totalCount <= itemsPerPage) {
+          return null;
+        }
+        
+        const totalPages = Math.ceil(totalCount / itemsPerPage);
+        // Also check that we have more than 1 page
+        if (totalPages <= 1) {
+          return null;
+        }
+        
+        return (
+          <TransactionPagination
+            count={totalPages}
+            page={page}
+            onPageChange={(newPage) => {
+              setPage(newPage);
+              // Scroll to top when page changes
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
+        );
+      })()}
 
       {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="sm" fullWidth>
@@ -984,6 +1101,18 @@ export default function TransactionsSection({
                         backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb',
                         fontFamily: "'Inter', sans-serif",
                         fontSize: '0.875rem',
+                        minWidth: '120px',
+                      }}
+                    >
+                      Payment Method
+                    </TableCell>
+                    <TableCell 
+                      sx={{ 
+                        fontWeight: 600, 
+                        color: theme.palette.text.primary,
+                        backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb',
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: '0.875rem',
                         minWidth: '100px',
                       }}
                     >
@@ -1006,35 +1135,51 @@ export default function TransactionsSection({
                 <TableBody>
                   {fullScreenSortedTransactions.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
+                      <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
                         <Typography variant="body2" color="text.secondary" sx={{ fontFamily: "'Inter', sans-serif" }}>
                           No transactions found
                         </Typography>
                       </TableCell>
                     </TableRow>
                   ) : (
-                    fullScreenSortedTransactions.map((transaction, index) => (
-                      <TableRow 
-                        key={transaction._id}
-                        hover
-                        sx={{
-                          backgroundColor: index % 2 === 0 ? theme.palette.background.paper : (theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb'),
-                          '&:hover': {
-                            backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f3f4f6',
-                          },
-                        }}
-                      >
+                    fullScreenSortedTransactions.map((transaction, index) => {
+                      // Check if transaction has items with missing fields
+                      const billItems = getBillItems(transaction);
+                      const hasMissingFields = transactionHasMissingFields(transaction, billItems);
+                      
+                      return (
+                        <TableRow 
+                          key={transaction._id}
+                          hover
+                          sx={{
+                            backgroundColor: index % 2 === 0 ? theme.palette.background.paper : (theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb'),
+                            ...getMissingFieldRowStyle(hasMissingFields, theme),
+                            '&:hover': {
+                              backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f3f4f6',
+                            },
+                          }}
+                        >
+                          <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              {new Date(transaction.date).toLocaleDateString()}
+                              {hasMissingFields && (
+                                <Tooltip title="This transaction has items with missing price fields">
+                                  <Warning sx={{ fontSize: '1rem', color: theme.palette.warning.main }} />
+                                </Tooltip>
+                              )}
+                            </Box>
+                          </TableCell>
                         <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
-                          {new Date(transaction.date).toLocaleDateString()}
+                          {getDisplayMerchantName(transaction, getMerchantName(transaction.merchant_id))}
                         </TableCell>
                         <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
-                          {getMerchantName(transaction.merchant_id)}
-                        </TableCell>
-                        <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
-                          {getCategoryName(transaction.category_id)}
+                          {getDisplayCategoryName(transaction, getCategoryName(transaction.category_id), [])}
                         </TableCell>
                         <TableCell align="right" sx={{ color: theme.palette.text.primary, fontWeight: 500, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
-                          Rs. {transaction.amount.toFixed(2)}
+                          {formatCurrency(transaction.amount, transaction.currency)}
+                        </TableCell>
+                        <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
+                          {formatPaymentMethod(transaction.payment_method)}
                         </TableCell>
                         <TableCell>
                           <Chip
@@ -1090,7 +1235,8 @@ export default function TransactionsSection({
                           </Box>
                         </TableCell>
                       </TableRow>
-                    ))
+                      );
+                    })
                   )}
                 </TableBody>
               </Table>

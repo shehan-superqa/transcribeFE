@@ -1,7 +1,10 @@
-import { Box, Paper, Typography, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Card, CardContent, Chip, IconButton, Collapse, CircularProgress, Divider, Avatar } from '@mui/material';
-import { CloudUpload, Edit, Delete, MergeType, ExpandLess, ExpandMore, ShoppingCart, AttachMoney, CalendarToday, Store, Category as CategoryIcon } from '@mui/icons-material';
+import React from 'react';
+import { Box, Paper, Typography, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Card, CardContent, Chip, IconButton, Collapse, CircularProgress, Divider, Avatar, Tooltip } from '@mui/material';
+import { CloudUpload, Edit, Delete, MergeType, ExpandLess, ExpandMore, ShoppingCart, AttachMoney, CalendarToday, Store, Category as CategoryIcon, Warning } from '@mui/icons-material';
 import { Transaction, Merchant, Category, TransactionItem, FlattenedItem } from '../../types/financial';
 import { useTheme } from '../../contexts/ThemeContext';
+import { getDisplayCategoryName, formatCurrency, getDisplayMerchantName, formatPaymentMethod, checkMissingPriceFields, getMissingFieldStyle, getMissingFieldRowStyle, transactionHasMissingFields } from '../../utils/transactionHelpers';
+import EditableItemCell from './EditableItemCell';
 import TransactionCard from './TransactionCard';
 
 interface TransactionsListProps {
@@ -22,6 +25,7 @@ interface TransactionsListProps {
   onMergeTransaction: (transaction: Transaction) => void;
   onEditItem: (item: TransactionItem) => void;
   onDeleteItem: (item: TransactionItem) => void;
+  onItemFieldUpdate?: (itemId: string, field: string, value: number) => void;
   getMerchantName: (merchantId: string | null) => string;
   getCategoryName: (categoryId: string | null) => string;
   getBillItems: (transaction: Transaction) => TransactionItem[];
@@ -45,10 +49,18 @@ export default function TransactionsList({
   onMergeTransaction,
   onEditItem,
   onDeleteItem,
+  onItemFieldUpdate,
   getMerchantName,
   getCategoryName,
   getBillItems,
 }: TransactionsListProps) {
+  const handleItemFieldUpdate = (itemId: string, field: string, value: number) => {
+    onItemFieldUpdate?.(itemId, field, value);
+  };
+
+  const handleItemUpdateError = (error: string) => {
+    console.error('Failed to update item:', error);
+  };
   const { theme } = useTheme();
 
   const renderItemsView = () => (
@@ -140,102 +152,277 @@ export default function TransactionsList({
     </TableContainer>
   );
 
-  const renderTableView = () => (
-    <TableContainer
-      component={Paper}
-      elevation={0}
-      sx={{
-        backgroundColor: theme.palette.background.paper,
-        border: `1px solid ${theme.palette.divider}`,
-        borderRadius: '12px',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-        maxHeight: 'calc(100vh - 400px)',
-        overflow: 'auto',
-      }}
-    >
-      <Table stickyHeader size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>Date</TableCell>
-            <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>Merchant</TableCell>
-            <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>Category</TableCell>
-            <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>Amount</TableCell>
-            <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>Status</TableCell>
-            <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>Actions</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {paginatedTransactions.map((transaction, index) => (
-            <TableRow
-              key={transaction._id}
-              hover
-              sx={{
-                backgroundColor: index % 2 === 0 ? theme.palette.background.paper : (theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb'),
-                '&:hover': {
-                  backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f3f4f6',
-                },
-              }}
-            >
-              <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
-                {new Date(transaction.date).toLocaleDateString()}
-              </TableCell>
-              <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
-                {getMerchantName(transaction.merchant_id)}
-              </TableCell>
-              <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
-                {getCategoryName(transaction.category_id)}
-              </TableCell>
-              <TableCell align="right" sx={{ color: theme.palette.text.primary, fontWeight: 500, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
-                Rs. {transaction.amount.toFixed(2)}
-              </TableCell>
-              <TableCell>
-                <Chip
-                  label={transaction.status}
-                  size="small"
-                  color={
-                    transaction.status === 'confirmed'
-                      ? 'success'
-                      : transaction.status === 'pending'
-                      ? 'warning'
-                      : 'error'
-                  }
-                  sx={{ fontFamily: "'Inter', sans-serif", fontSize: '0.75rem' }}
-                />
-              </TableCell>
-              <TableCell>
-                <Box sx={{ display: 'flex', gap: 0.5 }}>
-                  <IconButton
-                    size="small"
-                    onClick={() => onEditTransaction(transaction)}
-                    color="primary"
-                    sx={{ padding: '0.25rem' }}
-                  >
-                    <Edit sx={{ fontSize: '1rem' }} />
-                  </IconButton>
-                  <IconButton
-                    size="small"
-                    onClick={() => onDeleteTransaction(transaction)}
-                    color="error"
-                    sx={{ padding: '0.25rem' }}
-                  >
-                    <Delete sx={{ fontSize: '1rem' }} />
-                  </IconButton>
-                  <IconButton
-                    size="small"
-                    onClick={() => onMergeTransaction(transaction)}
-                    color="secondary"
-                    sx={{ padding: '0.25rem' }}
-                  >
-                    <MergeType sx={{ fontSize: '1rem' }} />
-                  </IconButton>
-                </Box>
-              </TableCell>
+  const renderTableView = () => {
+    return (
+      <TableContainer
+        component={Paper}
+        elevation={0}
+        sx={{
+          backgroundColor: theme.palette.background.paper,
+          border: `1px solid ${theme.palette.divider}`,
+          borderRadius: '12px',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+          maxHeight: 'calc(100vh - 400px)',
+          overflow: 'auto',
+        }}
+      >
+        <Table stickyHeader size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem', width: '40px' }}></TableCell>
+              <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>Date</TableCell>
+              <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>Merchant</TableCell>
+              <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>Category</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>Amount</TableCell>
+              <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>Payment Method</TableCell>
+              <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>Status</TableCell>
+              <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>Actions</TableCell>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
-  );
+          </TableHead>
+          <TableBody>
+            {paginatedTransactions.map((transaction, index) => {
+              const billItems = getBillItems(transaction);
+              const isExpanded = expandedTransactions.has(transaction._id);
+              const isLoading = Boolean(loadingItems?.[transaction._id]);
+              const hasLoadedItems = Object.prototype.hasOwnProperty.call(transactionItems, transaction._id);
+              
+              // Check if transaction has items with missing fields
+              const hasMissingFields = transactionHasMissingFields(transaction, billItems);
+              
+              return (
+                <React.Fragment key={transaction._id}>
+                  <TableRow
+                    hover
+                    sx={{
+                      backgroundColor: index % 2 === 0 ? theme.palette.background.paper : (theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb'),
+                      ...getMissingFieldRowStyle(hasMissingFields, theme),
+                      '&:hover': {
+                        backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f3f4f6',
+                      },
+                    }}
+                  >
+                    <TableCell>
+                      <IconButton
+                        size="small"
+                        onClick={() => onToggleItemsExpansion(transaction._id)}
+                        disabled={isLoading}
+                        sx={{ padding: '0.25rem' }}
+                        color="primary"
+                      >
+                        {isExpanded ? <ExpandLess /> : <ExpandMore />}
+                      </IconButton>
+                    </TableCell>
+                    <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        {new Date(transaction.date).toLocaleDateString()}
+                        {hasMissingFields && (
+                          <Tooltip title="This transaction has items with missing price fields">
+                            <Warning sx={{ fontSize: '1rem', color: theme.palette.warning.main }} />
+                          </Tooltip>
+                        )}
+                      </Box>
+                    </TableCell>
+                    <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
+                      {getDisplayMerchantName(transaction, getMerchantName(transaction.merchant_id))}
+                    </TableCell>
+                    <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
+                      {getDisplayCategoryName(transaction, getCategoryName(transaction.category_id), billItems)}
+                    </TableCell>
+                    <TableCell align="right" sx={{ color: theme.palette.text.primary, fontWeight: 500, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
+                      {formatCurrency(transaction.amount, transaction.currency)}
+                    </TableCell>
+                    <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
+                      {formatPaymentMethod(transaction.payment_method)}
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={transaction.status}
+                        size="small"
+                        color={
+                          transaction.status === 'confirmed'
+                            ? 'success'
+                            : transaction.status === 'pending'
+                            ? 'warning'
+                            : 'error'
+                        }
+                        sx={{ fontFamily: "'Inter', sans-serif", fontSize: '0.75rem' }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', gap: 0.5 }}>
+                        <IconButton
+                          size="small"
+                          onClick={() => onEditTransaction(transaction)}
+                          color="primary"
+                          sx={{ padding: '0.25rem' }}
+                        >
+                          <Edit sx={{ fontSize: '1rem' }} />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          onClick={() => onDeleteTransaction(transaction)}
+                          color="error"
+                          sx={{ padding: '0.25rem' }}
+                        >
+                          <Delete sx={{ fontSize: '1rem' }} />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          onClick={() => onMergeTransaction(transaction)}
+                          color="secondary"
+                          sx={{ padding: '0.25rem' }}
+                        >
+                          <MergeType sx={{ fontSize: '1rem' }} />
+                        </IconButton>
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell colSpan={7} sx={{ py: 0, border: 0 }}>
+                      <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+                        <Box sx={{ p: 2, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb' }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                            <ShoppingCart sx={{ fontSize: '1.25rem', color: theme.palette.primary.main }} />
+                            <Typography variant="subtitle2" sx={{ color: theme.palette.text.primary, fontWeight: 600, fontFamily: "'Inter', sans-serif" }}>
+                              Bill Items {billItems.length > 0 && `(${billItems.length})`}
+                            </Typography>
+                          </Box>
+                          <Divider sx={{ my: 1 }} />
+                          {isLoading ? (
+                            <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+                              <CircularProgress size={20} />
+                            </Box>
+                          ) : billItems.length === 0 ? (
+                            <Typography variant="body2" color="text.secondary" sx={{ py: 1, fontFamily: "'Inter', sans-serif" }}>
+                              No items found for this transaction.
+                            </Typography>
+                          ) : (
+                            <TableContainer>
+                              <Table size="small">
+                                <TableHead>
+                                  <TableRow>
+                                    <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>Item Name</TableCell>
+                                    <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>Quantity</TableCell>
+                                    <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>Unit Price</TableCell>
+                                    <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>Total Price</TableCell>
+                                    {billItems.some((item: any) => item.category || (item as TransactionItem).category) && (
+                                      <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>Category</TableCell>
+                                    )}
+                                    {transactionItems[transaction._id] && transactionItems[transaction._id].length > 0 && (
+                                      <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>Actions</TableCell>
+                                    )}
+                                  </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                  {billItems.map((item: any, itemIndex: number) => {
+                                    const itemId = (item as TransactionItem)._id;
+                                    const apiItem = itemId && transactionItems[transaction._id]
+                                      ? transactionItems[transaction._id].find((apiItem) => apiItem._id === itemId)
+                                      : null;
+                                    const displayItem = apiItem || item;
+                                    
+                                    // Check for missing price fields
+                                    const missingFields = checkMissingPriceFields(displayItem);
+
+                                    return (
+                                      <TableRow 
+                                        key={itemId || itemIndex} 
+                                        hover
+                                        sx={getMissingFieldRowStyle(missingFields.hasMissingFields, theme)}
+                                      >
+                                        <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
+                                          {displayItem.name || 'N/A'}
+                                        </TableCell>
+                                        <EditableItemCell
+                                          value={displayItem.quantity}
+                                          field="quantity"
+                                          itemId={itemId}
+                                          transactionId={transaction._id}
+                                          isMissing={missingFields.quantity}
+                                          onUpdate={handleItemFieldUpdate}
+                                          onError={handleItemUpdateError}
+                                          sx={{ fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}
+                                        />
+                                        <EditableItemCell
+                                          value={displayItem.unit_price}
+                                          field="unit_price"
+                                          itemId={itemId}
+                                          transactionId={transaction._id}
+                                          isMissing={missingFields.unitPrice}
+                                          formatValue={(val) => `Rs. ${Number(val).toFixed(2)}`}
+                                          parseValue={(val) => {
+                                            const num = parseFloat(val.replace(/[^\d.-]/g, ''));
+                                            return isNaN(num) ? null : num;
+                                          }}
+                                          onUpdate={handleItemFieldUpdate}
+                                          onError={handleItemUpdateError}
+                                          sx={{ fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}
+                                        />
+                                        <EditableItemCell
+                                          value={displayItem.total_price}
+                                          field="total_price"
+                                          itemId={itemId}
+                                          transactionId={transaction._id}
+                                          isMissing={missingFields.totalPrice}
+                                          formatValue={(val) => `Rs. ${Number(val).toFixed(2)}`}
+                                          parseValue={(val) => {
+                                            const num = parseFloat(val.replace(/[^\d.-]/g, ''));
+                                            return isNaN(num) ? null : num;
+                                          }}
+                                          onUpdate={handleItemFieldUpdate}
+                                          onError={handleItemUpdateError}
+                                          sx={{ fontWeight: 500, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}
+                                        />
+                                        {billItems.some((i: any) => i.category || (i as TransactionItem).category) && (
+                                          <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
+                                            {displayItem.category ? (
+                                              <Chip label={displayItem.category} size="small" variant="outlined" />
+                                            ) : (
+                                              '-'
+                                            )}
+                                          </TableCell>
+                                        )}
+                                        {apiItem && (
+                                          <TableCell>
+                                            <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                              <IconButton
+                                                size="small"
+                                                onClick={() => onEditItem(apiItem)}
+                                                color="primary"
+                                                sx={{ padding: '0.25rem' }}
+                                              >
+                                                <Edit fontSize="small" />
+                                              </IconButton>
+                                              <IconButton
+                                                size="small"
+                                                onClick={() => onDeleteItem(apiItem)}
+                                                color="error"
+                                                sx={{ padding: '0.25rem' }}
+                                              >
+                                                <Delete fontSize="small" />
+                                              </IconButton>
+                                            </Box>
+                                          </TableCell>
+                                        )}
+                                      </TableRow>
+                                    );
+                                  })}
+                                </TableBody>
+                              </Table>
+                            </TableContainer>
+                          )}
+                        </Box>
+                      </Collapse>
+                    </TableCell>
+                  </TableRow>
+                </React.Fragment>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    );
+  };
 
   const renderCardView = () => (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -255,6 +442,7 @@ export default function TransactionsList({
           onMerge={onMergeTransaction}
           onItemEdit={onEditItem}
           onItemDelete={onDeleteItem}
+          onItemFieldUpdate={onItemFieldUpdate}
         />
       ))}
     </Box>

@@ -1,8 +1,11 @@
-import { Card, CardContent, Typography, Box, Chip, IconButton, Collapse, Table, TableBody, TableCell, TableHead, TableRow, TableContainer, Button, Divider, Dialog, DialogTitle, DialogContent, DialogActions, Pagination, CircularProgress } from '@mui/material';
-import { Edit, Delete, MergeType, ExpandMore, ExpandLess, ShoppingCart, AttachMoney, CalendarToday, Store, Category, CheckCircle, Close } from '@mui/icons-material';
+import { Card, CardContent, Typography, Box, Chip, IconButton, Collapse, Table, TableBody, TableCell, TableHead, TableRow, TableContainer, Button, Divider, Dialog, DialogTitle, DialogContent, DialogActions, Pagination, CircularProgress, Tooltip } from '@mui/material';
+import { Edit, Delete, MergeType, ExpandMore, ExpandLess, ShoppingCart, AttachMoney, CalendarToday, Store, Category, CheckCircle, Close, Warning } from '@mui/icons-material';
 import { Transaction, TransactionItem } from '../../types/financial';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useState } from 'react';
+import { getTransactionMetadata, getDisplayCategoryName, formatCurrency, checkMissingPriceFields, getMissingFieldStyle, getMissingFieldRowStyle } from '../../utils/transactionHelpers';
+import EditableItemCell from './EditableItemCell';
+import { updateItem } from '../../lib/api/financialApi';
 
 interface TransactionCardProps {
   transaction: Transaction;
@@ -18,6 +21,7 @@ interface TransactionCardProps {
   onMerge: (transaction: Transaction) => void;
   onItemEdit: (item: TransactionItem) => void;
   onItemDelete: (item: TransactionItem) => void;
+  onItemFieldUpdate?: (itemId: string, field: string, value: number) => void;
 }
 
 export default function TransactionCard({
@@ -34,6 +38,7 @@ export default function TransactionCard({
   onMerge,
   onItemEdit,
   onItemDelete,
+  onItemFieldUpdate,
 }: TransactionCardProps) {
   const { theme } = useTheme();
   const [modalOpen, setModalOpen] = useState(false);
@@ -65,6 +70,20 @@ export default function TransactionCard({
     ? `${(transaction.confidence_category * 100).toFixed(1)}%`
     : 'N/A';
 
+  // Get transaction metadata using helper functions
+  const metadata = getTransactionMetadata(
+    transaction,
+    billItems
+  );
+  
+  const merchantName = getMerchantName(transaction.merchant_id);
+  const categoryName = getCategoryName(transaction.category_id);
+  
+  // Override with helper results
+  const transactionName = metadata.name;
+  const displayCategory = getDisplayCategoryName(transaction, categoryName, billItems);
+  const displayMerchant = metadata.merchantName;
+
   return (
     <Card
       elevation={0}
@@ -78,6 +97,23 @@ export default function TransactionCard({
       <CardContent sx={{ p: '1.5rem' }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
           <Box sx={{ flex: 1 }}>
+            {/* Transaction Name/Caption */}
+            {transactionName && (
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  fontFamily: "'Inter', sans-serif",
+                  color: theme.palette.text.primary,
+                  fontSize: '0.9375rem',
+                  fontWeight: 600,
+                  lineHeight: 1.3,
+                  mb: '0.75rem',
+                }}
+              >
+                {transactionName}
+              </Typography>
+            )}
+            
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: '0.5rem' }}>
               <AttachMoney sx={{ fontSize: '1.25rem', color: theme.palette.primary.main }} />
               <Typography
@@ -92,7 +128,7 @@ export default function TransactionCard({
                   mb: '0.5rem',
                 }}
               >
-                Rs. {transaction.amount.toFixed(2)}
+                {metadata.formattedAmount}
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: '0.5rem' }}>
@@ -114,15 +150,16 @@ export default function TransactionCard({
             <Box sx={{ display: 'flex', gap: 1, mt: 1, flexWrap: 'wrap' }}>
               <Chip
                 icon={<Store sx={{ fontSize: '0.875rem' }} />}
-                label={getMerchantName(transaction.merchant_id)}
+                label={displayMerchant}
                 size="small"
                 variant="outlined"
               />
               <Chip
                 icon={<Category sx={{ fontSize: '0.875rem' }} />}
-                label={getCategoryName(transaction.category_id)}
+                label={displayCategory}
                 size="small"
                 variant="outlined"
+                color={displayCategory === 'Uncategorized' ? 'default' : 'primary'}
               />
               <Chip
                 label={transaction.status}
@@ -135,15 +172,32 @@ export default function TransactionCard({
                     : 'error'
                 }
               />
-              {transaction.anomaly_flag && (
-                <Chip label="Anomaly" size="small" color="error" />
+              {metadata.anomaly.hasAnomaly && (
+                <Tooltip title={metadata.anomaly.reason || 'Anomaly detected'}>
+                  <Chip 
+                    icon={<Warning sx={{ fontSize: '0.875rem' }} />}
+                    label={metadata.anomaly.reason ? `Anomaly: ${metadata.anomaly.reason}` : 'Anomaly'} 
+                    size="small" 
+                    color="error"
+                  />
+                </Tooltip>
               )}
             </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1, flexWrap: 'wrap' }}>
               <CheckCircle sx={{ fontSize: '1rem', color: theme.palette.text.secondary }} />
               <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                 Confidence: {confidenceText}
               </Typography>
+              {metadata.currency && metadata.currency !== 'USD' && (
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                  Currency: {metadata.currency}
+                </Typography>
+              )}
+              {transaction.invoice_number && (
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                  Invoice: {transaction.invoice_number}
+                </Typography>
+              )}
             </Box>
 
             {/* Bill Items Toggle */}
@@ -194,6 +248,20 @@ export default function TransactionCard({
               <Typography variant="subtitle2" sx={{ color: theme.palette.text.primary, fontWeight: 600 }}>
                 Bill Items
               </Typography>
+              {billItems.some((item: any) => {
+                const missingFields = checkMissingPriceFields(item);
+                return missingFields.hasMissingFields;
+              }) && (
+                <Tooltip title="Some items have missing price fields">
+                  <Chip 
+                    icon={<Warning />}
+                    label="Missing Fields" 
+                    size="small" 
+                    color="warning" 
+                    sx={{ ml: 1, height: 24, fontSize: '0.7rem' }}
+                  />
+                </Tooltip>
+              )}
             </Box>
             <Divider sx={{ my: 1 }} />
 
@@ -231,17 +299,55 @@ export default function TransactionCard({
                           ? transactionItems[transaction._id].find((apiItem) => apiItem._id === itemId)
                           : null;
                         const displayItem = apiItem || item;
+                        
+                        // Check for missing price fields
+                        const missingFields = checkMissingPriceFields(displayItem);
 
                         return (
-                          <TableRow key={itemId || index} hover>
+                          <TableRow 
+                            key={itemId || index} 
+                            hover
+                            sx={getMissingFieldRowStyle(missingFields.hasMissingFields, theme)}
+                          >
                             <TableCell sx={{ color: theme.palette.text.primary }}>{displayItem.name || 'N/A'}</TableCell>
-                            <TableCell align="right" sx={{ color: theme.palette.text.primary }}>{displayItem.quantity || 1}</TableCell>
-                            <TableCell align="right" sx={{ color: theme.palette.text.primary }}>
-                              {displayItem.unit_price ? `Rs. ${displayItem.unit_price.toFixed(2)}` : 'N/A'}
-                            </TableCell>
-                            <TableCell align="right" sx={{ color: theme.palette.text.primary, fontWeight: 500 }}>
-                              {displayItem.total_price ? `Rs. ${displayItem.total_price.toFixed(2)}` : 'N/A'}
-                            </TableCell>
+                            <EditableItemCell
+                              value={displayItem.quantity}
+                              field="quantity"
+                              itemId={itemId}
+                              transactionId={transaction._id}
+                              isMissing={missingFields.quantity}
+                              onUpdate={handleItemFieldUpdate}
+                              onError={handleItemUpdateError}
+                            />
+                            <EditableItemCell
+                              value={displayItem.unit_price}
+                              field="unit_price"
+                              itemId={itemId}
+                              transactionId={transaction._id}
+                              isMissing={missingFields.unitPrice}
+                              formatValue={(val) => `Rs. ${Number(val).toFixed(2)}`}
+                              parseValue={(val) => {
+                                const num = parseFloat(val.replace(/[^\d.-]/g, ''));
+                                return isNaN(num) ? null : num;
+                              }}
+                              onUpdate={handleItemFieldUpdate}
+                              onError={handleItemUpdateError}
+                            />
+                            <EditableItemCell
+                              value={displayItem.total_price}
+                              field="total_price"
+                              itemId={itemId}
+                              transactionId={transaction._id}
+                              isMissing={missingFields.totalPrice}
+                              formatValue={(val) => `Rs. ${Number(val).toFixed(2)}`}
+                              parseValue={(val) => {
+                                const num = parseFloat(val.replace(/[^\d.-]/g, ''));
+                                return isNaN(num) ? null : num;
+                              }}
+                              onUpdate={handleItemFieldUpdate}
+                              onError={handleItemUpdateError}
+                              sx={{ fontWeight: 500 }}
+                            />
                             {billItems.some((i: any) => i.category || (i as TransactionItem).category) && (
                               <TableCell sx={{ color: theme.palette.text.primary }}>
                                 {displayItem.category ? (
@@ -345,17 +451,55 @@ export default function TransactionCard({
                       ? transactionItems[transaction._id].find((apiItem) => apiItem._id === itemId)
                       : null;
                     const displayItem = apiItem || item;
+                    
+                    // Check for missing price fields
+                    const missingFields = checkMissingPriceFields(displayItem);
 
                     return (
-                      <TableRow key={itemId || index} hover>
+                      <TableRow 
+                        key={itemId || index} 
+                        hover
+                        sx={getMissingFieldRowStyle(missingFields.hasMissingFields, theme)}
+                      >
                         <TableCell sx={{ color: theme.palette.text.primary }}>{displayItem.name || 'N/A'}</TableCell>
-                        <TableCell align="right" sx={{ color: theme.palette.text.primary }}>{displayItem.quantity || 1}</TableCell>
-                        <TableCell align="right" sx={{ color: theme.palette.text.primary }}>
-                          {displayItem.unit_price ? `Rs. ${displayItem.unit_price.toFixed(2)}` : 'N/A'}
-                        </TableCell>
-                        <TableCell align="right" sx={{ color: theme.palette.text.primary, fontWeight: 500 }}>
-                          {displayItem.total_price ? `Rs. ${displayItem.total_price.toFixed(2)}` : 'N/A'}
-                        </TableCell>
+                        <EditableItemCell
+                          value={displayItem.quantity}
+                          field="quantity"
+                          itemId={itemId}
+                          transactionId={transaction._id}
+                          isMissing={missingFields.quantity}
+                          onUpdate={handleItemFieldUpdate}
+                          onError={handleItemUpdateError}
+                        />
+                        <EditableItemCell
+                          value={displayItem.unit_price}
+                          field="unit_price"
+                          itemId={itemId}
+                          transactionId={transaction._id}
+                          isMissing={missingFields.unitPrice}
+                          formatValue={(val) => `Rs. ${Number(val).toFixed(2)}`}
+                          parseValue={(val) => {
+                            const num = parseFloat(val.replace(/[^\d.-]/g, ''));
+                            return isNaN(num) ? null : num;
+                          }}
+                          onUpdate={handleItemFieldUpdate}
+                          onError={handleItemUpdateError}
+                        />
+                        <EditableItemCell
+                          value={displayItem.total_price}
+                          field="total_price"
+                          itemId={itemId}
+                          transactionId={transaction._id}
+                          isMissing={missingFields.totalPrice}
+                          formatValue={(val) => `Rs. ${Number(val).toFixed(2)}`}
+                          parseValue={(val) => {
+                            const num = parseFloat(val.replace(/[^\d.-]/g, ''));
+                            return isNaN(num) ? null : num;
+                          }}
+                          onUpdate={handleItemFieldUpdate}
+                          onError={handleItemUpdateError}
+                          sx={{ fontWeight: 500 }}
+                        />
                         {billItems.some((i: any) => i.category || (i as TransactionItem).category) && (
                           <TableCell sx={{ color: theme.palette.text.primary }}>
                             {displayItem.category ? (

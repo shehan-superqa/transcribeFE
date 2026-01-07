@@ -33,6 +33,7 @@ import {
 } from 'recharts';
 import { useTheme } from '../../contexts/ThemeContext';
 import { getSpendingSummary, getSpendingTrends, getAnomalies, listTransactions, listBudgets, getBudgetStatus, getAlerts } from '../../lib/api/financialApi';
+import { formatCurrency, getDisplayCategoryName, checkMissingPriceFields, getMissingFieldStyle, getMissingFieldRowStyle } from '../../utils/transactionHelpers';
 import { SpendingSummaryResponse, SpendingTrendsResponse, AnomaliesResponse, Transaction, BudgetStatusResponse } from '../../types/financial';
 import InsightCard from './InsightCard';
 import BudgetStatusWidget from './BudgetStatusWidget';
@@ -478,10 +479,10 @@ export default function DashboardOverview({
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Box sx={{ flex: 1 }}>
                           <Typography variant="subtitle1" sx={{ color: theme.palette.text.primary, fontWeight: 600 }}>
-                            Rs. {transaction.amount.toFixed(2)}
+                            {formatCurrency(transaction.amount, transaction.currency)}
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
-                            {getCategoryName(transaction.category_id)} •{' '}
+                            {getDisplayCategoryName(transaction, getCategoryName(transaction.category_id), getBillItems(transaction))} •{' '}
                             {new Date(transaction.date).toLocaleDateString()}
                           </Typography>
                           {getBillItems(transaction).length > 0 && (
@@ -532,18 +533,50 @@ export default function DashboardOverview({
                                   {(showAllItems.has(transaction._id) 
                                     ? getBillItems(transaction) 
                                     : getBillItems(transaction).slice(0, 5)
-                                  ).map((item: any, index: number) => (
-                                    <TableRow key={index}>
-                                      <TableCell sx={{ color: theme.palette.text.primary, fontSize: '0.75rem', py: 0.5 }}>{item.name || 'N/A'}</TableCell>
-                                      <TableCell align="right" sx={{ color: theme.palette.text.primary, fontSize: '0.75rem', py: 0.5 }}>{item.quantity || 1}</TableCell>
-                                      <TableCell align="right" sx={{ color: theme.palette.text.primary, fontSize: '0.75rem', py: 0.5 }}>
-                                        {item.unit_price ? `Rs. ${item.unit_price.toFixed(2)}` : '-'}
-                                      </TableCell>
-                                      <TableCell align="right" sx={{ color: theme.palette.text.primary, fontSize: '0.75rem', py: 0.5, fontWeight: 500 }}>
-                                        {item.total_price ? `Rs. ${item.total_price.toFixed(2)}` : '-'}
-                                      </TableCell>
-                                    </TableRow>
-                                  ))}
+                                  ).map((item: any, index: number) => {
+                                    // Check for missing price fields
+                                    const missingFields = checkMissingPriceFields(item);
+                                    
+                                    return (
+                                      <TableRow 
+                                        key={index}
+                                        sx={getMissingFieldRowStyle(missingFields.hasMissingFields, theme)}
+                                      >
+                                        <TableCell sx={{ color: theme.palette.text.primary, fontSize: '0.75rem', py: 0.5 }}>{item.name || 'N/A'}</TableCell>
+                                        <TableCell 
+                                          align="right" 
+                                          sx={{ 
+                                            fontSize: '0.75rem', 
+                                            py: 0.5,
+                                            ...getMissingFieldStyle(missingFields.quantity, theme)
+                                          }}
+                                        >
+                                          {item.quantity || 'N/A'}
+                                        </TableCell>
+                                        <TableCell 
+                                          align="right" 
+                                          sx={{ 
+                                            fontSize: '0.75rem', 
+                                            py: 0.5,
+                                            ...getMissingFieldStyle(missingFields.unitPrice, theme)
+                                          }}
+                                        >
+                                          {item.unit_price && item.unit_price > 0 ? `Rs. ${item.unit_price.toFixed(2)}` : 'N/A'}
+                                        </TableCell>
+                                        <TableCell 
+                                          align="right" 
+                                          sx={{ 
+                                            fontSize: '0.75rem', 
+                                            py: 0.5, 
+                                            fontWeight: 500,
+                                            ...getMissingFieldStyle(missingFields.totalPrice, theme)
+                                          }}
+                                        >
+                                          {item.total_price && item.total_price > 0 ? `Rs. ${item.total_price.toFixed(2)}` : 'N/A'}
+                                        </TableCell>
+                                      </TableRow>
+                                    );
+                                  })}
                                   {getBillItems(transaction).length > 5 && !showAllItems.has(transaction._id) && (
                                     <TableRow 
                                       onClick={() => toggleShowAllItems(transaction._id)}
@@ -638,6 +671,8 @@ export default function DashboardOverview({
     </Box>
   );
 }
+
+
 
 
 

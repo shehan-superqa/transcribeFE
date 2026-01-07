@@ -4,6 +4,7 @@ import {
   BillStatusResponse,
   BulkUploadResponse,
   BulkUploadStatusResponse,
+  ActiveBillsResponse,
   ManualTransactionRequest,
   ManualTransactionResponse,
   TransactionsListResponse,
@@ -53,7 +54,7 @@ const FINANCIAL_API_BASE_URL = 'http://localhost:5000';
 export async function uploadBill(
   file: File,
   options?: {
-    transaction_type?: 'expense' | 'earning';
+    transaction_type?: 'expense' | 'earning' | 'mix';
     category_override?: string;
     merchant_override?: string;
   }
@@ -61,10 +62,12 @@ export async function uploadBill(
   const formData = new FormData();
   formData.append('file', file);
   
-  // Support new parameters
+  // Support transaction_type parameter (expense, earning, or mix)
   if (options?.transaction_type) {
     formData.append('transaction_type', options.transaction_type);
   }
+  
+  // Support category and merchant overrides
   if (options?.category_override) {
     formData.append('category_override', options.category_override);
   }
@@ -123,11 +126,21 @@ export async function getBillStatus(billId: string): Promise<BillStatusResponse>
   return handleResponse<BillStatusResponse>(response);
 }
 
+export async function getActiveBills(): Promise<ActiveBillsResponse> {
+  const response = await authenticatedFetch(
+    '/api/financial/bills/active',
+    { method: 'GET' },
+    true,
+    FINANCIAL_API_BASE_URL
+  );
+  return handleResponse<ActiveBillsResponse>(response);
+}
+
 // Bulk Upload
 export async function uploadBillsBulk(
   files: File[],
   options?: {
-    transaction_type?: 'expense' | 'earning';
+    transaction_type?: 'expense' | 'earning' | 'mix';
     category_override?: string;
     merchant_override?: string;
   }
@@ -212,10 +225,18 @@ export async function listTransactions(
   params?: TransactionsListParams
 ): Promise<TransactionsListResponse> {
   const queryParams = new URLSearchParams();
+  
+  // Sorting parameters
+  if (params?.sort_by) queryParams.append('sort_by', params.sort_by);
+  if (params?.sort_order) queryParams.append('sort_order', params.sort_order);
+  
+  // Filter parameters
   if (params?.date_from) queryParams.append('date_from', params.date_from);
   if (params?.date_to) queryParams.append('date_to', params.date_to);
   if (params?.category) queryParams.append('category', params.category);
   if (params?.merchant) queryParams.append('merchant', params.merchant);
+  
+  // Pagination parameters
   if (params?.limit) queryParams.append('limit', params.limit.toString());
   if (params?.offset) queryParams.append('offset', params.offset.toString());
 

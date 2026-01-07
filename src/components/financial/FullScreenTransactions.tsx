@@ -2,6 +2,7 @@ import { Dialog, DialogTitle, DialogContent, Box, IconButton, TextField, Table, 
 import { Close, Sort } from '@mui/icons-material';
 import { Transaction } from '../../types/financial';
 import { useTheme } from '../../contexts/ThemeContext';
+import { getDisplayCategoryName, formatCurrency, getDisplayMerchantName, formatPaymentMethod, transactionHasMissingFields, getMissingFieldRowStyle } from '../../utils/transactionHelpers';
 
 interface FullScreenTransactionsProps {
   open: boolean;
@@ -253,6 +254,18 @@ export default function FullScreenTransactions({
                     backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb',
                     fontFamily: "'Inter', sans-serif",
                     fontSize: '0.875rem',
+                    minWidth: '120px',
+                  }}
+                >
+                  Payment Method
+                </TableCell>
+                <TableCell
+                  sx={{
+                    fontWeight: 600,
+                    color: theme.palette.text.primary,
+                    backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb',
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: '0.875rem',
                     minWidth: '100px',
                   }}
                 >
@@ -275,35 +288,50 @@ export default function FullScreenTransactions({
             <TableBody>
               {sortedTransactions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
                     <Typography variant="body2" color="text.secondary" sx={{ fontFamily: "'Inter', sans-serif" }}>
                       No transactions found
                     </Typography>
                   </TableCell>
                 </TableRow>
               ) : (
-                sortedTransactions.map((transaction, index) => (
-                  <TableRow
-                    key={transaction._id}
-                    hover
-                    sx={{
-                      backgroundColor: index % 2 === 0 ? theme.palette.background.paper : (theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb'),
-                      '&:hover': {
-                        backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f3f4f6',
-                      },
-                    }}
-                  >
+                sortedTransactions.map((transaction, index) => {
+                  // Check if transaction has items with missing fields
+                  const hasMissingFields = transactionHasMissingFields(transaction);
+                  
+                  return (
+                    <TableRow
+                      key={transaction._id}
+                      hover
+                      sx={{
+                        backgroundColor: index % 2 === 0 ? theme.palette.background.paper : (theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb'),
+                        ...getMissingFieldRowStyle(hasMissingFields, theme),
+                        '&:hover': {
+                          backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f3f4f6',
+                        },
+                      }}
+                    >
+                      <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          {new Date(transaction.date).toLocaleDateString()}
+                          {hasMissingFields && (
+                            <Tooltip title="This transaction has items with missing price fields">
+                              <Warning sx={{ fontSize: '1rem', color: theme.palette.warning.main }} />
+                            </Tooltip>
+                          )}
+                        </Box>
+                      </TableCell>
                     <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
-                      {new Date(transaction.date).toLocaleDateString()}
+                      {getDisplayMerchantName(transaction, getMerchantName(transaction.merchant_id))}
                     </TableCell>
                     <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
-                      {getMerchantName(transaction.merchant_id)}
-                    </TableCell>
-                    <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
-                      {getCategoryName(transaction.category_id)}
+                      {getDisplayCategoryName(transaction, getCategoryName(transaction.category_id), [])}
                     </TableCell>
                     <TableCell align="right" sx={{ color: theme.palette.text.primary, fontWeight: 500, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
-                      Rs. {transaction.amount.toFixed(2)}
+                      {formatCurrency(transaction.amount, transaction.currency)}
+                    </TableCell>
+                    <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
+                      {formatPaymentMethod(transaction.payment_method)}
                     </TableCell>
                     <TableCell>
                       <span style={{
@@ -354,7 +382,8 @@ export default function FullScreenTransactions({
                       </Box>
                     </TableCell>
                   </TableRow>
-                ))
+                  );
+                })
               )}
             </TableBody>
           </Table>

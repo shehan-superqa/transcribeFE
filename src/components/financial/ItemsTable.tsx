@@ -244,13 +244,13 @@ export default function ItemsTable({
                   {item.categoryName}
                 </TableCell>
                 <TableCell align="right" sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
-                  {item.quantity}
+                  {item.quantity && item.quantity > 0 ? item.quantity : 'N/A'}
                 </TableCell>
                 <TableCell align="right" sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
-                  Rs. {item.unitPrice.toFixed(2)}
+                  {item.unitPrice && item.unitPrice > 0 ? `Rs. ${item.unitPrice.toFixed(2)}` : 'N/A'}
                 </TableCell>
                 <TableCell align="right" sx={{ color: theme.palette.text.primary, fontWeight: 500, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
-                  Rs. {item.totalPrice.toFixed(2)}
+                  {item.totalPrice && item.totalPrice > 0 ? `Rs. ${item.totalPrice.toFixed(2)}` : 'N/A'}
                 </TableCell>
               </TableRow>
             ))
