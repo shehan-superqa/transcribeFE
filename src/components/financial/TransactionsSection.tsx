@@ -723,320 +723,314 @@ export default function TransactionsSection({
         </Tabs>
       </Paper>
 
-      {/* Compact Single-Line Filters and Controls - Hide when on Items tab */}
+      {/* Beautiful Modern Filters with Pure Tailwind - Hide when on Items tab */}
       {activeTab !== 3 && (
-        <Paper
-          elevation={0}
-          sx={{
-            p: '0.75rem 1rem',
-            mb: '1.5rem',
-            backgroundColor: theme.palette.background.paper,
-            border: `1px solid ${theme.palette.divider}`,
-            borderRadius: '12px',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-            {/* Filter Icon with Active Filters Chips */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
-              <FilterList sx={{ color: theme.palette.text.secondary, fontSize: '1.1rem' }} />
-              {hasFilters && (
-                <>
-                  {filters.dateFrom && (
-                    <Chip
-                      label={`From: ${filters.dateFrom.toLocaleDateString()}`}
-                      size="small"
-                      onDelete={() => handleFilterChange('dateFrom', null)}
-                      sx={{ height: '24px', fontSize: '0.7rem' }}
-                    />
-                  )}
-                  {filters.dateTo && (
-                    <Chip
-                      label={`To: ${filters.dateTo.toLocaleDateString()}`}
-                      size="small"
-                      onDelete={() => handleFilterChange('dateTo', null)}
-                      sx={{ height: '24px', fontSize: '0.7rem' }}
-                    />
-                  )}
-                  {filters.category && (
-                    <Chip
-                      label={categories.find(c => c._id === filters.category)?.category_name || 'Unknown'}
-                      size="small"
-                      onDelete={() => handleFilterChange('category', undefined)}
-                      sx={{ height: '24px', fontSize: '0.7rem', maxWidth: '120px' }}
-                    />
-                  )}
-                  {filters.merchant && (
-                    <Chip
-                      label={merchants.find(m => m._id === filters.merchant)?.merchant_name || 'Unknown'}
-                      size="small"
-                      onDelete={() => handleFilterChange('merchant', undefined)}
-                      sx={{ height: '24px', fontSize: '0.7rem', maxWidth: '120px' }}
-                    />
-                  )}
-                  {hasFilters && (
-                    <Button
-                      size="small"
-                      onClick={clearFilters}
-                      sx={{
-                        minWidth: 'auto',
-                        px: 1,
-                        fontSize: '0.7rem',
-                        height: '24px',
-                        textTransform: 'none',
-                      }}
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg mb-6 overflow-hidden">
+          {/* Active Filters Bar */}
+          {hasFilters && (
+            <div className="px-5 py-3 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-2 flex-wrap">
+                <FilterList className="text-purple-600 dark:text-purple-400 text-lg flex-shrink-0" />
+                <span className="text-xs font-medium text-gray-700 dark:text-gray-300 mr-1">Active filters:</span>
+                {filters.dateFrom && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-gray-800 text-purple-700 dark:text-purple-300 text-xs font-medium rounded-lg border border-purple-200 dark:border-purple-700 transition-colors">
+                    <svg className="w-3.5 h-3.5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span className="font-semibold">From:</span>
+                    <span>{filters.dateFrom.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                    <button
+                      onClick={() => handleFilterChange('dateFrom', null)}
+                      className="ml-1 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-full p-0.5 transition-colors"
+                      aria-label="Remove date from filter"
                     >
-                      Clear All
-                    </Button>
-                  )}
-                </>
-              )}
-            </Box>
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </span>
+                )}
+                {filters.dateTo && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-gray-800 text-purple-700 dark:text-purple-300 text-xs font-medium rounded-lg border border-purple-200 dark:border-purple-700 transition-colors">
+                    <svg className="w-3.5 h-3.5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span className="font-semibold">To:</span>
+                    <span>{filters.dateTo.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                    <button
+                      onClick={() => handleFilterChange('dateTo', null)}
+                      className="ml-1 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-full p-0.5 transition-colors"
+                      aria-label="Remove date to filter"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </span>
+                )}
+                {filters.category && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-gray-800 text-blue-700 dark:text-blue-300 text-xs font-medium rounded-lg border border-blue-200 dark:border-blue-700 transition-colors max-w-[160px]">
+                    <svg className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                    </svg>
+                    <span className="truncate">{categories.find(c => c._id === filters.category)?.category_name || 'Unknown'}</span>
+                    <button
+                      onClick={() => handleFilterChange('category', undefined)}
+                      className="ml-1 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-full p-0.5 transition-colors flex-shrink-0"
+                      aria-label="Remove category filter"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </span>
+                )}
+                {filters.merchant && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-gray-800 text-green-700 dark:text-green-300 text-xs font-medium rounded-lg border border-green-200 dark:border-green-700 transition-colors max-w-[160px]">
+                    <svg className="w-3.5 h-3.5 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                    <span className="truncate">{merchants.find(m => m._id === filters.merchant)?.merchant_name || 'Unknown'}</span>
+                    <button
+                      onClick={() => handleFilterChange('merchant', undefined)}
+                      className="ml-1 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-full p-0.5 transition-colors flex-shrink-0"
+                      aria-label="Remove merchant filter"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </span>
+                )}
+                <button
+                  onClick={clearFilters}
+                  className="ml-auto px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-white dark:hover:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-600 transition-colors"
+                >
+                  Clear All
+                </button>
+              </div>
+            </div>
+          )}
 
-            {/* Date Filters - Compact */}
-            <LocalizationProvider dateAdapter={AdapterDateFns}>
-              <DatePicker
-                value={filters.dateFrom}
-                onChange={(date) => handleFilterChange('dateFrom', date)}
-                slotProps={{
-                  textField: {
-                    size: 'small',
-                    placeholder: 'From',
-                    InputLabelProps: { shrink: false },
-                    sx: {
-                      width: '110px',
-                      '& .MuiOutlinedInput-root': {
-                        height: '32px',
-                      },
-                      '& .MuiOutlinedInput-input': {
-                        py: '6px',
-                        fontSize: '0.75rem',
-                      },
-                    },
-                  },
-                }}
-              />
-              <DatePicker
-                value={filters.dateTo}
-                onChange={(date) => handleFilterChange('dateTo', date)}
-                slotProps={{
-                  textField: {
-                    size: 'small',
-                    placeholder: 'To',
-                    InputLabelProps: { shrink: false },
-                    sx: {
-                      width: '110px',
-                      '& .MuiOutlinedInput-root': {
-                        height: '32px',
-                      },
-                      '& .MuiOutlinedInput-input': {
-                        py: '6px',
-                        fontSize: '0.75rem',
-                      },
-                    },
-                  },
-                }}
-              />
-            </LocalizationProvider>
+          {/* Main Filter Controls - Two Rows for Better Alignment */}
+          <div className="px-6 py-5 space-y-4">
+            {/* Top Row: Filters */}
+            <div className="flex items-center gap-4 flex-wrap">
+              {/* Date Filters - Beautiful Tailwind Styled */}
+              <div className="flex items-center gap-2">
+                <div className="relative group">
+                  <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none z-10">
+                    <svg className="w-4 h-4 text-gray-400 dark:text-gray-500 group-hover:text-purple-500 dark:group-hover:text-purple-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <input
+                    type="date"
+                    value={filters.dateFrom ? filters.dateFrom.toISOString().split('T')[0] : ''}
+                    onChange={(e) => handleFilterChange('dateFrom', e.target.value ? new Date(e.target.value) : null)}
+                    className="h-10 w-[140px] pl-9 pr-3 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-400 transition-colors"
+                    placeholder="From"
+                  />
+                </div>
+                <div className="relative group">
+                  <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none z-10">
+                    <svg className="w-4 h-4 text-gray-400 dark:text-gray-500 group-hover:text-purple-500 dark:group-hover:text-purple-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <input
+                    type="date"
+                    value={filters.dateTo ? filters.dateTo.toISOString().split('T')[0] : ''}
+                    onChange={(e) => handleFilterChange('dateTo', e.target.value ? new Date(e.target.value) : null)}
+                    className="h-10 w-[140px] pl-9 pr-3 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-400 transition-colors"
+                    placeholder="To"
+                  />
+                </div>
+              </div>
 
-            {/* Category & Merchant - Compact */}
-            <FormControl size="small" sx={{ minWidth: 140 }}>
-              <InputLabel sx={{ fontSize: '0.75rem' }}>Category</InputLabel>
-              <Select
-                value={filters.category || ''}
-                onChange={(e) => handleFilterChange('category', e.target.value || undefined)}
-                label="Category"
-                sx={{
-                  fontSize: '0.75rem',
-                  height: '32px',
-                  '& .MuiSelect-select': {
-                    py: '6px',
-                  },
-                }}
-              >
-                <MenuItem value="" sx={{ fontSize: '0.75rem' }}>All</MenuItem>
-                {categories.map((cat) => (
-                  <MenuItem key={cat._id} value={cat._id} sx={{ fontSize: '0.75rem' }}>
-                    {cat.category_name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+              {/* Category & Merchant - Beautiful Selects */}
+              <div className="relative group">
+                <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none z-10">
+                  <svg className="w-4 h-4 text-gray-400 dark:text-gray-500 group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                  </svg>
+                </div>
+                <select
+                  value={filters.category || ''}
+                  onChange={(e) => handleFilterChange('category', e.target.value || undefined)}
+                  className="h-10 w-[160px] pl-9 pr-9 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 appearance-none cursor-pointer transition-colors"
+                >
+                  <option value="">All Categories</option>
+                  {categories.map((cat) => (
+                    <option key={cat._id} value={cat._id}>
+                      {cat.category_name}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <svg className="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
 
-            <FormControl size="small" sx={{ minWidth: 140 }}>
-              <InputLabel sx={{ fontSize: '0.75rem' }}>Merchant</InputLabel>
-              <Select
-                value={filters.merchant || ''}
-                onChange={(e) => handleFilterChange('merchant', e.target.value || undefined)}
-                label="Merchant"
-                sx={{
-                  fontSize: '0.75rem',
-                  height: '32px',
-                  '& .MuiSelect-select': {
-                    py: '6px',
-                  },
-                }}
-              >
-                <MenuItem value="" sx={{ fontSize: '0.75rem' }}>All</MenuItem>
-                {merchants.map((merchant) => (
-                  <MenuItem key={merchant._id} value={merchant._id} sx={{ fontSize: '0.75rem' }}>
-                    {merchant.merchant_name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+              <div className="relative group">
+                <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none z-10">
+                  <svg className="w-4 h-4 text-gray-400 dark:text-gray-500 group-hover:text-green-500 dark:group-hover:text-green-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                </div>
+                <select
+                  value={filters.merchant || ''}
+                  onChange={(e) => handleFilterChange('merchant', e.target.value || undefined)}
+                  className="h-10 w-[160px] pl-9 pr-9 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-green-500 dark:focus:border-green-400 appearance-none cursor-pointer transition-colors"
+                >
+                  <option value="">All Merchants</option>
+                  {merchants.map((merchant) => (
+                    <option key={merchant._id} value={merchant._id}>
+                      {merchant.merchant_name}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <svg className="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
 
-            {/* Divider */}
-            <Box sx={{ width: '1px', height: '24px', backgroundColor: theme.palette.divider, mx: 0.5 }} />
+              {/* Divider */}
+              <div className="w-px h-10 bg-gray-300 dark:bg-gray-600" />
 
-            {/* Search */}
-            <TextField
-              size="small"
-              placeholder="Search..."
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setPage(1);
-              }}
-              InputProps={{
-                startAdornment: <Search sx={{ mr: 0.5, color: theme.palette.text.secondary, fontSize: '1rem' }} />,
-              }}
-              sx={{
-                width: '180px',
-                '& .MuiOutlinedInput-root': {
-                  fontSize: '0.75rem',
-                  height: '32px',
-                },
-                '& .MuiOutlinedInput-input': {
-                  py: '6px',
-                },
-              }}
-            />
+              {/* Search - Beautiful Styled */}
+              <div className="relative group flex-1 min-w-[220px]">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 group-hover:text-purple-500 dark:group-hover:text-purple-400 transition-colors pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Search transactions..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setPage(1);
+                  }}
+                  className="w-full h-10 pl-9 pr-3 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-400 transition-colors"
+                />
+              </div>
 
-            {/* Layout Toggle - Icon Only */}
-            <ToggleButtonGroup
-              value={layout}
-              exclusive
-              onChange={(_, newLayout) => newLayout && setLayout(newLayout)}
-              size="small"
-              sx={{
-                height: '32px',
-                '& .MuiToggleButton-root': {
-                  px: 1,
-                  py: 0.5,
-                  minWidth: 'auto',
-                  border: `1px solid ${theme.palette.divider}`,
-                },
-              }}
-            >
-              <ToggleButton value="card" sx={{ px: 1 }}>
-                <ViewModule sx={{ fontSize: '1rem' }} />
-              </ToggleButton>
-              <ToggleButton value="table" sx={{ px: 1 }}>
-                <ViewList sx={{ fontSize: '1rem' }} />
-              </ToggleButton>
-            </ToggleButtonGroup>
+              {/* Layout Toggle */}
+              <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden h-10">
+                <button
+                  onClick={() => setLayout('card')}
+                  className={`px-3 py-2 h-full flex items-center justify-center transition-colors ${
+                    layout === 'card'
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  }`}
+                  aria-label="Card view"
+                >
+                  <ViewModule className="text-lg" />
+                </button>
+                <div className="w-px h-full bg-gray-300 dark:bg-gray-600" />
+                <button
+                  onClick={() => setLayout('table')}
+                  className={`px-3 py-2 h-full flex items-center justify-center transition-colors ${
+                    layout === 'table'
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  }`}
+                  aria-label="Table view"
+                >
+                  <ViewList className="text-lg" />
+                </button>
+              </div>
+            </div>
 
-            {/* Sort Controls - Compact */}
-            <FormControl size="small" sx={{ minWidth: 130 }}>
-              <InputLabel sx={{ fontSize: '0.75rem' }}>Sort</InputLabel>
-              <Select
-                value={apiSortBy}
-                onChange={(e) => {
-                  setApiSortBy(e.target.value as 'date' | 'scanned_date');
-                  setPage(1);
-                }}
-                label="Sort"
-                sx={{
-                  fontSize: '0.75rem',
-                  height: '32px',
-                  '& .MuiSelect-select': {
-                    py: '6px',
-                  },
-                }}
-              >
-                <MenuItem value="date" sx={{ fontSize: '0.75rem' }}>Date</MenuItem>
-                <MenuItem value="scanned_date" sx={{ fontSize: '0.75rem' }}>Scanned</MenuItem>
-              </Select>
-            </FormControl>
+            {/* Bottom Row: Sort & Pagination Controls */}
+            <div className="flex items-center gap-4 flex-wrap">
+              {/* Sort Controls - Beautiful Selects */}
+              <div className="relative group">
+                <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none z-10">
+                  <Sort className="w-4 h-4 text-gray-400 dark:text-gray-500 group-hover:text-purple-500 dark:group-hover:text-purple-400 transition-colors" />
+                </div>
+                <select
+                  value={apiSortBy}
+                  onChange={(e) => {
+                    setApiSortBy(e.target.value as 'date' | 'scanned_date');
+                    setPage(1);
+                  }}
+                  className="h-10 w-[120px] pl-9 pr-9 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-purple-500 dark:focus:border-purple-400 appearance-none cursor-pointer transition-colors"
+                >
+                  <option value="date">Date</option>
+                  <option value="scanned_date">Scanned</option>
+                </select>
+                <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <svg className="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
 
-            <FormControl size="small" sx={{ minWidth: 100 }}>
-              <InputLabel sx={{ fontSize: '0.75rem' }}>Order</InputLabel>
-              <Select
-                value={apiSortOrder}
-                onChange={(e) => {
-                  setApiSortOrder(e.target.value as 'asc' | 'desc');
-                  setPage(1);
-                }}
-                label="Order"
-                sx={{
-                  fontSize: '0.75rem',
-                  height: '32px',
-                  '& .MuiSelect-select': {
-                    py: '6px',
-                  },
-                }}
-              >
-                <MenuItem value="desc" sx={{ fontSize: '0.75rem' }}>Newest</MenuItem>
-                <MenuItem value="asc" sx={{ fontSize: '0.75rem' }}>Oldest</MenuItem>
-              </Select>
-            </FormControl>
+              <div className="relative group">
+                <select
+                  value={apiSortOrder}
+                  onChange={(e) => {
+                    setApiSortOrder(e.target.value as 'asc' | 'desc');
+                    setPage(1);
+                  }}
+                  className="h-10 w-[110px] pl-3 pr-9 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-purple-500 dark:focus:border-purple-400 appearance-none cursor-pointer transition-colors"
+                >
+                  <option value="desc">Newest</option>
+                  <option value="asc">Oldest</option>
+                </select>
+                <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <svg className="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
 
-            {/* Per Page - Compact */}
-            <FormControl size="small" sx={{ minWidth: 90 }}>
-              <InputLabel sx={{ fontSize: '0.75rem' }}>Page</InputLabel>
-              <Select
-                value={itemsPerPage}
-                onChange={(e) => {
-                  setItemsPerPage(Number(e.target.value));
-                  setPage(1);
-                }}
-                label="Page"
-                sx={{
-                  fontSize: '0.75rem',
-                  height: '32px',
-                  '& .MuiSelect-select': {
-                    py: '6px',
-                  },
-                }}
-              >
-                <MenuItem value={10} sx={{ fontSize: '0.75rem' }}>10</MenuItem>
-                <MenuItem value={25} sx={{ fontSize: '0.75rem' }}>25</MenuItem>
-                <MenuItem value={50} sx={{ fontSize: '0.75rem' }}>50</MenuItem>
-                <MenuItem value={100} sx={{ fontSize: '0.75rem' }}>100</MenuItem>
-              </Select>
-            </FormControl>
+              {/* Per Page - Beautiful Select */}
+              <div className="relative group">
+                <select
+                  value={itemsPerPage}
+                  onChange={(e) => {
+                    setItemsPerPage(Number(e.target.value));
+                    setPage(1);
+                  }}
+                  className="h-10 w-[90px] pl-3 pr-9 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-purple-500 dark:focus:border-purple-400 appearance-none cursor-pointer transition-colors"
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+                <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <svg className="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
 
-            {/* Results Count - Compact */}
-            <Typography
-              variant="caption"
-              sx={{
-                fontFamily: "'Inter', sans-serif",
-                fontSize: '0.7rem',
-                color: theme.palette.text.secondary,
-                whiteSpace: 'nowrap',
-                ml: 'auto',
-              }}
-            >
-              {paginatedTransactions.length > 0 ? (page - 1) * itemsPerPage + 1 : 0}-{Math.min(page * itemsPerPage, totalTransactions)} of {totalTransactions}
-            </Typography>
+              {/* Results Count */}
+              <div className="ml-auto flex items-center gap-4">
+                <span className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                  {paginatedTransactions.length > 0 ? (page - 1) * itemsPerPage + 1 : 0}-{Math.min(page * itemsPerPage, totalTransactions)} of {totalTransactions}
+                </span>
 
-            {/* View All Button - Icon Only */}
-            <Tooltip title="View All">
-              <IconButton
-                size="small"
-                onClick={() => setFullScreenDialogOpen(true)}
-                sx={{
-                  border: `1px solid ${theme.palette.divider}`,
-                  borderRadius: '6px',
-                  p: 0.75,
-                }}
-              >
-                <OpenInFull sx={{ fontSize: '1rem' }} />
-              </IconButton>
-            </Tooltip>
-          </Box>
-        </Paper>
+                {/* View All Button */}
+                <Tooltip title="View All">
+                  <button
+                    onClick={() => setFullScreenDialogOpen(true)}
+                    className="h-10 w-10 flex items-center justify-center border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:border-purple-500 dark:hover:border-purple-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+                    aria-label="View all transactions"
+                  >
+                    <OpenInFull className="text-lg" />
+                  </button>
+                </Tooltip>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
       {/* Items Tab Controls */}
       {activeTab === 3 && (

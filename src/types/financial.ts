@@ -197,7 +197,10 @@ export interface TransactionsListParams {
   date_to?: string;
   category?: string;
   merchant?: string;
-  transaction_type?: 'expense' | 'earning';
+  transaction_type?: 'expense' | 'earning' | 'mix';
+  status?: 'pending' | 'confirmed' | 'deleted';
+  amount_min?: number;
+  amount_max?: number;
   limit?: number;
   offset?: number;
 }
@@ -549,6 +552,35 @@ export interface UpdateItemResponse {
 export interface DeleteItemResponse {
   success: boolean;
   message: string;
+}
+
+// Filters Response Types
+
+export interface FiltersResponse {
+  success: boolean;
+  filters: {
+    categories: Array<{
+      _id: string;
+      category_name: string;
+      parent_category?: string | null;
+    }>;
+    merchants: Array<{
+      _id: string;
+      merchant_name: string;
+      aliases?: string[];
+      merchant_category?: string;
+    }>;
+    date_range: {
+      min_date: string;
+      max_date: string;
+    };
+    amount_range: {
+      min_amount: number;
+      max_amount: number;
+    };
+    status_options: Array<'pending' | 'confirmed' | 'deleted'>;
+    transaction_type_options: Array<'expense' | 'earning' | 'mix'>;
+  };
 }
 
 // Recurring Payments Types

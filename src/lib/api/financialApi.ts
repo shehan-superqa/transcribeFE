@@ -45,6 +45,7 @@ import {
   DeleteItemResponse,
   ItemsListResponse,
   ItemsListParams,
+  FiltersResponse,
 } from '../../types/financial';
 
 const FINANCIAL_API_BASE_URL = 'http://localhost:5000';
@@ -221,6 +222,21 @@ export async function createManualTransaction(
   return handleResponse<ManualTransactionResponse>(response);
 }
 
+// Get Filter Initial Data
+/**
+ * Fetch initial filter options (categories, merchants, date ranges, etc.)
+ * to populate filter dropdowns/selectors in the frontend.
+ */
+export async function getFilters(): Promise<FiltersResponse> {
+  const response = await authenticatedFetch(
+    '/api/financial/bills/filters',
+    { method: 'GET' },
+    true,
+    FINANCIAL_API_BASE_URL
+  );
+  return handleResponse<FiltersResponse>(response);
+}
+
 export async function listTransactions(
   params?: TransactionsListParams
 ): Promise<TransactionsListResponse> {
@@ -236,6 +252,9 @@ export async function listTransactions(
   if (params?.category) queryParams.append('category', params.category);
   if (params?.merchant) queryParams.append('merchant', params.merchant);
   if (params?.transaction_type) queryParams.append('transaction_type', params.transaction_type);
+  if (params?.status) queryParams.append('status', params.status);
+  if (params?.amount_min !== undefined) queryParams.append('amount_min', params.amount_min.toString());
+  if (params?.amount_max !== undefined) queryParams.append('amount_max', params.amount_max.toString());
   
   // Pagination parameters
   if (params?.limit) queryParams.append('limit', params.limit.toString());
