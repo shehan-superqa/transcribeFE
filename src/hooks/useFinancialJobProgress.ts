@@ -1,11 +1,11 @@
 /**
- * Hook for financial job progress using SSE (Server-Sent Events)
- * Connects to the SSE stream endpoint for real-time progress updates
+ * Hook for financial job progress using unified WebSocket
+ * Connects to the unified socket server for real-time progress updates
  */
 
 import { useEffect, useState, useRef } from 'react';
+import { unifiedWebSocketClient } from '../lib/api/websocket';
 import { sseClient } from '../lib/api/sseClient';
-import { progressWebSocketClient } from '../lib/api/progressWebSocketClient';
 
 export interface FinancialProgressData {
   status: 'idle' | 'processing' | 'completed' | 'error';
@@ -49,7 +49,8 @@ export function useFinancialJobProgress(
   const [isConnected, setIsConnected] = useState(false);
   const [data, setData] = useState<FinancialProgressData | null>(null);
   const connectionTypeRef = useRef<'websocket' | 'sse' | null>(null);
-  const callbackRef = useRef<((event: any) => void) | null>(null);
+  const progressCallbackRef = useRef<((event: any) => void) | null>(null);
+  const progressErrorCallbackRef = useRef<((error: any) => void) | null>(null);
 
   useEffect(() => {
     if (!jobId) {
@@ -62,13 +63,110 @@ export function useFinancialJobProgress(
       setIsConnected(false);
       setData(null);
       connectionTypeRef.current = null;
+      // Unsubscribe from progress if we were subscribed
+      if (unifiedWebSocketClient.isConnectedToServer()) {
+        unifiedWebSocketClient.unsubscribeProgress().catch(() => {});
+      }
       return;
     }
 
-    // Set up progress callback
-    const callback = (event: any) => {
+    // Set up progress callback for unified socket
+    const progressCallback = (event: {
+      job_id: string;
+      status: string;
+      progress: number;
+      message: string;
+      details: any;
+      timestamp: number;
+    }) => {
       try {
-        // Parse the event data - it might be a ProgressEvent or FinancialProgressData
+        // Only process if job_id matches
+        if (event.job_id === jobId) {
+          const progressData: FinancialProgressData = {
+            status: (event.status as any) || 'processing',
+            progress: event.progress || 0,
+            message: event.message || '',
+            details: event.details || {},
+            timestamp: event.timestamp ? new Date(event.timestamp).toISOString() : new Date().toISOString(),
+            job_id: event.job_id || jobId,
+          };
+
+          setProgress(Math.min(100, Math.max(0, progressData.progress)));
+          setStatus(progressData.status);
+          setMessage(progressData.message);
+          setStep(progressData.details?.step || null);
+          setDetails(progressData.details);
+          setData(progressData);
+
+          if (progressData.status === 'error' || progressData.status === 'failed') {
+            setError(progressData.message || 'Job failed');
+          } else {
+            setError(null);
+          }
+
+          // If completed or failed, unsubscribe after a delay
+          if (progressData.status === 'completed' || progressData.status === 'error' || progressData.status === 'failed') {
+            setTimeout(() => {
+              unifiedWebSocketClient.unsubscribeProgress().catch(() => {});
+              setIsConnected(false);
+            }, 5000);
+          }
+        }
+      } catch (err: any) {
+        console.error('Error parsing financial progress event:', err);
+        setError(err.message || 'Failed to parse progress data');
+      }
+    };
+
+    // Set up progress error callback
+    const progressErrorCallback = (errorData: any) => {
+      setError(errorData.error || 'Progress update error');
+      setIsConnected(false);
+    };
+
+    progressCallbackRef.current = progressCallback;
+    progressErrorCallbackRef.current = progressErrorCallback;
+
+    // Try unified WebSocket first
+    const tryUnifiedWebSocket = async () => {
+      try {
+        // Connect if not already connected
+        if (!unifiedWebSocketClient.isConnectedToServer()) {
+          await unifiedWebSocketClient.connect();
+        }
+
+        // Set up listeners
+        unifiedWebSocketClient.onProgressUpdate(progressCallback);
+        unifiedWebSocketClient.onProgressError(progressErrorCallback);
+
+        // Subscribe to progress updates
+        await unifiedWebSocketClient.subscribeProgress(jobId);
+        
+        connectionTypeRef.current = 'websocket';
+        setIsConnected(true);
+
+        if (import.meta.env.DEV) {
+          console.log('[Progress] Using unified WebSocket connection');
+        }
+
+        return () => {
+          unifiedWebSocketClient.off('progress_update', progressCallback);
+          unifiedWebSocketClient.off('progress_error', progressErrorCallback);
+          unifiedWebSocketClient.unsubscribeProgress().catch(() => {});
+        };
+      } catch (err) {
+        console.error('[Progress] Unified WebSocket error, trying SSE:', err);
+        trySSE();
+        return () => {};
+      }
+    };
+
+    // Fallback to SSE
+    const trySSE = () => {
+      sseClient.connect(jobId, streamUrl);
+      
+      // Use the same callback format for SSE
+      const sseCallback = (event: any) => {
         const progressData: FinancialProgressData = {
           status: event.status || 'processing',
           progress: event.progress || 0,
@@ -78,7 +176,6 @@ export function useFinancialJobProgress(
           job_id: event.job_id || jobId,
         };
 
-        // Only process if job_id matches
         if (progressData.job_id === jobId) {
           setProgress(Math.min(100, Math.max(0, progressData.progress)));
           setStatus(progressData.status);
@@ -93,79 +190,16 @@ export function useFinancialJobProgress(
             setError(null);
           }
 
-          // If completed or failed, close connection after a delay
           if (progressData.status === 'completed' || progressData.status === 'error' || progressData.status === 'failed') {
             setTimeout(() => {
-              if (connectionTypeRef.current === 'websocket') {
-                progressWebSocketClient.close();
-              } else {
-                sseClient.close();
-              }
+              sseClient.close();
               setIsConnected(false);
             }, 5000);
           }
         }
-      } catch (err: any) {
-        console.error('Error parsing financial progress event:', err);
-        setError(err.message || 'Failed to parse progress data');
-      }
-    };
+      };
 
-    callbackRef.current = callback;
-
-    // Try WebSocket first (as per backend documentation - port 5002 is WebSocket)
-    const tryWebSocket = () => {
-      try {
-        progressWebSocketClient.connect(jobId, streamUrl);
-        progressWebSocketClient.onProgress(callback);
-        connectionTypeRef.current = 'websocket';
-        
-        // Check if WebSocket connects successfully
-        const checkTimeout = setTimeout(() => {
-          if (progressWebSocketClient.isConnected()) {
-            setIsConnected(true);
-            if (import.meta.env.DEV) {
-              console.log('[Progress] Using WebSocket connection');
-            }
-          } else {
-            // WebSocket failed, try SSE
-            console.log('[Progress] WebSocket not available, falling back to SSE');
-            progressWebSocketClient.close();
-            trySSE();
-          }
-        }, 2000);
-
-        // Monitor WebSocket connection
-        const wsCheck = setInterval(() => {
-          if (progressWebSocketClient.isConnected()) {
-            setIsConnected(true);
-          } else if (progressWebSocketClient.getReadyState() === WebSocket.CLOSED && connectionTypeRef.current === 'websocket') {
-            // WebSocket closed unexpectedly, try SSE
-            clearInterval(wsCheck);
-            clearTimeout(checkTimeout);
-            trySSE();
-          }
-        }, 1000);
-
-        return () => {
-          clearTimeout(checkTimeout);
-          clearInterval(wsCheck);
-          if (callbackRef.current) {
-            progressWebSocketClient.offProgress(callbackRef.current);
-          }
-          progressWebSocketClient.close();
-        };
-      } catch (err) {
-        console.error('[Progress] WebSocket error, trying SSE:', err);
-        trySSE();
-        return () => {};
-      }
-    };
-
-    // Fallback to SSE
-    const trySSE = () => {
-      sseClient.connect(jobId, streamUrl);
-      sseClient.onProgress(callback);
+      sseClient.onProgress(sseCallback);
       connectionTypeRef.current = 'sse';
       setIsConnected(sseClient.isConnected());
 
@@ -180,19 +214,32 @@ export function useFinancialJobProgress(
 
       return () => {
         clearInterval(sseCheck);
-        if (callbackRef.current) {
-          sseClient.offProgress(callbackRef.current);
-        }
+        sseClient.offProgress(sseCallback);
         sseClient.close();
       };
     };
 
-    // Start with WebSocket
-    const cleanup = tryWebSocket();
+    // Start with unified WebSocket
+    let cleanup: (() => void) | null = null;
+    let isMounted = true;
+
+    tryUnifiedWebSocket().then((cleanupFn) => {
+      if (isMounted && cleanupFn) {
+        cleanup = cleanupFn;
+      }
+    }).catch(() => {
+      // If unified socket fails, try SSE
+      if (isMounted) {
+        cleanup = trySSE();
+      }
+    });
 
     // Cleanup on unmount
     return () => {
-      if (cleanup) cleanup();
+      isMounted = false;
+      if (cleanup) {
+        cleanup();
+      }
       setIsConnected(false);
       connectionTypeRef.current = null;
     };

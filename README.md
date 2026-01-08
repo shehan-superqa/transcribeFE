@@ -39,6 +39,9 @@ VITE_API_BASE_URL=http://localhost:5003
 # Transcription API (required)
 VITE_TRANSCRIBE_API_BASE_URL=http://localhost:5000
 
+# Unified WebSocket Server (required for live features)
+VITE_WEBSOCKET_URL=http://localhost:5002
+
 # Optional: YouTube Proxy URL (if using YouTube conversion)
 VITE_YOUTUBE_PROXY_URL=/api/youtube/stream
 ```

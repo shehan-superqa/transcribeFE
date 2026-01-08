@@ -22,6 +22,7 @@ import { useSelector } from 'react-redux';
 import type { RootState } from '../store';
 import { listTransactions, listMerchants, listCategories } from '../lib/api/financialApi';
 import { Transaction, Merchant, Category } from '../types/financial';
+import { unifiedWebSocketClient } from '../lib/api/websocket';
 import EnhancedBillUploadSection from '../components/financial/EnhancedBillUploadSection';
 import TransactionsSection, { TransactionFilters } from '../components/financial/TransactionsSection';
 import EnhancedMerchantsSection from '../components/financial/EnhancedMerchantsSection';
@@ -142,6 +143,24 @@ export default function FinancialToolApp() {
   const [filters, setFilters] = useState<TransactionFilters>({});
   const [loading, setLoading] = useState(true);
   const [showManualTransactionDialog, setShowManualTransactionDialog] = useState(false);
+
+  // Connect to unified socket server when financial app loads
+  useEffect(() => {
+    if (user) {
+      // Connect to unified socket server
+      unifiedWebSocketClient.connect().catch((error) => {
+        console.error('[Financial App] Failed to connect to unified socket server:', error);
+        // Connection will retry automatically, so we don't need to handle it here
+      });
+    }
+
+    return () => {
+      // Disconnect when component unmounts
+      if (unifiedWebSocketClient.isConnectedToServer()) {
+        unifiedWebSocketClient.disconnect();
+      }
+    };
+  }, [user]);
 
   useEffect(() => {
     // Redirect to dashboard if on base path

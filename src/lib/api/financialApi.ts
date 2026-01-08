@@ -253,6 +253,94 @@ export async function listTransactions(
   return handleResponse<TransactionsListResponse>(response);
 }
 
+/**
+ * Get expenses with optional filters
+ * Supports: date_from, date_to, category, merchant, limit, offset, sort_by, sort_order
+ */
+export async function getExpenses(
+  params?: {
+    date_from?: string;
+    date_to?: string;
+    category?: string;
+    merchant?: string;
+    limit?: number;
+    offset?: number;
+    sort_by?: 'date' | 'scanned_date';
+    sort_order?: 'asc' | 'desc';
+  }
+): Promise<TransactionsListResponse> {
+  const queryParams = new URLSearchParams();
+  
+  // Filter parameters
+  if (params?.date_from) queryParams.append('date_from', params.date_from);
+  if (params?.date_to) queryParams.append('date_to', params.date_to);
+  if (params?.category) queryParams.append('category', params.category);
+  if (params?.merchant) queryParams.append('merchant', params.merchant);
+  
+  // Pagination parameters
+  if (params?.limit !== undefined) queryParams.append('limit', params.limit.toString());
+  if (params?.offset !== undefined) queryParams.append('offset', params.offset.toString());
+  
+  // Sorting parameters
+  if (params?.sort_by) queryParams.append('sort_by', params.sort_by);
+  if (params?.sort_order) queryParams.append('sort_order', params.sort_order);
+
+  const queryString = queryParams.toString();
+  const endpoint = `/api/financial/expenses${queryString ? `?${queryString}` : ''}`;
+
+  const response = await authenticatedFetch(
+    endpoint,
+    { method: 'GET' },
+    true,
+    FINANCIAL_API_BASE_URL
+  );
+  return handleResponse<TransactionsListResponse>(response);
+}
+
+/**
+ * Get earnings with optional filters
+ * Supports: date_from, date_to, category, merchant, limit, offset, sort_by, sort_order
+ */
+export async function getEarnings(
+  params?: {
+    date_from?: string;
+    date_to?: string;
+    category?: string;
+    merchant?: string;
+    limit?: number;
+    offset?: number;
+    sort_by?: 'date' | 'scanned_date';
+    sort_order?: 'asc' | 'desc';
+  }
+): Promise<TransactionsListResponse> {
+  const queryParams = new URLSearchParams();
+  
+  // Filter parameters
+  if (params?.date_from) queryParams.append('date_from', params.date_from);
+  if (params?.date_to) queryParams.append('date_to', params.date_to);
+  if (params?.category) queryParams.append('category', params.category);
+  if (params?.merchant) queryParams.append('merchant', params.merchant);
+  
+  // Pagination parameters
+  if (params?.limit !== undefined) queryParams.append('limit', params.limit.toString());
+  if (params?.offset !== undefined) queryParams.append('offset', params.offset.toString());
+  
+  // Sorting parameters
+  if (params?.sort_by) queryParams.append('sort_by', params.sort_by);
+  if (params?.sort_order) queryParams.append('sort_order', params.sort_order);
+
+  const queryString = queryParams.toString();
+  const endpoint = `/api/financial/earnings${queryString ? `?${queryString}` : ''}`;
+
+  const response = await authenticatedFetch(
+    endpoint,
+    { method: 'GET' },
+    true,
+    FINANCIAL_API_BASE_URL
+  );
+  return handleResponse<TransactionsListResponse>(response);
+}
+
 // Transaction Management
 
 export async function updateTransaction(
