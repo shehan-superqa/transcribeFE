@@ -1,9 +1,9 @@
 import { Card, CardContent, Typography, Box, Chip, IconButton, Collapse, Table, TableBody, TableCell, TableHead, TableRow, TableContainer, Button, Divider, Dialog, DialogTitle, DialogContent, DialogActions, Pagination, CircularProgress, Tooltip } from '@mui/material';
-import { Edit, Delete, MergeType, ExpandMore, ExpandLess, ShoppingCart, AttachMoney, CalendarToday, Store, Category, CheckCircle, Close, Warning } from '@mui/icons-material';
+import { Edit, Delete, MergeType, ExpandMore, ExpandLess, ShoppingCart, AttachMoney, CalendarToday, Store, Category, CheckCircle, Close, Warning, TrendingDown, TrendingUp, Visibility } from '@mui/icons-material';
 import { Transaction, TransactionItem } from '../../types/financial';
 import { useTheme } from '../../contexts/ThemeContext';
-import { useState } from 'react';
-import { getTransactionMetadata, getDisplayCategoryName, formatCurrency, checkMissingPriceFields, getMissingFieldStyle, getMissingFieldRowStyle } from '../../utils/transactionHelpers';
+import { useState, useEffect, useRef } from 'react';
+import { getTransactionMetadata, getDisplayCategoryName, formatCurrency, checkMissingPriceFields, getMissingFieldStyle, getMissingFieldRowStyle, getTransactionType } from '../../utils/transactionHelpers';
 import EditableItemCell from './EditableItemCell';
 import { updateItem } from '../../lib/api/financialApi';
 
@@ -65,6 +65,36 @@ export default function TransactionCard({
   const showViewMore = billItems.length > 5;
   const displayedItems = showViewMore ? billItems.slice(0, 5) : billItems;
   const modalItems = billItems.slice((modalPage - 1) * itemsPerPage, modalPage * itemsPerPage);
+  
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const topIndicatorRef = useRef<HTMLDivElement>(null);
+  const bottomIndicatorRef = useRef<HTMLDivElement>(null);
+  
+  const updateScrollIndicators = () => {
+    if (scrollContainerRef.current && topIndicatorRef.current && bottomIndicatorRef.current) {
+      const container = scrollContainerRef.current;
+      const isScrollable = container.scrollHeight > container.clientHeight;
+      const isAtTop = container.scrollTop === 0;
+      const isAtBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 1;
+      
+      topIndicatorRef.current.style.opacity = isScrollable && !isAtTop ? '1' : '0';
+      bottomIndicatorRef.current.style.opacity = isScrollable && !isAtBottom ? '1' : '0';
+    }
+  };
+  
+  useEffect(() => {
+    if (isExpanded && scrollContainerRef.current) {
+      // Initial check
+      updateScrollIndicators();
+      // Check again after a short delay to ensure content is rendered
+      const timeout1 = setTimeout(updateScrollIndicators, 100);
+      const timeout2 = setTimeout(updateScrollIndicators, 300);
+      return () => {
+        clearTimeout(timeout1);
+        clearTimeout(timeout2);
+      };
+    }
+  }, [isExpanded, billItems.length]);
 
   const confidenceText = Number.isFinite(transaction.confidence_category)
     ? `${(transaction.confidence_category * 100).toFixed(1)}%`
@@ -224,6 +254,17 @@ export default function TransactionCard({
             </Button>
           </Box>
           <Box sx={{ display: 'flex', gap: 1 }}>
+            {billItems.length > 0 && (
+              <Tooltip title="View Items">
+                <IconButton
+                  size="small"
+                  onClick={handleModalOpen}
+                  color="info"
+                >
+                  <Visibility />
+                </IconButton>
+              </Tooltip>
+            )}
             <IconButton
               size="small"
               onClick={() => onEdit(transaction)}
@@ -250,29 +291,7 @@ export default function TransactionCard({
 
         {/* Bill Items List */}
         <Collapse in={isExpanded} timeout="auto" unmountOnExit>
-          <Box sx={{ mt: 2, pt: 2, borderTop: `1px solid ${theme.palette.divider}` }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-              <ShoppingCart sx={{ fontSize: '1.25rem', color: theme.palette.primary.main }} />
-              <Typography variant="subtitle2" sx={{ color: theme.palette.text.primary, fontWeight: 600 }}>
-                Bill Items
-              </Typography>
-              {billItems.some((item: any) => {
-                const missingFields = checkMissingPriceFields(item);
-                return missingFields.hasMissingFields;
-              }) && (
-                <Tooltip title="Some items have missing price fields">
-                  <Chip 
-                    icon={<Warning />}
-                    label="Missing Fields" 
-                    size="small" 
-                    color="warning" 
-                    sx={{ ml: 1, height: 24, fontSize: '0.7rem' }}
-                  />
-                </Tooltip>
-              )}
-            </Box>
-            <Divider sx={{ my: 1 }} />
-
+          <Box sx={{ mt: 2, pt: 2, borderTop: `1px solid ${theme.palette.divider}`, position: 'relative' }}>
             {isLoading ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
                 <CircularProgress size={20} />
@@ -282,20 +301,60 @@ export default function TransactionCard({
                 No items found for this transaction.
               </Typography>
             ) : (
-              <>
-                <TableContainer>
-                  <Table size="small">
+              <Box sx={{ position: 'relative' }}>
+                {/* Top scroll indicator */}
+                <Box
+                  ref={topIndicatorRef}
+                  sx={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: '30px',
+                    background: `linear-gradient(to bottom, ${theme.palette.mode === 'dark' ? 'rgba(26, 26, 26, 0.95)' : 'rgba(249, 250, 251, 0.95)'} 0%, transparent 100%)`,
+                    pointerEvents: 'none',
+                    opacity: 0,
+                    transition: 'opacity 0.3s ease-in-out',
+                    zIndex: 2,
+                  }}
+                />
+                <TableContainer 
+                  component="div"
+                  ref={scrollContainerRef}
+                  onScroll={updateScrollIndicators}
+                  sx={{ 
+                    width: '100%',
+                    maxHeight: '400px',
+                    overflow: 'auto',
+                    '&::-webkit-scrollbar': {
+                      display: 'none',
+                      width: 0,
+                      height: 0,
+                    },
+                    '&::-webkit-scrollbar-track': {
+                      display: 'none',
+                    },
+                    '&::-webkit-scrollbar-thumb': {
+                      display: 'none',
+                    },
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none',
+                    WebkitOverflowScrolling: 'touch',
+                  }}
+                >
+                  <Table size="small" sx={{ width: '100%', tableLayout: 'fixed' }}>
                     <TableHead>
                       <TableRow>
-                        <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb' }}>Item Name</TableCell>
-                        <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb' }}>Quantity</TableCell>
-                        <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb' }}>Unit Price</TableCell>
-                        <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb' }}>Total Price</TableCell>
+                        <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', width: '40px', minWidth: '40px' }}></TableCell>
+                        <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', minWidth: '150px' }}>Item Name</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', width: '80px', minWidth: '80px' }}>Quantity</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', width: '120px', minWidth: '120px' }}>Unit Price</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', width: '120px', minWidth: '120px' }}>Total Price</TableCell>
                         {billItems.some((item: any) => item.category || (item as TransactionItem).category) && (
-                          <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb' }}>Category</TableCell>
+                          <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', minWidth: '120px' }}>Category</TableCell>
                         )}
                         {transactionItems[transaction._id] && transactionItems[transaction._id].length > 0 && (
-                          <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb' }}>Actions</TableCell>
+                          <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', width: '100px', minWidth: '100px' }}>Actions</TableCell>
                         )}
                       </TableRow>
                     </TableHead>
@@ -310,6 +369,7 @@ export default function TransactionCard({
                         
                         // Check for missing price fields
                         const missingFields = checkMissingPriceFields(displayItem);
+                        const transactionType = getTransactionType(transaction);
 
                         return (
                           <TableRow 
@@ -317,7 +377,14 @@ export default function TransactionCard({
                             hover
                             sx={getMissingFieldRowStyle(missingFields.hasMissingFields, theme)}
                           >
-                            <TableCell sx={{ color: theme.palette.text.primary }}>{displayItem.name || 'N/A'}</TableCell>
+                            <TableCell sx={{ color: theme.palette.text.primary, width: '40px', minWidth: '40px' }}>
+                              {transactionType === 'expense' ? (
+                                <TrendingDown sx={{ fontSize: '1rem', color: theme.palette.error.main }} />
+                              ) : (
+                                <TrendingUp sx={{ fontSize: '1rem', color: theme.palette.success.main }} />
+                              )}
+                            </TableCell>
+                            <TableCell sx={{ color: theme.palette.text.primary, minWidth: '150px' }}>{displayItem.name || 'N/A'}</TableCell>
                             <EditableItemCell
                               value={displayItem.quantity}
                               field="quantity"
@@ -393,6 +460,22 @@ export default function TransactionCard({
                     </TableBody>
                   </Table>
                 </TableContainer>
+                {/* Bottom scroll indicator */}
+                <Box
+                  ref={bottomIndicatorRef}
+                  sx={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    height: '30px',
+                    background: `linear-gradient(to top, ${theme.palette.mode === 'dark' ? 'rgba(26, 26, 26, 0.95)' : 'rgba(249, 250, 251, 0.95)'} 0%, transparent 100%)`,
+                    pointerEvents: 'none',
+                    opacity: 0,
+                    transition: 'opacity 0.3s ease-in-out',
+                    zIndex: 2,
+                  }}
+                />
                 {showViewMore && (
                   <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
                     <Button
@@ -406,7 +489,7 @@ export default function TransactionCard({
                     </Button>
                   </Box>
                 )}
-              </>
+              </Box>
             )}
           </Box>
         </Collapse>
@@ -435,20 +518,71 @@ export default function TransactionCard({
               <Close />
             </IconButton>
           </DialogTitle>
-          <DialogContent dividers>
-            <TableContainer>
-              <Table size="small">
+          <DialogContent dividers sx={{ position: 'relative' }}>
+            <Box sx={{ position: 'relative' }}>
+              {/* Top scroll indicator */}
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: '20px',
+                  background: `linear-gradient(to bottom, ${theme.palette.background.paper} 0%, transparent 100%)`,
+                  pointerEvents: 'none',
+                  opacity: 0,
+                  transition: 'opacity 0.2s',
+                  zIndex: 2,
+                }}
+                ref={(el) => {
+                  if (el && modalPage === 1) {
+                    const container = el.nextElementSibling as HTMLElement;
+                    if (container) {
+                      const isScrollable = container.scrollHeight > container.clientHeight;
+                      el.style.opacity = isScrollable ? '0' : '0';
+                    }
+                  }
+                }}
+              />
+              <TableContainer 
+                component="div"
+                onScroll={(e) => {
+                  const target = e.target as HTMLElement;
+                  const topIndicator = target.previousElementSibling as HTMLElement;
+                  const bottomIndicator = target.nextElementSibling as HTMLElement;
+                  if (topIndicator) {
+                    topIndicator.style.opacity = target.scrollTop > 0 ? '1' : '0';
+                  }
+                  if (bottomIndicator) {
+                    const isScrollable = target.scrollHeight > target.clientHeight;
+                    const isAtBottom = target.scrollTop + target.clientHeight >= target.scrollHeight - 1;
+                    bottomIndicator.style.opacity = isScrollable && !isAtBottom ? '1' : '0';
+                  }
+                }}
+                sx={{ 
+                  width: '100%',
+                  maxHeight: '500px',
+                  overflow: 'auto',
+                  '&::-webkit-scrollbar': {
+                    display: 'none',
+                  },
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none',
+                }}
+              >
+              <Table size="small" sx={{ width: '100%', tableLayout: 'fixed' }}>
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb' }}>Item Name</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb' }}>Quantity</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb' }}>Unit Price</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb' }}>Total Price</TableCell>
+                    <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', width: '40px', minWidth: '40px' }}></TableCell>
+                    <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', minWidth: '150px' }}>Item Name</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', width: '80px', minWidth: '80px' }}>Quantity</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', width: '120px', minWidth: '120px' }}>Unit Price</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', width: '120px', minWidth: '120px' }}>Total Price</TableCell>
                     {billItems.some((item: any) => item.category || (item as TransactionItem).category) && (
-                      <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb' }}>Category</TableCell>
+                      <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', minWidth: '120px' }}>Category</TableCell>
                     )}
                     {transactionItems[transaction._id] && transactionItems[transaction._id].length > 0 && (
-                      <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb' }}>Actions</TableCell>
+                      <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', width: '100px', minWidth: '100px' }}>Actions</TableCell>
                     )}
                   </TableRow>
                 </TableHead>
@@ -462,6 +596,7 @@ export default function TransactionCard({
                     
                     // Check for missing price fields
                     const missingFields = checkMissingPriceFields(displayItem);
+                    const transactionType = getTransactionType(transaction);
 
                     return (
                       <TableRow 
@@ -469,7 +604,14 @@ export default function TransactionCard({
                         hover
                         sx={getMissingFieldRowStyle(missingFields.hasMissingFields, theme)}
                       >
-                        <TableCell sx={{ color: theme.palette.text.primary }}>{displayItem.name || 'N/A'}</TableCell>
+                        <TableCell sx={{ color: theme.palette.text.primary, width: '40px', minWidth: '40px' }}>
+                          {transactionType === 'expense' ? (
+                            <TrendingDown sx={{ fontSize: '1rem', color: theme.palette.error.main }} />
+                          ) : (
+                            <TrendingUp sx={{ fontSize: '1rem', color: theme.palette.success.main }} />
+                          )}
+                        </TableCell>
+                        <TableCell sx={{ color: theme.palette.text.primary, minWidth: '150px' }}>{displayItem.name || 'N/A'}</TableCell>
                         <EditableItemCell
                           value={displayItem.quantity}
                           field="quantity"
@@ -544,7 +686,38 @@ export default function TransactionCard({
                   })}
                 </TableBody>
               </Table>
-            </TableContainer>
+              </TableContainer>
+              {/* Top scroll indicator */}
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: '20px',
+                  background: `linear-gradient(to bottom, ${theme.palette.background.paper} 0%, transparent 100%)`,
+                  pointerEvents: 'none',
+                  opacity: 0,
+                  transition: 'opacity 0.2s',
+                  zIndex: 1,
+                }}
+              />
+              {/* Bottom scroll indicator */}
+              <Box
+                sx={{
+                  position: 'absolute',
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  height: '20px',
+                  background: `linear-gradient(to top, ${theme.palette.background.paper} 0%, transparent 100%)`,
+                  pointerEvents: 'none',
+                  opacity: 0,
+                  transition: 'opacity 0.2s',
+                  zIndex: 1,
+                }}
+              />
+            </Box>
             {billItems.length > itemsPerPage && (
               <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
                 <Pagination

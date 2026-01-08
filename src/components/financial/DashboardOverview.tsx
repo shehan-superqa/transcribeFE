@@ -33,12 +33,12 @@ import {
 } from 'recharts';
 import { useTheme } from '../../contexts/ThemeContext';
 import { getSpendingSummary, getSpendingTrends, getAnomalies, listTransactions, listBudgets, getBudgetStatus, getAlerts } from '../../lib/api/financialApi';
-import { formatCurrency, getDisplayCategoryName, checkMissingPriceFields, getMissingFieldStyle, getMissingFieldRowStyle } from '../../utils/transactionHelpers';
+import { formatCurrency, getDisplayCategoryName, checkMissingPriceFields, getMissingFieldStyle, getMissingFieldRowStyle, getTransactionType } from '../../utils/transactionHelpers';
 import { SpendingSummaryResponse, SpendingTrendsResponse, AnomaliesResponse, Transaction, BudgetStatusResponse } from '../../types/financial';
 import InsightCard from './InsightCard';
 import BudgetStatusWidget from './BudgetStatusWidget';
 import AlertsPanel from './AlertsPanel';
-import { ArrowUpward, ArrowDownward, TrendingUp, Warning, CloudUpload, ExpandMore, ExpandLess } from '@mui/icons-material';
+import { ArrowUpward, ArrowDownward, TrendingUp, TrendingDown, Warning, CloudUpload, ExpandMore, ExpandLess } from '@mui/icons-material';
 
 // Recharts doesn't need registration
 
@@ -518,15 +518,62 @@ export default function DashboardOverview({
                       {/* Bill Items List */}
                       {getBillItems(transaction).length > 0 && (
                         <Collapse in={expandedTransactions.has(transaction._id)} timeout="auto" unmountOnExit>
-                          <Box sx={{ mt: 2, pt: 2, borderTop: `1px solid ${theme.palette.divider}` }}>
-                            <TableContainer>
-                              <Table size="small">
+                          <Box sx={{ mt: 2, pt: 2, borderTop: `1px solid ${theme.palette.divider}`, position: 'relative' }}>
+                            <Box sx={{ position: 'relative' }}>
+                              <TableContainer 
+                                component="div"
+                                ref={(el) => {
+                                  if (el) {
+                                    const topIndicator = el.previousElementSibling as HTMLElement;
+                                    const bottomIndicator = el.nextElementSibling as HTMLElement;
+                                    const isScrollable = el.scrollHeight > el.clientHeight;
+                                    const isAtBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
+                                    if (bottomIndicator) {
+                                      bottomIndicator.style.opacity = isScrollable && !isAtBottom ? '1' : '0';
+                                    }
+                                  }
+                                }}
+                                onScroll={(e) => {
+                                  const target = e.target as HTMLElement;
+                                  const topIndicator = target.previousElementSibling as HTMLElement;
+                                  const bottomIndicator = target.nextElementSibling as HTMLElement;
+                                  if (topIndicator) {
+                                    topIndicator.style.opacity = target.scrollTop > 0 ? '1' : '0';
+                                  }
+                                  if (bottomIndicator) {
+                                    const isScrollable = target.scrollHeight > target.clientHeight;
+                                    const isAtBottom = target.scrollTop + target.clientHeight >= target.scrollHeight - 1;
+                                    bottomIndicator.style.opacity = isScrollable && !isAtBottom ? '1' : '0';
+                                  }
+                                }}
+                                sx={{ 
+                                  width: '100%',
+                                  maxHeight: '400px',
+                                  overflow: 'auto',
+                                  '&::-webkit-scrollbar': {
+                                    display: 'none',
+                                    width: 0,
+                                    height: 0,
+                                  },
+                                  '&::-webkit-scrollbar-track': {
+                                    display: 'none',
+                                  },
+                                  '&::-webkit-scrollbar-thumb': {
+                                    display: 'none',
+                                  },
+                                  scrollbarWidth: 'none',
+                                  msOverflowStyle: 'none',
+                                  WebkitOverflowScrolling: 'touch',
+                                }}
+                              >
+                              <Table size="small" sx={{ width: '100%', tableLayout: 'fixed' }}>
                                 <TableHead>
                                   <TableRow>
-                                    <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, fontSize: '0.75rem', py: 0.5 }}>Item</TableCell>
-                                    <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, fontSize: '0.75rem', py: 0.5 }}>Qty</TableCell>
-                                    <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, fontSize: '0.75rem', py: 0.5 }}>Unit</TableCell>
-                                    <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, fontSize: '0.75rem', py: 0.5 }}>Total</TableCell>
+                                    <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, fontSize: '0.75rem', py: 0.5, width: '40px', minWidth: '40px' }}></TableCell>
+                                    <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, fontSize: '0.75rem', py: 0.5, minWidth: '150px' }}>Item</TableCell>
+                                    <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, fontSize: '0.75rem', py: 0.5, width: '80px', minWidth: '80px' }}>Qty</TableCell>
+                                    <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, fontSize: '0.75rem', py: 0.5, width: '120px', minWidth: '120px' }}>Unit</TableCell>
+                                    <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, fontSize: '0.75rem', py: 0.5, width: '120px', minWidth: '120px' }}>Total</TableCell>
                                   </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -536,13 +583,21 @@ export default function DashboardOverview({
                                   ).map((item: any, index: number) => {
                                     // Check for missing price fields
                                     const missingFields = checkMissingPriceFields(item);
+                                    const transactionType = getTransactionType(transaction);
                                     
                                     return (
                                       <TableRow 
                                         key={index}
                                         sx={getMissingFieldRowStyle(missingFields.hasMissingFields, theme)}
                                       >
-                                        <TableCell sx={{ color: theme.palette.text.primary, fontSize: '0.75rem', py: 0.5 }}>{item.name || 'N/A'}</TableCell>
+                                        <TableCell sx={{ color: theme.palette.text.primary, fontSize: '0.75rem', py: 0.5, width: '40px', minWidth: '40px' }}>
+                                          {transactionType === 'expense' ? (
+                                            <TrendingDown sx={{ fontSize: '0.875rem', color: theme.palette.error.main }} />
+                                          ) : (
+                                            <TrendingUp sx={{ fontSize: '0.875rem', color: theme.palette.success.main }} />
+                                          )}
+                                        </TableCell>
+                                        <TableCell sx={{ color: theme.palette.text.primary, fontSize: '0.75rem', py: 0.5, minWidth: '150px' }}>{item.name || 'N/A'}</TableCell>
                                         <TableCell 
                                           align="right" 
                                           sx={{ 
@@ -588,7 +643,7 @@ export default function DashboardOverview({
                                       }}
                                     >
                                       <TableCell 
-                                        colSpan={4} 
+                                        colSpan={5} 
                                         align="center" 
                                         sx={{ 
                                           color: theme.palette.primary.main, 
@@ -613,7 +668,7 @@ export default function DashboardOverview({
                                       }}
                                     >
                                       <TableCell 
-                                        colSpan={4} 
+                                        colSpan={5} 
                                         align="center" 
                                         sx={{ 
                                           color: theme.palette.primary.main, 
@@ -629,7 +684,38 @@ export default function DashboardOverview({
                                   )}
                                 </TableBody>
                               </Table>
-                            </TableContainer>
+                              </TableContainer>
+                              {/* Top scroll indicator */}
+                              <Box
+                                sx={{
+                                  position: 'absolute',
+                                  top: 0,
+                                  left: 0,
+                                  right: 0,
+                                  height: '20px',
+                                  background: `linear-gradient(to bottom, ${theme.palette.background.paper} 0%, transparent 100%)`,
+                                  pointerEvents: 'none',
+                                  opacity: 0,
+                                  transition: 'opacity 0.2s',
+                                  zIndex: 1,
+                                }}
+                              />
+                              {/* Bottom scroll indicator */}
+                              <Box
+                                sx={{
+                                  position: 'absolute',
+                                  bottom: 0,
+                                  left: 0,
+                                  right: 0,
+                                  height: '20px',
+                                  background: `linear-gradient(to top, ${theme.palette.background.paper} 0%, transparent 100%)`,
+                                  pointerEvents: 'none',
+                                  opacity: 0,
+                                  transition: 'opacity 0.2s',
+                                  zIndex: 1,
+                                }}
+                              />
+                            </Box>
                           </Box>
                         </Collapse>
                       )}

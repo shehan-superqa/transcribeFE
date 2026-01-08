@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, Paper, Typography, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Card, CardContent, Chip, IconButton, Collapse, CircularProgress, Divider, Avatar, Tooltip } from '@mui/material';
-import { CloudUpload, Edit, Delete, MergeType, ExpandLess, ExpandMore, ShoppingCart, AttachMoney, CalendarToday, Store, Category as CategoryIcon, Warning, TrendingDown, TrendingUp, Receipt } from '@mui/icons-material';
+import { CloudUpload, Edit, Delete, MergeType, ExpandLess, ExpandMore, ShoppingCart, AttachMoney, CalendarToday, Store, Category as CategoryIcon, Warning, TrendingDown, TrendingUp, Receipt, Visibility } from '@mui/icons-material';
 import { Transaction, Merchant, Category, TransactionItem, FlattenedItem } from '../../types/financial';
 import { useTheme } from '../../contexts/ThemeContext';
-import { getDisplayCategoryName, formatCurrency, getDisplayMerchantName, formatPaymentMethod, checkMissingPriceFields, getMissingFieldStyle, getMissingFieldRowStyle, transactionHasMissingFields, getExpenseAmount, getEarningAmount, getTaxAmount } from '../../utils/transactionHelpers';
+import { getDisplayCategoryName, formatCurrency, getDisplayMerchantName, formatPaymentMethod, checkMissingPriceFields, getMissingFieldStyle, getMissingFieldRowStyle, transactionHasMissingFields, getExpenseAmount, getEarningAmount, getTaxAmount, getTransactionType } from '../../utils/transactionHelpers';
 import EditableItemCell from './EditableItemCell';
 import TransactionCard from './TransactionCard';
+import BillItemsModal from './BillItemsModal';
 
 interface TransactionsListProps {
   layout: 'card' | 'table' | 'items';
@@ -62,6 +63,19 @@ export default function TransactionsList({
     console.error('Failed to update item:', error);
   };
   const { theme } = useTheme();
+  
+  const [viewItemsModalOpen, setViewItemsModalOpen] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+
+  const handleOpenViewItemsModal = (transaction: Transaction) => {
+    setSelectedTransaction(transaction);
+    setViewItemsModalOpen(true);
+  };
+
+  const handleCloseViewItemsModal = () => {
+    setViewItemsModalOpen(false);
+    setSelectedTransaction(null);
+  };
 
   const renderItemsView = () => (
     <TableContainer
@@ -250,6 +264,18 @@ export default function TransactionsList({
                     </TableCell>
                     <TableCell>
                       <Box sx={{ display: 'flex', gap: 0.5 }}>
+                        {billItems.length > 0 && (
+                          <Tooltip title="View Items">
+                            <IconButton
+                              size="small"
+                              onClick={() => handleOpenViewItemsModal(transaction)}
+                              color="info"
+                              sx={{ padding: '0.25rem' }}
+                            >
+                              <Visibility sx={{ fontSize: '1rem' }} />
+                            </IconButton>
+                          </Tooltip>
+                        )}
                         <IconButton
                           size="small"
                           onClick={() => onEditTransaction(transaction)}
@@ -278,16 +304,9 @@ export default function TransactionsList({
                     </TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell colSpan={7} sx={{ py: 0, border: 0 }}>
+                    <TableCell colSpan={8} sx={{ py: 0, border: 0 }}>
                       <Collapse in={isExpanded} timeout="auto" unmountOnExit>
-                        <Box sx={{ p: 2, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb' }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                            <ShoppingCart sx={{ fontSize: '1.25rem', color: theme.palette.primary.main }} />
-                            <Typography variant="subtitle2" sx={{ color: theme.palette.text.primary, fontWeight: 600, fontFamily: "'Inter', sans-serif" }}>
-                              Bill Items {billItems.length > 0 && `(${billItems.length})`}
-                            </Typography>
-                          </Box>
-                          <Divider sx={{ my: 1 }} />
+                        <Box sx={{ p: 2, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', position: 'relative' }}>
                           {isLoading ? (
                             <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
                               <CircularProgress size={20} />
@@ -297,19 +316,70 @@ export default function TransactionsList({
                               No items found for this transaction.
                             </Typography>
                           ) : (
-                            <TableContainer>
-                              <Table size="small">
+                            <Box sx={{ position: 'relative' }}>
+                              <TableContainer 
+                                component="div"
+                                ref={(el) => {
+                                  if (el) {
+                                    const topIndicator = el.previousElementSibling as HTMLElement;
+                                    const bottomIndicator = el.nextElementSibling as HTMLElement;
+                                    const isScrollable = el.scrollHeight > el.clientHeight;
+                                    const isAtBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
+                                    if (bottomIndicator) {
+                                      bottomIndicator.style.opacity = isScrollable && !isAtBottom ? '1' : '0';
+                                    }
+                                  }
+                                }}
+                                onScroll={(e) => {
+                                  const target = e.target as HTMLElement;
+                                  const topIndicator = target.previousElementSibling as HTMLElement;
+                                  const bottomIndicator = target.nextElementSibling as HTMLElement;
+                                  if (topIndicator) {
+                                    topIndicator.style.opacity = target.scrollTop > 0 ? '1' : '0';
+                                  }
+                                  if (bottomIndicator) {
+                                    const isScrollable = target.scrollHeight > target.clientHeight;
+                                    const isAtBottom = target.scrollTop + target.clientHeight >= target.scrollHeight - 1;
+                                    bottomIndicator.style.opacity = isScrollable && !isAtBottom ? '1' : '0';
+                                  }
+                                }}
+                                sx={{ 
+                                  width: '100%',
+                                  maxHeight: '400px',
+                                  overflow: 'auto',
+                                  marginLeft: '-16px',
+                                  marginRight: '-16px',
+                                  paddingLeft: '16px',
+                                  paddingRight: '16px',
+                                  '&::-webkit-scrollbar': {
+                                    display: 'none',
+                                    width: 0,
+                                    height: 0,
+                                  },
+                                  '&::-webkit-scrollbar-track': {
+                                    display: 'none',
+                                  },
+                                  '&::-webkit-scrollbar-thumb': {
+                                    display: 'none',
+                                  },
+                                  scrollbarWidth: 'none',
+                                  msOverflowStyle: 'none',
+                                  WebkitOverflowScrolling: 'touch',
+                                }}
+                              >
+                              <Table size="small" sx={{ width: '100%', tableLayout: 'fixed' }}>
                                 <TableHead>
                                   <TableRow>
-                                    <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>Item Name</TableCell>
-                                    <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>Quantity</TableCell>
-                                    <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>Unit Price</TableCell>
-                                    <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>Total Price</TableCell>
+                                    <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem', width: '40px', minWidth: '40px' }}></TableCell>
+                                    <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem', minWidth: '150px' }}>Item Name</TableCell>
+                                    <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem', width: '80px', minWidth: '80px' }}>Quantity</TableCell>
+                                    <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem', width: '120px', minWidth: '120px' }}>Unit Price</TableCell>
+                                    <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem', width: '120px', minWidth: '120px' }}>Total Price</TableCell>
                                     {billItems.some((item: any) => item.category || (item as TransactionItem).category) && (
-                                      <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>Category</TableCell>
+                                      <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem', minWidth: '120px' }}>Category</TableCell>
                                     )}
                                     {transactionItems[transaction._id] && transactionItems[transaction._id].length > 0 && (
-                                      <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>Actions</TableCell>
+                                      <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem', width: '100px', minWidth: '100px' }}>Actions</TableCell>
                                     )}
                                   </TableRow>
                                 </TableHead>
@@ -323,6 +393,7 @@ export default function TransactionsList({
                                     
                                     // Check for missing price fields
                                     const missingFields = checkMissingPriceFields(displayItem);
+                                    const transactionType = getTransactionType(transaction);
 
                                     return (
                                       <TableRow 
@@ -330,7 +401,14 @@ export default function TransactionsList({
                                         hover
                                         sx={getMissingFieldRowStyle(missingFields.hasMissingFields, theme)}
                                       >
-                                        <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
+                                        <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem', width: '40px', minWidth: '40px' }}>
+                                          {transactionType === 'expense' ? (
+                                            <TrendingDown sx={{ fontSize: '1rem', color: theme.palette.error.main }} />
+                                          ) : (
+                                            <TrendingUp sx={{ fontSize: '1rem', color: theme.palette.success.main }} />
+                                          )}
+                                        </TableCell>
+                                        <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem', minWidth: '150px' }}>
                                           {displayItem.name || 'N/A'}
                                         </TableCell>
                                         <EditableItemCell
@@ -409,7 +487,38 @@ export default function TransactionsList({
                                   })}
                                 </TableBody>
                               </Table>
-                            </TableContainer>
+                              </TableContainer>
+                              {/* Top scroll indicator */}
+                              <Box
+                                sx={{
+                                  position: 'absolute',
+                                  top: 0,
+                                  left: 0,
+                                  right: 0,
+                                  height: '20px',
+                                  background: `linear-gradient(to bottom, ${theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb'} 0%, transparent 100%)`,
+                                  pointerEvents: 'none',
+                                  opacity: 0,
+                                  transition: 'opacity 0.2s',
+                                  zIndex: 1,
+                                }}
+                              />
+                              {/* Bottom scroll indicator */}
+                              <Box
+                                sx={{
+                                  position: 'absolute',
+                                  bottom: 0,
+                                  left: 0,
+                                  right: 0,
+                                  height: '20px',
+                                  background: `linear-gradient(to top, ${theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb'} 0%, transparent 100%)`,
+                                  pointerEvents: 'none',
+                                  opacity: 0,
+                                  transition: 'opacity 0.2s',
+                                  zIndex: 1,
+                                }}
+                              />
+                            </Box>
                           )}
                         </Box>
                       </Collapse>
@@ -564,16 +673,38 @@ export default function TransactionsList({
   );
 
   if (paginatedTransactions.length === 0) {
-    return renderEmptyState();
+    return (
+      <>
+        {renderEmptyState()}
+        <BillItemsModal
+          open={viewItemsModalOpen}
+          onClose={handleCloseViewItemsModal}
+          transaction={selectedTransaction}
+          billItems={selectedTransaction ? getBillItems(selectedTransaction) : []}
+          transactionItems={transactionItems}
+          onItemEdit={onEditItem}
+          onItemDelete={onDeleteItem}
+          onItemFieldUpdate={onItemFieldUpdate}
+        />
+      </>
+    );
   }
 
-  switch (layout) {
-    case 'items':
-      return renderItemsView();
-    case 'table':
-      return renderTableView();
-    case 'card':
-    default:
-      return renderCardView();
-  }
+  return (
+    <>
+      {layout === 'items' && renderItemsView()}
+      {layout === 'table' && renderTableView()}
+      {(layout === 'card' || !layout) && renderCardView()}
+      <BillItemsModal
+        open={viewItemsModalOpen}
+        onClose={handleCloseViewItemsModal}
+        transaction={selectedTransaction}
+        billItems={selectedTransaction ? getBillItems(selectedTransaction) : []}
+        transactionItems={transactionItems}
+        onItemEdit={onEditItem}
+        onItemDelete={onDeleteItem}
+        onItemFieldUpdate={onItemFieldUpdate}
+      />
+    </>
+  );
 }
