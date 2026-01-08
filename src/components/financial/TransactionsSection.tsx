@@ -723,172 +723,245 @@ export default function TransactionsSection({
         </Tabs>
       </Paper>
 
-      {/* Combined Filters and Controls - Hide when on Items tab */}
+      {/* Compact Single-Line Filters and Controls - Hide when on Items tab */}
       {activeTab !== 3 && (
         <Paper
           elevation={0}
           sx={{
-            p: '1.5rem',
-            mb: '2rem',
+            p: '0.75rem 1rem',
+            mb: '1.5rem',
             backgroundColor: theme.palette.background.paper,
             border: `1px solid ${theme.palette.divider}`,
             borderRadius: '12px',
             boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
           }}
         >
-          {/* Filters Section */}
-          <Box sx={{ mb: '1.5rem' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.5rem', mb: '1.5rem' }}>
-              <FilterList sx={{ color: theme.palette.text.secondary, fontSize: '1.25rem' }} />
-              <Typography
-                variant="h6"
-                sx={{
-                  fontFamily: "'Inter', sans-serif",
-                  color: theme.palette.text.primary,
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  lineHeight: 1.2,
-                }}
-              >
-                Filters
-              </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+            {/* Filter Icon with Active Filters Chips */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+              <FilterList sx={{ color: theme.palette.text.secondary, fontSize: '1.1rem' }} />
               {hasFilters && (
-                <Button
-                  size="small"
-                  onClick={clearFilters}
-                  sx={{
-                    fontFamily: "'Inter', sans-serif",
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    padding: '0.5rem 0.75rem',
-                    borderRadius: '8px',
-                    textTransform: 'none',
-                  }}
-                >
-                  Clear
-                </Button>
+                <>
+                  {filters.dateFrom && (
+                    <Chip
+                      label={`From: ${filters.dateFrom.toLocaleDateString()}`}
+                      size="small"
+                      onDelete={() => handleFilterChange('dateFrom', null)}
+                      sx={{ height: '24px', fontSize: '0.7rem' }}
+                    />
+                  )}
+                  {filters.dateTo && (
+                    <Chip
+                      label={`To: ${filters.dateTo.toLocaleDateString()}`}
+                      size="small"
+                      onDelete={() => handleFilterChange('dateTo', null)}
+                      sx={{ height: '24px', fontSize: '0.7rem' }}
+                    />
+                  )}
+                  {filters.category && (
+                    <Chip
+                      label={categories.find(c => c._id === filters.category)?.category_name || 'Unknown'}
+                      size="small"
+                      onDelete={() => handleFilterChange('category', undefined)}
+                      sx={{ height: '24px', fontSize: '0.7rem', maxWidth: '120px' }}
+                    />
+                  )}
+                  {filters.merchant && (
+                    <Chip
+                      label={merchants.find(m => m._id === filters.merchant)?.merchant_name || 'Unknown'}
+                      size="small"
+                      onDelete={() => handleFilterChange('merchant', undefined)}
+                      sx={{ height: '24px', fontSize: '0.7rem', maxWidth: '120px' }}
+                    />
+                  )}
+                  {hasFilters && (
+                    <Button
+                      size="small"
+                      onClick={clearFilters}
+                      sx={{
+                        minWidth: 'auto',
+                        px: 1,
+                        fontSize: '0.7rem',
+                        height: '24px',
+                        textTransform: 'none',
+                      }}
+                    >
+                      Clear All
+                    </Button>
+                  )}
+                </>
               )}
             </Box>
-            <Box sx={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', mb: '1.5rem' }}>
-              <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <DatePicker
-                  label="Date From"
-                  value={filters.dateFrom}
-                  onChange={(date) => handleFilterChange('dateFrom', date)}
-                  slotProps={{ textField: { size: 'small' } }}
-                />
-                <DatePicker
-                  label="Date To"
-                  value={filters.dateTo}
-                  onChange={(date) => handleFilterChange('dateTo', date)}
-                  slotProps={{ textField: { size: 'small' } }}
-                />
-              </LocalizationProvider>
-              <FormControl size="small" sx={{ minWidth: 200 }}>
-                <InputLabel>Category</InputLabel>
-                <Select
-                  value={filters.category || ''}
-                  onChange={(e) => handleFilterChange('category', e.target.value || undefined)}
-                  label="Category"
-                >
-                  <MenuItem value="">All</MenuItem>
-                  {categories.map((cat) => (
-                    <MenuItem key={cat._id} value={cat._id}>
-                      {cat.category_name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <FormControl size="small" sx={{ minWidth: 200 }}>
-                <InputLabel>Merchant</InputLabel>
-                <Select
-                  value={filters.merchant || ''}
-                  onChange={(e) => handleFilterChange('merchant', e.target.value || undefined)}
-                  label="Merchant"
-                >
-                  <MenuItem value="">All</MenuItem>
-                  {merchants.map((merchant) => (
-                    <MenuItem key={merchant._id} value={merchant._id}>
-                      {merchant.merchant_name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Box>
-          </Box>
 
-          {/* Controls Section */}
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', justifyContent: 'space-between', pt: '1rem', borderTop: `1px solid ${theme.palette.divider}` }}>
+            {/* Date Filters - Compact */}
+            <LocalizationProvider dateAdapter={AdapterDateFns}>
+              <DatePicker
+                value={filters.dateFrom}
+                onChange={(date) => handleFilterChange('dateFrom', date)}
+                slotProps={{
+                  textField: {
+                    size: 'small',
+                    placeholder: 'From',
+                    InputLabelProps: { shrink: false },
+                    sx: {
+                      width: '110px',
+                      '& .MuiOutlinedInput-root': {
+                        height: '32px',
+                      },
+                      '& .MuiOutlinedInput-input': {
+                        py: '6px',
+                        fontSize: '0.75rem',
+                      },
+                    },
+                  },
+                }}
+              />
+              <DatePicker
+                value={filters.dateTo}
+                onChange={(date) => handleFilterChange('dateTo', date)}
+                slotProps={{
+                  textField: {
+                    size: 'small',
+                    placeholder: 'To',
+                    InputLabelProps: { shrink: false },
+                    sx: {
+                      width: '110px',
+                      '& .MuiOutlinedInput-root': {
+                        height: '32px',
+                      },
+                      '& .MuiOutlinedInput-input': {
+                        py: '6px',
+                        fontSize: '0.75rem',
+                      },
+                    },
+                  },
+                }}
+              />
+            </LocalizationProvider>
+
+            {/* Category & Merchant - Compact */}
+            <FormControl size="small" sx={{ minWidth: 140 }}>
+              <InputLabel sx={{ fontSize: '0.75rem' }}>Category</InputLabel>
+              <Select
+                value={filters.category || ''}
+                onChange={(e) => handleFilterChange('category', e.target.value || undefined)}
+                label="Category"
+                sx={{
+                  fontSize: '0.75rem',
+                  height: '32px',
+                  '& .MuiSelect-select': {
+                    py: '6px',
+                  },
+                }}
+              >
+                <MenuItem value="" sx={{ fontSize: '0.75rem' }}>All</MenuItem>
+                {categories.map((cat) => (
+                  <MenuItem key={cat._id} value={cat._id} sx={{ fontSize: '0.75rem' }}>
+                    {cat.category_name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl size="small" sx={{ minWidth: 140 }}>
+              <InputLabel sx={{ fontSize: '0.75rem' }}>Merchant</InputLabel>
+              <Select
+                value={filters.merchant || ''}
+                onChange={(e) => handleFilterChange('merchant', e.target.value || undefined)}
+                label="Merchant"
+                sx={{
+                  fontSize: '0.75rem',
+                  height: '32px',
+                  '& .MuiSelect-select': {
+                    py: '6px',
+                  },
+                }}
+              >
+                <MenuItem value="" sx={{ fontSize: '0.75rem' }}>All</MenuItem>
+                {merchants.map((merchant) => (
+                  <MenuItem key={merchant._id} value={merchant._id} sx={{ fontSize: '0.75rem' }}>
+                    {merchant.merchant_name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            {/* Divider */}
+            <Box sx={{ width: '1px', height: '24px', backgroundColor: theme.palette.divider, mx: 0.5 }} />
+
             {/* Search */}
             <TextField
               size="small"
-              placeholder="Search transactions..."
+              placeholder="Search..."
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
                 setPage(1);
               }}
               InputProps={{
-                startAdornment: <Search sx={{ mr: 1, color: theme.palette.text.secondary }} />,
+                startAdornment: <Search sx={{ mr: 0.5, color: theme.palette.text.secondary, fontSize: '1rem' }} />,
               }}
               sx={{
-                flex: '1 1 300px',
-                minWidth: '200px',
+                width: '180px',
                 '& .MuiOutlinedInput-root': {
-                  fontFamily: "'Inter', sans-serif",
-                  fontSize: '0.875rem',
+                  fontSize: '0.75rem',
+                  height: '32px',
+                },
+                '& .MuiOutlinedInput-input': {
+                  py: '6px',
                 },
               }}
             />
 
-            {/* Layout Toggle */}
+            {/* Layout Toggle - Icon Only */}
             <ToggleButtonGroup
               value={layout}
               exclusive
               onChange={(_, newLayout) => newLayout && setLayout(newLayout)}
               size="small"
               sx={{
+                height: '32px',
                 '& .MuiToggleButton-root': {
-                  fontFamily: "'Inter', sans-serif",
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  textTransform: 'none',
-                  padding: '0.5rem 0.75rem',
+                  px: 1,
+                  py: 0.5,
+                  minWidth: 'auto',
+                  border: `1px solid ${theme.palette.divider}`,
                 },
               }}
             >
-              <ToggleButton value="card">
-                <ViewModule sx={{ mr: 0.5, fontSize: '1rem' }} />
-                Cards
+              <ToggleButton value="card" sx={{ px: 1 }}>
+                <ViewModule sx={{ fontSize: '1rem' }} />
               </ToggleButton>
-              <ToggleButton value="table">
-                <ViewList sx={{ mr: 0.5, fontSize: '1rem' }} />
-                Table
+              <ToggleButton value="table" sx={{ px: 1 }}>
+                <ViewList sx={{ fontSize: '1rem' }} />
               </ToggleButton>
             </ToggleButtonGroup>
 
-            {/* Sort By */}
-            <FormControl size="small" sx={{ minWidth: 160 }}>
-              <InputLabel>Sort By</InputLabel>
+            {/* Sort Controls - Compact */}
+            <FormControl size="small" sx={{ minWidth: 130 }}>
+              <InputLabel sx={{ fontSize: '0.75rem' }}>Sort</InputLabel>
               <Select
                 value={apiSortBy}
                 onChange={(e) => {
                   setApiSortBy(e.target.value as 'date' | 'scanned_date');
                   setPage(1);
                 }}
-                label="Sort By"
+                label="Sort"
                 sx={{
-                  fontFamily: "'Inter', sans-serif",
-                  fontSize: '0.875rem',
+                  fontSize: '0.75rem',
+                  height: '32px',
+                  '& .MuiSelect-select': {
+                    py: '6px',
+                  },
                 }}
               >
-                <MenuItem value="date">Transaction Date</MenuItem>
-                <MenuItem value="scanned_date">Scanned Date</MenuItem>
+                <MenuItem value="date" sx={{ fontSize: '0.75rem' }}>Date</MenuItem>
+                <MenuItem value="scanned_date" sx={{ fontSize: '0.75rem' }}>Scanned</MenuItem>
               </Select>
             </FormControl>
 
-            <FormControl size="small" sx={{ minWidth: 120 }}>
-              <InputLabel>Order</InputLabel>
+            <FormControl size="small" sx={{ minWidth: 100 }}>
+              <InputLabel sx={{ fontSize: '0.75rem' }}>Order</InputLabel>
               <Select
                 value={apiSortOrder}
                 onChange={(e) => {
@@ -897,72 +970,71 @@ export default function TransactionsSection({
                 }}
                 label="Order"
                 sx={{
-                  fontFamily: "'Inter', sans-serif",
-                  fontSize: '0.875rem',
+                  fontSize: '0.75rem',
+                  height: '32px',
+                  '& .MuiSelect-select': {
+                    py: '6px',
+                  },
                 }}
               >
-                <MenuItem value="desc">Newest First</MenuItem>
-                <MenuItem value="asc">Oldest First</MenuItem>
+                <MenuItem value="desc" sx={{ fontSize: '0.75rem' }}>Newest</MenuItem>
+                <MenuItem value="asc" sx={{ fontSize: '0.75rem' }}>Oldest</MenuItem>
               </Select>
             </FormControl>
 
-            {/* Items Per Page */}
-            <FormControl size="small" sx={{ minWidth: 120 }}>
-              <InputLabel>Per Page</InputLabel>
+            {/* Per Page - Compact */}
+            <FormControl size="small" sx={{ minWidth: 90 }}>
+              <InputLabel sx={{ fontSize: '0.75rem' }}>Page</InputLabel>
               <Select
                 value={itemsPerPage}
                 onChange={(e) => {
                   setItemsPerPage(Number(e.target.value));
                   setPage(1);
                 }}
-                label="Per Page"
+                label="Page"
                 sx={{
-                  fontFamily: "'Inter', sans-serif",
-                  fontSize: '0.875rem',
+                  fontSize: '0.75rem',
+                  height: '32px',
+                  '& .MuiSelect-select': {
+                    py: '6px',
+                  },
                 }}
               >
-                <MenuItem value={10}>10</MenuItem>
-                <MenuItem value={25}>25</MenuItem>
-                <MenuItem value={50}>50</MenuItem>
-                <MenuItem value={100}>100</MenuItem>
+                <MenuItem value={10} sx={{ fontSize: '0.75rem' }}>10</MenuItem>
+                <MenuItem value={25} sx={{ fontSize: '0.75rem' }}>25</MenuItem>
+                <MenuItem value={50} sx={{ fontSize: '0.75rem' }}>50</MenuItem>
+                <MenuItem value={100} sx={{ fontSize: '0.75rem' }}>100</MenuItem>
               </Select>
             </FormControl>
 
-            {/* Results Count */}
+            {/* Results Count - Compact */}
             <Typography
-              variant="body2"
+              variant="caption"
               sx={{
                 fontFamily: "'Inter', sans-serif",
-                fontSize: '0.875rem',
+                fontSize: '0.7rem',
                 color: theme.palette.text.secondary,
                 whiteSpace: 'nowrap',
+                ml: 'auto',
               }}
             >
-              Showing {paginatedTransactions.length > 0 ? (page - 1) * itemsPerPage + 1 : 0} - {Math.min(page * itemsPerPage, totalTransactions)} of {totalTransactions}
+              {paginatedTransactions.length > 0 ? (page - 1) * itemsPerPage + 1 : 0}-{Math.min(page * itemsPerPage, totalTransactions)} of {totalTransactions}
             </Typography>
 
-            {/* Open Full Screen Button */}
-            <Button
-              variant="outlined"
-              startIcon={<OpenInFull />}
-              onClick={() => setFullScreenDialogOpen(true)}
-              sx={{
-                fontFamily: "'Inter', sans-serif",
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                padding: '0.5rem 1rem',
-                borderRadius: '8px',
-                textTransform: 'none',
-                borderColor: theme.palette.primary.main,
-                color: theme.palette.primary.main,
-                '&:hover': {
-                  borderColor: theme.palette.primary.dark,
-                  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(107, 33, 168, 0.1)' : 'rgba(107, 33, 168, 0.05)',
-                },
-              }}
-            >
-              View All
-            </Button>
+            {/* View All Button - Icon Only */}
+            <Tooltip title="View All">
+              <IconButton
+                size="small"
+                onClick={() => setFullScreenDialogOpen(true)}
+                sx={{
+                  border: `1px solid ${theme.palette.divider}`,
+                  borderRadius: '6px',
+                  p: 0.75,
+                }}
+              >
+                <OpenInFull sx={{ fontSize: '1rem' }} />
+              </IconButton>
+            </Tooltip>
           </Box>
         </Paper>
       )}
