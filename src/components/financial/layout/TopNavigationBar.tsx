@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../../store';
 import { useAuth } from '../../../lib/auth';
+import { useTheme } from '../../../contexts/ThemeContext';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -22,6 +23,7 @@ export default function TopNavigationBar({}: TopNavigationBarProps) {
   const { user } = useSelector((state: RootState) => state.auth);
   const navigate = useNavigate();
   const { user: authUser, signOut } = useAuth();
+  const { toggleTheme, mode } = useTheme();
   const displayUser = user || authUser;
   const userName = displayUser?.name || displayUser?.email || 'Alexander Hunt';
   const userInitials = userName.slice(0, 2).toUpperCase();
@@ -207,10 +209,7 @@ export default function TopNavigationBar({}: TopNavigationBarProps) {
 
           {/* Dark Mode Toggle */}
           <IconButton
-            onClick={() => {
-              const html = document.documentElement;
-              html.classList.toggle('dark');
-            }}
+            onClick={toggleTheme}
             sx={{
               p: 1,
               '&:hover': { bgcolor: '#F3F4F6' },

@@ -103,7 +103,7 @@ export default function DashboardHeader({
             gap: '8px',
             flexWrap: 'wrap',
             flex: 1,
-            justifyContent: 'center',
+            justifyContent: 'flex-end',
           }}
           className="quick-links-container"
         >
@@ -170,7 +170,7 @@ export default function DashboardHeader({
             align-items: center !important;
           }
           .quick-links-container {
-            justify-content: center !important;
+            justify-content: flex-end !important;
             flex-wrap: nowrap !important;
           }
         }

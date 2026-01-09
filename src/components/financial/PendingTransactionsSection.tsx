@@ -1,48 +1,44 @@
 import { useState } from 'react';
 import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Chip,
   Dialog,
-  DialogActions,
   DialogContent,
-  DialogTitle,
-  FormControl,
-  Grid,
-  IconButton,
-  InputLabel,
-  MenuItem,
-  Select,
   TextField,
-  Typography,
-  Alert,
-  ToggleButtonGroup,
-  ToggleButton,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Button as MuiButton,
 } from '@mui/material';
 import {
   CheckCircle as CheckCircleIcon,
   Edit as EditIcon,
-  Delete as DeleteIcon,
+  DeleteOutline as DeleteOutlineIcon,
   TrendingUp as TrendingUpIcon,
   TrendingDown as TrendingDownIcon,
   Warning as WarningIcon,
+  Store as StoreIcon,
+  CalendarToday as CalendarTodayIcon,
+  Image as ImageIcon,
+  Psychology as PsychologyIcon,
+  Close as CloseIcon,
+  QrCode2 as QrCode2Icon,
 } from '@mui/icons-material';
 import { PendingTransaction, Category } from '../../types/financial';
+import '../../css/components/financial/PendingTransactionsSection.css';
 
-// Dummy pending transactions
+// Dummy pending transactions matching the design
 const dummyPendingTransactions: PendingTransaction[] = [
   {
     _id: '1',
     user_id: 'user1',
     merchant_id: 'merchant1',
+    merchant_name: 'Merchant One Solutions',
     category_id: 'cat1',
     amount: 125.50,
     currency: 'USD',
     date: '2024-01-28',
     bill_image_url: '/images/receipt1.jpg',
-    ocr_text: 'Receipt from Store ABC...',
+    ocr_text: 'RECEIPT FROM STORE ABC... INV #293849 TOTAL: $125.50 DATE: 01/28/2024 TAX: $8.50 THANK YOU FOR SHOPPING!',
     anomaly_flag: false,
     confidence_category: 0.85,
     status: 'pending',
@@ -56,12 +52,13 @@ const dummyPendingTransactions: PendingTransaction[] = [
     _id: '2',
     user_id: 'user1',
     merchant_id: 'merchant2',
+    merchant_name: 'Global Cloud Services',
     category_id: 'cat2',
     amount: 89.99,
     currency: 'USD',
     date: '2024-01-27',
     bill_image_url: '/images/receipt2.jpg',
-    ocr_text: 'Invoice from Service Provider...',
+    ocr_text: 'INVOICE FROM SERVICE PROVIDER... SUBSCRIPTION BILLING PERIOD JAN 2024. AMOUNT $89.99 TAX INCLUSIVE.',
     anomaly_flag: false,
     confidence_category: 0.92,
     status: 'pending',
@@ -75,12 +72,13 @@ const dummyPendingTransactions: PendingTransaction[] = [
     _id: '3',
     user_id: 'user1',
     merchant_id: 'merchant3',
+    merchant_name: 'Direct Transfer Ltd',
     category_id: 'cat3',
     amount: 1500.00,
     currency: 'USD',
     date: '2024-01-26',
     bill_image_url: '/images/receipt3.jpg',
-    ocr_text: 'Payment received from Client...',
+    ocr_text: 'BANK XFER CONFIRMATION... REF: #555-928 TO: USER ACCOUNT AMT: 1500.00 CURRENCY: USD',
     anomaly_flag: false,
     confidence_category: 0.78,
     status: 'pending',
@@ -103,13 +101,10 @@ const dummyCategories: Category[] = [
 export default function PendingTransactionsSection() {
   const [pendingTransactions, setPendingTransactions] = useState<PendingTransaction[]>(dummyPendingTransactions);
   const [selectedTransaction, setSelectedTransaction] = useState<PendingTransaction | null>(null);
-  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+  const [openReceiptModal, setOpenReceiptModal] = useState(false);
   const [openEditDialog, setOpenEditDialog] = useState(false);
+  const [transactionTypes, setTransactionTypes] = useState<Record<string, 'earning' | 'expense' | undefined>>({});
   
-  const [confirmData, setConfirmData] = useState({
-    transaction_type: 'expense' as 'earning' | 'expense',
-  });
-
   const [editData, setEditData] = useState({
     amount: '',
     category_id: '',
@@ -117,12 +112,9 @@ export default function PendingTransactionsSection() {
     date: '',
   });
 
-  const handleOpenConfirmDialog = (transaction: PendingTransaction) => {
+  const handleOpenReceiptModal = (transaction: PendingTransaction) => {
     setSelectedTransaction(transaction);
-    setConfirmData({
-      transaction_type: 'expense',
-    });
-    setOpenConfirmDialog(true);
+    setOpenReceiptModal(true);
   };
 
   const handleOpenEditDialog = (transaction: PendingTransaction) => {
@@ -136,18 +128,31 @@ export default function PendingTransactionsSection() {
     setOpenEditDialog(true);
   };
 
-  const handleConfirm = () => {
-    if (selectedTransaction) {
-      // Remove from pending list
-      setPendingTransactions(pendingTransactions.filter(t => t._id !== selectedTransaction._id));
-      console.log('Confirmed transaction:', {
-        ...selectedTransaction,
-        transaction_type: confirmData.transaction_type,
-        status: 'confirmed',
-      });
+  const handleClassificationChange = (transactionId: string, type: 'earning' | 'expense') => {
+    setTransactionTypes({
+      ...transactionTypes,
+      [transactionId]: type,
+    });
+  };
+
+  const handleConfirm = (transaction: PendingTransaction) => {
+    const transactionType = transactionTypes[transaction._id];
+    if (!transactionType) {
+      alert('Please select a classification (Expense or Income) before confirming.');
+      return;
     }
-    setOpenConfirmDialog(false);
-    setSelectedTransaction(null);
+    
+    // Remove from pending list
+    setPendingTransactions(pendingTransactions.filter(t => t._id !== transaction._id));
+    const updatedTypes = { ...transactionTypes };
+    delete updatedTypes[transaction._id];
+    setTransactionTypes(updatedTypes);
+    
+    console.log('Confirmed transaction:', {
+      ...transaction,
+      transaction_type: transactionType,
+      status: 'confirmed',
+    });
   };
 
   const handleSaveEdit = () => {
@@ -170,229 +175,299 @@ export default function PendingTransactionsSection() {
   };
 
   const handleDelete = (id: string) => {
-    setPendingTransactions(pendingTransactions.filter(t => t._id !== id));
+    if (window.confirm('Are you sure you want to delete this transaction?')) {
+      setPendingTransactions(pendingTransactions.filter(t => t._id !== id));
+      const updatedTypes = { ...transactionTypes };
+      delete updatedTypes[id];
+      setTransactionTypes(updatedTypes);
+    }
+  };
+
+  const handleSkipAll = () => {
+    if (window.confirm('Are you sure you want to skip all pending transactions?')) {
+      setPendingTransactions([]);
+      setTransactionTypes({});
+    }
+  };
+
+  const handleVerifyAll = () => {
+    const unclassified = pendingTransactions.filter(t => !transactionTypes[t._id]);
+    if (unclassified.length > 0) {
+      alert(`Please classify all transactions before verifying. ${unclassified.length} transaction(s) still need classification.`);
+      return;
+    }
+    
+    // Confirm all transactions
+    console.log('Verifying all transactions:', pendingTransactions.map(t => ({
+      ...t,
+      transaction_type: transactionTypes[t._id],
+    })));
+    
+    setPendingTransactions([]);
+    setTransactionTypes({});
+  };
+
+  const getConfidenceLabel = (confidence: number) => {
+    if (confidence >= 0.9) return 'HIGH CONFIDENCE';
+    if (confidence >= 0.8) return `${Math.round(confidence * 100)}% CONFIDENCE`;
+    return 'LOW CONFIDENCE';
+  };
+
+  const getConfidenceClass = (confidence: number) => {
+    if (confidence >= 0.9) return 'pending-confidence-high';
+    if (confidence >= 0.8) return 'pending-confidence-medium';
+    return 'pending-confidence-low';
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  const formatCurrency = (amount: number, currency: string = 'USD') => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  };
+
+  const getMerchantName = (transaction: PendingTransaction) => {
+    return transaction.merchant_name || transaction.merchant_id || 'Unknown Merchant';
   };
 
   return (
-    <Box>
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>
-          Pending Transactions
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Review and confirm scanned transactions. Select whether each is an earning or expense.
-        </Typography>
-      </Box>
+    <div className="pending-transactions-container">
+      {/* Header */}
+      <header className="pending-transactions-header">
+        <h1 className="pending-transactions-title">Pending Transactions</h1>
+        <p className="pending-transactions-subtitle">
+          Review and verify scanned receipt data before finalizing your records.
+        </p>
+      </header>
 
       {pendingTransactions.length === 0 ? (
-        <Alert severity="success" icon={<CheckCircleIcon />} sx={{ borderRadius: '12px' }}>
-          <Typography variant="body2" sx={{ fontWeight: 600 }}>
-            All caught up!
-          </Typography>
-          <Typography variant="caption">
-            You have no pending transactions to review.
-          </Typography>
-        </Alert>
+        <div className="pending-empty-state">
+          <CheckCircleIcon className="pending-empty-icon" />
+          <div className="pending-empty-content">
+            <h3>All caught up!</h3>
+            <p>You have no pending transactions to review.</p>
+          </div>
+        </div>
       ) : (
         <>
-          <Alert severity="warning" icon={<WarningIcon />} sx={{ mb: 3, borderRadius: '12px' }}>
-            <Typography variant="body2" sx={{ fontWeight: 600 }}>
-              {pendingTransactions.length} transaction{pendingTransactions.length !== 1 ? 's' : ''} awaiting confirmation
-            </Typography>
-            <Typography variant="caption">
-              Please review and confirm each transaction to classify it as an earning or expense.
-            </Typography>
-          </Alert>
+          {/* Alert Banner */}
+          <div className="pending-alert-banner">
+            <div className="pending-alert-icon">
+              <WarningIcon />
+            </div>
+            <div className="pending-alert-content">
+              <h3>
+                {pendingTransactions.length} Transaction{pendingTransactions.length !== 1 ? 's' : ''} Need Your Attention
+              </h3>
+              <p>
+                Please verify the merchant details and classify these items as either income or expense.
+              </p>
+            </div>
+          </div>
 
-          <Grid container spacing={2}>
-            {pendingTransactions.map((transaction) => (
-              <Grid item xs={12} key={transaction._id}>
-                <Card sx={{ borderRadius: '16px', border: '1px solid', borderColor: 'warning.main' }}>
-                  <CardContent>
-                    <Grid container spacing={2} alignItems="center">
-                      <Grid item xs={12} md={6}>
-                        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-                          <Box
-                            sx={{
-                              width: 60,
-                              height: 60,
-                              borderRadius: '12px',
-                              backgroundColor: 'action.hover',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                            }}
-                          >
-                            <WarningIcon color="warning" />
-                          </Box>
-                          <Box sx={{ flex: 1 }}>
-                            <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
-                              ${transaction.amount.toFixed(2)}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-                              Merchant: {transaction.merchant_id}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              Date: {new Date(transaction.date).toLocaleDateString()}
-                            </Typography>
-                            <Box sx={{ mt: 1 }}>
-                              <Chip
-                                label={`Confidence: ${(transaction.confidence_category * 100).toFixed(0)}%`}
-                                size="small"
-                                variant="outlined"
-                                sx={{ borderRadius: '8px' }}
-                              />
-                            </Box>
-                          </Box>
-                        </Box>
-                      </Grid>
+          {/* Transactions List */}
+          <div className="pending-transactions-list">
+            {pendingTransactions.map((transaction) => {
+              const confidence = transaction.confidence_category;
+              const confidenceLabel = getConfidenceLabel(confidence);
+              const confidenceClass = getConfidenceClass(confidence);
+              const matchPercentage = Math.round(confidence * 100);
+              const selectedType = transactionTypes[transaction._id];
+              const isLowConfidence = confidence < 0.8;
 
-                      <Grid item xs={12} md={6}>
-                        <Box sx={{ display: 'flex', gap: 1, justifyContent: { xs: 'flex-start', md: 'flex-end' }, flexWrap: 'wrap' }}>
-                          <Button
-                            variant="contained"
-                            color="success"
-                            startIcon={<CheckCircleIcon />}
-                            onClick={() => handleOpenConfirmDialog(transaction)}
-                            sx={{ borderRadius: '12px', textTransform: 'none' }}
-                          >
-                            Confirm
-                          </Button>
-                          <Button
-                            variant="outlined"
-                            startIcon={<EditIcon />}
-                            onClick={() => handleOpenEditDialog(transaction)}
-                            sx={{ borderRadius: '12px', textTransform: 'none' }}
-                          >
-                            Edit
-                          </Button>
-                          <IconButton
-                            color="error"
-                            onClick={() => handleDelete(transaction._id)}
-                            sx={{ border: '1px solid', borderColor: 'error.main' }}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </Box>
-                      </Grid>
-                    </Grid>
+              return (
+                <div key={transaction._id} className="pending-transaction-card">
+                  <div className="pending-transaction-content">
+                    {/* Left Section - Transaction Details */}
+                    <div className="pending-transaction-details">
+                      <div className="pending-transaction-header">
+                        <div>
+                          <div className="pending-transaction-amount-group">
+                            <span className="pending-transaction-amount">
+                              {formatCurrency(transaction.amount, transaction.currency)}
+                            </span>
+                            <span className={`pending-confidence-badge ${confidenceClass}`}>
+                              {confidenceLabel}
+                            </span>
+                          </div>
+                          <div className="pending-transaction-meta">
+                            <StoreIcon className="pending-transaction-meta-icon" />
+                            <span className="pending-transaction-merchant">
+                              {getMerchantName(transaction)}
+                            </span>
+                            <span className="pending-transaction-meta-separator">•</span>
+                            <CalendarTodayIcon className="pending-transaction-meta-icon" />
+                            <span>{formatDate(transaction.date)}</span>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleOpenReceiptModal(transaction)}
+                          className="pending-view-receipt-btn"
+                        >
+                          <ImageIcon className="pending-view-receipt-btn-icon" />
+                          View Original Receipt
+                        </button>
+                      </div>
 
-                    {transaction.ocr_text && (
-                      <Box sx={{ mt: 2, p: 1.5, backgroundColor: 'action.hover', borderRadius: '8px' }}>
-                        <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                          OCR Text: {transaction.ocr_text.substring(0, 100)}...
-                        </Typography>
-                      </Box>
-                    )}
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
+                      {/* Classification Section */}
+                      <div className="pending-classification-section">
+                        <span className="pending-classification-label">
+                          Classification Needed
+                        </span>
+                        <div className="pending-classification-buttons">
+                          <button
+                            onClick={() => handleClassificationChange(transaction._id, 'expense')}
+                            className={`pending-classification-btn ${selectedType === 'expense' ? 'active' : ''}`}
+                          >
+                            <TrendingDownIcon className="pending-classification-btn-icon expense" />
+                            Expense
+                          </button>
+                          <button
+                            onClick={() => handleClassificationChange(transaction._id, 'earning')}
+                            className={`pending-classification-btn ${selectedType === 'earning' ? 'active' : ''}`}
+                          >
+                            <TrendingUpIcon className="pending-classification-btn-icon income" />
+                            Income
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right Section - OCR Scanned Text */}
+                    <div className="pending-ocr-section">
+                      <div>
+                        <div className="pending-ocr-header">
+                          <span className="pending-ocr-label">
+                            OCR Scanned Text
+                          </span>
+                          <div className={`pending-ocr-match ${isLowConfidence ? 'low' : ''}`}>
+                            <PsychologyIcon className="pending-ocr-match-icon" />
+                            {matchPercentage}% Match
+                          </div>
+                        </div>
+                        <div className="pending-ocr-text">
+                          {transaction.ocr_text || 'No OCR text available'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="pending-action-buttons">
+                    <button
+                      onClick={() => handleConfirm(transaction)}
+                      className="pending-confirm-btn"
+                    >
+                      <CheckCircleIcon className="pending-confirm-btn-icon" />
+                      Confirm
+                    </button>
+                    <button
+                      onClick={() => handleOpenEditDialog(transaction)}
+                      className="pending-edit-btn"
+                    >
+                      <EditIcon className="pending-action-icon" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(transaction._id)}
+                      className="pending-delete-btn"
+                    >
+                      <DeleteOutlineIcon className="pending-action-icon" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Footer */}
+          <div className="pending-footer">
+            <div className="pending-footer-text">
+              <span className="pending-footer-count">{pendingTransactions.length}</span> items remaining in your queue.
+            </div>
+            <div className="pending-footer-actions">
+              <button
+                onClick={handleSkipAll}
+                className="pending-skip-all-btn"
+              >
+                Skip All
+              </button>
+              <button
+                onClick={handleVerifyAll}
+                className="pending-verify-all-btn"
+              >
+                Verify All Items
+              </button>
+            </div>
+          </div>
         </>
       )}
 
-      {/* Confirm Dialog */}
+      {/* Receipt Modal */}
       <Dialog
-        open={openConfirmDialog}
-        onClose={() => setOpenConfirmDialog(false)}
-        maxWidth="sm"
+        open={openReceiptModal}
+        onClose={() => setOpenReceiptModal(false)}
+        maxWidth="lg"
         fullWidth
-        PaperProps={{ sx: { borderRadius: '16px' } }}
+        PaperProps={{
+          sx: {
+            borderRadius: '24px',
+            backgroundColor: 'var(--bg-paper)',
+            maxHeight: '90vh',
+            display: 'flex',
+            flexDirection: 'column',
+          },
+        }}
       >
-        <DialogTitle sx={{ fontWeight: 700 }}>
-          Confirm Transaction
-        </DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-            <Alert severity="info" sx={{ borderRadius: '12px' }}>
-              <Typography variant="body2">
-                Please specify whether this transaction is an earning or an expense. This helps us categorize it correctly.
-              </Typography>
-            </Alert>
-
-            {selectedTransaction && (
-              <Box sx={{ p: 2, backgroundColor: 'action.hover', borderRadius: '12px' }}>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Transaction Details:
-                </Typography>
-                <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                  ${selectedTransaction.amount.toFixed(2)}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Merchant: {selectedTransaction.merchant_id}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Date: {new Date(selectedTransaction.date).toLocaleDateString()}
-                </Typography>
-              </Box>
-            )}
-
-            <Box>
-              <Typography variant="body2" sx={{ mb: 1, fontWeight: 600 }}>
-                Transaction Type *
-              </Typography>
-              <ToggleButtonGroup
-                value={confirmData.transaction_type}
-                exclusive
-                onChange={(_e, value) => value && setConfirmData({ ...confirmData, transaction_type: value })}
-                fullWidth
-                sx={{
-                  '& .MuiToggleButton-root': {
-                    borderRadius: '12px',
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    py: 1.5,
-                  },
-                }}
-              >
-                <ToggleButton
-                  value="expense"
-                  sx={{
-                    '&.Mui-selected': {
-                      backgroundColor: 'error.main',
-                      color: 'white',
-                      '&:hover': {
-                        backgroundColor: 'error.dark',
-                      },
-                    },
-                  }}
-                >
-                  <TrendingDownIcon sx={{ mr: 1 }} />
-                  Expense
-                </ToggleButton>
-                <ToggleButton
-                  value="earning"
-                  sx={{
-                    '&.Mui-selected': {
-                      backgroundColor: 'success.main',
-                      color: 'white',
-                      '&:hover': {
-                        backgroundColor: 'success.dark',
-                      },
-                    },
-                  }}
-                >
-                  <TrendingUpIcon sx={{ mr: 1 }} />
-                  Earning
-                </ToggleButton>
-              </ToggleButtonGroup>
-            </Box>
-          </Box>
+        <DialogContent sx={{ p: 0, display: 'flex', flexDirection: 'column', flex: 1 }}>
+          <div className="pending-receipt-modal-header">
+            <h3 className="pending-receipt-modal-title">
+              Original Receipt: {selectedTransaction ? getMerchantName(selectedTransaction) : ''}
+            </h3>
+            <button
+              onClick={() => setOpenReceiptModal(false)}
+              className="pending-receipt-modal-close"
+            >
+              <CloseIcon />
+            </button>
+          </div>
+          <div className="pending-receipt-modal-content">
+            <div className="pending-receipt-preview">
+              <div className="pending-receipt-merchant-name">
+                <div className="pending-receipt-merchant-title">
+                  {selectedTransaction ? getMerchantName(selectedTransaction).split(' ')[0] : 'Merchant'}
+                </div>
+                <div className="pending-receipt-merchant-address">123 Business Way, Tech City, 90210</div>
+              </div>
+              <div className="pending-receipt-items">
+                <div className="pending-receipt-item">
+                  <span>Service Item A</span>
+                  <span>${selectedTransaction ? (selectedTransaction.amount * 0.36).toFixed(2) : '0.00'}</span>
+                </div>
+                <div className="pending-receipt-item">
+                  <span>Component Bundle X</span>
+                  <span>${selectedTransaction ? (selectedTransaction.amount * 0.64).toFixed(2) : '0.00'}</span>
+                </div>
+              </div>
+              <div className="pending-receipt-total">
+                <span>TOTAL</span>
+                <span>{selectedTransaction ? formatCurrency(selectedTransaction.amount, selectedTransaction.currency) : '$0.00'}</span>
+              </div>
+              <div className="pending-receipt-qr">
+                <div className="pending-receipt-qr-box">
+                  <QrCode2Icon className="pending-receipt-qr-icon" />
+                </div>
+                <div className="pending-receipt-thanks">THANK YOU FOR YOUR BUSINESS</div>
+              </div>
+            </div>
+          </div>
         </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setOpenConfirmDialog(false)} sx={{ borderRadius: '12px', textTransform: 'none' }}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleConfirm}
-            variant="contained"
-            color="success"
-            sx={{ borderRadius: '12px', textTransform: 'none' }}
-          >
-            Confirm Transaction
-          </Button>
-        </DialogActions>
       </Dialog>
 
       {/* Edit Dialog */}
@@ -401,19 +476,17 @@ export default function PendingTransactionsSection() {
         onClose={() => setOpenEditDialog(false)}
         maxWidth="sm"
         fullWidth
-        PaperProps={{ sx: { borderRadius: '16px' } }}
+        PaperProps={{
+          sx: {
+            borderRadius: '16px',
+          },
+        }}
       >
-        <DialogTitle sx={{ fontWeight: 700 }}>
-          Edit Transaction
-        </DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-            <Alert severity="info" sx={{ borderRadius: '12px' }}>
-              <Typography variant="body2">
-                Correct any errors in the extracted data before confirming the transaction.
-              </Typography>
-            </Alert>
-
+        <div style={{ padding: '1.5rem' }}>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem', color: 'var(--text-primary)' }}>
+            Edit Transaction
+          </h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <TextField
               label="Amount"
               type="number"
@@ -422,7 +495,7 @@ export default function PendingTransactionsSection() {
               fullWidth
               required
               InputProps={{
-                startAdornment: <Typography sx={{ mr: 1 }}>$</Typography>,
+                startAdornment: <span style={{ marginRight: '0.5rem' }}>$</span>,
               }}
             />
 
@@ -456,21 +529,25 @@ export default function PendingTransactionsSection() {
               fullWidth
               InputLabelProps={{ shrink: true }}
             />
-          </Box>
-        </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setOpenEditDialog(false)} sx={{ borderRadius: '12px', textTransform: 'none' }}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSaveEdit}
-            variant="contained"
-            sx={{ borderRadius: '12px', textTransform: 'none' }}
-          >
-            Save Changes
-          </Button>
-        </DialogActions>
+
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
+              <MuiButton
+                onClick={() => setOpenEditDialog(false)}
+                sx={{ borderRadius: '12px', textTransform: 'none' }}
+              >
+                Cancel
+              </MuiButton>
+              <MuiButton
+                onClick={handleSaveEdit}
+                variant="contained"
+                sx={{ borderRadius: '12px', textTransform: 'none', bgcolor: '#6d28d9', '&:hover': { bgcolor: '#5b21b6' } }}
+              >
+                Save Changes
+              </MuiButton>
+            </div>
+          </div>
+        </div>
       </Dialog>
-    </Box>
+    </div>
   );
 }

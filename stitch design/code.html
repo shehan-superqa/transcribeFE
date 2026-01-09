@@ -2,19 +2,19 @@
 <html class="light" lang="en"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>VoiceCrypt.ai - Upcoming Payments</title>
+<title>Pending Transactions | Financial Portal</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
 <script>
       tailwind.config = {
         darkMode: "class",
         theme: {
           extend: {
             colors: {
-              primary: "#6366F1", // Indigo primary from the logo/buttons
-              "background-light": "#F8FAFC",
-              "background-dark": "#0F172A",
+              primary: "#6d28d9",
+              "background-light": "#f9fafb",
+              "background-dark": "#111827",
             },
             fontFamily: {
               display: ["Inter", "sans-serif"],
@@ -25,375 +25,310 @@
           },
         },
       };
+      function toggleDarkMode() {
+        document.documentElement.classList.toggle('dark');
+      }
     </script>
 <style>
-        body { font-family: 'Inter', sans-serif; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 10px; }
-        .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 10px;
+        }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #4b5563;
+        }
     </style>
 </head>
 <body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-200">
-<header class="h-16 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 sticky top-0 z-50 px-6 flex items-center justify-between">
-<div class="flex items-center gap-8">
+<nav class="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 sticky top-0 z-30">
+<div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
 <div class="flex items-center gap-2">
-<div class="w-8 h-8 bg-primary rounded flex items-center justify-center">
-<span class="material-icons-outlined text-white text-xl">security</span>
+<div class="w-8 h-8 bg-primary rounded flex items-center justify-center text-white">
+<span class="material-icons-round text-xl">account_balance_wallet</span>
 </div>
-<span class="font-bold text-xl tracking-tight">VoiceCrypt<span class="text-primary">.ai</span></span>
-</div>
-<nav class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-500 dark:text-slate-400">
-<a class="hover:text-primary transition-colors" href="#">Products</a>
-<a class="hover:text-primary transition-colors" href="#">Tools</a>
-<a class="hover:text-primary transition-colors" href="#">Pricing</a>
-</nav>
+<span class="font-bold text-lg tracking-tight">FinFlow</span>
 </div>
 <div class="flex items-center gap-4">
-<div class="bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 px-3 py-1 rounded-full text-sm font-semibold border border-amber-200 dark:border-amber-800">
-                0 Points
-            </div>
-<button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full" onclick="document.documentElement.classList.toggle('dark')">
-<span class="material-icons-outlined text-slate-500 dark:text-slate-400">dark_mode</span>
+<button class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" onclick="toggleDarkMode()">
+<span class="material-icons-round dark:hidden">dark_mode</span>
+<span class="material-icons-round hidden dark:block">light_mode</span>
 </button>
-<div class="flex items-center gap-2 pl-4 border-l border-slate-200 dark:border-slate-800">
-<div class="text-right mr-2 hidden sm:block">
-<p class="text-xs font-bold">ffAshehan</p>
-<p class="text-[10px] text-emerald-500 font-bold uppercase tracking-wider">Verified</p>
-</div>
-<div class="w-10 h-10 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center text-primary font-bold">
-                    FF
-                </div>
-<button class="text-slate-500 dark:text-slate-400 ml-2 hover:text-red-500">
-<span class="material-icons-outlined">logout</span>
-</button>
+<div class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden border border-slate-300 dark:border-slate-600">
+<img alt="User Avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBIWmNt-SAGHmv43qVW3HlPTjJSyNcTbpFdANSN5P5ai4n0IDQGxBDRDQ4Fbn4bMWs_S_VYqqJqQyM2e5eumKS9M3QkDi6MTliiX2ZhfOfhi-TMgjEe_Qh5RJugq57Pzfnuk3WqgqjgR-oLFVEhBXD0gD9KYgwPl5kaE_5E748s6RnfA4aKm9pUaiK4jhwhOve-qNyZhoG8zprpKTXN49mk9uCVWH2UaYZRRGFP868ywi72mHfrVVk5tZ47WRX5heiFsFrsC84--lQ"/>
 </div>
 </div>
-</header>
-<div class="flex h-[calc(100-4rem)]">
-<aside class="w-64 border-r border-slate-200 dark:border-slate-800 hidden lg:flex flex-col bg-white dark:bg-slate-900 custom-scrollbar overflow-y-auto">
-<div class="p-6">
-<div class="flex items-center gap-3 mb-8">
-<div class="w-10 h-10 bg-primary/10 rounded flex items-center justify-center">
-<span class="material-icons-outlined text-primary">account_balance</span>
 </div>
-<div>
-<h2 class="font-bold text-sm">Fiscally Dashboard</h2>
-<p class="text-[10px] text-slate-500">Overview of personal finances</p>
-</div>
-</div>
-<nav class="space-y-1">
-<a class="flex items-center gap-3 px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg group" href="#">
-<span class="material-icons-outlined text-xl group-hover:text-primary">grid_view</span> Dashboard
-                    </a>
-<a class="flex items-center gap-3 px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg group" href="#">
-<span class="material-icons-outlined text-xl group-hover:text-primary">file_upload</span> Upload Bills
-                    </a>
-<a class="flex items-center gap-3 px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg group" href="#">
-<span class="material-icons-outlined text-xl group-hover:text-primary">receipt_long</span> Transactions
-                    </a>
-<a class="flex items-center gap-3 px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg group" href="#">
-<span class="material-icons-outlined text-xl group-hover:text-primary">pending_actions</span> Pending
-                    </a>
-<a class="flex items-center gap-3 px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg group" href="#">
-<span class="material-icons-outlined text-xl group-hover:text-primary">sync</span> Recurring
-                    </a>
-<a class="flex items-center gap-3 px-3 py-2 text-sm bg-primary/10 text-primary border-r-4 border-primary font-semibold" href="#">
-<span class="material-icons-outlined text-xl">schedule</span> Upcoming
-                    </a>
-<div class="pt-4 pb-2 px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Management</div>
-<a class="flex items-center gap-3 px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg group" href="#">
-<span class="material-icons-outlined text-xl group-hover:text-primary">analytics</span> Analytics
-                    </a>
-<a class="flex items-center gap-3 px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg group" href="#">
-<span class="material-icons-outlined text-xl group-hover:text-primary">family_restroom</span> Family
-                    </a>
-<a class="flex items-center gap-3 px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg group" href="#">
-<span class="material-icons-outlined text-xl group-hover:text-primary">savings</span> Savings
-                    </a>
 </nav>
+<main class="max-w-6xl mx-auto px-6 py-8">
+<header class="mb-8">
+<h1 class="text-3xl font-bold tracking-tight mb-2">Pending Transactions</h1>
+<p class="text-slate-500 dark:text-slate-400">Review and verify scanned receipt data before finalizing your records.</p>
+</header>
+<div class="mb-10 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900/50 rounded-xl flex items-start gap-4">
+<div class="bg-amber-100 dark:bg-amber-800 p-2 rounded-lg text-amber-600 dark:text-amber-400">
+<span class="material-icons-round">warning</span>
 </div>
-</aside>
-<main class="flex-1 p-8 overflow-y-auto custom-scrollbar">
-<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
 <div>
-<h1 class="text-2xl font-bold">Upcoming Payments</h1>
-<p class="text-slate-500 text-sm">View and manage your upcoming recurring payments and their impact on your budget</p>
+<h3 class="font-semibold text-amber-900 dark:text-amber-200">3 Transactions Need Your Attention</h3>
+<p class="text-amber-800/80 dark:text-amber-400/80 text-sm">Please verify the merchant details and classify these items as either income or expense.</p>
 </div>
-<div class="flex items-center gap-3">
-<div class="relative">
-<input class="w-full md:w-80 pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-sm" placeholder="Ask me anything or search..." type="text"/>
-<span class="material-icons-outlined absolute left-3 top-2 text-slate-400">search</span>
-</div>
-<button class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium">
-<span class="material-icons-outlined text-sm">calendar_month</span> Monthly
-                    </button>
-</div>
-</div>
-<div class="grid grid-cols-12 gap-8">
-<div class="col-span-12 xl:col-span-9 space-y-8">
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-<div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-<div class="flex items-center gap-3 mb-4">
-<div class="w-10 h-10 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 rounded-xl flex items-center justify-center">
-<span class="material-icons-outlined">account_balance</span>
-</div>
-<span class="text-sm font-medium text-slate-500">Current Budget</span>
-</div>
-<div class="text-2xl font-bold">$8000.00</div>
-</div>
-<div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-<div class="flex items-center gap-3 mb-4">
-<div class="w-10 h-10 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 rounded-xl flex items-center justify-center">
-<span class="material-icons-outlined">trending_up</span>
-</div>
-<span class="text-sm font-medium text-slate-500">Upcoming Earnings</span>
-</div>
-<div class="text-2xl font-bold text-emerald-600">+$5800.00</div>
-</div>
-<div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-<div class="flex items-center gap-3 mb-4">
-<div class="w-10 h-10 bg-rose-50 dark:bg-rose-900/30 text-rose-600 rounded-xl flex items-center justify-center">
-<span class="material-icons-outlined">trending_down</span>
-</div>
-<span class="text-sm font-medium text-slate-500">Upcoming Expenses</span>
-</div>
-<div class="text-2xl font-bold text-rose-600">-$1980.00</div>
-</div>
-<div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-<div class="flex items-center gap-3 mb-4">
-<div class="w-10 h-10 bg-blue-50 dark:bg-blue-900/30 text-blue-600 rounded-xl flex items-center justify-center">
-<span class="material-icons-outlined">account_balance_wallet</span>
-</div>
-<span class="text-sm font-medium text-slate-500">Net Upcoming</span>
-</div>
-<div class="text-2xl font-bold text-blue-600">+$3820.00</div>
-</div>
-</div>
-<div class="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-<h3 class="font-bold text-lg mb-6">Budget Impact Analysis</h3>
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-<div class="space-y-6">
-<div class="flex items-center justify-between text-sm">
-<span class="text-slate-500">Remaining After Upcoming Payments</span>
-<span class="font-bold">$11820.00</span>
-</div>
-<div class="relative h-4 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-<div class="absolute top-0 left-0 h-full bg-emerald-500" style="width: 147.8%;"></div>
-</div>
-<div class="flex items-center justify-between text-xs text-slate-400">
-<span>0%</span>
-<span>147.8% of current budget</span>
-<span>100%</span>
-</div>
-<div class="flex gap-4 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 rounded-xl">
-<span class="material-icons-outlined text-emerald-600">check_circle</span>
-<div>
-<h4 class="font-bold text-sm text-emerald-800 dark:text-emerald-400">Budget Healthy</h4>
-<p class="text-xs text-emerald-700 dark:text-emerald-500">You have sufficient budget remaining after upcoming payments.</p>
-</div>
-</div>
-</div>
-<div class="space-y-4">
-<div class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800">
-<span class="text-sm text-slate-500">Current Budget:</span>
-<span class="font-semibold">$8000.00</span>
-</div>
-<div class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800">
-<span class="text-sm text-emerald-600">+ Upcoming Earnings:</span>
-<span class="font-semibold text-emerald-600">$5800.00</span>
-</div>
-<div class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800">
-<span class="text-sm text-rose-600">- Upcoming Expenses:</span>
-<span class="font-semibold text-rose-600">$1980.00</span>
-</div>
-<div class="flex justify-between items-center py-2">
-<span class="font-bold">Remaining Budget:</span>
-<span class="font-bold text-lg">$11820.00</span>
-</div>
-<div class="flex justify-between items-center text-xs text-slate-400">
-<span>Percentage of Budget:</span>
-<span class="font-medium">147.8%</span>
-</div>
-</div>
-</div>
-</div>
-<div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-<div class="p-6 border-b border-slate-100 dark:border-slate-800">
-<h3 class="font-bold text-lg">Payment Schedule</h3>
-</div>
-<div class="overflow-x-auto">
-<table class="w-full text-left">
-<thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">
-<tr>
-<th class="px-6 py-4">Payment Name</th>
-<th class="px-6 py-4">Type</th>
-<th class="px-6 py-4">Amount</th>
-<th class="px-6 py-4">Due Date</th>
-<th class="px-6 py-4">Days Until</th>
-<th class="px-6 py-4">Category</th>
-</tr>
-</thead>
-<tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
-<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-<td class="px-6 py-4 font-medium">Freelance Income</td>
-<td class="px-6 py-4">
-<span class="px-2 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 text-[10px] font-bold rounded">EARNING</span>
-</td>
-<td class="px-6 py-4 text-emerald-600 font-bold">+$800.00</td>
-<td class="px-6 py-4 text-slate-500">1/29/2024</td>
-<td class="px-6 py-4">
-<span class="px-2 py-1 bg-rose-500 text-white text-[10px] font-bold rounded">1 days</span>
-</td>
-<td class="px-6 py-4 text-slate-500">Income</td>
-</tr>
-<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-<td class="px-6 py-4 font-medium">Monthly Salary</td>
-<td class="px-6 py-4">
-<span class="px-2 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 text-[10px] font-bold rounded">EARNING</span>
-</td>
-<td class="px-6 py-4 text-emerald-600 font-bold">+$5000.00</td>
-<td class="px-6 py-4 text-slate-500">2/1/2024</td>
-<td class="px-6 py-4">
-<span class="px-2 py-1 bg-rose-400 text-white text-[10px] font-bold rounded">3 days</span>
-</td>
-<td class="px-6 py-4 text-slate-500">Income</td>
-</tr>
-<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-<td class="px-6 py-4">
-<div class="font-medium">Internet Bill</div>
-<div class="text-[10px] text-slate-400 uppercase">ISP Provider</div>
-</td>
-<td class="px-6 py-4">
-<span class="px-2 py-1 bg-rose-100 dark:bg-rose-900/30 text-rose-600 text-[10px] font-bold rounded">EXPENSE</span>
-</td>
-<td class="px-6 py-4 text-rose-600 font-bold">-$80.00</td>
-<td class="px-6 py-4 text-slate-500">2/3/2024</td>
-<td class="px-6 py-4">
-<span class="px-2 py-1 bg-amber-500 text-white text-[10px] font-bold rounded">5 days</span>
-</td>
-<td class="px-6 py-4 text-slate-500">Utilities</td>
-</tr>
-<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-<td class="px-6 py-4">
-<div class="font-medium">Rent Payment</div>
-<div class="text-[10px] text-slate-400 uppercase">Property Management Co.</div>
-</td>
-<td class="px-6 py-4">
-<span class="px-2 py-1 bg-rose-100 dark:bg-rose-900/30 text-rose-600 text-[10px] font-bold rounded">EXPENSE</span>
-</td>
-<td class="px-6 py-4 text-rose-600 font-bold">-$1500.00</td>
-<td class="px-6 py-4 text-slate-500">2/5/2024</td>
-<td class="px-6 py-4">
-<span class="px-2 py-1 bg-amber-500 text-white text-[10px] font-bold rounded">7 days</span>
-</td>
-<td class="px-6 py-4 text-slate-500">Housing</td>
-</tr>
-<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-<td class="px-6 py-4">
-<div class="font-medium">Gym Membership</div>
-<div class="text-[10px] text-slate-400 uppercase">FitLife Gym</div>
-</td>
-<td class="px-6 py-4">
-<span class="px-2 py-1 bg-rose-100 dark:bg-rose-900/30 text-rose-600 text-[10px] font-bold rounded">EXPENSE</span>
-</td>
-<td class="px-6 py-4 text-rose-600 font-bold">-$50.00</td>
-<td class="px-6 py-4 text-slate-500">2/10/2024</td>
-<td class="px-6 py-4">
-<span class="px-2 py-1 bg-emerald-500 text-white text-[10px] font-bold rounded">12 days</span>
-</td>
-<td class="px-6 py-4 text-slate-500">Health &amp; Fitness</td>
-</tr>
-<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-<td class="px-6 py-4 font-medium">Utility Bills</td>
-<td class="px-6 py-4">
-<span class="px-2 py-1 bg-rose-100 dark:bg-rose-900/30 text-rose-600 text-[10px] font-bold rounded">EXPENSE</span>
-</td>
-<td class="px-6 py-4 text-rose-600 font-bold">-$200.00</td>
-<td class="px-6 py-4 text-slate-500">2/15/2024</td>
-<td class="px-6 py-4">
-<span class="px-2 py-1 bg-emerald-500 text-white text-[10px] font-bold rounded">17 days</span>
-</td>
-<td class="px-6 py-4 text-slate-500">Utilities</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-<div class="col-span-12 xl:col-span-3 space-y-6">
-<div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-<div class="flex items-center gap-2 mb-6">
-<span class="material-icons-outlined text-primary">donut_large</span>
-<h3 class="font-bold">Account Overview</h3>
-</div>
-<div class="grid grid-cols-2 gap-4">
-<div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl">
-<p class="text-[10px] text-slate-400 uppercase font-bold mb-1">User</p>
-<p class="text-xs font-bold truncate">ffAshehan</p>
-</div>
-<div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl">
-<p class="text-[10px] text-slate-400 uppercase font-bold mb-1">Total TX</p>
-<p class="text-xs font-bold">7</p>
-</div>
-<div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl">
-<p class="text-[10px] text-slate-400 uppercase font-bold mb-1">Categories</p>
-<p class="text-xs font-bold">1</p>
-</div>
-<div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl">
-<p class="text-[10px] text-slate-400 uppercase font-bold mb-1">Merchants</p>
-<p class="text-xs font-bold">1</p>
-</div>
-</div>
-</div>
-<div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-<h3 class="font-bold mb-6">Quick Actions</h3>
-<div class="space-y-3">
-<button class="w-full bg-primary text-white py-3 rounded-xl flex items-center justify-center gap-2 font-semibold hover:bg-opacity-90 transition-all shadow-lg shadow-primary/20">
-<span class="material-icons-outlined">cloud_upload</span> Upload Bill
-                            </button>
-<button class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 py-3 rounded-xl flex items-center justify-center gap-2 font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
-<span class="material-icons-outlined">add</span> Manual Transaction
-                            </button>
-<button class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 py-3 rounded-xl flex items-center justify-center gap-2 font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
-<span class="material-icons-outlined">auto_awesome</span> Ask AI
-                            </button>
-</div>
-</div>
-<div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-<div class="flex items-center justify-between mb-6">
-<h3 class="font-bold">Latest Activity</h3>
-<a class="text-xs text-primary font-bold" href="#">See all</a>
 </div>
 <div class="space-y-6">
-<div class="flex items-center justify-between">
-<div class="flex items-center gap-3">
-<div class="w-2 h-2 bg-rose-500 rounded-full"></div>
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden group hover:border-primary/30 transition-all duration-300">
+<div class="flex flex-col lg:flex-row">
+<div class="p-6 flex-1 border-r border-slate-100 dark:border-slate-800/50">
+<div class="flex items-start justify-between mb-4">
 <div>
-<p class="text-xs font-bold">Unknown Merchant</p>
-<p class="text-[10px] text-slate-400">1/8/2024</p>
+<div class="flex items-center gap-2 mb-1">
+<span class="text-3xl font-bold">$125.50</span>
+<span class="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold uppercase rounded-full tracking-wider">High Confidence</span>
+</div>
+<div class="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm">
+<span class="material-icons-round text-sm">store</span>
+<span class="font-medium text-slate-900 dark:text-white">Merchant One Solutions</span>
+<span class="mx-1">•</span>
+<span class="material-icons-round text-sm">calendar_today</span>
+<span>Jan 28, 2024</span>
 </div>
 </div>
-<span class="text-xs font-bold text-rose-500">-36.46 USD</span>
+<button class="flex items-center gap-1.5 text-primary text-sm font-semibold hover:underline bg-primary/5 px-3 py-1.5 rounded-lg transition-colors">
+<span class="material-icons-round text-sm">image</span>
+                                View Original Receipt
+                            </button>
 </div>
-<div class="flex items-center justify-between">
-<div class="flex items-center gap-3">
-<div class="w-2 h-2 bg-rose-500 rounded-full"></div>
+<div class="mt-6 flex flex-col gap-3">
+<span class="text-xs font-semibold text-slate-400 uppercase tracking-widest">Classification Needed</span>
+<div class="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl w-fit">
+<button class="flex items-center gap-2 px-6 py-2 bg-white dark:bg-slate-700 text-slate-900 dark:text-white rounded-lg shadow-sm font-medium transition-all">
+<span class="material-icons-round text-rose-500">trending_down</span>
+                                    Expense
+                                </button>
+<button class="flex items-center gap-2 px-6 py-2 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 font-medium transition-all">
+<span class="material-icons-round text-emerald-500">trending_up</span>
+                                    Income
+                                </button>
+</div>
+</div>
+</div>
+<div class="bg-slate-50 dark:bg-slate-900/50 p-6 lg:w-[380px] flex flex-col justify-between">
 <div>
-<p class="text-xs font-bold">Unknown Merchant</p>
-<p class="text-[10px] text-slate-400">1/8/2024</p>
+<div class="flex items-center justify-between mb-2">
+<span class="text-xs font-semibold text-slate-400 uppercase tracking-widest">OCR Scanned Text</span>
+<div class="flex items-center gap-1 text-xs font-medium text-slate-500">
+<span class="material-icons-round text-[14px]">psychology</span>
+                                    85% Match
+                                </div>
+</div>
+<div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-3 text-xs font-mono text-slate-600 dark:text-slate-400 h-24 overflow-y-auto custom-scrollbar italic">
+                                RECEIPT FROM STORE ABC... INV #293849 TOTAL: $125.50 DATE: 01/28/2024 TAX: $8.50 THANK YOU FOR SHOPPING!
+                            </div>
+</div>
+<div class="flex items-center gap-3 mt-6">
+<button class="flex-1 bg-primary hover:bg-primary/90 text-white font-semibold py-2.5 rounded-xl shadow-md shadow-primary/20 transition-all flex items-center justify-center gap-2">
+<span class="material-icons-round text-sm">check_circle</span>
+                                Confirm
+                            </button>
+<button class="p-2.5 border border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 rounded-xl text-slate-600 dark:text-slate-400 transition-colors">
+<span class="material-icons-round text-xl">edit</span>
+</button>
+<button class="p-2.5 border border-red-100 dark:border-red-900/30 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl text-red-500 transition-colors">
+<span class="material-icons-round text-xl">delete_outline</span>
+</button>
 </div>
 </div>
-<span class="text-xs font-bold text-rose-500">-92.42 USD</span>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden group hover:border-primary/30 transition-all duration-300">
+<div class="flex flex-col lg:flex-row">
+<div class="p-6 flex-1 border-r border-slate-100 dark:border-slate-800/50">
+<div class="flex items-start justify-between mb-4">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="text-3xl font-bold">$89.99</span>
+<span class="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold uppercase rounded-full tracking-wider">92% Confidence</span>
+</div>
+<div class="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm">
+<span class="material-icons-round text-sm">store</span>
+<span class="font-medium text-slate-900 dark:text-white">Global Cloud Services</span>
+<span class="mx-1">•</span>
+<span class="material-icons-round text-sm">calendar_today</span>
+<span>Jan 27, 2024</span>
+</div>
+</div>
+<button class="flex items-center gap-1.5 text-primary text-sm font-semibold hover:underline bg-primary/5 px-3 py-1.5 rounded-lg transition-colors">
+<span class="material-icons-round text-sm">image</span>
+                                View Original Receipt
+                            </button>
+</div>
+<div class="mt-6 flex flex-col gap-3">
+<span class="text-xs font-semibold text-slate-400 uppercase tracking-widest">Classification Needed</span>
+<div class="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl w-fit">
+<button class="flex items-center gap-2 px-6 py-2 bg-white dark:bg-slate-700 text-slate-900 dark:text-white rounded-lg shadow-sm font-medium transition-all">
+<span class="material-icons-round text-rose-500">trending_down</span>
+                                    Expense
+                                </button>
+<button class="flex items-center gap-2 px-6 py-2 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 font-medium transition-all">
+<span class="material-icons-round text-emerald-500">trending_up</span>
+                                    Income
+                                </button>
 </div>
 </div>
 </div>
+<div class="bg-slate-50 dark:bg-slate-900/50 p-6 lg:w-[380px] flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-2">
+<span class="text-xs font-semibold text-slate-400 uppercase tracking-widest">OCR Scanned Text</span>
+<div class="flex items-center gap-1 text-xs font-medium text-slate-500">
+<span class="material-icons-round text-[14px]">psychology</span>
+                                    92% Match
+                                </div>
+</div>
+<div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-3 text-xs font-mono text-slate-600 dark:text-slate-400 h-24 overflow-y-auto custom-scrollbar italic">
+                                INVOICE FROM SERVICE PROVIDER... SUBSCRIPTION BILLING PERIOD JAN 2024. AMOUNT $89.99 TAX INCLUSIVE.
+                            </div>
+</div>
+<div class="flex items-center gap-3 mt-6">
+<button class="flex-1 bg-primary hover:bg-primary/90 text-white font-semibold py-2.5 rounded-xl shadow-md shadow-primary/20 transition-all flex items-center justify-center gap-2">
+<span class="material-icons-round text-sm">check_circle</span>
+                                Confirm
+                            </button>
+<button class="p-2.5 border border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 rounded-xl text-slate-600 dark:text-slate-400 transition-colors">
+<span class="material-icons-round text-xl">edit</span>
+</button>
+<button class="p-2.5 border border-red-100 dark:border-red-900/30 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl text-red-500 transition-colors">
+<span class="material-icons-round text-xl">delete_outline</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden group hover:border-primary/30 transition-all duration-300">
+<div class="flex flex-col lg:flex-row">
+<div class="p-6 flex-1 border-r border-slate-100 dark:border-slate-800/50">
+<div class="flex items-start justify-between mb-4">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="text-3xl font-bold">$1,500.00</span>
+<span class="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 text-[10px] font-bold uppercase rounded-full tracking-wider">Low Confidence</span>
+</div>
+<div class="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm">
+<span class="material-icons-round text-sm">store</span>
+<span class="font-medium text-slate-900 dark:text-white">Direct Transfer Ltd</span>
+<span class="mx-1">•</span>
+<span class="material-icons-round text-sm">calendar_today</span>
+<span>Jan 26, 2024</span>
+</div>
+</div>
+<button class="flex items-center gap-1.5 text-primary text-sm font-semibold hover:underline bg-primary/5 px-3 py-1.5 rounded-lg transition-colors">
+<span class="material-icons-round text-sm">image</span>
+                                View Original Receipt
+                            </button>
+</div>
+<div class="mt-6 flex flex-col gap-3">
+<span class="text-xs font-semibold text-slate-400 uppercase tracking-widest">Classification Needed</span>
+<div class="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl w-fit">
+<button class="flex items-center gap-2 px-6 py-2 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 font-medium transition-all">
+<span class="material-icons-round text-rose-500">trending_down</span>
+                                    Expense
+                                </button>
+<button class="flex items-center gap-2 px-6 py-2 bg-white dark:bg-slate-700 text-slate-900 dark:text-white rounded-lg shadow-sm font-medium transition-all">
+<span class="material-icons-round text-emerald-500">trending_up</span>
+                                    Income
+                                </button>
+</div>
+</div>
+</div>
+<div class="bg-slate-50 dark:bg-slate-900/50 p-6 lg:w-[380px] flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-2">
+<span class="text-xs font-semibold text-slate-400 uppercase tracking-widest">OCR Scanned Text</span>
+<div class="flex items-center gap-1 text-xs font-medium text-amber-600 dark:text-amber-400">
+<span class="material-icons-round text-[14px]">psychology</span>
+                                    78% Match
+                                </div>
+</div>
+<div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-3 text-xs font-mono text-slate-600 dark:text-slate-400 h-24 overflow-y-auto custom-scrollbar italic">
+                                BANK XFER CONFIRMATION... REF: #555-928 TO: USER ACCOUNT AMT: 1500.00 CURRENCY: USD
+                            </div>
+</div>
+<div class="flex items-center gap-3 mt-6">
+<button class="flex-1 bg-primary hover:bg-primary/90 text-white font-semibold py-2.5 rounded-xl shadow-md shadow-primary/20 transition-all flex items-center justify-center gap-2">
+<span class="material-icons-round text-sm">check_circle</span>
+                                Confirm
+                            </button>
+<button class="p-2.5 border border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 rounded-xl text-slate-600 dark:text-slate-400 transition-colors">
+<span class="material-icons-round text-xl">edit</span>
+</button>
+<button class="p-2.5 border border-red-100 dark:border-red-900/30 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl text-red-500 transition-colors">
+<span class="material-icons-round text-xl">delete_outline</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-12 flex items-center justify-between p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-lg">
+<div class="text-sm text-slate-500 dark:text-slate-400">
+<span class="font-bold text-slate-900 dark:text-white">3</span> items remaining in your queue.
+            </div>
+<div class="flex gap-4">
+<button class="px-6 py-2.5 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 font-semibold rounded-xl transition-colors">
+                    Skip All
+                </button>
+<button class="px-6 py-2.5 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 hover:-translate-y-0.5 transition-all">
+                    Verify All Items
+                </button>
 </div>
 </div>
 </main>
-</div>
-<button class="fixed bottom-8 right-8 w-14 h-14 bg-primary text-white rounded-2xl shadow-xl flex items-center justify-center hover:scale-110 transition-transform z-50">
-<span class="material-icons-outlined">forum</span>
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm hidden" id="receiptModal">
+<div class="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+<div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+<h3 class="font-bold text-lg">Original Receipt: Merchant One Solutions</h3>
+<button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full" onclick="document.getElementById('receiptModal').classList.add('hidden')">
+<span class="material-icons-round">close</span>
 </button>
+</div>
+<div class="flex-1 overflow-auto bg-slate-100 dark:bg-slate-950 p-8 flex justify-center">
+<div class="w-full max-w-md bg-white p-8 shadow-2xl relative">
+<div class="text-center mb-6">
+<div class="text-2xl font-bold tracking-tighter uppercase">Merchant One</div>
+<div class="text-[10px] text-slate-400">123 Business Way, Tech City, 90210</div>
+</div>
+<div class="border-y border-dashed border-slate-300 py-4 mb-4 space-y-2">
+<div class="flex justify-between text-xs"><span>Service Item A</span><span>$45.00</span></div>
+<div class="flex justify-between text-xs"><span>Component Bundle X</span><span>$80.50</span></div>
+</div>
+<div class="flex justify-between font-bold text-lg">
+<span>TOTAL</span>
+<span>$125.50</span>
+</div>
+<div class="mt-12 text-center">
+<div class="bg-slate-200 w-full h-12 flex items-center justify-center">
+<span class="material-icons-round text-3xl text-slate-400">qr_code_2</span>
+</div>
+<div class="text-[8px] text-slate-400 mt-2">THANK YOU FOR YOUR BUSINESS</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+        // Simple trigger for demo
+        document.querySelectorAll('button').forEach(btn => {
+            if (btn.innerText.includes('View Original Receipt')) {
+                btn.onclick = () => document.getElementById('receiptModal').classList.remove('hidden');
+            }
+        });
+    </script>
 
 </body></html>

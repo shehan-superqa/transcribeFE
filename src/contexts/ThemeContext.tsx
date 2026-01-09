@@ -52,6 +52,12 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   useEffect(() => {
     const root = document.documentElement;
     if (mode === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    
+    if (mode === 'dark') {
       // Dark theme CSS variables
       root.style.setProperty('--bg-primary', '#121212');
       root.style.setProperty('--bg-paper', '#1e1e1e');

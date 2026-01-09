@@ -1,0 +1,829 @@
+.pending-transactions-container {
+  max-width: 1152px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  font-family: 'Inter', sans-serif;
+}
+
+.pending-transactions-header {
+  margin-bottom: 2rem;
+}
+
+.pending-transactions-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  margin-bottom: 0.5rem;
+  color: #111827;
+}
+
+.dark .pending-transactions-title {
+  color: #ffffff;
+}
+
+.pending-transactions-subtitle {
+  color: #6b7280;
+}
+
+.dark .pending-transactions-subtitle {
+  color: #9ca3af;
+}
+
+/* Alert Banner */
+.pending-alert-banner {
+  margin-bottom: 2.5rem;
+  padding: 1rem;
+  background-color: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.dark .pending-alert-banner {
+  background-color: rgba(146, 64, 14, 0.2);
+  border-color: rgba(146, 64, 14, 0.5);
+}
+
+.pending-alert-icon {
+  background-color: #fef3c7;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  color: #d97706;
+}
+
+.dark .pending-alert-icon {
+  background-color: #92400e;
+  color: #fbbf24;
+}
+
+.pending-alert-content h3 {
+  font-weight: 600;
+  color: #92400e;
+  margin-bottom: 0.25rem;
+}
+
+.dark .pending-alert-content h3 {
+  color: #fbbf24;
+}
+
+.pending-alert-content p {
+  font-size: 0.875rem;
+  color: rgba(146, 64, 14, 0.8);
+}
+
+.dark .pending-alert-content p {
+  color: rgba(251, 191, 36, 0.8);
+}
+
+/* Transactions List */
+.pending-transactions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.pending-transaction-card {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 1rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+.dark .pending-transaction-card {
+  background-color: #1e293b;
+  border-color: #334155;
+}
+
+.pending-transaction-card:hover {
+  border-color: rgba(109, 40, 217, 0.3);
+}
+
+.dark .pending-transaction-card:hover {
+  border-color: rgba(167, 139, 250, 0.3);
+}
+
+.pending-transaction-content {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 1024px) {
+  .pending-transaction-content {
+    flex-direction: row;
+  }
+}
+
+.pending-transaction-details {
+  padding: 1.5rem;
+  flex: 1;
+  border-right: 1px solid #f3f4f6;
+}
+
+.dark .pending-transaction-details {
+  border-right-color: rgba(51, 65, 85, 0.5);
+}
+
+@media (min-width: 1024px) {
+  .pending-transaction-details {
+    border-right: 1px solid #f3f4f6;
+  }
+  .dark .pending-transaction-details {
+    border-right-color: rgba(51, 65, 85, 0.5);
+  }
+}
+
+.pending-transaction-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.pending-transaction-amount-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.pending-transaction-amount {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.dark .pending-transaction-amount {
+  color: #ffffff;
+}
+
+.pending-confidence-badge {
+  padding: 0.125rem 0.5rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  border-radius: 9999px;
+  letter-spacing: 0.05em;
+}
+
+.pending-confidence-high {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.dark .pending-confidence-high {
+  background-color: rgba(6, 95, 70, 0.4);
+  color: #6ee7b7;
+}
+
+.pending-confidence-medium {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.dark .pending-confidence-medium {
+  background-color: rgba(6, 95, 70, 0.4);
+  color: #6ee7b7;
+}
+
+.pending-confidence-low {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.dark .pending-confidence-low {
+  background-color: rgba(146, 64, 14, 0.4);
+  color: #fbbf24;
+}
+
+.pending-transaction-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.dark .pending-transaction-meta {
+  color: #9ca3af;
+}
+
+.pending-transaction-meta-icon {
+  font-size: 0.875rem;
+}
+
+.pending-transaction-merchant {
+  font-weight: 500;
+  color: #111827;
+}
+
+.dark .pending-transaction-merchant {
+  color: #ffffff;
+}
+
+.pending-transaction-meta-separator {
+  margin: 0 0.25rem;
+}
+
+.pending-view-receipt-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: #6d28d9;
+  font-size: 0.875rem;
+  font-weight: 600;
+  background-color: rgba(109, 40, 217, 0.05);
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.dark .pending-view-receipt-btn {
+  color: #a78bfa;
+  background-color: rgba(109, 40, 217, 0.2);
+}
+
+.pending-view-receipt-btn:hover {
+  text-decoration: underline;
+}
+
+.pending-view-receipt-btn-icon {
+  font-size: 0.875rem;
+}
+
+.pending-classification-section {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pending-classification-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.pending-classification-buttons {
+  display: flex;
+  padding: 0.25rem;
+  background-color: #f3f4f6;
+  border-radius: 0.75rem;
+  width: fit-content;
+}
+
+.dark .pending-classification-buttons {
+  background-color: #1e293b;
+}
+
+.pending-classification-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  background-color: transparent;
+  color: #6b7280;
+}
+
+.dark .pending-classification-btn {
+  color: #9ca3af;
+}
+
+.pending-classification-btn:hover {
+  color: #374151;
+}
+
+.dark .pending-classification-btn:hover {
+  color: #e5e7eb;
+}
+
+.pending-classification-btn.active {
+  background-color: #ffffff;
+  color: #111827;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.dark .pending-classification-btn.active {
+  background-color: #334155;
+  color: #ffffff;
+}
+
+.pending-classification-btn-icon {
+  font-size: 1.25rem;
+}
+
+.pending-classification-btn-icon.expense {
+  color: #ef4444;
+}
+
+.pending-classification-btn-icon.income {
+  color: #10b981;
+}
+
+/* OCR Section */
+.pending-ocr-section {
+  background-color: #f9fafb;
+  padding: 1.5rem;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.dark .pending-ocr-section {
+  background-color: rgba(30, 41, 59, 0.5);
+}
+
+@media (min-width: 1024px) {
+  .pending-ocr-section {
+    width: 380px;
+  }
+}
+
+.pending-ocr-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.pending-ocr-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.pending-ocr-match {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.dark .pending-ocr-match {
+  color: #9ca3af;
+}
+
+.pending-ocr-match.low {
+  color: #d97706;
+}
+
+.dark .pending-ocr-match.low {
+  color: #fbbf24;
+}
+
+.pending-ocr-match-icon {
+  font-size: 0.875rem;
+}
+
+.pending-ocr-text {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  font-size: 0.75rem;
+  font-family: monospace;
+  color: #4b5563;
+  height: 6rem;
+  overflow-y: auto;
+  font-style: italic;
+}
+
+.dark .pending-ocr-text {
+  background-color: #1e293b;
+  border-color: #475569;
+  color: #9ca3af;
+}
+
+/* Action Buttons */
+.pending-action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  padding-top: 0;
+}
+
+.pending-confirm-btn {
+  flex: 1;
+  background-color: #6d28d9;
+  color: #ffffff;
+  font-weight: 600;
+  padding: 0.625rem 1rem;
+  border-radius: 0.75rem;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 6px -1px rgba(109, 40, 217, 0.2);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.pending-confirm-btn:hover {
+  background-color: #5b21b6;
+}
+
+.dark .pending-confirm-btn {
+  background-color: #6d28d9;
+}
+
+.dark .pending-confirm-btn:hover {
+  background-color: #5b21b6;
+}
+
+.pending-confirm-btn-icon {
+  font-size: 0.875rem;
+}
+
+.pending-edit-btn,
+.pending-delete-btn {
+  padding: 0.625rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  background-color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dark .pending-edit-btn,
+.dark .pending-delete-btn {
+  border-color: #475569;
+}
+
+.pending-edit-btn {
+  color: #4b5563;
+}
+
+.dark .pending-edit-btn {
+  color: #9ca3af;
+}
+
+.pending-edit-btn:hover {
+  background-color: #ffffff;
+}
+
+.dark .pending-edit-btn:hover {
+  background-color: #1e293b;
+}
+
+.pending-delete-btn {
+  border-color: #fee2e2;
+  color: #ef4444;
+}
+
+.dark .pending-delete-btn {
+  border-color: rgba(185, 28, 28, 0.3);
+  color: #f87171;
+}
+
+.pending-delete-btn:hover {
+  background-color: #fef2f2;
+}
+
+.dark .pending-delete-btn:hover {
+  background-color: rgba(185, 28, 28, 0.2);
+}
+
+.pending-action-icon {
+  font-size: 1.25rem;
+}
+
+/* Footer */
+.pending-footer {
+  margin-top: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 1rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.dark .pending-footer {
+  background-color: #1e293b;
+  border-color: #334155;
+}
+
+.pending-footer-text {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.dark .pending-footer-text {
+  color: #9ca3af;
+}
+
+.pending-footer-count {
+  font-weight: 700;
+  color: #111827;
+}
+
+.dark .pending-footer-count {
+  color: #ffffff;
+}
+
+.pending-footer-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.pending-skip-all-btn {
+  padding: 0.625rem 1.5rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  background-color: transparent;
+  color: #111827;
+}
+
+.dark .pending-skip-all-btn {
+  border-color: #475569;
+  color: #ffffff;
+}
+
+.pending-skip-all-btn:hover {
+  background-color: #f9fafb;
+}
+
+.dark .pending-skip-all-btn:hover {
+  background-color: #1e293b;
+}
+
+.pending-verify-all-btn {
+  padding: 0.625rem 1.5rem;
+  background-color: #6d28d9;
+  color: #ffffff;
+  font-weight: 700;
+  border-radius: 0.75rem;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 10px 15px -3px rgba(109, 40, 217, 0.2);
+  transition: all 0.2s;
+}
+
+.pending-verify-all-btn:hover {
+  background-color: #5b21b6;
+  transform: translateY(-2px);
+}
+
+.dark .pending-verify-all-btn {
+  background-color: #6d28d9;
+}
+
+.dark .pending-verify-all-btn:hover {
+  background-color: #5b21b6;
+}
+
+/* Empty State */
+.pending-empty-state {
+  background-color: #d1fae5;
+  border: 1px solid #86efac;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.dark .pending-empty-state {
+  background-color: rgba(6, 95, 70, 0.2);
+  border-color: rgba(6, 95, 70, 0.5);
+}
+
+.pending-empty-icon {
+  color: #059669;
+}
+
+.dark .pending-empty-icon {
+  color: #34d399;
+}
+
+.pending-empty-content h3 {
+  font-weight: 600;
+  color: #065f46;
+  margin-bottom: 0.25rem;
+}
+
+.dark .pending-empty-content h3 {
+  color: #6ee7b7;
+}
+
+.pending-empty-content p {
+  font-size: 0.875rem;
+  color: rgba(6, 95, 70, 0.8);
+}
+
+.dark .pending-empty-content p {
+  color: rgba(110, 231, 183, 0.8);
+}
+
+/* Custom Scrollbar */
+.pending-ocr-text::-webkit-scrollbar {
+  width: 4px;
+}
+
+.pending-ocr-text::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.pending-ocr-text::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 10px;
+}
+
+.dark .pending-ocr-text::-webkit-scrollbar-thumb {
+  background: #4b5563;
+}
+
+/* Receipt Modal */
+.pending-receipt-modal-header {
+  padding: 1rem;
+  border-bottom: 1px solid #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dark .pending-receipt-modal-header {
+  border-bottom-color: #334155;
+}
+
+.pending-receipt-modal-title {
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: #111827;
+}
+
+.dark .pending-receipt-modal-title {
+  color: #ffffff;
+}
+
+.pending-receipt-modal-close {
+  padding: 0.5rem;
+  border-radius: 9999px;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  color: #4b5563;
+  transition: all 0.2s;
+}
+
+.dark .pending-receipt-modal-close {
+  color: #9ca3af;
+}
+
+.pending-receipt-modal-close:hover {
+  background-color: #f3f4f6;
+}
+
+.dark .pending-receipt-modal-close:hover {
+  background-color: #1e293b;
+}
+
+.pending-receipt-modal-content {
+  flex: 1;
+  overflow: auto;
+  background-color: #f3f4f6;
+  padding: 2rem;
+  display: flex;
+  justify-content: center;
+}
+
+.dark .pending-receipt-modal-content {
+  background-color: #030712;
+}
+
+.pending-receipt-preview {
+  width: 100%;
+  max-width: 28rem;
+  background-color: #ffffff;
+  padding: 2rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  border-radius: 0.5rem;
+  position: relative;
+}
+
+.dark .pending-receipt-preview {
+  background-color: #1e293b;
+}
+
+.pending-receipt-merchant-name {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.pending-receipt-merchant-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.05em;
+  text-transform: uppercase;
+  color: #111827;
+}
+
+.dark .pending-receipt-merchant-title {
+  color: #ffffff;
+}
+
+.pending-receipt-merchant-address {
+  font-size: 0.625rem;
+  color: #9ca3af;
+  margin-top: 0.25rem;
+}
+
+.pending-receipt-items {
+  border-top: 1px dashed #d1d5db;
+  border-bottom: 1px dashed #d1d5db;
+  padding: 1rem 0;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dark .pending-receipt-items {
+  border-color: #475569;
+}
+
+.pending-receipt-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: #111827;
+}
+
+.dark .pending-receipt-item {
+  color: #ffffff;
+}
+
+.pending-receipt-total {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: #111827;
+}
+
+.dark .pending-receipt-total {
+  color: #ffffff;
+}
+
+.pending-receipt-qr {
+  margin-top: 3rem;
+  text-align: center;
+}
+
+.pending-receipt-qr-box {
+  background-color: #e5e7eb;
+  width: 100%;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.25rem;
+}
+
+.dark .pending-receipt-qr-box {
+  background-color: #475569;
+}
+
+.pending-receipt-qr-icon {
+  font-size: 1.875rem;
+  color: #9ca3af;
+}
+
+.dark .pending-receipt-qr-icon {
+  color: #64748b;
+}
+
+.pending-receipt-thanks {
+  font-size: 0.5rem;
+  color: #9ca3af;
+  margin-top: 0.5rem;
+}
+

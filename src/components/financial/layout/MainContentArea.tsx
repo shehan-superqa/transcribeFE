@@ -304,7 +304,7 @@ export default function MainContentArea({
               height: '100%',
               overflow: 'auto', 
               flex: 1, 
-              paddingTop: 0,
+              paddingTop: '16px',
               display: 'flex', 
               flexDirection: 'column',
               minHeight: 0,
