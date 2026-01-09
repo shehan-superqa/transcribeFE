@@ -1,4 +1,3 @@
-import { Box } from '@mui/material';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import LeftSidebarNavigation from './LeftSidebarNavigation';
 import RightSidebar from './RightSidebar';
@@ -23,7 +22,6 @@ import MultiUserAnalyticsSection from '../MultiUserAnalyticsSection';
 import SavingsSection from '../SavingsSection';
 import UserManagementSection from '../UserManagementSection';
 import LoansSection from '../LoansSection';
-import ManualTransactionDialog from '../ManualTransactionDialog';
 import ShoppingListSection from '../ShoppingListSection';
 import UserProfileSection from '../UserProfileSection';
 
@@ -67,21 +65,29 @@ export default function MainContentArea({
   onAskAIClick,
 }: MainContentAreaProps) {
   return (
-    <Box
-      sx={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-        minHeight: 0,
-      }}
-    >
-      <Box 
-        sx={{ 
-          maxWidth: '1600px', 
-          mx: 'auto', 
-          px: 6, 
-          py: 6,
+    <>
+      <style>{`
+        @media (max-width: 1200px) {
+          .main-layout-container {
+            flex-direction: column !important;
+            height: 100%;
+          }
+          .left-sidebar-container {
+            width: 100% !important;
+            order: 1;
+          }
+          .main-content-container {
+            order: 2;
+            height: 100%;
+          }
+          .right-sidebar-container {
+            width: 100% !important;
+            order: 3;
+          }
+        }
+      `}</style>
+      <div
+        style={{
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
@@ -89,12 +95,53 @@ export default function MainContentArea({
           minHeight: 0,
         }}
       >
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '64px 1fr 288px' }, gap: 6, flex: 1, overflow: 'hidden', minHeight: 0 }}>
+      <div 
+        style={{ 
+          maxWidth: '1600px', 
+          marginLeft: 'auto',
+          marginRight: 'auto',
+          paddingLeft: '0px',
+          paddingRight: '0px',
+          paddingTop: '0px',
+          paddingBottom: '0px',
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          minHeight: 0,
+        }}
+      >
+        <div 
+          className="main-layout-container"
+          style={{ 
+            display: 'flex',
+            flexDirection: 'row',
+            gap: '48px',
+            flex: 1,
+            overflow: 'hidden',
+            minHeight: 0,
+          }}
+        >
           {/* Left Sidebar Navigation */}
-          <LeftSidebarNavigation value={value} setValue={setValue} />
+          <div 
+            className="left-sidebar-container"
+            style={{ flexShrink: 0, width: '64px' }}
+          >
+            <LeftSidebarNavigation value={value} setValue={setValue} />
+          </div>
 
           {/* Main Content */}
-          <Box sx={{ minWidth: 0, overflow: 'auto', flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <div 
+            className="main-content-container"
+            style={{ 
+              minWidth: 0, 
+              overflow: 'auto', 
+              flex: 1, 
+              paddingTop: '10px',
+              display: 'flex', 
+              flexDirection: 'column' 
+            }}
+          >
             <Routes>
               <Route path="/" element={<Navigate to="/financialtool/app/dashboard" replace />} />
               <Route path="dashboard" element={
@@ -139,33 +186,39 @@ export default function MainContentArea({
               <Route path="user-profile" element={<UserProfileSection />} />
               <Route path="users" element={<UserManagementSection />} />
               <Route path="alerts" element={
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                   <AlertsPanel />
                   <CategoryCapSection categories={categories} onCapChange={onTransactionsChange} />
-                </Box>
+                </div>
               } />
               <Route path="ai-chat" element={<AIChatSection />} />
               <Route path="model-status" element={<ModelStatusSection />} />
               <Route path="*" element={<Navigate to="/financialtool/app/dashboard" replace />} />
             </Routes>
-          </Box>
+          </div>
 
           {/* Right Sidebar */}
-          <RightSidebar
-            userName={userName}
-            transactions={transactions}
-            merchants={merchants}
-            categories={categories}
-            getMerchantName={getMerchantName}
-            getTransactionType={getTransactionType}
-            onUploadClick={onUploadClick}
-            onManualTransactionClick={onManualTransactionClick}
-            onAskAIClick={onAskAIClick}
-            onViewTransactions={onViewTransactions}
-          />
-        </Box>
-      </Box>
-    </Box>
+          <div 
+            className="right-sidebar-container"
+            style={{ flexShrink: 0, width: '288px' }}
+          >
+            <RightSidebar
+              userName={userName}
+              transactions={transactions}
+              merchants={merchants}
+              categories={categories}
+              getMerchantName={getMerchantName}
+              getTransactionType={getTransactionType}
+              onUploadClick={onUploadClick}
+              onManualTransactionClick={onManualTransactionClick}
+              onAskAIClick={onAskAIClick}
+              onViewTransactions={onViewTransactions}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+    </>
   );
 }
 

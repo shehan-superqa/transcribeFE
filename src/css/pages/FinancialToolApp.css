@@ -1,7 +1,9 @@
 .financial-tool-page {
   min-height: calc(100vh - 80px);
   background-color: var(--bg-primary);
-  padding: 1.25rem 0;
+  height: 100%;
+  padding-top: 0;
+  padding-bottom: 0;
   font-family: 'Inter', sans-serif;
   width: 100%;
   box-sizing: border-box;
@@ -326,10 +328,6 @@
 }
 
 @media (max-width: 768px) {
-  .financial-tool-page {
-    padding: 1rem 0;
-  }
-
   .page-title {
     font-size: 1.75rem;
   }

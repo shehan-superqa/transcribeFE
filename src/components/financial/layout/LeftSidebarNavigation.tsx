@@ -61,36 +61,50 @@ export default function LeftSidebarNavigation({ value, setValue }: LeftSidebarNa
     navigate(path);
   };
 
+  const scrollbarColor = theme.palette.mode === 'dark' ? '#374151' : '#D1D5DB';
+  const scrollbarHoverColor = theme.palette.mode === 'dark' ? '#4B5563' : '#9CA3AF';
+
   return (
-    <Box
-      sx={{
-        display: { xs: 'flex', lg: 'flex' },
-        flexDirection: { xs: 'row', lg: 'column' },
-        gap: 0.5,
-        overflowX: { xs: 'auto', lg: 'hidden' },
-        overflowY: { xs: 'visible', lg: 'auto' },
-        pb: { xs: 1, lg: 0 },
-        maxHeight: { lg: 'calc(100vh - 200px)' },
-        width: { lg: '64px' },
-        minWidth: { lg: '64px' },
-        maxWidth: { lg: '64px' },
-        scrollbarWidth: 'thin',
-        scrollbarColor: `${theme.palette.mode === 'dark' ? '#374151' : '#D1D5DB'} transparent`,
-        '&::-webkit-scrollbar': {
-          width: '4px',
-        },
-        '&::-webkit-scrollbar-track': {
-          background: 'transparent',
-        },
-        '&::-webkit-scrollbar-thumb': {
-          background: theme.palette.mode === 'dark' ? '#374151' : '#D1D5DB',
-          borderRadius: '2px',
-        },
-        '&::-webkit-scrollbar-thumb:hover': {
-          background: theme.palette.mode === 'dark' ? '#4B5563' : '#9CA3AF',
-        },
-      }}
-    >
+    <>
+      <style>{`
+        .left-sidebar-nav {
+          display: flex;
+          flex-direction: row;
+          height: 100%;
+          gap: 4px;
+          overflow-x: auto;
+          overflow-y: visible;
+          padding-bottom: 8px;
+          scrollbar-width: thin;
+          scrollbar-color: ${scrollbarColor} transparent;
+        }
+        .left-sidebar-nav::-webkit-scrollbar {
+          width: 4px;
+        }
+        .left-sidebar-nav::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .left-sidebar-nav::-webkit-scrollbar-thumb {
+          background: ${scrollbarColor};
+          border-radius: 2px;
+        }
+        .left-sidebar-nav::-webkit-scrollbar-thumb:hover {
+          background: ${scrollbarHoverColor};
+        }
+        @media (min-width: 1200px) {
+          .left-sidebar-nav {
+            flex-direction: column;
+            overflow-x: hidden;
+            overflow-y: auto;
+            padding-bottom: 0;
+            max-height: calc(100vh - 200px);
+            width: 64px;
+            min-width: 64px;
+            max-width: 64px;
+          }
+        }
+      `}</style>
+      <div className="left-sidebar-nav">
       {navItems.map((item) => {
         const Icon = item.icon;
         const isActive = value === item.index;
@@ -154,7 +168,8 @@ export default function LeftSidebarNavigation({ value, setValue }: LeftSidebarNa
           </IconButton>
         );
       })}
-    </Box>
+    </div>
+    </>
   );
 }
 

@@ -263,13 +263,13 @@ export default function FinancialToolApp() {
     return (
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <Box className="financial-tool-page">
-          <Box sx={{ maxWidth: '1600px', mx: 'auto', px: 6 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+        <div className="financial-tool-page">
+          <div style={{ maxWidth: '1600px', marginLeft: 'auto', marginRight: 'auto', paddingLeft: '48px', paddingRight: '48px' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
               <CircularProgress />
-            </Box>
-          </Box>
-        </Box>
+            </div>
+          </div>
+        </div>
       </ThemeProvider>
     );
   }
@@ -281,7 +281,7 @@ export default function FinancialToolApp() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box className="financial-tool-page" sx={{ bgcolor: theme.palette.mode === 'dark' ? '#111827' : '#F9FAFB', height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div className="financial-tool-page" style={{ backgroundColor: theme.palette.mode === 'dark' ? '#111827' : '#F9FAFB', height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Top Navigation Bar */}
         <TopNavigationBar />
 
@@ -343,7 +343,7 @@ export default function FinancialToolApp() {
           }}
           categories={categories}
         />
-      </Box>
+      </div>
     </ThemeProvider>
   );
 }
