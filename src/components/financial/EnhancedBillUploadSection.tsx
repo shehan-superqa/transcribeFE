@@ -24,6 +24,14 @@ import {
   Tabs,
   Tab,
   Badge,
+  Collapse,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
 } from '@mui/material';
 import { 
   CloudUpload, 
@@ -36,6 +44,14 @@ import {
   TrendingDown,
   SwapHoriz,
   PlayArrow,
+  UploadFile,
+  Image as ImageIcon,
+  PictureAsPdf,
+  TableChart,
+  Tune,
+  ExpandMore,
+  Description,
+  Visibility,
 } from '@mui/icons-material';
 import { useTheme } from '../../contexts/ThemeContext';
 import { uploadBill, uploadBillsBulk, getBillStatus, getBulkUploadStatus, getActiveBills } from '../../lib/api/financialApi';
@@ -44,6 +60,7 @@ import CameraCapture from './CameraCapture';
 import { useFinancialJobProgress } from '../../hooks/useFinancialJobProgress';
 import ManualTransactionDialog from './ManualTransactionDialog';
 import ProgressTab from './ProgressTab';
+import './EnhancedBillUploadSection.css';
 
 interface BillUploadSectionProps {
   onTransactionCreated?: (transaction: Transaction) => void;
@@ -217,7 +234,18 @@ export default function EnhancedBillUploadSection({ onTransactionCreated, catego
   const [uploadQueue, setUploadQueue] = useState<UploadItem[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [hasActiveJobs, setHasActiveJobs] = useState(false);
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Sync dark mode class with theme
+  useEffect(() => {
+    const html = document.documentElement;
+    if (theme.palette.mode === 'dark') {
+      html.classList.add('dark');
+    } else {
+      html.classList.remove('dark');
+    }
+  }, [theme.palette.mode]);
 
   const handleAddToQueue = useCallback((files: File[], type: 'earning' | 'expense' | 'mix') => {
     const newItems: UploadItem[] = files.map(file => ({
@@ -548,11 +576,11 @@ export default function EnhancedBillUploadSection({ onTransactionCreated, catego
       <Paper 
         elevation={0} 
         sx={{ 
-          p: '1.5rem', 
-          backgroundColor: theme.palette.background.paper,
-          border: `1px solid ${theme.palette.divider}`,
-          borderRadius: '12px',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+          p: 0,
+          backgroundColor: 'transparent',
+          border: 'none',
+          borderRadius: 0,
+          boxShadow: 'none',
         }}
       >
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: '2rem' }}>
@@ -660,428 +688,245 @@ export default function EnhancedBillUploadSection({ onTransactionCreated, catego
         </Box>
 
         <TabPanel value={tabValue} index={0}>
-          <Box sx={{ mb: '2rem' }}>
-            <Typography 
-              variant="body1" 
-              sx={{
-                fontFamily: "'Inter', sans-serif",
-                fontSize: '0.875rem',
-                fontWeight: 400,
-                lineHeight: 1.5,
-                color: theme.palette.text.secondary,
-                mb: '0.5rem',
-              }}
-            >
-              Upload bills, receipts, or documents for automatic processing. Select whether it's an expense, earning, or mix of both.
-            </Typography>
-          <Typography 
-            variant="caption" 
-            sx={{ 
-              fontFamily: "'Inter', sans-serif",
-              fontSize: '0.75rem',
-              fontWeight: 400,
-              lineHeight: 1.5,
-              color: theme.palette.text.secondary,
-              display: 'block',
-              mt: '0.5rem',
-            }}
-          >
-            Supports: Images, PDF, Excel, CSV • You can also paste an image (Ctrl+V / Cmd+V)
-          </Typography>
-        </Box>
+          <div className="upload-section">
+            {/* New Transaction Section */}
+            <div className="upload-card" style={{ marginBottom: '24px' }}>
+              <div className="upload-card-content">
+                <div style={{ marginBottom: '32px' }}>
+                  <h2 className="upload-title">New Transaction</h2>
+                  <p className="upload-description">Select options and drop your files below to start automatic processing.</p>
+                </div>
 
-        {/* Transaction Type Selection */}
-        <Box sx={{ mb: '2rem' }}>
-          <Typography 
-            variant="subtitle2" 
-            sx={{ 
-              fontFamily: "'Inter', sans-serif",
-              fontWeight: 600,
-              mb: 1,
-              color: theme.palette.text.primary,
-            }}
-          >
-            Transaction Type
-          </Typography>
-          <ButtonGroup fullWidth>
-            <Button
-              variant={uploadType === 'expense' ? 'contained' : 'outlined'}
-              onClick={() => setUploadType('expense')}
-              startIcon={<TrendingDown />}
-              sx={{
-                fontFamily: "'Inter', sans-serif",
-                textTransform: 'none',
-                fontWeight: 600,
-              }}
-            >
-              Expense
-            </Button>
-            <Button
-              variant={uploadType === 'earning' ? 'contained' : 'outlined'}
-              onClick={() => setUploadType('earning')}
-              startIcon={<TrendingUp />}
-              sx={{
-                fontFamily: "'Inter', sans-serif",
-                textTransform: 'none',
-                fontWeight: 600,
-              }}
-            >
-              Earning
-            </Button>
-            <Button
-              variant={uploadType === 'mix' ? 'contained' : 'outlined'}
-              onClick={() => setUploadType('mix')}
-              startIcon={<SwapHoriz />}
-              sx={{
-                fontFamily: "'Inter', sans-serif",
-                textTransform: 'none',
-                fontWeight: 600,
-              }}
-            >
-              Mix
-            </Button>
-          </ButtonGroup>
-        </Box>
+                {/* Transaction Type and Upload Mode Grid */}
+                <div className="upload-options-grid">
+                  {/* Transaction Type Selection */}
+                  <div>
+                    <label className="upload-option-label">Transaction Type</label>
+                    <div className="segmented-control">
+                      <input
+                        type="radio"
+                        id="expense"
+                        name="transaction-type"
+                        checked={uploadType === 'expense'}
+                        onChange={() => setUploadType('expense')}
+                      />
+                      <label htmlFor="expense">Expense</label>
+                      <input
+                        type="radio"
+                        id="earning"
+                        name="transaction-type"
+                        checked={uploadType === 'earning'}
+                        onChange={() => setUploadType('earning')}
+                      />
+                      <label htmlFor="earning">Earning</label>
+                      <input
+                        type="radio"
+                        id="mix"
+                        name="transaction-type"
+                        checked={uploadType === 'mix'}
+                        onChange={() => setUploadType('mix')}
+                      />
+                      <label htmlFor="mix">Mixed</label>
+                    </div>
+                  </div>
 
-        {/* Upload Mode Selection */}
-        <Box sx={{ mb: '2rem' }}>
-          <Typography 
-            variant="subtitle2" 
-            sx={{ 
-              fontFamily: "'Inter', sans-serif",
-              fontWeight: 600,
-              mb: 1,
-              color: theme.palette.text.primary,
-            }}
-          >
-            Upload Mode
-          </Typography>
-          <ButtonGroup fullWidth>
-            <Button
-              variant={uploadMode === 'single' ? 'contained' : 'outlined'}
-              onClick={() => setUploadMode('single')}
-              sx={{
-                fontFamily: "'Inter', sans-serif",
-                textTransform: 'none',
-                fontWeight: 600,
-              }}
-            >
-              Single Upload
-            </Button>
-            <Button
-              variant={uploadMode === 'bulk' ? 'contained' : 'outlined'}
-              onClick={() => setUploadMode('bulk')}
-              sx={{
-                fontFamily: "'Inter', sans-serif",
-                textTransform: 'none',
-                fontWeight: 600,
-              }}
-            >
-              Bulk Upload
-            </Button>
-          </ButtonGroup>
-        </Box>
+                  {/* Upload Mode Selection */}
+                  <div>
+                    <label className="upload-option-label">Upload Mode</label>
+                    <div className="segmented-control">
+                      <input
+                        type="radio"
+                        id="single"
+                        name="upload-mode"
+                        checked={uploadMode === 'single'}
+                        onChange={() => setUploadMode('single')}
+                      />
+                      <label htmlFor="single">Single Upload</label>
+                      <input
+                        type="radio"
+                        id="bulk"
+                        name="upload-mode"
+                        checked={uploadMode === 'bulk'}
+                        onChange={() => setUploadMode('bulk')}
+                      />
+                      <label htmlFor="bulk">Bulk Processing</label>
+                    </div>
+                  </div>
+                </div>
 
-        {/* Optional Overrides */}
-        <Box sx={{ display: 'flex', gap: '1rem', mb: '2rem' }}>
-          <TextField
-            label="Category Override (optional)"
-            value={categoryOverride}
-            onChange={(e) => setCategoryOverride(e.target.value)}
-            size="small"
-            fullWidth
-            disabled={isProcessing}
-            sx={{
-              '& .MuiInputBase-root': {
-                fontFamily: "'Inter', sans-serif",
-                fontSize: '0.875rem',
-              },
-              '& .MuiInputLabel-root': {
-                fontFamily: "'Inter', sans-serif",
-                fontSize: '0.875rem',
-              },
-            }}
-          />
-          <TextField
-            label="Merchant Override (optional)"
-            value={merchantOverride}
-            onChange={(e) => setMerchantOverride(e.target.value)}
-            size="small"
-            fullWidth
-            disabled={isProcessing}
-            sx={{
-              '& .MuiInputBase-root': {
-                fontFamily: "'Inter', sans-serif",
-                fontSize: '0.875rem',
-              },
-              '& .MuiInputLabel-root': {
-                fontFamily: "'Inter', sans-serif",
-                fontSize: '0.875rem',
-              },
-            }}
-          />
-        </Box>
+                {/* Drag and Drop Area */}
+                <div
+                  {...getRootProps()}
+                  className={`drag-drop-area ${isDragActive ? 'drag-active' : ''}`}
+                  style={{ cursor: (isProcessing && uploadMode === 'single') ? 'not-allowed' : 'pointer' }}
+                >
+                  <input {...getInputProps()} />
+                  <div className="upload-icon-container">
+                    <UploadFile className="upload-icon" />
+                  </div>
+                  <h3 className="drag-drop-title">Drag and drop your files here</h3>
+                  <p className="drag-drop-subtitle">or click to browse from your computer</p>
+                  <div className="file-types">
+                    <div className="file-type-item">
+                      <ImageIcon className="file-type-icon" />
+                      <span>Images</span>
+                    </div>
+                    <div className="file-type-item">
+                      <PictureAsPdf className="file-type-icon" />
+                      <span>PDF</span>
+                    </div>
+                    <div className="file-type-item">
+                      <TableChart className="file-type-icon" />
+                      <span>CSV / Excel</span>
+                    </div>
+                  </div>
+                </div>
 
-        {/* Upload Options */}
-        <Box sx={{ display: 'flex', gap: '1rem', mb: '2rem', flexWrap: 'wrap' }}>
-          <Button
-            variant="outlined"
-            startIcon={<CameraAlt />}
-            onClick={() => setShowCamera(true)}
-            disabled={isProcessing && uploadMode === 'single'}
-            sx={{ 
-              fontFamily: "'Inter', sans-serif",
-              flex: '1 1 auto', 
-              minWidth: '120px',
-              padding: '0.625rem 1rem',
-              borderRadius: '8px',
-              fontSize: '0.875rem',
-              fontWeight: 500,
-              borderColor: theme.palette.divider,
-              color: theme.palette.text.primary,
-              '&:hover': {
-                borderColor: theme.palette.primary.main,
-                backgroundColor: theme.palette.action.hover,
-              },
-            }}
-          >
-            Take Photo
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<ContentPaste />}
-            onClick={async () => {
-              // Try to read from clipboard API if available
-              try {
-                const clipboardItems = await navigator.clipboard.read();
-                for (const clipboardItem of clipboardItems) {
-                  for (const type of clipboardItem.types) {
-                    if (type.startsWith('image/')) {
-                      const blob = await clipboardItem.getType(type);
-                      const file = new File([blob], `pasted-image-${Date.now()}.png`, {
-                        type: blob.type || 'image/png',
-                      });
-                      if (uploadMode === 'single') {
-                        await handleUploadSingle(file, uploadType);
-                      } else {
-                        handleAddToQueue([file], uploadType);
-                      }
-                      return;
-                    }
-                  }
-                }
-              } catch (err) {
-                // Clipboard API not available or permission denied
-                // Focus container so user can paste manually with Ctrl+V/Cmd+V
-                containerRef.current?.focus();
-              }
-            }}
-            disabled={isProcessing && uploadMode === 'single'}
-            sx={{ 
-              fontFamily: "'Inter', sans-serif",
-              flex: '1 1 auto', 
-              minWidth: '120px',
-              padding: '0.625rem 1rem',
-              borderRadius: '8px',
-              fontSize: '0.875rem',
-              fontWeight: 500,
-              borderColor: theme.palette.divider,
-              color: theme.palette.text.primary,
-              '&:hover': {
-                borderColor: theme.palette.primary.main,
-                backgroundColor: theme.palette.action.hover,
-              },
-            }}
-          >
-            Paste Image
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<Edit />}
-            onClick={() => setShowManualDialog(true)}
-            disabled={isProcessing && uploadMode === 'single'}
-            sx={{ 
-              fontFamily: "'Inter', sans-serif",
-              flex: '1 1 auto', 
-              minWidth: '120px',
-              padding: '0.625rem 1rem',
-              borderRadius: '8px',
-              fontSize: '0.875rem',
-              fontWeight: 500,
-              borderColor: theme.palette.divider,
-              color: theme.palette.text.primary,
-              '&:hover': {
-                borderColor: theme.palette.primary.main,
-                backgroundColor: theme.palette.action.hover,
-              },
-            }}
-          >
-            Manual Entry
-          </Button>
-          <Box
-            {...getRootProps()}
-            sx={{
-              flex: 1,
-              border: `3px dashed ${isDragActive ? theme.palette.primary.main : theme.palette.divider}`,
-              borderRadius: 3,
-              padding: '40px 24px',
-              textAlign: 'center',
-              cursor: (isProcessing && uploadMode === 'single') ? 'not-allowed' : 'pointer',
-              backgroundColor: isDragActive 
-                ? (theme.palette.mode === 'dark' ? 'rgba(0, 198, 255, 0.15)' : '#f0f9ff')
-                : theme.palette.background.default,
-              transition: 'all 0.3s ease',
-              position: 'relative',
-              '&:hover': {
-                borderColor: theme.palette.primary.main,
-                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(0, 198, 255, 0.1)' : '#f0f9ff',
-                transform: 'scale(1.02)',
-              },
-            }}
-          >
-            <input {...getInputProps()} />
-            <CloudUpload sx={{ fontSize: 64, color: isDragActive ? theme.palette.primary.main : theme.palette.text.secondary, mb: 2 }} />
-            <Typography 
-              variant="h6" 
-              gutterBottom 
-              sx={{ 
-                fontFamily: "'Inter', sans-serif",
-                color: theme.palette.text.primary, 
-                fontWeight: 600,
-                fontSize: '1rem',
-                lineHeight: 1.2,
-                mb: '0.5rem',
-              }}
-            >
-              {isDragActive ? 'Drop files here' : 'Drag & drop files here'}
-            </Typography>
-            <Typography 
-              variant="body2" 
-              sx={{
-                fontFamily: "'Inter', sans-serif",
-                fontSize: '0.875rem',
-                fontWeight: 400,
-                lineHeight: 1.5,
-                color: theme.palette.text.secondary,
-              }}
-            >
-              or click to browse • Supports: Images, PDF, Excel, CSV
-            </Typography>
-          </Box>
-        </Box>
+                {/* Advanced Options Collapsible */}
+                <details className="advanced-options" open={showAdvancedOptions} onToggle={(e) => setShowAdvancedOptions((e.target as HTMLDetailsElement).open)}>
+                  <summary>
+                    <span className="advanced-options-title">
+                      <Tune className="advanced-options-icon" />
+                      Advanced Options
+                    </span>
+                    <ExpandMore className="expand-icon" />
+                  </summary>
+                  <div className="advanced-options-content">
+                    <div className="advanced-options-field">
+                      <label>Category Override (Optional)</label>
+                      <select
+                        value={categoryOverride}
+                        onChange={(e) => setCategoryOverride(e.target.value)}
+                        disabled={isProcessing}
+                      >
+                        <option value="">Auto-detect</option>
+                        {categories?.map((cat: any) => (
+                          <option key={cat._id || cat.id} value={cat._id || cat.id}>
+                            {cat.category_name || cat.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="advanced-options-field">
+                      <label>Merchant Override (Optional)</label>
+                      <input
+                        type="text"
+                        value={merchantOverride}
+                        onChange={(e) => setMerchantOverride(e.target.value)}
+                        disabled={isProcessing}
+                        placeholder="Enter merchant name"
+                      />
+                    </div>
+                  </div>
+                </details>
+              </div>
+            </div>
 
-        {/* Bulk Upload Queue */}
-        {uploadMode === 'bulk' && uploadQueue.length > 0 && (
-          <Box sx={{ mb: '2rem' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-              <Typography variant="h6" sx={{ fontFamily: "'Inter', sans-serif", fontWeight: 600 }}>
-                Upload Queue ({uploadQueue.length} items)
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                {pendingCount > 0 && (
+            {/* Recent Uploads Section */}
+            <div className="recent-uploads-card">
+              <div className="recent-uploads-header">
+                <h3 className="recent-uploads-title">Recent Uploads</h3>
+                <button className="view-all-button" onClick={() => setTabValue(1)}>
+                  View All
+                </button>
+              </div>
+              <div className="recent-uploads-table-container">
+                <table className="recent-uploads-table">
+                  <thead>
+                    <tr>
+                      <th>File Name</th>
+                      <th>Status</th>
+                      <th>Date</th>
+                      <th className="text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {uploadQueue.length === 0 ? (
+                      <tr>
+                        <td colSpan={4} className="empty-state">
+                          No recent uploads
+                        </td>
+                      </tr>
+                    ) : (
+                      uploadQueue.slice(0, 5).map((item) => {
+                        const date = new Date();
+                        const statusLabel = item.status === 'completed' ? 'PROCESSED' : 
+                                           item.status === 'analyzing' ? 'ANALYZING' : 
+                                           item.status === 'error' ? 'ERROR' : 
+                                           item.status === 'uploading' ? 'UPLOADING' : 'PENDING';
+                        const statusClass = item.status === 'completed' ? 'processed' : 
+                                           item.status === 'analyzing' ? 'analyzing' : 
+                                           item.status === 'error' ? 'error' : 'pending';
+
+                        return (
+                          <tr key={item.id}>
+                            <td>
+                              <div className="file-name-cell">
+                                <Description className="file-icon" />
+                                <span className="file-name">{item.file.name}</span>
+                              </div>
+                            </td>
+                            <td>
+                              <span className={`status-badge ${statusClass}`}>
+                                {statusLabel}
+                              </span>
+                            </td>
+                            <td className="date-cell">
+                              {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </td>
+                            <td className="action-cell">
+                              <button className="action-button">
+                                <Visibility className="action-icon" />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          {/* Bulk Upload Queue */}
+          {uploadMode === 'bulk' && uploadQueue.length > 0 && (
+            <Box sx={{ mb: '2rem', mt: 4 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Typography variant="h6" sx={{ fontFamily: "'Inter', sans-serif", fontWeight: 600 }}>
+                  Upload Queue ({uploadQueue.length} items)
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  {pendingCount > 0 && (
+                    <Button
+                      variant="contained"
+                      onClick={handleProcessQueue}
+                      disabled={isProcessing}
+                      sx={{ textTransform: 'none' }}
+                    >
+                      Process Queue ({pendingCount})
+                    </Button>
+                  )}
                   <Button
-                    variant="contained"
-                    onClick={handleProcessQueue}
+                    variant="outlined"
+                    onClick={reset}
                     disabled={isProcessing}
                     sx={{ textTransform: 'none' }}
                   >
-                    Process Queue ({pendingCount})
+                    Clear All
                   </Button>
-                )}
-                <Button
-                  variant="outlined"
-                  onClick={reset}
-                  disabled={isProcessing}
-                  sx={{ textTransform: 'none' }}
-                >
-                  Clear All
-                </Button>
+                </Box>
               </Box>
+
+              {(completedCount > 0 || errorCount > 0) && (
+                <Box sx={{ mb: 2 }}>
+                  <Alert severity="info">
+                    Completed: {completedCount} | Errors: {errorCount} | Pending: {pendingCount}
+                  </Alert>
+                </Box>
+              )}
             </Box>
-
-            {(completedCount > 0 || errorCount > 0) && (
-              <Box sx={{ mb: 2 }}>
-                <Alert severity="info">
-                  Completed: {completedCount} | Errors: {errorCount} | Pending: {pendingCount}
-                </Alert>
-              </Box>
-            )}
-
-            <TableContainer component={Paper} variant="outlined">
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>File Name</TableCell>
-                    <TableCell>Type</TableCell>
-                    <TableCell>Status</TableCell>
-                    <TableCell>Progress</TableCell>
-                    <TableCell align="right">Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {uploadQueue.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell>{item.file.name}</TableCell>
-                      <TableCell>
-                        <Chip 
-                          label={item.type === 'mix' ? 'Mix' : item.type === 'earning' ? 'Earning' : 'Expense'} 
-                          size="small" 
-                          color={
-                            item.type === 'earning' ? 'success' : 
-                            item.type === 'mix' ? 'info' : 
-                            'warning'
-                          }
-                          icon={
-                            item.type === 'earning' ? <TrendingUp /> : 
-                            item.type === 'mix' ? <SwapHoriz /> : 
-                            <TrendingDown />
-                          }
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Chip 
-                          label={item.status} 
-                          size="small" 
-                          color={
-                            item.status === 'completed' ? 'success' :
-                            item.status === 'error' ? 'error' :
-                            item.status === 'analyzing' ? 'info' :
-                            'default'
-                          }
-                        />
-                      </TableCell>
-                      <TableCell>
-                        {item.status === 'analyzing' || item.status === 'uploading' ? (
-                          <LinearProgress variant="indeterminate" sx={{ width: '100%' }} />
-                        ) : item.status === 'completed' ? (
-                          <LinearProgress variant="determinate" value={100} color="success" />
-                        ) : null}
-                      </TableCell>
-                      <TableCell align="right">
-                        {item.status === 'pending' && (
-                          <IconButton
-                            size="small"
-                            onClick={() => handleRemoveFromQueue(item.id)}
-                            disabled={isProcessing}
-                          >
-                            <Delete />
-                          </IconButton>
-                        )}
-                        {item.status === 'completed' && item.transaction && (
-                          <Chip 
-                            label={`Rs. ${item.transaction.amount.toFixed(2)}`} 
-                            size="small" 
-                            color="success"
-                          />
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Box>
-        )}
+          )}
 
         {/* Single Upload Progress with SSE */}
         {uploadMode === 'single' && uploadQueue.length > 0 && uploadQueue[0].status !== 'completed' && uploadQueue[0].jobId && (
