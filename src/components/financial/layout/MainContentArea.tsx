@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { useTheme } from '../../../contexts/ThemeContext';
 import LeftSidebarNavigation from './LeftSidebarNavigation';
 import RightSidebar from './RightSidebar';
 import { Transaction, Merchant, Category } from '../../../types/financial';
@@ -64,6 +65,8 @@ export default function MainContentArea({
   onManualTransactionClick,
   onAskAIClick,
 }: MainContentAreaProps) {
+  const { theme } = useTheme();
+  
   return (
     <>
       <style>{`
@@ -368,6 +371,34 @@ export default function MainContentArea({
             />
           </div>
         </div>
+        
+        {/* Footer */}
+        <footer
+          style={{
+            backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb',
+            color: theme.palette.mode === 'dark' ? '#ffffff' : '#111827',
+            padding: '0.5rem 1.5rem',
+            marginTop: 'auto',
+            borderTop: theme.palette.mode === 'dark' ? '1px solid #333333' : '1px solid #e5e7eb',
+            width: '100%',
+            flexShrink: 0,
+          }}
+        >
+          <div style={{
+            maxWidth: '1600px',
+            margin: '0 auto',
+            textAlign: 'center',
+          }}>
+            <p style={{
+              opacity: theme.palette.mode === 'dark' ? 0.8 : 0.7,
+              wordWrap: 'break-word',
+              overflowWrap: 'break-word',
+              margin: 0,
+            }}>
+              &copy; 2024 VoiceScribe. Transform voice to text instantly.
+            </p>
+          </div>
+        </footer>
       </div>
     </div>
     </>

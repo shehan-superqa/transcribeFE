@@ -170,13 +170,15 @@ function AppWithLocation({ footerStyles }: { footerStyles: any }) {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
-      <footer style={footerStyles}>
-        <div style={styles.footerContent}>
-          <p style={{ ...styles.footerText, opacity: theme.palette.mode === 'dark' ? 0.8 : 0.7 }}>
-            &copy; 2024 VoiceScribe. Transform voice to text instantly.
-          </p>
-        </div>
-      </footer>
+      {!location.pathname.startsWith('/financialtool/app') && (
+        <footer style={footerStyles}>
+          <div style={styles.footerContent}>
+            <p style={{ ...styles.footerText, opacity: theme.palette.mode === 'dark' ? 0.8 : 0.7 }}>
+              &copy; 2024 VoiceScribe. Transform voice to text instantly.
+            </p>
+          </div>
+        </footer>
+      )}
       <AuthModalWrapper />
     </div>
   );
