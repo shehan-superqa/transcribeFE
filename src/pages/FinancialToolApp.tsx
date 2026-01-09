@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { CircularProgress } from '@mui/material';
 import { useTheme } from '../contexts/ThemeContext';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../store';
@@ -16,6 +15,7 @@ import TopNavigationBar from '../components/financial/layout/TopNavigationBar';
 import DashboardHeader from '../components/financial/layout/DashboardHeader';
 import MainContentArea from '../components/financial/layout/MainContentArea';
 import FloatingChatButton from '../components/financial/FloatingChatButton';
+import InitialLoadingScreen from '../components/financial/loading/InitialLoadingScreen';
 import { useAuth } from '../lib/auth';
 import '../css/pages/FinancialToolApp.css';
 
@@ -59,14 +59,33 @@ export default function FinancialToolApp() {
 
   // Nav (top tabs) - sync with URL
   const [value, setValue] = useState(() => getTabFromPath());
+  const [previousPath, setPreviousPath] = useState<string>(location.pathname);
 
-  // Update tab when URL changes
+  // Update tab when URL changes and handle route transitions
   useEffect(() => {
     const tabFromPath = getTabFromPath();
     if (tabFromPath !== value) {
       setValue(tabFromPath);
     }
-  }, [location.pathname, getTabFromPath]);
+
+    // Detect route changes for loading state
+    if (previousPath !== location.pathname) {
+      setIsRouteTransitioning(true);
+      setPreviousPath(location.pathname);
+      
+      // Hide loading after a short delay to allow React Router to mount the component
+      // Using requestAnimationFrame to ensure the route has started rendering
+      const frameId = requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            setIsRouteTransitioning(false);
+          }, 150);
+        });
+      });
+      
+      return () => cancelAnimationFrame(frameId);
+    }
+  }, [location.pathname, getTabFromPath, value, previousPath]);
 
   // AI chat widget (floating)
   const [showChatWidget, setShowChatWidget] = useState(false);
@@ -77,6 +96,7 @@ export default function FinancialToolApp() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [filters, setFilters] = useState<TransactionFilters>({});
   const [loading, setLoading] = useState(true);
+  const [isRouteTransitioning, setIsRouteTransitioning] = useState(false);
   const [showManualTransactionDialog, setShowManualTransactionDialog] = useState(false);
 
   // Connect to unified socket server when financial app loads
@@ -251,17 +271,12 @@ export default function FinancialToolApp() {
   // NOTE: filters are managed inside the Transactions view; keep state here for API fetching.
   // Note: Authentication is handled by ProtectedRoute, so user should always be available here
 
+  // Show initial loading screen on first load
   if (loading) {
     return (
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <div className="financial-tool-page">
-          <div style={{ maxWidth: '1600px', marginLeft: 'auto', marginRight: 'auto', paddingLeft: '48px', paddingRight: '48px' }}>
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
-              <CircularProgress />
-            </div>
-          </div>
-        </div>
+        <InitialLoadingScreen />
       </ThemeProvider>
     );
   }
@@ -301,6 +316,7 @@ export default function FinancialToolApp() {
           onFiltersChange={handleFiltersChange}
           onManualTransactionClick={() => setShowManualTransactionDialog(true)}
           onAskAIClick={handleAskAIClick}
+          isRouteTransitioning={isRouteTransitioning}
         />
 
         {/* Floating Chat Button */}

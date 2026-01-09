@@ -1,7 +1,9 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { Box } from '@mui/material';
 import { useTheme } from '../../../contexts/ThemeContext';
 import LeftSidebarNavigation from './LeftSidebarNavigation';
 import RightSidebar from './RightSidebar';
+import SkeletonLoadingScreen from '../loading/SkeletonLoadingScreen';
 import { Transaction, Merchant, Category } from '../../../types/financial';
 import EnhancedBillUploadSection from '../EnhancedBillUploadSection';
 import TransactionsSection, { TransactionFilters } from '../TransactionsSection';
@@ -44,6 +46,7 @@ interface MainContentAreaProps {
   onFiltersChange: (filters: TransactionFilters) => void;
   onManualTransactionClick: () => void;
   onAskAIClick: () => void;
+  isRouteTransitioning?: boolean;
 }
 
 export default function MainContentArea({
@@ -64,6 +67,7 @@ export default function MainContentArea({
   onFiltersChange,
   onManualTransactionClick,
   onAskAIClick,
+  isRouteTransitioning = false,
 }: MainContentAreaProps) {
   const { theme } = useTheme();
   
@@ -308,8 +312,10 @@ export default function MainContentArea({
               display: 'flex', 
               flexDirection: 'column',
               minHeight: 0,
+              position: 'relative',
             }}
           >
+            {/* Always render Routes so React Router can mount components */}
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, height: '100%' }}>
             <Routes>
               <Route path="/" element={<Navigate to="/financialtool/app/dashboard" replace />} />
@@ -365,6 +371,25 @@ export default function MainContentArea({
               <Route path="*" element={<Navigate to="/financialtool/app/dashboard" replace />} />
             </Routes>
             </div>
+            
+            {/* Show skeleton as overlay during route transitions */}
+            {isRouteTransitioning && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  zIndex: 1000,
+                  bgcolor: theme.palette.mode === 'dark' ? 'rgba(17, 24, 39, 0.98)' : 'rgba(249, 250, 251, 0.98)',
+                  backdropFilter: 'blur(4px)',
+                  overflow: 'auto',
+                }}
+              >
+                <SkeletonLoadingScreen />
+              </Box>
+            )}
           </div>
 
           {/* Right Sidebar */}

@@ -2,263 +2,300 @@
 <html lang="en"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Modern Merchant Directory Variant 1</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<title>Fiscally - Skeleton Loading Transition</title>
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
 <script>
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            colors: {
-              primary: "#6366f1", // A vibrant modern purple
-              "background-light": "#f9fafb",
-              "background-dark": "#111827",
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#7C3AED", // Vibrant Purple from the UI
+                        "background-light": "#F9FAFB",
+                        "background-dark": "#111827",
+                        "skeleton-light": "#E5E7EB",
+                        "skeleton-dark": "#374151",
+                    },
+                    fontFamily: {
+                        display: ["Inter", "sans-serif"],
+                        sans: ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.75rem",
+                    },
+                },
             },
-            fontFamily: {
-              display: ["Inter", "sans-serif"],
-            },
-            borderRadius: {
-              DEFAULT: "12px",
-            },
-          },
-        },
-      };
+        };
     </script>
 <style>
-        body { font-family: 'Inter', sans-serif; }
-        .sparkline { height: 30px; width: 100%; stroke: #6366f1; stroke-width: 2; fill: transparent; }
-        .card-hover:hover { transform: translateY(-4px); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .shimmer {
+            background: linear-gradient(90deg, 
+                rgba(229, 231, 235, 0.5) 25%, 
+                rgba(243, 244, 246, 0.8) 50%, 
+                rgba(229, 231, 235, 0.5) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite linear;
+        }
+        .dark .shimmer {
+            background: linear-gradient(90deg, 
+                rgba(55, 65, 81, 0.5) 25%, 
+                rgba(75, 85, 99, 0.8) 50%, 
+                rgba(55, 65, 81, 0.5) 75%);
+            background-size: 200% 100%;
+        }
+        .loading-bar {
+            height: 3px;
+            width: 100%;
+            background: rgba(124, 58, 237, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        .loading-bar::after {
+            content: '';
+            position: absolute;
+            left: -35%;
+            width: 35%;
+            height: 100%;
+            background: #7C3AED;
+            animation: loading-progress 1.5s infinite ease-in-out;
+        }
+        @keyframes loading-progress {
+            0% { left: -35%; }
+            100% { left: 100%; }
+        }
+        @keyframes spin-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .animate-spin-slow {
+            animation: spin-slow 1s linear infinite;
+        }
     </style>
 </head>
-<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen p-6 md:p-10 transition-colors duration-200">
-<div class="max-w-7xl mx-auto">
-<header class="mb-10">
-<div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
-<div>
-<h1 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Merchants</h1>
-<p class="mt-2 text-slate-500 dark:text-slate-400">View all merchants you've transacted with. Click on a merchant to see detailed history.</p>
+<body class="bg-background-light dark:bg-background-dark font-sans transition-colors duration-200">
+<div class="fixed top-[64px] left-0 right-0 z-50">
+<div class="loading-bar"></div>
 </div>
-<div class="flex flex-wrap items-center gap-4">
-<div class="relative min-w-[300px]">
-<span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
-<span class="material-icons-round text-xl">search</span>
-</span>
-<input class="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" placeholder="Search merchants..." type="text"/>
+<div class="flex h-screen overflow-hidden">
+<aside class="w-16 md:w-20 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col items-center py-6 space-y-8 z-20">
+<div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white mb-4">
+<span class="material-icons-round">account_balance_wallet</span>
 </div>
-<div class="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-1">
-<button class="px-4 py-1.5 text-sm font-medium bg-primary text-white rounded-md shadow-sm">Total Spent</button>
-<button class="px-4 py-1.5 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-md">Frequency</button>
-<button class="px-4 py-1.5 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-md">Alphabetical</button>
+<div class="flex flex-col space-y-6">
+<div class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800"></div>
+<div class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800"></div>
+<div class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800"></div>
+<div class="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+<div class="w-4 h-4 rounded-sm bg-primary"></div>
 </div>
-<button class="p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-600 dark:text-slate-400" onclick="document.documentElement.classList.toggle('dark')">
-<span class="material-icons-round">dark_mode</span>
-</button>
+<div class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800"></div>
+<div class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800"></div>
+</div>
+<div class="mt-auto">
+<div class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-800"></div>
+</div>
+</aside>
+<main class="flex-1 flex flex-col min-w-0 bg-gray-50/50 dark:bg-gray-950/50">
+<header class="h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-6 shrink-0 z-10">
+<div class="flex items-center space-x-4 w-1/3">
+<div class="w-full max-w-sm h-10 bg-gray-100 dark:bg-gray-800 rounded-lg shimmer"></div>
+</div>
+<div class="flex items-center space-x-6">
+<div class="hidden md:block w-24 h-4 bg-gray-100 dark:bg-gray-800 rounded-full shimmer"></div>
+<div class="flex space-x-3">
+<div class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 shimmer"></div>
+<div class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 shimmer"></div>
+</div>
+<div class="flex items-center space-x-3 border-l border-gray-200 dark:border-gray-800 pl-6">
+<div class="text-right hidden sm:block">
+<div class="w-20 h-3 bg-gray-200 dark:bg-gray-700 rounded-full mb-2 shimmer"></div>
+<div class="w-16 h-2 bg-gray-100 dark:bg-gray-800 rounded-full shimmer"></div>
+</div>
+<div class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 shimmer"></div>
 </div>
 </div>
 </header>
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-<div class="card-hover bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-6 shadow-sm hover:shadow-xl transition-all cursor-pointer group">
-<div class="flex items-center gap-4 mb-6">
-<div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-<span class="material-icons-round text-3xl">storefront</span>
-</div>
-<div>
-<h3 class="text-xl font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">Singer</h3>
-<p class="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">Home Appliances</p>
-</div>
-</div>
-<div class="grid grid-cols-2 gap-4 mb-6">
-<div>
-<p class="text-sm text-slate-500 dark:text-slate-400 mb-1">Total Spent</p>
-<p class="text-2xl font-bold text-primary">Rs. 376,511</p>
-</div>
-<div class="text-right">
-<p class="text-sm text-slate-500 dark:text-slate-400 mb-1">Transactions</p>
-<p class="text-xl font-semibold text-slate-700 dark:text-slate-200">5</p>
-</div>
-</div>
-<div class="flex items-center gap-2 mb-6 text-slate-500 dark:text-slate-400">
-<span class="material-icons-round text-sm">event</span>
-<span class="text-sm font-medium">Last visit: 12/18/2025</span>
-</div>
-<div class="pt-4 border-t border-slate-100 dark:border-slate-700">
-<p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">6-Month Spending Trend</p>
-<svg class="sparkline" viewBox="0 0 100 30">
-<path class="text-primary" d="M0,25 C10,20 20,28 30,15 C40,2 50,18 60,10 C70,2 80,12 100,5" fill="none" stroke="currentColor"></path>
+<div class="flex-1 overflow-y-auto p-6 lg:p-8 relative">
+<div class="absolute inset-0 flex items-center justify-center z-40 pointer-events-none">
+<div class="p-4 bg-white/40 dark:bg-black/20 backdrop-blur-sm rounded-full">
+<svg class="animate-spin-slow h-10 w-10 text-primary" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+<path class="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" fill="currentColor"></path>
 </svg>
 </div>
 </div>
-<div class="card-hover bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-6 shadow-sm hover:shadow-xl transition-all cursor-pointer group">
-<div class="flex items-center gap-4 mb-6">
-<div class="w-12 h-12 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400">
-<span class="material-icons-round text-3xl">local_hospital</span>
+<div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
+<div class="space-y-3">
+<div class="h-8 w-64 bg-gray-200 dark:bg-gray-700 rounded-md shimmer"></div>
+<div class="h-4 w-96 bg-gray-100 dark:bg-gray-800 rounded-md shimmer"></div>
 </div>
-<div>
-<h3 class="text-xl font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">Nawaloka Hospital</h3>
-<p class="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">Healthcare</p>
+<div class="h-11 w-44 bg-primary/20 dark:bg-primary/10 rounded-lg shimmer"></div>
 </div>
+<div class="flex flex-col lg:flex-row gap-8">
+<div class="flex-1 space-y-8">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
+<div class="flex justify-between mb-4">
+<div class="h-3 w-24 bg-gray-100 dark:bg-gray-800 rounded shimmer"></div>
+<div class="w-6 h-6 rounded-md bg-green-50 dark:bg-green-900/20"></div>
 </div>
-<div class="grid grid-cols-2 gap-4 mb-6">
-<div>
-<p class="text-sm text-slate-500 dark:text-slate-400 mb-1">Total Spent</p>
-<p class="text-2xl font-bold text-primary">Rs. 326,758</p>
+<div class="h-8 w-32 bg-gray-200 dark:bg-gray-700 rounded-md mb-4 shimmer"></div>
+<div class="h-3 w-20 bg-gray-100 dark:bg-gray-800 rounded shimmer"></div>
 </div>
-<div class="text-right">
-<p class="text-sm text-slate-500 dark:text-slate-400 mb-1">Transactions</p>
-<p class="text-xl font-semibold text-slate-700 dark:text-slate-200">8</p>
+<div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
+<div class="flex justify-between mb-4">
+<div class="h-3 w-24 bg-gray-100 dark:bg-gray-800 rounded shimmer"></div>
+<div class="w-6 h-6 rounded-md bg-red-50 dark:bg-red-900/20"></div>
 </div>
+<div class="h-8 w-32 bg-gray-200 dark:bg-gray-700 rounded-md mb-4 shimmer"></div>
+<div class="h-3 w-20 bg-gray-100 dark:bg-gray-800 rounded shimmer"></div>
 </div>
-<div class="flex items-center gap-2 mb-6 text-slate-500 dark:text-slate-400">
-<span class="material-icons-round text-sm">event</span>
-<span class="text-sm font-medium">Last visit: 12/20/2025</span>
+<div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
+<div class="flex justify-between mb-4">
+<div class="h-3 w-24 bg-gray-100 dark:bg-gray-800 rounded shimmer"></div>
+<div class="w-6 h-6 rounded-md bg-purple-50 dark:bg-purple-900/20"></div>
 </div>
-<div class="pt-4 border-t border-slate-100 dark:border-slate-700">
-<p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">6-Month Spending Trend</p>
-<svg class="sparkline" viewBox="0 0 100 30">
-<path class="text-primary" d="M0,5 C20,10 40,25 60,15 C80,5 100,10 100,2" fill="none" stroke="currentColor"></path>
-</svg>
-</div>
-</div>
-<div class="card-hover bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-6 shadow-sm hover:shadow-xl transition-all cursor-pointer group">
-<div class="flex items-center gap-4 mb-6">
-<div class="w-12 h-12 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-600 dark:text-orange-400">
-<span class="material-icons-round text-3xl">menu_book</span>
-</div>
-<div>
-<h3 class="text-xl font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">Sarasavi</h3>
-<p class="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">Books &amp; Stationery</p>
+<div class="h-8 w-32 bg-gray-200 dark:bg-gray-700 rounded-md mb-4 shimmer"></div>
+<div class="h-3 w-20 bg-gray-100 dark:bg-gray-800 rounded shimmer"></div>
 </div>
 </div>
-<div class="grid grid-cols-2 gap-4 mb-6">
-<div>
-<p class="text-sm text-slate-500 dark:text-slate-400 mb-1">Total Spent</p>
-<p class="text-2xl font-bold text-primary">Rs. 225,095</p>
-</div>
-<div class="text-right">
-<p class="text-sm text-slate-500 dark:text-slate-400 mb-1">Transactions</p>
-<p class="text-xl font-semibold text-slate-700 dark:text-slate-200">6</p>
+<div class="space-y-6">
+<div class="flex items-center justify-between">
+<div class="h-6 w-48 bg-gray-200 dark:bg-gray-700 rounded-md shimmer"></div>
+<div class="flex space-x-2">
+<div class="w-8 h-8 bg-gray-100 dark:bg-gray-800 rounded shimmer"></div>
+<div class="w-8 h-8 bg-gray-100 dark:bg-gray-800 rounded shimmer"></div>
 </div>
 </div>
-<div class="flex items-center gap-2 mb-6 text-slate-500 dark:text-slate-400">
-<span class="material-icons-round text-sm">event</span>
-<span class="text-sm font-medium">Last visit: 1/10/2026</span>
-</div>
-<div class="pt-4 border-t border-slate-100 dark:border-slate-700">
-<p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">6-Month Spending Trend</p>
-<svg class="sparkline" viewBox="0 0 100 30">
-<path class="text-primary" d="M0,28 C10,28 20,20 30,22 C50,25 70,10 100,5" fill="none" stroke="currentColor"></path>
-</svg>
-</div>
-</div>
-<div class="card-hover bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-6 shadow-sm hover:shadow-xl transition-all cursor-pointer group">
-<div class="flex items-center gap-4 mb-6">
-<div class="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
-<span class="material-icons-round text-3xl">shopping_cart</span>
-</div>
-<div>
-<h3 class="text-xl font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">Arpico</h3>
-<p class="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">Supermarket</p>
-</div>
-</div>
-<div class="grid grid-cols-2 gap-4 mb-6">
-<div>
-<p class="text-sm text-slate-500 dark:text-slate-400 mb-1">Total Spent</p>
-<p class="text-2xl font-bold text-primary">Rs. 204,965</p>
-</div>
-<div class="text-right">
-<p class="text-sm text-slate-500 dark:text-slate-400 mb-1">Transactions</p>
-<p class="text-xl font-semibold text-slate-700 dark:text-slate-200">6</p>
-</div>
-</div>
-<div class="flex items-center gap-2 mb-6 text-slate-500 dark:text-slate-400">
-<span class="material-icons-round text-sm">event</span>
-<span class="text-sm font-medium">Last visit: 1/1/2026</span>
-</div>
-<div class="pt-4 border-t border-slate-100 dark:border-slate-700">
-<p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">6-Month Spending Trend</p>
-<svg class="sparkline" viewBox="0 0 100 30">
-<path class="text-primary" d="M0,15 C20,15 40,2 60,18 80,18 100,10" fill="none" stroke="currentColor"></path>
-</svg>
-</div>
-</div>
-<div class="card-hover bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-6 shadow-sm hover:shadow-xl transition-all cursor-pointer group">
-<div class="flex items-center gap-4 mb-6">
-<div class="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-900 dark:text-white">
-<span class="material-icons-round text-3xl">directions_car</span>
-</div>
-<div>
-<h3 class="text-xl font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">Uber</h3>
-<p class="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">Transportation</p>
-</div>
-</div>
-<div class="grid grid-cols-2 gap-4 mb-6">
-<div>
-<p class="text-sm text-slate-500 dark:text-slate-400 mb-1">Total Spent</p>
-<p class="text-2xl font-bold text-primary">Rs. 179,588</p>
-</div>
-<div class="text-right">
-<p class="text-sm text-slate-500 dark:text-slate-400 mb-1">Transactions</p>
-<p class="text-xl font-semibold text-slate-700 dark:text-slate-200">3</p>
-</div>
-</div>
-<div class="flex items-center gap-2 mb-6 text-slate-500 dark:text-slate-400">
-<span class="material-icons-round text-sm">event</span>
-<span class="text-sm font-medium">Last visit: 8/31/2025</span>
-</div>
-<div class="pt-4 border-t border-slate-100 dark:border-slate-700">
-<p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">6-Month Spending Trend</p>
-<svg class="sparkline" viewBox="0 0 100 30">
-<path class="text-primary" d="M0,25 L20,22 L40,15 L60,18 L80,10 L100,5" fill="none" stroke="currentColor"></path>
-</svg>
-</div>
-</div>
-<div class="card-hover bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-6 shadow-sm hover:shadow-xl transition-all cursor-pointer group">
-<div class="flex items-center gap-4 mb-6">
-<div class="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-<span class="material-icons-round text-3xl">medical_services</span>
-</div>
-<div>
-<h3 class="text-xl font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">Durdans</h3>
-<p class="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">Healthcare</p>
-</div>
-</div>
-<div class="grid grid-cols-2 gap-4 mb-6">
-<div>
-<p class="text-sm text-slate-500 dark:text-slate-400 mb-1">Total Spent</p>
-<p class="text-2xl font-bold text-primary">Rs. 182,527</p>
-</div>
-<div class="text-right">
-<p class="text-sm text-slate-500 dark:text-slate-400 mb-1">Transactions</p>
-<p class="text-xl font-semibold text-slate-700 dark:text-slate-200">3</p>
-</div>
-</div>
-<div class="flex items-center gap-2 mb-6 text-slate-500 dark:text-slate-400">
-<span class="material-icons-round text-sm">event</span>
-<span class="text-sm font-medium">Last visit: 9/25/2025</span>
-</div>
-<div class="pt-4 border-t border-slate-100 dark:border-slate-700">
-<p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">6-Month Spending Trend</p>
-<svg class="sparkline" viewBox="0 0 100 30">
-<path class="text-primary" d="M0,28 C20,25 40,25 60,5 80,10 100,15" fill="none" stroke="currentColor"></path>
-</svg>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
+<div class="flex justify-between mb-8">
+<div class="space-y-2">
+<div class="h-5 w-32 bg-gray-200 dark:bg-gray-700 rounded shimmer"></div>
+<div class="flex space-x-2">
+<div class="h-3 w-12 bg-gray-100 dark:bg-gray-800 rounded shimmer"></div>
+<div class="h-3 w-12 bg-gray-100 dark:bg-gray-800 rounded shimmer"></div>
 </div>
 </div>
 </div>
-<footer class="mt-12 flex justify-center">
-<nav class="flex items-center gap-1">
-<button class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500">
-<span class="material-icons-round">chevron_left</span>
-</button>
-<button class="w-10 h-10 flex items-center justify-center rounded-lg bg-primary text-white font-bold">1</button>
-<button class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500">2</button>
-<button class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500">3</button>
-<button class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500">
-<span class="material-icons-round">chevron_right</span>
-</button>
-</nav>
+<div class="flex justify-between items-end">
+<div class="space-y-2">
+<div class="h-7 w-28 bg-gray-200 dark:bg-gray-700 rounded-md shimmer"></div>
+<div class="h-3 w-24 bg-gray-100 dark:bg-gray-800 rounded shimmer"></div>
+</div>
+<div class="w-12 h-6 bg-gray-100 dark:bg-gray-800 rounded-full shimmer"></div>
+</div>
+</div>
+<div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
+<div class="flex justify-between mb-8">
+<div class="space-y-2">
+<div class="h-5 w-32 bg-gray-200 dark:bg-gray-700 rounded shimmer"></div>
+<div class="flex space-x-2">
+<div class="h-3 w-12 bg-gray-100 dark:bg-gray-800 rounded shimmer"></div>
+<div class="h-3 w-12 bg-gray-100 dark:bg-gray-800 rounded shimmer"></div>
+</div>
+</div>
+</div>
+<div class="flex justify-between items-end">
+<div class="space-y-2">
+<div class="h-7 w-28 bg-gray-200 dark:bg-gray-700 rounded-md shimmer"></div>
+<div class="h-3 w-24 bg-gray-100 dark:bg-gray-800 rounded shimmer"></div>
+</div>
+<div class="w-12 h-6 bg-gray-100 dark:bg-gray-800 rounded-full shimmer"></div>
+</div>
+</div>
+<div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
+<div class="flex justify-between mb-8">
+<div class="space-y-2">
+<div class="h-5 w-32 bg-gray-200 dark:bg-gray-700 rounded shimmer"></div>
+<div class="flex space-x-2">
+<div class="h-3 w-12 bg-gray-100 dark:bg-gray-800 rounded shimmer"></div>
+<div class="h-3 w-12 bg-gray-100 dark:bg-gray-800 rounded shimmer"></div>
+</div>
+</div>
+</div>
+<div class="flex justify-between items-end">
+<div class="space-y-2">
+<div class="h-7 w-28 bg-gray-200 dark:bg-gray-700 rounded-md shimmer"></div>
+<div class="h-3 w-24 bg-gray-100 dark:bg-gray-800 rounded shimmer"></div>
+</div>
+<div class="w-12 h-6 bg-gray-100 dark:bg-gray-800 rounded-full shimmer"></div>
+</div>
+</div>
+<div class="border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-2xl flex items-center justify-center h-[168px]">
+<div class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 shimmer"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="w-full lg:w-80 space-y-6">
+<div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
+<div class="h-5 w-32 bg-gray-200 dark:bg-gray-700 rounded mb-6 shimmer"></div>
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-2">
+<div class="h-2 w-10 bg-gray-100 dark:bg-gray-800 rounded shimmer"></div>
+<div class="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded shimmer"></div>
+</div>
+<div class="space-y-2">
+<div class="h-2 w-10 bg-gray-100 dark:bg-gray-800 rounded shimmer"></div>
+<div class="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded shimmer"></div>
+</div>
+<div class="space-y-2">
+<div class="h-2 w-10 bg-gray-100 dark:bg-gray-800 rounded shimmer"></div>
+<div class="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded shimmer"></div>
+</div>
+<div class="space-y-2">
+<div class="h-2 w-10 bg-gray-100 dark:bg-gray-800 rounded shimmer"></div>
+<div class="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded shimmer"></div>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm space-y-4">
+<div class="h-5 w-28 bg-gray-200 dark:bg-gray-700 rounded mb-2 shimmer"></div>
+<div class="h-10 w-full bg-primary/20 rounded-lg shimmer"></div>
+<div class="h-10 w-full bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 shimmer"></div>
+<div class="h-10 w-full bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 shimmer"></div>
+</div>
+<div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
+<div class="flex justify-between mb-6">
+<div class="h-5 w-28 bg-gray-200 dark:bg-gray-700 rounded shimmer"></div>
+<div class="h-4 w-12 bg-gray-100 dark:bg-gray-800 rounded shimmer"></div>
+</div>
+<div class="space-y-6">
+<div class="flex items-center space-x-4">
+<div class="w-2 h-2 rounded-full bg-red-400"></div>
+<div class="flex-1 space-y-2">
+<div class="h-3 w-32 bg-gray-200 dark:bg-gray-700 rounded shimmer"></div>
+<div class="h-2 w-20 bg-gray-100 dark:bg-gray-800 rounded shimmer"></div>
+</div>
+<div class="h-3 w-16 bg-gray-100 dark:bg-gray-800 rounded shimmer"></div>
+</div>
+<div class="flex items-center space-x-4">
+<div class="w-2 h-2 rounded-full bg-red-400"></div>
+<div class="flex-1 space-y-2">
+<div class="h-3 w-32 bg-gray-200 dark:bg-gray-700 rounded shimmer"></div>
+<div class="h-2 w-20 bg-gray-100 dark:bg-gray-800 rounded shimmer"></div>
+</div>
+<div class="h-3 w-16 bg-gray-100 dark:bg-gray-800 rounded shimmer"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<footer class="p-6 text-center text-xs text-gray-400 dark:text-gray-600 border-t border-gray-200 dark:border-gray-800">
+<div class="w-64 h-3 bg-gray-100 dark:bg-gray-800 rounded-full mx-auto shimmer"></div>
 </footer>
+</main>
+</div>
+<div class="fixed bottom-6 right-6">
+<div class="w-14 h-14 bg-primary/40 rounded-full shadow-lg shimmer"></div>
 </div>
 
 </body></html>
