@@ -117,12 +117,17 @@ export default function EnergyPointsBalance({
 
   return (
     <div style={styles} onClick={handleClick} className={className}>
-      <span style={{ fontSize: '1rem' }}>⚡</span>
-      <span>
-        {displayBalance} {showLabel ? 'Energy Points' : 'Points'}
-      </span>
-      {isLowBalance && showLowWarning && (
-        <span style={{ fontSize: '0.7rem', marginLeft: '0.25rem' }}>(Low)</span>
+      {!showLabel && <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>{displayBalance.toLocaleString()} Points</span>}
+      {showLabel && (
+        <>
+          <span style={{ fontSize: '1rem' }}>⚡</span>
+          <span>
+            {displayBalance} {showLabel ? 'Energy Points' : 'Points'}
+          </span>
+          {isLowBalance && showLowWarning && (
+            <span style={{ fontSize: '0.7rem', marginLeft: '0.25rem' }}>(Low)</span>
+          )}
+        </>
       )}
     </div>
   );

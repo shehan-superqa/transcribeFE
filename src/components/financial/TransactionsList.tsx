@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Paper, Typography, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Card, CardContent, Chip, IconButton, Collapse, CircularProgress, Divider, Avatar, Tooltip } from '@mui/material';
-import { CloudUpload, Edit, Delete, MergeType, ExpandLess, ExpandMore, ShoppingCart, AttachMoney, CalendarToday, Store, Category as CategoryIcon, Warning, TrendingDown, TrendingUp, Receipt, Visibility } from '@mui/icons-material';
+import { CloudUpload, Edit, Delete, MergeType, ExpandLess, ExpandMore, ShoppingCart, AttachMoney, CalendarToday, Store, Storefront, Category as CategoryIcon, Warning, TrendingDown, TrendingUp, Receipt, Visibility, ChevronRight } from '@mui/icons-material';
 import { Transaction, Merchant, Category, TransactionItem, FlattenedItem } from '../../types/financial';
 import { useTheme } from '../../contexts/ThemeContext';
 import { getDisplayCategoryName, formatCurrency, getDisplayMerchantName, formatPaymentMethod, checkMissingPriceFields, getMissingFieldStyle, getMissingFieldRowStyle, transactionHasMissingFields, getExpenseAmount, getEarningAmount, getTaxAmount, getTransactionType } from '../../utils/transactionHelpers';
@@ -168,29 +168,123 @@ export default function TransactionsList({
 
   const renderTableView = () => {
     return (
-      <TableContainer
-        component={Paper}
-        elevation={0}
+      <Box
         sx={{
-          backgroundColor: theme.palette.background.paper,
-          border: `1px solid ${theme.palette.divider}`,
-          borderRadius: '12px',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-          maxHeight: 'calc(100vh - 400px)',
-          overflow: 'auto',
+          bgcolor: theme.palette.background.paper,
+          border: `1px solid ${theme.palette.mode === 'dark' ? '#1E293B' : '#E2E8F0'}`,
+          borderRadius: '16px',
+          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+          overflow: 'hidden',
         }}
       >
+        <Box
+          sx={{
+            overflowX: 'auto',
+            overflowY: 'auto',
+            maxHeight: 'calc(100vh - 400px)',
+            '&::-webkit-scrollbar': {
+              width: '6px',
+              height: '6px',
+            },
+            '&::-webkit-scrollbar-track': {
+              background: 'transparent',
+            },
+            '&::-webkit-scrollbar-thumb': {
+              background: theme.palette.mode === 'dark' ? '#374151' : '#E5E7EB',
+              borderRadius: '10px',
+            },
+            '&::-webkit-scrollbar-thumb:hover': {
+              background: theme.palette.mode === 'dark' ? '#4B5563' : '#D1D5DB',
+            },
+          }}
+        >
+          <TableContainer
+            component="div"
+            sx={{
+              backgroundColor: 'transparent',
+            }}
+          >
         <Table stickyHeader size="small">
           <TableHead>
             <TableRow>
-              <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem', width: '40px' }}></TableCell>
-              <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>Date</TableCell>
-              <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>Merchant</TableCell>
-              <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>Category</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>Amount</TableCell>
-              <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>Payment Method</TableCell>
-              <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>Status</TableCell>
-              <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>Actions</TableCell>
+              <TableCell sx={{ 
+                width: '40px', 
+                px: 2, 
+                py: 2,
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(30, 41, 59, 0.5)' : 'rgba(248, 250, 252, 0.5)',
+                color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280',
+                textTransform: 'uppercase',
+                fontSize: '10px',
+                fontWeight: 700,
+                letterSpacing: '0.05em',
+                fontFamily: "'Inter', sans-serif"
+              }}></TableCell>
+              <TableCell sx={{ 
+                px: 3, 
+                py: 2,
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(30, 41, 59, 0.5)' : 'rgba(248, 250, 252, 0.5)',
+                color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280',
+                textTransform: 'uppercase',
+                fontSize: '10px',
+                fontWeight: 700,
+                letterSpacing: '0.05em',
+                fontFamily: "'Inter', sans-serif"
+              }}>Date</TableCell>
+              <TableCell sx={{ 
+                px: 3, 
+                py: 2,
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(30, 41, 59, 0.5)' : 'rgba(248, 250, 252, 0.5)',
+                color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280',
+                textTransform: 'uppercase',
+                fontSize: '10px',
+                fontWeight: 700,
+                letterSpacing: '0.05em',
+                fontFamily: "'Inter', sans-serif"
+              }}>Merchant</TableCell>
+              <TableCell sx={{ 
+                px: 3, 
+                py: 2,
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(30, 41, 59, 0.5)' : 'rgba(248, 250, 252, 0.5)',
+                color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280',
+                textTransform: 'uppercase',
+                fontSize: '10px',
+                fontWeight: 700,
+                letterSpacing: '0.05em',
+                fontFamily: "'Inter', sans-serif"
+              }}>Category</TableCell>
+              <TableCell align="right" sx={{ 
+                px: 3, 
+                py: 2,
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(30, 41, 59, 0.5)' : 'rgba(248, 250, 252, 0.5)',
+                color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280',
+                textTransform: 'uppercase',
+                fontSize: '10px',
+                fontWeight: 700,
+                letterSpacing: '0.05em',
+                fontFamily: "'Inter', sans-serif"
+              }}>Amount</TableCell>
+              <TableCell sx={{ 
+                px: 3, 
+                py: 2,
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(30, 41, 59, 0.5)' : 'rgba(248, 250, 252, 0.5)',
+                color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280',
+                textTransform: 'uppercase',
+                fontSize: '10px',
+                fontWeight: 700,
+                letterSpacing: '0.05em',
+                fontFamily: "'Inter', sans-serif"
+              }}>Status</TableCell>
+              <TableCell align="right" sx={{ 
+                px: 3, 
+                py: 2,
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(30, 41, 59, 0.5)' : 'rgba(248, 250, 252, 0.5)',
+                color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280',
+                textTransform: 'uppercase',
+                fontSize: '10px',
+                fontWeight: 700,
+                letterSpacing: '0.05em',
+                fontFamily: "'Inter', sans-serif"
+              }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -206,107 +300,149 @@ export default function TransactionsList({
               return (
                 <React.Fragment key={transaction._id}>
                   <TableRow
+                    className="group"
                     hover
                     sx={{
-                      backgroundColor: index % 2 === 0 ? theme.palette.background.paper : (theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb'),
+                      backgroundColor: isExpanded ? (theme.palette.mode === 'dark' ? 'rgba(30, 41, 59, 0.4)' : 'rgba(248, 250, 252, 0.4)') : 'transparent',
                       ...getMissingFieldRowStyle(hasMissingFields, theme),
                       '&:hover': {
-                        backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f3f4f6',
+                        backgroundColor: theme.palette.mode === 'dark' ? 'rgba(30, 41, 59, 0.3)' : 'rgba(248, 250, 252, 0.3)',
                       },
+                      borderBottom: `1px solid ${theme.palette.mode === 'dark' ? '#1E293B' : '#F1F5F9'}`,
                     }}
                   >
-                    <TableCell>
+                    <TableCell sx={{ px: 2, py: 2, textAlign: 'center' }}>
                       <IconButton
                         size="small"
                         onClick={() => onToggleItemsExpansion(transaction._id)}
                         disabled={isLoading}
-                        sx={{ padding: '0.25rem' }}
-                        color="primary"
+                        sx={{ 
+                          padding: 0,
+                          color: isExpanded ? '#6D28D9' : (theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280'),
+                          '&:hover': {
+                            bgcolor: 'transparent',
+                          }
+                        }}
                       >
-                        {isExpanded ? <ExpandLess /> : <ExpandMore />}
+                        {isExpanded ? <ExpandMore sx={{ fontSize: '18px' }} /> : <ChevronRight sx={{ fontSize: '18px' }} />}
                       </IconButton>
                     </TableCell>
-                    <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
+                    <TableCell sx={{ px: 3, py: 2 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        {new Date(transaction.date).toLocaleDateString()}
+                        <Typography sx={{ fontSize: '14px', fontWeight: 500, color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif" }}>
+                          {new Date(transaction.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </Typography>
                         {hasMissingFields && (
                           <Tooltip title="This transaction has items with missing price fields">
-                            <Warning sx={{ fontSize: '1rem', color: theme.palette.warning.main }} />
+                            <Warning sx={{ fontSize: '16px', color: '#F59E0B' }} />
                           </Tooltip>
                         )}
                       </Box>
                     </TableCell>
-                    <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
-                      {getDisplayMerchantName(transaction, getMerchantName(transaction.merchant_id))}
+                    <TableCell sx={{ px: 3, py: 2 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <Box
+                          sx={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: '50%',
+                            bgcolor: isExpanded ? 'rgba(109, 40, 217, 0.1)' : (theme.palette.mode === 'dark' ? '#1E293B' : '#F1F5F9'),
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <Storefront sx={{ fontSize: '14px', color: isExpanded ? '#6D28D9' : (theme.palette.mode === 'dark' ? '#6B7280' : '#6B7280') }} />
+                        </Box>
+                        <Typography sx={{ fontSize: '14px', fontWeight: 600, color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif" }}>
+                          {getDisplayMerchantName(transaction, getMerchantName(transaction.merchant_id))}
+                        </Typography>
+                      </Box>
                     </TableCell>
-                    <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
-                      {getDisplayCategoryName(transaction, getCategoryName(transaction.category_id), billItems)}
-                    </TableCell>
-                    <TableCell align="right" sx={{ color: theme.palette.text.primary, fontWeight: 500, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
-                      {formatCurrency(transaction.amount, transaction.currency)}
-                    </TableCell>
-                    <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
-                      {formatPaymentMethod(transaction.payment_method)}
-                    </TableCell>
-                    <TableCell>
+                    <TableCell sx={{ px: 3, py: 2 }}>
                       <Chip
-                        label={transaction.status}
+                        label={getDisplayCategoryName(transaction, getCategoryName(transaction.category_id), billItems).toUpperCase()}
                         size="small"
-                        color={
-                          transaction.status === 'confirmed'
-                            ? 'success'
-                            : transaction.status === 'pending'
-                            ? 'warning'
-                            : 'error'
-                        }
-                        sx={{ fontFamily: "'Inter', sans-serif", fontSize: '0.75rem' }}
+                        sx={{
+                          px: 1.25,
+                          py: 0.5,
+                          height: 'auto',
+                          borderRadius: '9999px',
+                          fontSize: '10px',
+                          fontWeight: 700,
+                          bgcolor: theme.palette.mode === 'dark' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(219, 234, 254, 1)',
+                          color: theme.palette.mode === 'dark' ? '#60A5FA' : '#2563EB',
+                          fontFamily: "'Inter', sans-serif",
+                          border: 'none',
+                        }}
                       />
                     </TableCell>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', gap: 0.5 }}>
+                    <TableCell align="right" sx={{ px: 3, py: 2 }}>
+                      <Typography sx={{ fontSize: '14px', fontWeight: 700, color: '#EF4444', fontFamily: "'Inter', sans-serif" }}>
+                        {formatCurrency(transaction.amount, transaction.currency)}
+                      </Typography>
+                    </TableCell>
+                    <TableCell sx={{ px: 3, py: 2 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <Box
+                          sx={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: '50%',
+                            bgcolor: transaction.status === 'confirmed' ? '#10B981' : (transaction.status === 'pending' ? (theme.palette.mode === 'dark' ? '#6B7280' : '#D1D5DB') : '#EF4444'),
+                          }}
+                        />
+                        <Typography sx={{ fontSize: '12px', color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280', fontFamily: "'Inter', sans-serif", textTransform: 'capitalize' }}>
+                          {transaction.status}
+                        </Typography>
+                      </Box>
+                    </TableCell>
+                    <TableCell align="right" sx={{ px: 3, py: 2 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5, opacity: 0, transition: 'opacity 0.2s', '.group:hover &': { opacity: 1 } }}>
                         {billItems.length > 0 && (
                           <Tooltip title="View Items">
                             <IconButton
                               size="small"
                               onClick={() => handleOpenViewItemsModal(transaction)}
-                              color="info"
-                              sx={{ padding: '0.25rem' }}
+                              sx={{ 
+                                p: 1.5,
+                                color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280',
+                                '&:hover': { color: '#6D28D9' }
+                              }}
                             >
-                              <Visibility sx={{ fontSize: '1rem' }} />
+                              <Visibility sx={{ fontSize: '14px' }} />
                             </IconButton>
                           </Tooltip>
                         )}
                         <IconButton
                           size="small"
                           onClick={() => onEditTransaction(transaction)}
-                          color="primary"
-                          sx={{ padding: '0.25rem' }}
+                          sx={{ 
+                            p: 1.5,
+                            color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280',
+                            '&:hover': { color: '#2563EB' }
+                          }}
                         >
-                          <Edit sx={{ fontSize: '1rem' }} />
+                          <Edit sx={{ fontSize: '14px' }} />
                         </IconButton>
                         <IconButton
                           size="small"
                           onClick={() => onDeleteTransaction(transaction)}
-                          color="error"
-                          sx={{ padding: '0.25rem' }}
+                          sx={{ 
+                            p: 1.5,
+                            color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280',
+                            '&:hover': { color: '#EF4444' }
+                          }}
                         >
-                          <Delete sx={{ fontSize: '1rem' }} />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          onClick={() => onMergeTransaction(transaction)}
-                          color="secondary"
-                          sx={{ padding: '0.25rem' }}
-                        >
-                          <MergeType sx={{ fontSize: '1rem' }} />
+                          <Delete sx={{ fontSize: '14px' }} />
                         </IconButton>
                       </Box>
                     </TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell colSpan={8} sx={{ py: 0, border: 0 }}>
+                    <TableCell colSpan={7} sx={{ px: 4, pb: 2, pt: 0, border: 0, bgcolor: theme.palette.mode === 'dark' ? 'rgba(30, 41, 59, 0.2)' : 'rgba(248, 250, 252, 0.5)' }}>
                       <Collapse in={isExpanded} timeout="auto" unmountOnExit>
-                        <Box sx={{ p: 2, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', position: 'relative' }}>
+                        <Box sx={{ ml: 3, position: 'relative' }}>
                           {isLoading ? (
                             <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
                               <CircularProgress size={20} />
@@ -316,101 +452,114 @@ export default function TransactionsList({
                               No items found for this transaction.
                             </Typography>
                           ) : (
-                            <Box sx={{ position: 'relative' }}>
-                              <TableContainer 
-                                component="div"
-                                ref={(el) => {
-                                  if (el) {
-                                    const topIndicator = el.previousElementSibling as HTMLElement;
-                                    const bottomIndicator = el.nextElementSibling as HTMLElement;
-                                    const isScrollable = el.scrollHeight > el.clientHeight;
-                                    const isAtBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
-                                    if (bottomIndicator) {
-                                      bottomIndicator.style.opacity = isScrollable && !isAtBottom ? '1' : '0';
-                                    }
-                                  }
-                                }}
-                                onScroll={(e) => {
-                                  const target = e.target as HTMLElement;
-                                  const topIndicator = target.previousElementSibling as HTMLElement;
-                                  const bottomIndicator = target.nextElementSibling as HTMLElement;
-                                  if (topIndicator) {
-                                    topIndicator.style.opacity = target.scrollTop > 0 ? '1' : '0';
-                                  }
-                                  if (bottomIndicator) {
-                                    const isScrollable = target.scrollHeight > target.clientHeight;
-                                    const isAtBottom = target.scrollTop + target.clientHeight >= target.scrollHeight - 1;
-                                    bottomIndicator.style.opacity = isScrollable && !isAtBottom ? '1' : '0';
-                                  }
-                                }}
-                                sx={{ 
-                                  width: '100%',
-                                  maxHeight: '400px',
-                                  overflow: 'auto',
-                                  marginLeft: '-16px',
-                                  marginRight: '-16px',
-                                  paddingLeft: '16px',
-                                  paddingRight: '16px',
-                                  '&::-webkit-scrollbar': {
-                                    display: 'none',
-                                    width: 0,
-                                    height: 0,
-                                  },
-                                  '&::-webkit-scrollbar-track': {
-                                    display: 'none',
-                                  },
-                                  '&::-webkit-scrollbar-thumb': {
-                                    display: 'none',
-                                  },
-                                  scrollbarWidth: 'none',
-                                  msOverflowStyle: 'none',
-                                  WebkitOverflowScrolling: 'touch',
-                                }}
-                              >
-                              <Table size="small" sx={{ width: '100%', tableLayout: 'fixed' }}>
-                                <TableHead>
-                                  <TableRow>
-                                    <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem', width: '40px', minWidth: '40px' }}></TableCell>
-                                    <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem', minWidth: '150px' }}>Item Name</TableCell>
-                                    <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem', width: '80px', minWidth: '80px' }}>Quantity</TableCell>
-                                    <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem', width: '120px', minWidth: '120px' }}>Unit Price</TableCell>
-                                    <TableCell align="right" sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem', width: '120px', minWidth: '120px' }}>Total Price</TableCell>
-                                    {billItems.some((item: any) => item.category || (item as TransactionItem).category) && (
-                                      <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem', minWidth: '120px' }}>Category</TableCell>
-                                    )}
-                                    {transactionItems[transaction._id] && transactionItems[transaction._id].length > 0 && (
-                                      <TableCell sx={{ fontWeight: 600, color: theme.palette.text.primary, backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb', fontFamily: "'Inter', sans-serif", fontSize: '0.875rem', width: '100px', minWidth: '100px' }}>Actions</TableCell>
-                                    )}
-                                  </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                  {billItems.map((item: any, itemIndex: number) => {
-                                    const itemId = (item as TransactionItem)._id;
-                                    const apiItem = itemId && transactionItems[transaction._id]
-                                      ? transactionItems[transaction._id].find((apiItem) => apiItem._id === itemId)
-                                      : null;
-                                    const displayItem = apiItem || item;
-                                    
-                                    // Check for missing price fields
-                                    const missingFields = checkMissingPriceFields(displayItem);
-                                    const transactionType = getTransactionType(transaction);
+                            <Box sx={{ 
+                              border: `1px solid ${theme.palette.mode === 'dark' ? '#334155' : '#E2E8F0'}`,
+                              borderRadius: '12px',
+                              overflow: 'hidden',
+                              bgcolor: theme.palette.background.paper,
+                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+                            }}>
+                              <TableContainer>
+                                <Table>
+                                  <TableHead>
+                                    <TableRow sx={{ bgcolor: theme.palette.mode === 'dark' ? 'rgba(30, 41, 59, 0.8)' : 'rgba(248, 250, 252, 0.8)', borderBottom: `1px solid ${theme.palette.mode === 'dark' ? '#334155' : '#F1F5F9'}` }}>
+                                      <TableCell sx={{ 
+                                        px: 2, 
+                                        py: 1.25,
+                                        color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280',
+                                        textTransform: 'uppercase',
+                                        fontSize: '10px',
+                                        fontWeight: 700,
+                                        letterSpacing: '0.025em',
+                                        fontFamily: "'Inter', sans-serif"
+                                      }}>Item Name</TableCell>
+                                      <TableCell align="right" sx={{ 
+                                        px: 2, 
+                                        py: 1.25,
+                                        color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280',
+                                        textTransform: 'uppercase',
+                                        fontSize: '10px',
+                                        fontWeight: 700,
+                                        letterSpacing: '0.025em',
+                                        fontFamily: "'Inter', sans-serif"
+                                      }}>Quantity</TableCell>
+                                      <TableCell align="right" sx={{ 
+                                        px: 2, 
+                                        py: 1.25,
+                                        color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280',
+                                        textTransform: 'uppercase',
+                                        fontSize: '10px',
+                                        fontWeight: 700,
+                                        letterSpacing: '0.025em',
+                                        fontFamily: "'Inter', sans-serif"
+                                      }}>Unit Price</TableCell>
+                                      <TableCell align="right" sx={{ 
+                                        px: 2, 
+                                        py: 1.25,
+                                        color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280',
+                                        textTransform: 'uppercase',
+                                        fontSize: '10px',
+                                        fontWeight: 700,
+                                        letterSpacing: '0.025em',
+                                        fontFamily: "'Inter', sans-serif"
+                                      }}>Total Price</TableCell>
+                                      {billItems.some((item: any) => item.category || (item as TransactionItem).category) && (
+                                        <TableCell sx={{ 
+                                          px: 2, 
+                                          py: 1.25,
+                                          color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280',
+                                          textTransform: 'uppercase',
+                                          fontSize: '10px',
+                                          fontWeight: 700,
+                                          letterSpacing: '0.025em',
+                                          fontFamily: "'Inter', sans-serif"
+                                        }}>Category</TableCell>
+                                      )}
+                                      {transactionItems[transaction._id] && transactionItems[transaction._id].length > 0 && (
+                                        <TableCell align="right" sx={{ 
+                                          px: 2, 
+                                          py: 1.25,
+                                          color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280',
+                                          textTransform: 'uppercase',
+                                          fontSize: '10px',
+                                          fontWeight: 700,
+                                          letterSpacing: '0.025em',
+                                          fontFamily: "'Inter', sans-serif"
+                                        }}>Actions</TableCell>
+                                      )}
+                                    </TableRow>
+                                  </TableHead>
+                                  <TableBody sx={{ '& .MuiTableRow-root': { borderBottom: `1px solid ${theme.palette.mode === 'dark' ? '#1E293B' : '#F1F5F9'}` } }}>
+                                    {billItems.map((item: any, itemIndex: number) => {
+                                      const itemId = (item as TransactionItem)._id;
+                                      const apiItem = itemId && transactionItems[transaction._id]
+                                        ? transactionItems[transaction._id].find((apiItem) => apiItem._id === itemId)
+                                        : null;
+                                      const displayItem = apiItem || item;
+                                      
+                                      // Check for missing price fields
+                                      const missingFields = checkMissingPriceFields(displayItem);
+                                      const transactionType = getTransactionType(transaction);
 
-                                    return (
-                                      <TableRow 
-                                        key={itemId || itemIndex} 
-                                        hover
-                                        sx={getMissingFieldRowStyle(missingFields.hasMissingFields, theme)}
-                                      >
-                                        <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem', width: '40px', minWidth: '40px' }}>
-                                          {transactionType === 'expense' ? (
-                                            <TrendingDown sx={{ fontSize: '1rem', color: theme.palette.error.main }} />
-                                          ) : (
-                                            <TrendingUp sx={{ fontSize: '1rem', color: theme.palette.success.main }} />
-                                          )}
-                                        </TableCell>
-                                        <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem', minWidth: '150px' }}>
-                                          {displayItem.name || 'N/A'}
-                                        </TableCell>
+                                      return (
+                                        <TableRow 
+                                          key={itemId || itemIndex} 
+                                          hover
+                                          sx={{
+                                            ...getMissingFieldRowStyle(missingFields.hasMissingFields, theme),
+                                            '&:hover': {
+                                              bgcolor: theme.palette.mode === 'dark' ? 'rgba(30, 41, 59, 0.4)' : 'rgba(248, 250, 252, 0.8)',
+                                            }
+                                          }}
+                                        >
+                                          <TableCell sx={{ px: 2, py: 1.25 }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                              <TrendingDown sx={{ fontSize: '14px', color: '#EF4444' }} />
+                                              <Typography sx={{ fontSize: '12px', fontWeight: 500, color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif" }}>
+                                                {displayItem.name || 'N/A'}
+                                              </Typography>
+                                            </Box>
+                                          </TableCell>
                                         <EditableItemCell
                                           value={displayItem.quantity}
                                           field="quantity"
@@ -529,7 +678,9 @@ export default function TransactionsList({
             })}
           </TableBody>
         </Table>
-      </TableContainer>
+          </TableContainer>
+        </Box>
+      </Box>
     );
   };
 

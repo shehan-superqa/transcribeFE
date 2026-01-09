@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate, useLocation, Routes, Route, Navigate } from 'react-router-dom';
+import { useNavigate, useLocation, Routes, Route, Navigate, Link } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import {
@@ -8,14 +8,10 @@ import {
   Button,
   Container,
   IconButton,
-  InputAdornment,
   Paper,
-  Tab,
-  Tabs,
   TextField,
   Typography,
   CircularProgress,
-  useMediaQuery,
 } from '@mui/material';
 import { useTheme } from '../contexts/ThemeContext';
 import { useSelector } from 'react-redux';
@@ -48,40 +44,38 @@ import ShoppingListSection from '../components/financial/ShoppingListSection';
 import UserProfileSection from '../components/financial/UserProfileSection';
 import SearchIcon from '@mui/icons-material/Search';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
-import SmartToyIcon from '@mui/icons-material/SmartToy';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
+import AddIcon from '@mui/icons-material/Add';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
+import DonutLargeIcon from '@mui/icons-material/DonutLarge';
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
+import PendingIcon from '@mui/icons-material/Pending';
+import RepeatIcon from '@mui/icons-material/Repeat';
+import ScheduleIcon from '@mui/icons-material/Schedule';
+import InventoryIcon from '@mui/icons-material/Inventory';
+import StoreIcon from '@mui/icons-material/Store';
+import CategoryIcon from '@mui/icons-material/Category';
+import AnalyticsIcon from '@mui/icons-material/Analytics';
+import BarChartIcon from '@mui/icons-material/BarChart';
+import FamilyRestroomIcon from '@mui/icons-material/FamilyRestroom';
+import AccountBalanceWalletOutlinedIcon from '@mui/icons-material/AccountBalanceWalletOutlined';
+import SavingsIcon from '@mui/icons-material/Savings';
+import CreditCardIcon from '@mui/icons-material/CreditCard';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import PersonIcon from '@mui/icons-material/Person';
+import PeopleIcon from '@mui/icons-material/People';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import ChatIcon from '@mui/icons-material/Chat';
+import MemoryIcon from '@mui/icons-material/Memory';
+import EnergyPointsBalance from '../components/common/EnergyPointsBalance';
+import { useAuth } from '../lib/auth';
 import './FinancialToolApp.css';
 
-function a11yProps(index: number) {
-  return {
-    id: `financial-tab-${index}`,
-    'aria-controls': `financial-tabpanel-${index}`,
-  };
-}
-
-// Tab to path mapping
-const TAB_PATHS = [
-  'dashboard',
-  'upload',
-  'transactions',
-  'pending',
-  'recurring',
-  'upcoming',
-  'items',
-  'merchants',
-  'categories',
-  'analytics',
-  'advanced-analytics',
-  'family',
-  'budgets',
-  'savings',
-  'loans',
-  'shopping-lists',
-  'user-profile',
-  'users',
-  'alerts',
-  'ai-chat',
-  'model-status',
-];
 
 // Path to tab index mapping
 const PATH_TO_TAB: Record<string, number> = {
@@ -111,7 +105,6 @@ const PATH_TO_TAB: Record<string, number> = {
 export default function FinancialToolApp() {
   const { user } = useSelector((state: RootState) => state.auth);
   const { theme } = useTheme();
-  const isSmallLayout = useMediaQuery(theme.breakpoints.down('lg'));
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -235,12 +228,6 @@ export default function FinancialToolApp() {
     }
   };
 
-  const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
-    setValue(newValue);
-    const path = TAB_PATHS[newValue] || 'dashboard';
-    navigate(`/financialtool/app/${path}`, { replace: true });
-  };
-
   const handleViewTransactions = () => {
     navigate('/financialtool/app/transactions', { replace: true });
   };
@@ -339,488 +326,1194 @@ export default function FinancialToolApp() {
     );
   }
 
+  const { user: authUser, signOut } = useAuth();
+  const displayUser = user || authUser;
+  const userName = displayUser?.name || displayUser?.email || 'User';
+  const userInitials = userName.slice(0, 2).toUpperCase();
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box className="financial-tool-page">
-        <Container 
-          maxWidth={false} 
-          sx={{ 
-            maxWidth: '100%', 
-            px: { xs: 1, sm: 2, md: 3 },
-            width: '100%',
-            boxSizing: 'border-box',
+      <Box className="financial-tool-page" sx={{ bgcolor: theme.palette.mode === 'dark' ? '#111827' : '#F9FAFB', height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        {/* Top Navigation Bar */}
+        <Box
+          component="nav"
+          sx={{
+            borderBottom: `1px solid ${theme.palette.mode === 'dark' ? '#1F2937' : '#E5E7EB'}`,
+            bgcolor: theme.palette.mode === 'dark' ? '#1F2937' : '#FFFFFF',
+            position: 'sticky',
+            top: 0,
+            zIndex: 50,
           }}
         >
-          <Box className="finance-shell">
-            {/* Top Bar + Navigation */}
-            <Paper
-              elevation={0}
-              className="finance-topbar"
-              sx={{
-                borderRadius: '16px',
-                border: `1px solid ${theme.palette.divider}`,
-                backgroundColor: theme.palette.background.paper,
-                boxShadow: theme.palette.mode === 'dark' ? '0 8px 30px rgba(0,0,0,0.25)' : '0 10px 30px rgba(15, 23, 42, 0.06)',
-                overflow: 'hidden',
-              }}
-            >
-              <Box className="finance-topbarRow">
-                <Box className="finance-brand">
-                  <Avatar
+          <Container maxWidth={false} sx={{ maxWidth: '1600px', mx: 'auto', px: 3, height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    bgcolor: '#6D28D9',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <AccountBalanceWalletIcon sx={{ color: '#FFFFFF', fontSize: 20 }} />
+                </Box>
+                <Typography sx={{ fontSize: '20px', fontWeight: 700, letterSpacing: '-0.02em', color: theme.palette.text.primary }}>
+                  VoiceCrypt.ai
+                </Typography>
+              </Box>
+              <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 6 }}>
+                <Button sx={{ textTransform: 'none', fontSize: '14px', fontWeight: 500, color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#4B5563', '&:hover': { color: '#6D28D9' } }}>
+                  Products
+                </Button>
+                <Button sx={{ textTransform: 'none', fontSize: '14px', fontWeight: 500, color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#4B5563', '&:hover': { color: '#6D28D9' } }}>
+                  Tools
+                </Button>
+                <Button sx={{ textTransform: 'none', fontSize: '14px', fontWeight: 500, color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#4B5563', '&:hover': { color: '#6D28D9' } }}>
+                  Pricing
+                </Button>
+              </Box>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Box sx={{ display: { xs: 'none', lg: 'flex' }, alignItems: 'center', bgcolor: theme.palette.mode === 'dark' ? '#1F2937' : '#F3F4F6', px: 1.5, py: 0.75, borderRadius: '9999px' }}>
+                <EnergyPointsBalance showLabel={false} />
+              </Box>
+              <IconButton
+                onClick={() => {
+                  const html = document.documentElement;
+                  html.classList.toggle('dark');
+                }}
+                sx={{
+                  p: 1,
+                  '&:hover': { bgcolor: theme.palette.mode === 'dark' ? '#374151' : '#F3F4F6' },
+                  borderRadius: '50%',
+                }}
+              >
+                <DarkModeIcon sx={{ color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#4B5563' }} />
+              </IconButton>
+              {displayUser ? (
+                <>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, borderLeft: `1px solid ${theme.palette.mode === 'dark' ? '#374151' : '#E5E7EB'}`, ml: 1, pl: 3 }}>
+                    <Box sx={{ textAlign: 'right', display: { xs: 'none', sm: 'block' } }}>
+                      <Typography sx={{ fontSize: '14px', fontWeight: 600, color: theme.palette.text.primary }}>
+                        {userName.split('@')[0]}
+                      </Typography>
+                      {displayUser.isEmailVerified && (
+                        <Typography sx={{ fontSize: '10px', color: '#10B981', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          Verified
+                        </Typography>
+                      )}
+                    </Box>
+                    <Avatar
+                      sx={{
+                        width: 40,
+                        height: 40,
+                        bgcolor: theme.palette.mode === 'dark' ? '#374151' : '#E5E7EB',
+                        color: '#6D28D9',
+                        fontWeight: 700,
+                      }}
+                    >
+                      {userInitials}
+                    </Avatar>
+                  </Box>
+                  <Button
+                    onClick={() => {
+                      signOut();
+                      navigate('/auth/login');
+                    }}
                     sx={{
-                      width: 36,
-                      height: 36,
-                      bgcolor: theme.palette.primary.main,
-                      color: theme.palette.mode === 'dark' ? '#000' : '#fff',
-                      fontWeight: 800,
+                      textTransform: 'none',
+                      fontSize: '14px',
+                      fontWeight: 500,
+                      color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#4B5563',
+                      '&:hover': {
+                        color: '#6D28D9',
+                        bgcolor: theme.palette.mode === 'dark' ? '#374151' : '#F3F4F6',
+                      },
                     }}
                   >
-                    F
-                  </Avatar>
-                  <Box sx={{ minWidth: 0 }}>
-                    <Typography
-                      variant="body1"
-                      sx={{
-                        fontFamily: "'Inter', sans-serif",
-                        fontWeight: 800,
-                        letterSpacing: '-0.02em',
-                        lineHeight: 1.1,
-                        color: theme.palette.text.primary,
-                      }}
-                      noWrap
-                    >
-                      Fiscally
+                    Sign Out
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    onClick={() => navigate('/auth/signup')}
+                    sx={{
+                      textTransform: 'none',
+                      fontSize: '14px',
+                      fontWeight: 500,
+                      color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#4B5563',
+                      '&:hover': {
+                        color: '#6D28D9',
+                        bgcolor: theme.palette.mode === 'dark' ? '#374151' : '#F3F4F6',
+                      },
+                    }}
+                  >
+                    Sign up
+                  </Button>
+                  <Button
+                    onClick={() => navigate('/auth/login')}
+                    sx={{
+                      textTransform: 'none',
+                      fontSize: '14px',
+                      fontWeight: 500,
+                      color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#4B5563',
+                      '&:hover': {
+                        color: '#6D28D9',
+                        bgcolor: theme.palette.mode === 'dark' ? '#374151' : '#F3F4F6',
+                      },
+                    }}
+                  >
+                    Sign in
+                  </Button>
+                </>
+              )}
+            </Box>
+          </Container>
+        </Box>
+
+        {/* Dashboard Header Section */}
+        <Box
+          sx={{
+            borderBottom: `1px solid ${theme.palette.mode === 'dark' ? '#1F2937' : '#E5E7EB'}`,
+            bgcolor: theme.palette.mode === 'dark' ? '#1F2937' : '#FFFFFF',
+          }}
+        >
+          <Container maxWidth={false} sx={{ maxWidth: '1600px', mx: 'auto', px: 6, py: 1, display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: { md: 'center' }, justifyContent: 'space-between', gap: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Box
+                sx={{
+                  width: 32,
+                  height: 32,
+                  bgcolor: 'rgba(109, 40, 217, 0.1)',
+                  color: '#6D28D9',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <AccountBalanceIcon sx={{ fontSize: 18 }} />
+              </Box>
+              <Box>
+                <Typography sx={{ fontSize: '16px', fontWeight: 700, color: theme.palette.text.primary, lineHeight: 1.2 }}>
+                  Fiscally Dashboard
+                </Typography>
+                <Typography sx={{ fontSize: '12px', color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280', lineHeight: 1.2 }}>
+                  Overview of your personal finances
+                </Typography>
+              </Box>
+            </Box>
+            <Box sx={{ position: 'relative', flex: 1, maxWidth: { md: '528px' }, mx: { md: 'auto' } }}>
+              <SearchIcon sx={{ position: 'absolute', left: 3, top: '50%', transform: 'translateY(-50%)', color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#9CA3AF', fontSize: 16 }} />
+              <TextField
+                fullWidth
+                size="small"
+                placeholder="Ask me anything or search transactions..."
+                value={askBarValue}
+                onChange={(e) => setAskBarValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAskSubmit();
+                  }
+                }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    pl: 8,
+                    pr: 3,
+                    py: 1,
+                    bgcolor: theme.palette.mode === 'dark' ? '#1F2937' : '#F9FAFB',
+                    border: `1px solid ${theme.palette.mode === 'dark' ? '#374151' : '#E5E7EB'}`,
+                    borderRadius: '8px',
+                    fontSize: '13px',
+                    '& fieldset': {
+                      border: 'none',
+                    },
+                    '&:hover': {
+                      borderColor: '#6D28D9',
+                      '& fieldset': {
+                        border: 'none',
+                      },
+                    },
+                    '&.Mui-focused': {
+                      borderColor: '#6D28D9',
+                      boxShadow: '0 0 0 2px rgba(109, 40, 217, 0.1)',
+                      '& fieldset': {
+                        border: 'none',
+                      },
+                    },
+                  },
+                }}
+              />
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<CalendarMonthIcon sx={{ fontSize: 12 }} />}
+                sx={{
+                  textTransform: 'none',
+                  borderRadius: '6px',
+                  fontSize: '13px',
+                  fontWeight: 500,
+                  px: 3,
+                  py: 1,
+                  borderColor: theme.palette.mode === 'dark' ? '#374151' : '#E5E7EB',
+                  bgcolor: theme.palette.mode === 'dark' ? '#1F2937' : '#F9FAFB',
+                  color: theme.palette.text.primary,
+                  '&:hover': {
+                    borderColor: theme.palette.mode === 'dark' ? '#4B5563' : '#D1D5DB',
+                    bgcolor: theme.palette.mode === 'dark' ? '#374151' : '#F3F4F6',
+                  },
+                }}
+                onClick={handleViewAnalytics}
+              >
+                Monthly
+              </Button>
+            </Box>
+          </Container>
+        </Box>
+
+        {/* Main Content Area */}
+        <Box
+          sx={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+            minHeight: 0,
+          }}
+        >
+          <Container 
+            maxWidth={false} 
+            sx={{ 
+              maxWidth: '1600px', 
+              mx: 'auto', 
+              px: 6, 
+              py: 6,
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+              minHeight: 0,
+            }}
+          >
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '64px 1fr 288px' }, gap: 6, flex: 1, overflow: 'hidden', minHeight: 0 }}>
+            {/* Left Sidebar Navigation */}
+            <Box
+              sx={{
+                display: { xs: 'flex', lg: 'flex' },
+                flexDirection: { xs: 'row', lg: 'column' },
+                gap: 0.5,
+                overflowX: { xs: 'auto', lg: 'hidden' },
+                overflowY: { xs: 'visible', lg: 'auto' },
+                pb: { xs: 1, lg: 0 },
+                maxHeight: { lg: 'calc(100vh - 200px)' },
+                width: { lg: '64px' },
+                minWidth: { lg: '64px' },
+                maxWidth: { lg: '64px' },
+                scrollbarWidth: 'thin',
+                scrollbarColor: `${theme.palette.mode === 'dark' ? '#374151' : '#D1D5DB'} transparent`,
+                '&::-webkit-scrollbar': {
+                  width: '4px',
+                },
+                '&::-webkit-scrollbar-track': {
+                  background: 'transparent',
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  background: theme.palette.mode === 'dark' ? '#374151' : '#D1D5DB',
+                  borderRadius: '2px',
+                },
+                '&::-webkit-scrollbar-thumb:hover': {
+                  background: theme.palette.mode === 'dark' ? '#4B5563' : '#9CA3AF',
+                },
+              }}
+            >
+              <Box
+                component={Link}
+                to="/financialtool/app/dashboard"
+                onClick={() => setValue(0)}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  p: 1.5,
+                  borderRadius: '12px',
+                  width: { lg: '56px' },
+                  minWidth: { lg: '56px' },
+                  height: { lg: '56px' },
+                  bgcolor: value === 0 ? '#6D28D9' : 'transparent',
+                  color: value === 0 ? '#FFFFFF' : (theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280'),
+                  textDecoration: 'none',
+                  '&:hover': {
+                    bgcolor: value === 0 ? '#7C3AED' : (theme.palette.mode === 'dark' ? '#374151' : '#F3F4F6'),
+                  },
+                }}
+              >
+                <DashboardIcon sx={{ fontSize: { lg: '20px' } }} />
+                <Typography sx={{ fontSize: '10px', fontWeight: 500, mt: 0.5, lineHeight: 1.2, textAlign: 'center' }}>Dashboard</Typography>
+              </Box>
+              <Box
+                component={Link}
+                to="/financialtool/app/upload"
+                onClick={() => setValue(1)}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  p: 1.5,
+                  borderRadius: '12px',
+                  width: { lg: '56px' },
+                  minWidth: { lg: '56px' },
+                  height: { lg: '56px' },
+                  bgcolor: value === 1 ? '#6D28D9' : 'transparent',
+                  color: value === 1 ? '#FFFFFF' : (theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280'),
+                  textDecoration: 'none',
+                  '&:hover': {
+                    bgcolor: value === 1 ? '#7C3AED' : (theme.palette.mode === 'dark' ? '#374151' : '#F3F4F6'),
+                  },
+                }}
+              >
+                <CloudUploadIcon sx={{ fontSize: { lg: '20px' } }} />
+                <Typography sx={{ fontSize: '10px', fontWeight: 500, mt: 0.5, lineHeight: 1.2, textAlign: 'center' }}>Upload Bills</Typography>
+              </Box>
+              <IconButton
+                onClick={() => {
+                  navigate('/financialtool/app/transactions');
+                  setValue(2);
+                }}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  p: 1.5,
+                  borderRadius: '12px',
+                  width: { lg: '56px' },
+                  minWidth: { lg: '56px' },
+                  height: { lg: '56px' },
+                  bgcolor: value === 2 ? '#6D28D9' : 'transparent',
+                  color: value === 2 ? '#FFFFFF' : (theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280'),
+                  '&:hover': {
+                    bgcolor: value === 2 ? '#7C3AED' : (theme.palette.mode === 'dark' ? '#374151' : '#F3F4F6'),
+                  },
+                }}
+              >
+                <SwapHorizIcon sx={{ fontSize: { lg: '20px' } }} />
+                <Typography sx={{ fontSize: '10px', fontWeight: 500, mt: 0.5, lineHeight: 1.2, textAlign: 'center' }}>Transactions</Typography>
+              </IconButton>
+              <IconButton
+                onClick={() => {
+                  navigate('/financialtool/app/pending');
+                  setValue(3);
+                }}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  p: 1.5,
+                  borderRadius: '12px',
+                  width: { lg: '56px' },
+                  minWidth: { lg: '56px' },
+                  height: { lg: '56px' },
+                  bgcolor: value === 3 ? '#6D28D9' : 'transparent',
+                  color: value === 3 ? '#FFFFFF' : (theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280'),
+                  '&:hover': {
+                    bgcolor: value === 3 ? '#7C3AED' : (theme.palette.mode === 'dark' ? '#374151' : '#F3F4F6'),
+                  },
+                }}
+              >
+                <PendingIcon sx={{ fontSize: { lg: '20px' } }} />
+                <Typography sx={{ fontSize: '10px', fontWeight: 500, mt: 0.5, lineHeight: 1.2, textAlign: 'center' }}>Pending</Typography>
+              </IconButton>
+              <IconButton
+                onClick={() => {
+                  navigate('/financialtool/app/recurring');
+                  setValue(4);
+                }}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  p: 1.5,
+                  borderRadius: '12px',
+                  width: { lg: '56px' },
+                  minWidth: { lg: '56px' },
+                  height: { lg: '56px' },
+                  bgcolor: value === 4 ? '#6D28D9' : 'transparent',
+                  color: value === 4 ? '#FFFFFF' : (theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280'),
+                  '&:hover': {
+                    bgcolor: value === 4 ? '#7C3AED' : (theme.palette.mode === 'dark' ? '#374151' : '#F3F4F6'),
+                  },
+                }}
+              >
+                <RepeatIcon sx={{ fontSize: { lg: '20px' } }} />
+                <Typography sx={{ fontSize: '10px', fontWeight: 500, mt: 0.5, lineHeight: 1.2, textAlign: 'center' }}>Recurring</Typography>
+              </IconButton>
+              <IconButton
+                onClick={() => {
+                  navigate('/financialtool/app/upcoming');
+                  setValue(5);
+                }}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  p: 1.5,
+                  borderRadius: '12px',
+                  width: { lg: '56px' },
+                  minWidth: { lg: '56px' },
+                  height: { lg: '56px' },
+                  bgcolor: value === 5 ? '#6D28D9' : 'transparent',
+                  color: value === 5 ? '#FFFFFF' : (theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280'),
+                  '&:hover': {
+                    bgcolor: value === 5 ? '#7C3AED' : (theme.palette.mode === 'dark' ? '#374151' : '#F3F4F6'),
+                  },
+                }}
+              >
+                <ScheduleIcon sx={{ fontSize: { lg: '20px' } }} />
+                <Typography sx={{ fontSize: '10px', fontWeight: 500, mt: 0.5, lineHeight: 1.2, textAlign: 'center' }}>Upcoming</Typography>
+              </IconButton>
+              <IconButton
+                onClick={() => {
+                  navigate('/financialtool/app/items');
+                  setValue(6);
+                }}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  p: 1.5,
+                  borderRadius: '12px',
+                  width: { lg: '56px' },
+                  minWidth: { lg: '56px' },
+                  height: { lg: '56px' },
+                  bgcolor: value === 6 ? '#6D28D9' : 'transparent',
+                  color: value === 6 ? '#FFFFFF' : (theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280'),
+                  '&:hover': {
+                    bgcolor: value === 6 ? '#7C3AED' : (theme.palette.mode === 'dark' ? '#374151' : '#F3F4F6'),
+                  },
+                }}
+              >
+                <InventoryIcon sx={{ fontSize: { lg: '20px' } }} />
+                <Typography sx={{ fontSize: '10px', fontWeight: 500, mt: 0.5, lineHeight: 1.2, textAlign: 'center' }}>Items</Typography>
+              </IconButton>
+              <IconButton
+                onClick={() => {
+                  navigate('/financialtool/app/merchants');
+                  setValue(7);
+                }}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  p: 1.5,
+                  borderRadius: '12px',
+                  width: { lg: '56px' },
+                  minWidth: { lg: '56px' },
+                  height: { lg: '56px' },
+                  bgcolor: value === 7 ? '#6D28D9' : 'transparent',
+                  color: value === 7 ? '#FFFFFF' : (theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280'),
+                  '&:hover': {
+                    bgcolor: value === 7 ? '#7C3AED' : (theme.palette.mode === 'dark' ? '#374151' : '#F3F4F6'),
+                  },
+                }}
+              >
+                <StoreIcon sx={{ fontSize: { lg: '20px' } }} />
+                <Typography sx={{ fontSize: '10px', fontWeight: 500, mt: 0.5, lineHeight: 1.2, textAlign: 'center' }}>Merchants</Typography>
+              </IconButton>
+              <IconButton
+                onClick={() => {
+                  navigate('/financialtool/app/categories');
+                  setValue(8);
+                }}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  p: 1.5,
+                  borderRadius: '12px',
+                  width: { lg: '56px' },
+                  minWidth: { lg: '56px' },
+                  height: { lg: '56px' },
+                  bgcolor: value === 8 ? '#6D28D9' : 'transparent',
+                  color: value === 8 ? '#FFFFFF' : (theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280'),
+                  '&:hover': {
+                    bgcolor: value === 8 ? '#7C3AED' : (theme.palette.mode === 'dark' ? '#374151' : '#F3F4F6'),
+                  },
+                }}
+              >
+                <CategoryIcon sx={{ fontSize: { lg: '20px' } }} />
+                <Typography sx={{ fontSize: '10px', fontWeight: 500, mt: 0.5, lineHeight: 1.2, textAlign: 'center' }}>Categories</Typography>
+              </IconButton>
+              <IconButton
+                onClick={() => {
+                  navigate('/financialtool/app/analytics');
+                  setValue(9);
+                }}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  p: 1.5,
+                  borderRadius: '12px',
+                  width: { lg: '56px' },
+                  minWidth: { lg: '56px' },
+                  height: { lg: '56px' },
+                  bgcolor: value === 9 ? '#6D28D9' : 'transparent',
+                  color: value === 9 ? '#FFFFFF' : (theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280'),
+                  '&:hover': {
+                    bgcolor: value === 9 ? '#7C3AED' : (theme.palette.mode === 'dark' ? '#374151' : '#F3F4F6'),
+                  },
+                }}
+              >
+                <AnalyticsIcon sx={{ fontSize: { lg: '20px' } }} />
+                <Typography sx={{ fontSize: '10px', fontWeight: 500, mt: 0.5, lineHeight: 1.2, textAlign: 'center' }}>Analytics</Typography>
+              </IconButton>
+              <IconButton
+                onClick={() => {
+                  navigate('/financialtool/app/advanced-analytics');
+                  setValue(10);
+                }}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  p: 1.5,
+                  borderRadius: '12px',
+                  width: { lg: '56px' },
+                  minWidth: { lg: '56px' },
+                  height: { lg: '56px' },
+                  bgcolor: value === 10 ? '#6D28D9' : 'transparent',
+                  color: value === 10 ? '#FFFFFF' : (theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280'),
+                  '&:hover': {
+                    bgcolor: value === 10 ? '#7C3AED' : (theme.palette.mode === 'dark' ? '#374151' : '#F3F4F6'),
+                  },
+                }}
+              >
+                <BarChartIcon sx={{ fontSize: { lg: '20px' } }} />
+                <Typography sx={{ fontSize: '10px', fontWeight: 500, mt: 0.5, lineHeight: 1.2, textAlign: 'center' }}>Advanced Analytics</Typography>
+              </IconButton>
+              <IconButton
+                onClick={() => {
+                  navigate('/financialtool/app/family');
+                  setValue(11);
+                }}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  p: 1.5,
+                  borderRadius: '12px',
+                  width: { lg: '56px' },
+                  minWidth: { lg: '56px' },
+                  height: { lg: '56px' },
+                  bgcolor: value === 11 ? '#6D28D9' : 'transparent',
+                  color: value === 11 ? '#FFFFFF' : (theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280'),
+                  '&:hover': {
+                    bgcolor: value === 11 ? '#7C3AED' : (theme.palette.mode === 'dark' ? '#374151' : '#F3F4F6'),
+                  },
+                }}
+              >
+                <FamilyRestroomIcon sx={{ fontSize: { lg: '20px' } }} />
+                <Typography sx={{ fontSize: '10px', fontWeight: 500, mt: 0.5, lineHeight: 1.2, textAlign: 'center' }}>Family</Typography>
+              </IconButton>
+              <IconButton
+                onClick={() => {
+                  navigate('/financialtool/app/budgets');
+                  setValue(12);
+                }}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  p: 1.5,
+                  borderRadius: '12px',
+                  width: { lg: '56px' },
+                  minWidth: { lg: '56px' },
+                  height: { lg: '56px' },
+                  bgcolor: value === 12 ? '#6D28D9' : 'transparent',
+                  color: value === 12 ? '#FFFFFF' : (theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280'),
+                  '&:hover': {
+                    bgcolor: value === 12 ? '#7C3AED' : (theme.palette.mode === 'dark' ? '#374151' : '#F3F4F6'),
+                  },
+                }}
+              >
+                <AccountBalanceWalletOutlinedIcon sx={{ fontSize: { lg: '20px' } }} />
+                <Typography sx={{ fontSize: '10px', fontWeight: 500, mt: 0.5, lineHeight: 1.2, textAlign: 'center' }}>Budgets</Typography>
+              </IconButton>
+              <IconButton
+                onClick={() => {
+                  navigate('/financialtool/app/savings');
+                  setValue(13);
+                }}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  p: 1.5,
+                  borderRadius: '12px',
+                  width: { lg: '56px' },
+                  minWidth: { lg: '56px' },
+                  height: { lg: '56px' },
+                  bgcolor: value === 13 ? '#6D28D9' : 'transparent',
+                  color: value === 13 ? '#FFFFFF' : (theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280'),
+                  '&:hover': {
+                    bgcolor: value === 13 ? '#7C3AED' : (theme.palette.mode === 'dark' ? '#374151' : '#F3F4F6'),
+                  },
+                }}
+              >
+                <SavingsIcon sx={{ fontSize: { lg: '20px' } }} />
+                <Typography sx={{ fontSize: '10px', fontWeight: 500, mt: 0.5, lineHeight: 1.2, textAlign: 'center' }}>Savings</Typography>
+              </IconButton>
+              <IconButton
+                onClick={() => {
+                  navigate('/financialtool/app/loans');
+                  setValue(14);
+                }}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  p: 1.5,
+                  borderRadius: '12px',
+                  width: { lg: '56px' },
+                  minWidth: { lg: '56px' },
+                  height: { lg: '56px' },
+                  bgcolor: value === 14 ? '#6D28D9' : 'transparent',
+                  color: value === 14 ? '#FFFFFF' : (theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280'),
+                  '&:hover': {
+                    bgcolor: value === 14 ? '#7C3AED' : (theme.palette.mode === 'dark' ? '#374151' : '#F3F4F6'),
+                  },
+                }}
+              >
+                <CreditCardIcon sx={{ fontSize: { lg: '20px' } }} />
+                <Typography sx={{ fontSize: '10px', fontWeight: 500, mt: 0.5, lineHeight: 1.2, textAlign: 'center' }}>Loans</Typography>
+              </IconButton>
+              <IconButton
+                onClick={() => {
+                  navigate('/financialtool/app/shopping-lists');
+                  setValue(15);
+                }}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  p: 1.5,
+                  borderRadius: '12px',
+                  width: { lg: '56px' },
+                  minWidth: { lg: '56px' },
+                  height: { lg: '56px' },
+                  bgcolor: value === 15 ? '#6D28D9' : 'transparent',
+                  color: value === 15 ? '#FFFFFF' : (theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280'),
+                  '&:hover': {
+                    bgcolor: value === 15 ? '#7C3AED' : (theme.palette.mode === 'dark' ? '#374151' : '#F3F4F6'),
+                  },
+                }}
+              >
+                <ShoppingCartIcon sx={{ fontSize: { lg: '20px' } }} />
+                <Typography sx={{ fontSize: '10px', fontWeight: 500, mt: 0.5, lineHeight: 1.2, textAlign: 'center' }}>Shopping Lists</Typography>
+              </IconButton>
+              <IconButton
+                onClick={() => {
+                  navigate('/financialtool/app/user-profile');
+                  setValue(16);
+                }}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  p: 1.5,
+                  borderRadius: '12px',
+                  width: { lg: '56px' },
+                  minWidth: { lg: '56px' },
+                  height: { lg: '56px' },
+                  bgcolor: value === 16 ? '#6D28D9' : 'transparent',
+                  color: value === 16 ? '#FFFFFF' : (theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280'),
+                  '&:hover': {
+                    bgcolor: value === 16 ? '#7C3AED' : (theme.palette.mode === 'dark' ? '#374151' : '#F3F4F6'),
+                  },
+                }}
+              >
+                <PersonIcon sx={{ fontSize: { lg: '20px' } }} />
+                <Typography sx={{ fontSize: '10px', fontWeight: 500, mt: 0.5, lineHeight: 1.2, textAlign: 'center' }}>User Profile</Typography>
+              </IconButton>
+              <IconButton
+                onClick={() => {
+                  navigate('/financialtool/app/users');
+                  setValue(17);
+                }}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  p: 1.5,
+                  borderRadius: '12px',
+                  width: { lg: '56px' },
+                  minWidth: { lg: '56px' },
+                  height: { lg: '56px' },
+                  bgcolor: value === 17 ? '#6D28D9' : 'transparent',
+                  color: value === 17 ? '#FFFFFF' : (theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280'),
+                  '&:hover': {
+                    bgcolor: value === 17 ? '#7C3AED' : (theme.palette.mode === 'dark' ? '#374151' : '#F3F4F6'),
+                  },
+                }}
+              >
+                <PeopleIcon sx={{ fontSize: { lg: '20px' } }} />
+                <Typography sx={{ fontSize: '10px', fontWeight: 500, mt: 0.5, lineHeight: 1.2, textAlign: 'center' }}>Users</Typography>
+              </IconButton>
+              <IconButton
+                onClick={() => {
+                  navigate('/financialtool/app/alerts');
+                  setValue(18);
+                }}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  p: 1.5,
+                  borderRadius: '12px',
+                  width: { lg: '56px' },
+                  minWidth: { lg: '56px' },
+                  height: { lg: '56px' },
+                  bgcolor: value === 18 ? '#6D28D9' : 'transparent',
+                  color: value === 18 ? '#FFFFFF' : (theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280'),
+                  '&:hover': {
+                    bgcolor: value === 18 ? '#7C3AED' : (theme.palette.mode === 'dark' ? '#374151' : '#F3F4F6'),
+                  },
+                }}
+              >
+                <NotificationsIcon sx={{ fontSize: { lg: '20px' } }} />
+                <Typography sx={{ fontSize: '10px', fontWeight: 500, mt: 0.5, lineHeight: 1.2, textAlign: 'center' }}>Alerts</Typography>
+              </IconButton>
+              <IconButton
+                onClick={() => {
+                  navigate('/financialtool/app/ai-chat');
+                  setValue(19);
+                }}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  p: 1.5,
+                  borderRadius: '12px',
+                  width: { lg: '56px' },
+                  minWidth: { lg: '56px' },
+                  height: { lg: '56px' },
+                  bgcolor: value === 19 ? '#6D28D9' : 'transparent',
+                  color: value === 19 ? '#FFFFFF' : (theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280'),
+                  '&:hover': {
+                    bgcolor: value === 19 ? '#7C3AED' : (theme.palette.mode === 'dark' ? '#374151' : '#F3F4F6'),
+                  },
+                }}
+              >
+                <ChatIcon sx={{ fontSize: { lg: '20px' } }} />
+                <Typography sx={{ fontSize: '10px', fontWeight: 500, mt: 0.5, lineHeight: 1.2, textAlign: 'center' }}>AI Chat</Typography>
+              </IconButton>
+              <IconButton
+                onClick={() => {
+                  navigate('/financialtool/app/model-status');
+                  setValue(20);
+                }}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  p: 1.5,
+                  borderRadius: '12px',
+                  width: { lg: '56px' },
+                  minWidth: { lg: '56px' },
+                  height: { lg: '56px' },
+                  bgcolor: value === 20 ? '#6D28D9' : 'transparent',
+                  color: value === 20 ? '#FFFFFF' : (theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280'),
+                  '&:hover': {
+                    bgcolor: value === 20 ? '#7C3AED' : (theme.palette.mode === 'dark' ? '#374151' : '#F3F4F6'),
+                  },
+                }}
+              >
+                <MemoryIcon sx={{ fontSize: { lg: '20px' } }} />
+                <Typography sx={{ fontSize: '10px', fontWeight: 500, mt: 0.5, lineHeight: 1.2, textAlign: 'center' }}>Model Status</Typography>
+              </IconButton>
+            </Box>
+
+            {/* Main Content */}
+            <Box sx={{ minWidth: 0, overflow: 'auto', flex: 1, display: 'flex', flexDirection: 'column' }}>
+              <Routes>
+                <Route path="/" element={<Navigate to="/financialtool/app/dashboard" replace />} />
+                <Route path="dashboard" element={
+                  <DashboardOverview
+                    onViewTransactions={handleViewTransactions}
+                    onViewAnalytics={handleViewAnalytics}
+                    onUploadClick={handleUploadClick}
+                    onViewBudgets={handleViewBudgets}
+                    categories={categories as any}
+                  />
+                } />
+                <Route path="upload" element={
+                  <EnhancedBillUploadSection
+                    onTransactionCreated={handleTransactionCreated}
+                    categories={categories}
+                  />
+                } />
+                <Route path="transactions" element={
+                  <TransactionsSection
+                    transactions={transactions}
+                    merchants={merchants}
+                    categories={categories}
+                    onTransactionsChange={handleTransactionsChange}
+                    onFiltersChange={handleFiltersChange}
+                  />
+                } />
+                <Route path="pending" element={<PendingTransactionsSection />} />
+                <Route path="recurring" element={<RecurringPaymentsSection />} />
+                <Route path="upcoming" element={<UpcomingPaymentsSection />} />
+                <Route path="items" element={<ItemsSection />} />
+                <Route path="merchants" element={<EnhancedMerchantsSection />} />
+                <Route path="categories" element={<EnhancedCategorySection />} />
+                <Route path="analytics" element={<AnalyticsSection />} />
+                <Route path="advanced-analytics" element={<AdvancedAnalyticsSection />} />
+                <Route path="family" element={<MultiUserAnalyticsSection />} />
+                <Route path="budgets" element={
+                  <BudgetSection categories={categories} onBudgetChange={handleTransactionsChange} />
+                } />
+                <Route path="savings" element={<SavingsSection />} />
+                <Route path="loans" element={<LoansSection />} />
+                <Route path="shopping-lists" element={<ShoppingListSection />} />
+                <Route path="user-profile" element={<UserProfileSection />} />
+                <Route path="users" element={<UserManagementSection />} />
+                <Route path="alerts" element={
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <AlertsPanel />
+                    <CategoryCapSection categories={categories} onCapChange={handleTransactionsChange} />
+                  </Box>
+                } />
+                <Route path="ai-chat" element={<AIChatSection />} />
+                <Route path="model-status" element={<ModelStatusSection />} />
+                <Route path="*" element={<Navigate to="/financialtool/app/dashboard" replace />} />
+              </Routes>
+            </Box>
+
+            {/* Right Sidebar */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              {/* Account Overview */}
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 3,
+                  borderRadius: '16px',
+                  border: `1px solid ${theme.palette.mode === 'dark' ? '#374151' : '#E5E7EB'}`,
+                  bgcolor: theme.palette.mode === 'dark' ? '#1F2937' : '#FFFFFF',
+                  boxShadow: theme.palette.mode === 'dark' ? 'none' : '0 1px 3px rgba(0, 0, 0, 0.05)',
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    mb: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    color: theme.palette.text.primary,
+                  }}
+                >
+                  <DonutLargeIcon sx={{ color: '#6D28D9', fontSize: 18 }} />
+                  Account Overview
+                </Typography>
+                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+                  <Box sx={{ p: 1.5, bgcolor: theme.palette.mode === 'dark' ? '#374151' : '#F9FAFB', borderRadius: '12px' }}>
+                    <Typography sx={{ fontSize: '10px', color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', mb: 0.5 }}>
+                      User
                     </Typography>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        fontFamily: "'Inter', sans-serif",
-                        color: theme.palette.text.secondary,
-                        display: 'block',
-                        lineHeight: 1.2,
-                      }}
-                      noWrap
-                    >
-                      Financial Dashboard
+                    <Typography sx={{ fontSize: '14px', fontWeight: 700, color: theme.palette.text.primary, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {userName.split('@')[0]}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ p: 1.5, bgcolor: theme.palette.mode === 'dark' ? '#374151' : '#F9FAFB', borderRadius: '12px' }}>
+                    <Typography sx={{ fontSize: '10px', color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', mb: 0.5 }}>
+                      Total Tx
+                    </Typography>
+                    <Typography sx={{ fontSize: '14px', fontWeight: 700, color: theme.palette.text.primary }}>
+                      {transactions.length}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ p: 1.5, bgcolor: theme.palette.mode === 'dark' ? '#374151' : '#F9FAFB', borderRadius: '12px' }}>
+                    <Typography sx={{ fontSize: '10px', color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', mb: 0.5 }}>
+                      Categories
+                    </Typography>
+                    <Typography sx={{ fontSize: '14px', fontWeight: 700, color: theme.palette.text.primary }}>
+                      {categories.length}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ p: 1.5, bgcolor: theme.palette.mode === 'dark' ? '#374151' : '#F9FAFB', borderRadius: '12px' }}>
+                    <Typography sx={{ fontSize: '10px', color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', mb: 0.5 }}>
+                      Merchants
+                    </Typography>
+                    <Typography sx={{ fontSize: '14px', fontWeight: 700, color: theme.palette.text.primary }}>
+                      {merchants.length}
                     </Typography>
                   </Box>
                 </Box>
+              </Paper>
 
-                <Box className="finance-ask">
-                  <TextField
-                    fullWidth
-                    size="small"
-                    placeholder="Ask me anything..."
-                    value={askBarValue}
-                    onChange={(e) => setAskBarValue(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        handleAskSubmit();
-                      }
+              {/* Quick Actions */}
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 3,
+                  borderRadius: '16px',
+                  border: `1px solid ${theme.palette.mode === 'dark' ? '#374151' : '#E5E7EB'}`,
+                  bgcolor: theme.palette.mode === 'dark' ? '#1F2937' : '#FFFFFF',
+                  boxShadow: theme.palette.mode === 'dark' ? 'none' : '0 1px 3px rgba(0, 0, 0, 0.05)',
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    mb: 2,
+                    color: theme.palette.text.primary,
+                  }}
+                >
+                  Quick Actions
+                </Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                  <Button
+                    variant="contained"
+                    onClick={handleUploadClick}
+                    startIcon={<CloudUploadIcon />}
+                    sx={{
+                      bgcolor: '#6D28D9',
+                      color: '#FFFFFF',
+                      fontWeight: 700,
+                      py: 1.5,
+                      borderRadius: '12px',
+                      textTransform: 'none',
+                      fontSize: '14px',
+                      boxShadow: '0 4px 6px rgba(109, 40, 217, 0.2)',
+                      '&:hover': {
+                        bgcolor: '#7C3AED',
+                        boxShadow: '0 6px 8px rgba(109, 40, 217, 0.3)',
+                      },
                     }}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <SearchIcon fontSize="small" />
-                        </InputAdornment>
-                      ),
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <IconButton
-                            size="small"
-                            aria-label="Ask AI"
-                            onClick={handleAskSubmit}
-                            edge="end"
-                          >
-                            <SmartToyIcon fontSize="small" />
-                          </IconButton>
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                </Box>
-
-                <Box className="finance-actions">
+                  >
+                    Upload Bill
+                  </Button>
                   <Button
                     variant="outlined"
-                    size="small"
-                    startIcon={<CalendarMonthIcon />}
-                    sx={{ textTransform: 'none', borderRadius: '10px' }}
-                    onClick={handleViewAnalytics}
+                    onClick={() => setShowManualTransactionDialog(true)}
+                    startIcon={<AddIcon />}
+                    sx={{
+                      borderColor: theme.palette.mode === 'dark' ? '#374151' : '#E5E7EB',
+                      bgcolor: theme.palette.mode === 'dark' ? '#1F2937' : '#FFFFFF',
+                      color: theme.palette.text.primary,
+                      py: 1.25,
+                      borderRadius: '12px',
+                      textTransform: 'none',
+                      fontSize: '14px',
+                      fontWeight: 500,
+                      '&:hover': {
+                        borderColor: theme.palette.mode === 'dark' ? '#4B5563' : '#D1D5DB',
+                        bgcolor: theme.palette.mode === 'dark' ? '#374151' : '#F9FAFB',
+                      },
+                    }}
                   >
-                    Monthly
+                    Manual Transaction
                   </Button>
-                  <IconButton
-                    size="small"
-                    aria-label="Open AI assistant"
+                  <Button
+                    variant="outlined"
                     onClick={() => {
                       setChatInitialQuery('');
                       handleChatClick();
                     }}
-                  >
-                    <SmartToyIcon />
-                  </IconButton>
-                  <Avatar
+                    startIcon={<AutoAwesomeIcon />}
                     sx={{
-                      width: 34,
-                      height: 34,
-                      bgcolor: theme.palette.mode === 'dark' ? '#111827' : '#e5e7eb',
+                      borderColor: theme.palette.mode === 'dark' ? '#374151' : '#E5E7EB',
+                      bgcolor: theme.palette.mode === 'dark' ? '#1F2937' : '#FFFFFF',
                       color: theme.palette.text.primary,
-                      fontWeight: 700,
+                      py: 1.25,
+                      borderRadius: '12px',
+                      textTransform: 'none',
+                      fontSize: '14px',
+                      fontWeight: 500,
+                      '&:hover': {
+                        borderColor: theme.palette.mode === 'dark' ? '#4B5563' : '#D1D5DB',
+                        bgcolor: theme.palette.mode === 'dark' ? '#374151' : '#F9FAFB',
+                      },
                     }}
-                    aria-label="User"
                   >
-                    {(user?.name || user?.email || 'U').slice(0, 1).toUpperCase()}
-                  </Avatar>
+                    Ask AI
+                  </Button>
                 </Box>
-              </Box>
+              </Paper>
 
-              <Tabs
-                value={value}
-                onChange={handleChange}
-                variant="scrollable"
-                scrollButtons
-                allowScrollButtonsMobile
+              {/* Latest Activity */}
+              <Paper
+                elevation={0}
                 sx={{
-                  borderTop: `1px solid ${theme.palette.divider}`,
-                  '& .MuiTab-root': {
-                    fontFamily: "'Inter', sans-serif",
-                    fontWeight: 600,
-                    textTransform: 'none',
-                    fontSize: '0.875rem',
-                    minHeight: 48,
-                    color: theme.palette.text.secondary,
-                  },
-                  '& .MuiTab-root.Mui-selected': {
-                    color: theme.palette.primary.main,
-                  },
-                  '& .MuiTabs-indicator': {
-                    backgroundColor: theme.palette.primary.main,
-                    height: 3,
-                  },
+                  p: 3,
+                  borderRadius: '16px',
+                  border: `1px solid ${theme.palette.mode === 'dark' ? '#374151' : '#E5E7EB'}`,
+                  bgcolor: theme.palette.mode === 'dark' ? '#1F2937' : '#FFFFFF',
+                  boxShadow: theme.palette.mode === 'dark' ? 'none' : '0 1px 3px rgba(0, 0, 0, 0.05)',
                 }}
               >
-                <Tab label="Dashboard" {...a11yProps(0)} />
-                <Tab label="Upload Bills" {...a11yProps(1)} />
-                <Tab label="Transactions" {...a11yProps(2)} />
-                <Tab label="Pending" {...a11yProps(3)} />
-                <Tab label="Recurring" {...a11yProps(4)} />
-                <Tab label="Upcoming" {...a11yProps(5)} />
-                <Tab label="Items" {...a11yProps(6)} />
-                <Tab label="Merchants" {...a11yProps(7)} />
-                <Tab label="Categories" {...a11yProps(8)} />
-                <Tab label="Analytics" {...a11yProps(9)} />
-                <Tab label="Advanced Analytics" {...a11yProps(10)} />
-                <Tab label="Family" {...a11yProps(11)} />
-                <Tab label="Budgets" {...a11yProps(12)} />
-                <Tab label="Savings" {...a11yProps(13)} />
-                <Tab label="Loans" {...a11yProps(14)} />
-                <Tab label="Shopping Lists" {...a11yProps(15)} />
-                <Tab label="User Profile" {...a11yProps(16)} />
-                <Tab label="Users" {...a11yProps(17)} />
-                <Tab label="Alerts" {...a11yProps(18)} />
-                <Tab label="AI Chat" {...a11yProps(19)} />
-                <Tab label="Model Status" {...a11yProps(20)} />
-              </Tabs>
-            </Paper>
-
-            <Box className="finance-body">
-              {/* Main Content */}
-              <Box className="finance-main" sx={{ minWidth: 0 }}>
-                <Paper
-                  elevation={0}
-                  className="finance-contentCard"
-                  sx={{
-                    borderRadius: '16px',
-                    border: `1px solid ${theme.palette.divider}`,
-                    backgroundColor: theme.palette.background.paper,
-                    boxShadow: theme.palette.mode === 'dark' ? '0 8px 30px rgba(0,0,0,0.25)' : '0 10px 30px rgba(15, 23, 42, 0.05)',
-                    overflow: 'hidden',
-                  }}
-                >
-                  <Box sx={{ p: { xs: 1.25, sm: 2 } }}>
-                    <Routes>
-                      <Route path="/" element={<Navigate to="/financialtool/app/dashboard" replace />} />
-                      <Route path="dashboard" element={
-                        <DashboardOverview
-                          onViewTransactions={handleViewTransactions}
-                          onViewAnalytics={handleViewAnalytics}
-                          onUploadClick={handleUploadClick}
-                          onViewBudgets={handleViewBudgets}
-                          categories={categories as any}
-                        />
-                      } />
-                      <Route path="upload" element={
-                        <EnhancedBillUploadSection
-                          onTransactionCreated={handleTransactionCreated}
-                          categories={categories}
-                        />
-                      } />
-                      <Route path="transactions" element={
-                        <TransactionsSection
-                          transactions={transactions}
-                          merchants={merchants}
-                          categories={categories}
-                          onTransactionsChange={handleTransactionsChange}
-                          onFiltersChange={handleFiltersChange}
-                        />
-                      } />
-                      <Route path="pending" element={<PendingTransactionsSection />} />
-                      <Route path="recurring" element={<RecurringPaymentsSection />} />
-                      <Route path="upcoming" element={<UpcomingPaymentsSection />} />
-                      <Route path="items" element={<ItemsSection />} />
-                      <Route path="merchants" element={<EnhancedMerchantsSection />} />
-                      <Route path="categories" element={<EnhancedCategorySection />} />
-                      <Route path="analytics" element={<AnalyticsSection />} />
-                      <Route path="advanced-analytics" element={<AdvancedAnalyticsSection />} />
-                      <Route path="family" element={<MultiUserAnalyticsSection />} />
-                      <Route path="budgets" element={
-                        <BudgetSection categories={categories} onBudgetChange={handleTransactionsChange} />
-                      } />
-                      <Route path="savings" element={<SavingsSection />} />
-                      <Route path="loans" element={<LoansSection />} />
-                      <Route path="shopping-lists" element={<ShoppingListSection />} />
-                      <Route path="user-profile" element={<UserProfileSection />} />
-                      <Route path="users" element={<UserManagementSection />} />
-                      <Route path="alerts" element={
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                          <AlertsPanel />
-                          <CategoryCapSection categories={categories} onCapChange={handleTransactionsChange} />
-                        </Box>
-                      } />
-                      <Route path="ai-chat" element={<AIChatSection />} />
-                      <Route path="model-status" element={<ModelStatusSection />} />
-                      <Route path="*" element={<Navigate to="/financialtool/app/dashboard" replace />} />
-                    </Routes>
-                  </Box>
-                </Paper>
-              </Box>
-
-              {/* Aside (collapses under main on smaller screens) */}
-              <Box className="finance-aside" sx={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <Paper
-                  elevation={0}
-                  sx={{
-                    borderRadius: '16px',
-                    border: `1px solid ${theme.palette.divider}`,
-                    p: 2,
-                    backgroundColor: theme.palette.background.paper,
-                  }}
-                >
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
                   <Typography
-                    variant="body2"
                     sx={{
-                      fontFamily: "'Inter', sans-serif",
-                      fontWeight: 800,
+                      fontSize: '14px',
+                      fontWeight: 700,
                       color: theme.palette.text.primary,
-                      mb: 1,
-                    }}
-                  >
-                    Overview
-                  </Typography>
-                  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.25 }}>
-                    <Box>
-                      <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
-                        User
-                      </Typography>
-                      <Typography variant="body2" sx={{ color: theme.palette.text.primary, fontWeight: 600 }} noWrap>
-                        {user?.name || user?.email || 'User'}
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
-                        Transactions
-                      </Typography>
-                      <Typography variant="body2" sx={{ color: theme.palette.text.primary, fontWeight: 700 }}>
-                        {transactions.length}
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
-                        Categories
-                      </Typography>
-                      <Typography variant="body2" sx={{ color: theme.palette.text.primary, fontWeight: 700 }}>
-                        {categories.length}
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
-                        Merchants
-                      </Typography>
-                      <Typography variant="body2" sx={{ color: theme.palette.text.primary, fontWeight: 700 }}>
-                        {merchants.length}
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Paper>
-
-                <Paper
-                  elevation={0}
-                  sx={{
-                    borderRadius: '16px',
-                    border: `1px solid ${theme.palette.divider}`,
-                    p: 2,
-                    backgroundColor: theme.palette.background.paper,
-                  }}
-                >
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      fontFamily: "'Inter', sans-serif",
-                      fontWeight: 800,
-                      color: theme.palette.text.primary,
-                      mb: 1.5,
-                    }}
-                  >
-                    Quick Actions
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                    <Button variant="contained" onClick={handleUploadClick} sx={{ borderRadius: '12px', textTransform: 'none' }}>
-                      Upload Bill
-                    </Button>
-                    <Button variant="outlined" onClick={() => setShowManualTransactionDialog(true)} sx={{ borderRadius: '12px', textTransform: 'none' }}>
-                      Add Manual Transaction
-                    </Button>
-                    <Button variant="outlined" onClick={handleViewTransactions} sx={{ borderRadius: '12px', textTransform: 'none' }}>
-                      View Transactions
-                    </Button>
-                    <Button variant="outlined" onClick={handleViewAnalytics} sx={{ borderRadius: '12px', textTransform: 'none' }}>
-                      View Analytics
-                    </Button>
-                    <Button variant="outlined" onClick={handleViewBudgets} sx={{ borderRadius: '12px', textTransform: 'none' }}>
-                      Budgets & Alerts
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      onClick={() => {
-                        setChatInitialQuery('');
-                        handleChatClick();
-                      }}
-                      sx={{ borderRadius: '12px', textTransform: 'none' }}
-                    >
-                      Ask AI
-                    </Button>
-                  </Box>
-                </Paper>
-
-                <Paper
-                  elevation={0}
-                  sx={{
-                    borderRadius: '16px',
-                    border: `1px solid ${theme.palette.divider}`,
-                    p: 2,
-                    backgroundColor: theme.palette.background.paper,
-                  }}
-                >
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      fontFamily: "'Inter', sans-serif",
-                      fontWeight: 800,
-                      color: theme.palette.text.primary,
-                      mb: 1.5,
                     }}
                   >
                     Latest Activity
                   </Typography>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                    {transactions.length === 0 ? (
-                      <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
-                        No transactions yet.
-                      </Typography>
-                    ) : (
-                      transactions.slice(0, isSmallLayout ? 3 : 5).map((transaction) => {
-                        const merchantName = getMerchantName(transaction.merchant_id);
-                        const transactionType = getTransactionType(transaction);
-                        const isEarning = transactionType === 'earning';
-                        const amount = transaction.amount || 0;
-                        const currency = transaction.currency || 'USD';
-                        
-                        return (
-                          <Box
-                            key={transaction._id}
-                            sx={{
-                              p: 1.25,
-                              borderRadius: '12px',
-                              border: `1px solid ${theme.palette.divider}`,
-                              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(15, 23, 42, 0.03)',
-                            }}
-                          >
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 0.5 }}>
-                              <Typography 
-                                variant="body2" 
-                                sx={{ 
-                                  fontWeight: 700, 
-                                  color: theme.palette.text.primary,
-                                  flex: 1,
-                                  minWidth: 0,
-                                }} 
-                                noWrap
-                              >
+                  <Button
+                    size="small"
+                    sx={{
+                      textTransform: 'none',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      color: '#6D28D9',
+                      minWidth: 'auto',
+                      p: 0,
+                      '&:hover': {
+                        textDecoration: 'underline',
+                        bgcolor: 'transparent',
+                      },
+                    }}
+                    onClick={handleViewTransactions}
+                  >
+                    See all
+                  </Button>
+                </Box>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {transactions.length === 0 ? (
+                    <Typography sx={{ fontSize: '14px', color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280' }}>
+                      No transactions yet.
+                    </Typography>
+                  ) : (
+                    transactions.slice(0, 2).map((transaction) => {
+                      const merchantName = getMerchantName(transaction.merchant_id);
+                      const transactionType = getTransactionType(transaction);
+                      const isEarning = transactionType === 'earning';
+                      const amount = transaction.amount || 0;
+                      const currency = transaction.currency || 'USD';
+                      const date = transaction.date ? new Date(transaction.date) : new Date();
+                      
+                      return (
+                        <Box
+                          key={transaction._id}
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                          }}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                            <Box
+                              sx={{
+                                width: 8,
+                                height: 8,
+                                borderRadius: '50%',
+                                bgcolor: '#EF4444',
+                              }}
+                            />
+                            <Box>
+                              <Typography sx={{ fontSize: '12px', fontWeight: 700, color: theme.palette.text.primary, overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '120px' }}>
                                 {merchantName}
                               </Typography>
-                              <Typography 
-                                variant="body2" 
-                                sx={{ 
-                                  fontWeight: 700,
-                                  color: isEarning ? theme.palette.success.main : theme.palette.error.main,
-                                  ml: 1,
-                                }}
-                              >
-                                {isEarning ? '+' : '-'}{amount.toLocaleString('en-US', { 
-                                  minimumFractionDigits: 2, 
-                                  maximumFractionDigits: 2 
-                                })} {currency}
-                              </Typography>
-                            </Box>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <Typography 
-                                variant="caption" 
-                                sx={{ 
-                                  color: theme.palette.text.secondary,
-                                  textTransform: 'capitalize',
-                                }}
-                              >
-                                {transactionType}
-                              </Typography>
-                              <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
-                                {transaction.date ? new Date(transaction.date).toLocaleDateString() : 'N/A'}
+                              <Typography sx={{ fontSize: '10px', color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280' }}>
+                                {date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })}
                               </Typography>
                             </Box>
                           </Box>
-                        );
-                      })
-                    )}
-                  </Box>
-                </Paper>
-              </Box>
+                          <Typography sx={{ fontSize: '12px', fontWeight: 700, color: '#EF4444' }}>
+                            {isEarning ? '+' : '-'}{amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {currency}
+                          </Typography>
+                        </Box>
+                      );
+                    })
+                  )}
+                </Box>
+              </Paper>
             </Box>
           </Box>
+            </Container>
+          </Box>
 
-          {/* Floating Chat Widget */}
-          {showChatWidget && (
-            <AIChatSection
-              floating
-              initialQuery={chatInitialQuery}
-              onClose={() => setShowChatWidget(false)}
-              onMinimize={() => setShowChatWidget(false)}
-            />
-          )}
+        {/* Floating Chat Button */}
+        <IconButton
+          onClick={() => {
+            setChatInitialQuery('');
+            handleChatClick();
+          }}
+          sx={{
+            position: 'fixed',
+            bottom: 24,
+            right: 24,
+            width: 48,
+            height: 48,
+            bgcolor: '#6D28D9',
+            color: '#FFFFFF',
+            boxShadow: '0 10px 15px rgba(109, 40, 217, 0.3)',
+            '&:hover': {
+              bgcolor: '#7C3AED',
+              transform: 'scale(1.1)',
+            },
+            transition: 'all 0.2s',
+          }}
+        >
+          <QuestionAnswerIcon />
+        </IconButton>
 
-          {/* Manual Transaction Dialog */}
-          <ManualTransactionDialog
-            open={showManualTransactionDialog}
-            onClose={() => setShowManualTransactionDialog(false)}
-            onSave={(transaction) => {
-              console.log('Manual transaction created:', transaction);
-              handleTransactionCreated();
-              setShowManualTransactionDialog(false);
-            }}
-            categories={categories}
+        {/* Floating Chat Widget */}
+        {showChatWidget && (
+          <AIChatSection
+            floating
+            initialQuery={chatInitialQuery}
+            onClose={() => setShowChatWidget(false)}
+            onMinimize={() => setShowChatWidget(false)}
           />
-        </Container>
+        )}
+
+        {/* Manual Transaction Dialog */}
+        <ManualTransactionDialog
+          open={showManualTransactionDialog}
+          onClose={() => setShowManualTransactionDialog(false)}
+          onSave={(transaction) => {
+            console.log('Manual transaction created:', transaction);
+            handleTransactionCreated();
+            setShowManualTransactionDialog(false);
+          }}
+          categories={categories}
+        />
       </Box>
     </ThemeProvider>
   );

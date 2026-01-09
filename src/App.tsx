@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Provider } from "react-redux";
 import { useTheme } from "./contexts/ThemeContext";
 import { AuthProvider } from "./lib/auth";
@@ -70,106 +70,115 @@ function AppContentInner() {
       <AuthProvider>
         <AuthModalProvider>
           <Router>
-            <div style={styles.app}>
-              <Header />
-              <main style={styles.main}>
-                <Routes>
-                <Route path="/" element={<Home />} />
-
-                {/* Login/Signup handled in the same page */}
-                <Route path="/auth/login" element={<Login />} />
-                <Route path="/auth/signup" element={<Login />} />
-                
-                {/* Email verification and password reset */}
-                <Route path="/auth/verify-email" element={<VerifyEmail />} />
-                <Route path="/auth/forgot-password" element={<ForgotPassword />} />
-                <Route path="/auth/reset-password" element={<ResetPassword />} />
-                
-                {/* Token validation endpoint for other services */}
-                <Route path="/api/auth/validate-token" element={<ValidateToken />} />
-                <Route path="/auth/validate-token" element={<ValidateToken />} />
-
-                <Route path="/pricing" element={<Pricing />} />
-
-                {/* Payment Routes - Protected */}
-                <Route
-                  path="/payment/purchase"
-                  element={
-                    <ProtectedRoute>
-                      <PaymentPurchase />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/payment/success"
-                  element={
-                    <ProtectedRoute>
-                      <PaymentSuccess />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/payment/cancel"
-                  element={
-                    <ProtectedRoute>
-                      <PaymentCancel />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route path="/use-cases" element={<UseCasesPage />} />
-
-                {/* Image Generation Landing Page - Public */}
-                <Route path="/image-generation" element={<ImageGenerationLandingPage />} />
-
-                {/* Video Generation Landing Page - Public */}
-                <Route path="/video-generation" element={<VideoGenerationLandingPage />} />
-
-                {/* Audio Generation Landing Page - Public */}
-                <Route path="/audio-generation" element={<AudioGenerationLandingPage />} />
-
-                {/* Tool Routes - Accessible without auth, auth required at submission */}
-                <Route path="/voice/*" element={<Dashboard />} />
-                <Route path="/video/*" element={<ToolsDashboard />} />
-                <Route path="/images/*" element={<ImagesDashboard />} />
-                <Route path="/gpt5/*" element={<GPT5Dashboard />} />
-
-                {/* Legacy dashboard route - redirect to voice */}
-                <Route path="/dashboard" element={<Navigate to="/voice/transcribe" replace />} />
-                <Route path="/dashboard/*" element={<Navigate to="/voice/transcribe" replace />} />
-
-                {/* Legacy tools route - redirect to video */}
-                <Route path="/tools/*" element={<Navigate to="/video/text-to-video" replace />} />
-
-                {/* Financial Documentation Tool - Public Route */}
-                <Route path="/financialtool" element={<FinancialToolPage />} />
-
-                {/* Financial Tool Application */}
-                <Route
-                  path="/financialtool/app/*"
-                  element={
-                    <ProtectedRoute>
-                      <FinancialToolApp />
-                    </ProtectedRoute>
-                  }
-                />
-
-                {/* Fallback */}
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-              </main>
-              <footer style={footerStyles}>
-                <div style={styles.footerContent}>
-                  <p style={{ ...styles.footerText, opacity: theme.palette.mode === 'dark' ? 0.8 : 0.7 }}>
-                    &copy; 2024 VoiceScribe. Transform voice to text instantly.
-                  </p>
-                </div>
-              </footer>
-              <AuthModalWrapper />
-            </div>
+            <AppWithLocation footerStyles={footerStyles} />
           </Router>
         </AuthModalProvider>
       </AuthProvider>
     </NotificationProvider>
+  );
+}
+
+function AppWithLocation({ footerStyles }: { footerStyles: any }) {
+  const location = useLocation();
+  const { theme } = useTheme();
+  
+  return (
+    <div style={styles.app}>
+      {!location.pathname.startsWith('/financialtool/app') && <Header />}
+      <main style={styles.main}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+
+          {/* Login/Signup handled in the same page */}
+          <Route path="/auth/login" element={<Login />} />
+          <Route path="/auth/signup" element={<Login />} />
+          
+          {/* Email verification and password reset */}
+          <Route path="/auth/verify-email" element={<VerifyEmail />} />
+          <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+          <Route path="/auth/reset-password" element={<ResetPassword />} />
+          
+          {/* Token validation endpoint for other services */}
+          <Route path="/api/auth/validate-token" element={<ValidateToken />} />
+          <Route path="/auth/validate-token" element={<ValidateToken />} />
+
+          <Route path="/pricing" element={<Pricing />} />
+
+          {/* Payment Routes - Protected */}
+          <Route
+            path="/payment/purchase"
+            element={
+              <ProtectedRoute>
+                <PaymentPurchase />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/payment/success"
+            element={
+              <ProtectedRoute>
+                <PaymentSuccess />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/payment/cancel"
+            element={
+              <ProtectedRoute>
+                <PaymentCancel />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/use-cases" element={<UseCasesPage />} />
+
+          {/* Image Generation Landing Page - Public */}
+          <Route path="/image-generation" element={<ImageGenerationLandingPage />} />
+
+          {/* Video Generation Landing Page - Public */}
+          <Route path="/video-generation" element={<VideoGenerationLandingPage />} />
+
+          {/* Audio Generation Landing Page - Public */}
+          <Route path="/audio-generation" element={<AudioGenerationLandingPage />} />
+
+          {/* Tool Routes - Accessible without auth, auth required at submission */}
+          <Route path="/voice/*" element={<Dashboard />} />
+          <Route path="/video/*" element={<ToolsDashboard />} />
+          <Route path="/images/*" element={<ImagesDashboard />} />
+          <Route path="/gpt5/*" element={<GPT5Dashboard />} />
+
+          {/* Legacy dashboard route - redirect to voice */}
+          <Route path="/dashboard" element={<Navigate to="/voice/transcribe" replace />} />
+          <Route path="/dashboard/*" element={<Navigate to="/voice/transcribe" replace />} />
+
+          {/* Legacy tools route - redirect to video */}
+          <Route path="/tools/*" element={<Navigate to="/video/text-to-video" replace />} />
+
+          {/* Financial Documentation Tool - Public Route */}
+          <Route path="/financialtool" element={<FinancialToolPage />} />
+
+          {/* Financial Tool Application */}
+          <Route
+            path="/financialtool/app/*"
+            element={
+              <ProtectedRoute>
+                <FinancialToolApp />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </main>
+      <footer style={footerStyles}>
+        <div style={styles.footerContent}>
+          <p style={{ ...styles.footerText, opacity: theme.palette.mode === 'dark' ? 0.8 : 0.7 }}>
+            &copy; 2024 VoiceScribe. Transform voice to text instantly.
+          </p>
+        </div>
+      </footer>
+      <AuthModalWrapper />
+    </div>
   );
 }
 
