@@ -69,12 +69,19 @@ export default function LeftSidebarNavigation({ value, setValue }: LeftSidebarNa
       <style>{`
         .left-sidebar-nav {
           display: flex;
-          flex-direction: row;
+          flex-direction: column;
           height: 100%;
           gap: 4px;
-          overflow-x: auto;
-          overflow-y: visible;
+          overflow-x: hidden;
+          overflow-y: auto;
           padding-bottom: 8px;
+          padding-left: 4px;
+          padding-right: 0px;
+          padding-top: 8px;
+          width: 84px;
+          min-width: 84px;
+          max-width: 84px;
+          box-sizing: border-box;
           scrollbar-width: thin;
           scrollbar-color: ${scrollbarColor} transparent;
         }
@@ -94,6 +101,7 @@ export default function LeftSidebarNavigation({ value, setValue }: LeftSidebarNa
         .sidebar-nav-item {
           transition: background-color 0.2s ease;
           cursor: pointer;
+          flex-shrink: 0;
         }
         .sidebar-nav-item:hover:not(.active) {
           background-color: ${theme.palette.mode === 'dark' ? '#374151' : '#F3F4F6'} !important;
@@ -101,21 +109,21 @@ export default function LeftSidebarNavigation({ value, setValue }: LeftSidebarNa
         .sidebar-nav-item.active:hover {
           background-color: #7C3AED !important;
         }
-        @media (min-width: 1200px) {
+        
+        /* Mobile: Horizontal layout only when container is full width */
+        @media (max-width: 767px) {
           .left-sidebar-nav {
-            flex-direction: column;
-            overflow-x: hidden;
-            overflow-y: auto;
+            flex-direction: row;
+            overflow-x: auto;
+            overflow-y: hidden;
+            width: 100%;
+            min-width: 100%;
+            max-width: 100%;
+            height: auto;
             padding-bottom: 8px;
-            padding-left: 4px;
-            padding-right: 0px;
             padding-top: 8px;
-            height: 100%;
-            width: 84px;
-            min-width: 84px;
-            max-width: 84px;
-            gap: 4px;
-            box-sizing: border-box;
+            padding-left: 8px;
+            padding-right: 8px;
           }
         }
       `}</style>
@@ -142,13 +150,15 @@ export default function LeftSidebarNavigation({ value, setValue }: LeftSidebarNa
                 paddingTop: '12px',
                 paddingBottom: '4px',
                 borderRadius: '12px',
-                width: '100%',
-                minWidth: '100%',
+                width: '56px',
+                minWidth: '56px',
+                maxWidth: '56px',
                 height: 'auto',
                 minHeight: '56px',
                 backgroundColor: isActive ? '#6D28D9' : 'transparent',
                 color: isActive ? '#FFFFFF' : (theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280'),
                 textDecoration: 'none',
+                flexShrink: 0,
               }}
             >
               <Icon sx={{ fontSize: { lg: '20px' } }} />
@@ -172,10 +182,12 @@ export default function LeftSidebarNavigation({ value, setValue }: LeftSidebarNa
               paddingTop: '12px',
               paddingBottom: '4px',
               borderRadius: '12px',
-              width: '100%',
-              minWidth: '100%',
+              width: '56px',
+              minWidth: '56px',
+              maxWidth: '56px',
               height: 'auto',
               minHeight: '56px',
+              flexShrink: 0,
               bgcolor: isActive ? '#6D28D9' : 'transparent',
               color: isActive ? '#FFFFFF' : (theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280'),
               '&:hover': {
