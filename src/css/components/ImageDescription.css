@@ -29,6 +29,7 @@
 .upload-section {
     background: var(--background-dark);
     padding: 6rem 0;
+    padding-top: 0.5rem;
 }
 
 /* ===========================

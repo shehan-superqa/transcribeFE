@@ -1,7 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { 
-  Paper, 
   Typography, 
   Button, 
   TextField, 
@@ -96,7 +95,7 @@ function TabPanel(props: TabPanelProps) {
       aria-labelledby={`upload-tab-${index}`}
       {...other}
     >
-      {value === index && <div style={{ paddingTop: '24px' }}>{children}</div>}
+      {value === index && <div style={{ paddingTop: 0 }}>{children}</div>}
     </div>
   );
 }
@@ -572,10 +571,9 @@ export default function EnhancedBillUploadSection({ onTransactionCreated, catego
         categories={categories || []}
       />
 
-      <Paper 
-        elevation={0} 
-        sx={{ 
-          p: 0,
+      <div 
+        style={{ 
+          padding: 0,
           backgroundColor: 'transparent',
           border: 'none',
           borderRadius: 0,
@@ -590,6 +588,58 @@ export default function EnhancedBillUploadSection({ onTransactionCreated, catego
                 <div style={{ marginBottom: '32px' }}>
                   <h2 className="upload-title">New Transaction</h2>
                   <p className="upload-description">Select options and drop your files below to start automatic processing.</p>
+                </div>
+
+                {/* Action Buttons */}
+                <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
+                  <Button
+                    variant="outlined"
+                    startIcon={<CameraAlt />}
+                    onClick={() => setShowCamera(true)}
+                    sx={{
+                      textTransform: 'none',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      fontWeight: 500,
+                      px: 2,
+                      py: 1,
+                      borderColor: theme.palette.mode === 'dark' ? '#374151' : '#E5E7EB',
+                      bgcolor: theme.palette.mode === 'dark' ? '#1F2937' : '#F9FAFB',
+                      color: theme.palette.text.primary,
+                      fontFamily: "'Inter', sans-serif",
+                      '&:hover': {
+                        borderColor: '#6D28D9',
+                        bgcolor: theme.palette.mode === 'dark' ? '#374151' : '#F3F4F6',
+                        color: '#6D28D9',
+                      },
+                    }}
+                  >
+                    Scan with Camera
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<Edit />}
+                    onClick={() => setShowManualDialog(true)}
+                    sx={{
+                      textTransform: 'none',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      fontWeight: 500,
+                      px: 2,
+                      py: 1,
+                      borderColor: theme.palette.mode === 'dark' ? '#374151' : '#E5E7EB',
+                      bgcolor: theme.palette.mode === 'dark' ? '#1F2937' : '#F9FAFB',
+                      color: theme.palette.text.primary,
+                      fontFamily: "'Inter', sans-serif",
+                      '&:hover': {
+                        borderColor: '#6D28D9',
+                        bgcolor: theme.palette.mode === 'dark' ? '#374151' : '#F3F4F6',
+                        color: '#6D28D9',
+                      },
+                    }}
+                  >
+                    Manual Entry
+                  </Button>
                 </div>
 
                 {/* Transaction Type and Upload Mode Grid */}
@@ -820,24 +870,6 @@ export default function EnhancedBillUploadSection({ onTransactionCreated, catego
             </div>
           )}
 
-        {/* Single Upload Progress with SSE */}
-        {uploadMode === 'single' && uploadQueue.length > 0 && uploadQueue[0].status !== 'completed' && uploadQueue[0].jobId && (
-          <UploadItemProgressMonitor
-            item={uploadQueue[0]}
-            onUpdate={(updatedItem) => {
-              setUploadQueue(prev => prev.map(i => 
-                i.id === updatedItem.id ? updatedItem : i
-              ));
-              if (updatedItem.status === 'completed' && updatedItem.transaction) {
-                onTransactionCreated?.(updatedItem.transaction);
-                setIsProcessing(false);
-              } else if (updatedItem.status === 'error') {
-                setIsProcessing(false);
-              }
-            }}
-            theme={theme}
-          />
-        )}
 
         {/* Success Messages */}
         {uploadQueue.filter(i => i.status === 'completed').map((item) => (
@@ -882,7 +914,7 @@ export default function EnhancedBillUploadSection({ onTransactionCreated, catego
           </Alert>
         ))}
         </TabPanel>
-      </Paper>
+      </div>
     </div>
   );
 }
