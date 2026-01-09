@@ -6,7 +6,6 @@ import {
   Avatar,
   Box,
   Button,
-  Container,
   IconButton,
   Paper,
   TextField,
@@ -316,11 +315,11 @@ export default function FinancialToolApp() {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <Box className="financial-tool-page">
-          <Container maxWidth="xl">
+          <Box sx={{ maxWidth: '1600px', mx: 'auto', px: 6 }}>
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
               <CircularProgress />
             </Box>
-          </Container>
+          </Box>
         </Box>
       </ThemeProvider>
     );
@@ -346,7 +345,7 @@ export default function FinancialToolApp() {
             zIndex: 50,
           }}
         >
-          <Container maxWidth={false} sx={{ maxWidth: '1600px', mx: 'auto', px: 3, height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box sx={{ maxWidth: '1600px', mx: 'auto', px: 3, height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Box
@@ -474,7 +473,7 @@ export default function FinancialToolApp() {
                 </>
               )}
             </Box>
-          </Container>
+          </Box>
         </Box>
 
         {/* Dashboard Header Section */}
@@ -484,7 +483,7 @@ export default function FinancialToolApp() {
             bgcolor: theme.palette.mode === 'dark' ? '#1F2937' : '#FFFFFF',
           }}
         >
-          <Container maxWidth={false} sx={{ maxWidth: '1600px', mx: 'auto', px: 6, py: 1, display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: { md: 'center' }, justifyContent: 'space-between', gap: 2 }}>
+          <Box sx={{ maxWidth: '1600px', mx: 'auto', px: 6, py: 1, display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: { md: 'center' }, justifyContent: 'space-between', gap: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Box
                 sx={{
@@ -577,7 +576,7 @@ export default function FinancialToolApp() {
                 Monthly
               </Button>
             </Box>
-          </Container>
+          </Box>
         </Box>
 
         {/* Main Content Area */}
@@ -590,8 +589,7 @@ export default function FinancialToolApp() {
             minHeight: 0,
           }}
         >
-          <Container 
-            maxWidth={false} 
+          <Box 
             sx={{ 
               maxWidth: '1600px', 
               mx: 'auto', 
@@ -1465,7 +1463,7 @@ export default function FinancialToolApp() {
               </Paper>
             </Box>
           </Box>
-            </Container>
+            </Box>
           </Box>
 
         {/* Floating Chat Button */}
