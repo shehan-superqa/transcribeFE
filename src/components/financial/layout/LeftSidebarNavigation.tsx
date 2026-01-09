@@ -1,4 +1,4 @@
-import { Box, IconButton, Typography } from '@mui/material';
+import { IconButton, Typography } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTheme } from '../../../contexts/ThemeContext';
 import DashboardIcon from '@mui/icons-material/Dashboard';
@@ -79,7 +79,7 @@ export default function LeftSidebarNavigation({ value, setValue }: LeftSidebarNa
           scrollbar-color: ${scrollbarColor} transparent;
         }
         .left-sidebar-nav::-webkit-scrollbar {
-          width: 4px;
+          width: 1px;
         }
         .left-sidebar-nav::-webkit-scrollbar-track {
           background: transparent;
@@ -91,16 +91,31 @@ export default function LeftSidebarNavigation({ value, setValue }: LeftSidebarNa
         .left-sidebar-nav::-webkit-scrollbar-thumb:hover {
           background: ${scrollbarHoverColor};
         }
+        .sidebar-nav-item {
+          transition: background-color 0.2s ease;
+          cursor: pointer;
+        }
+        .sidebar-nav-item:hover:not(.active) {
+          background-color: ${theme.palette.mode === 'dark' ? '#374151' : '#F3F4F6'} !important;
+        }
+        .sidebar-nav-item.active:hover {
+          background-color: #7C3AED !important;
+        }
         @media (min-width: 1200px) {
           .left-sidebar-nav {
             flex-direction: column;
             overflow-x: hidden;
             overflow-y: auto;
-            padding-bottom: 0;
-            max-height: calc(100vh - 200px);
-            width: 64px;
-            min-width: 64px;
-            max-width: 64px;
+            padding-bottom: 8px;
+            padding-left: 4px;
+            padding-right: 0px;
+            padding-top: 8px;
+            height: 100%;
+            width: 84px;
+            min-width: 84px;
+            max-width: 84px;
+            gap: 4px;
+            box-sizing: border-box;
           }
         }
       `}</style>
@@ -112,32 +127,33 @@ export default function LeftSidebarNavigation({ value, setValue }: LeftSidebarNa
         if (item.index === 0 || item.index === 1) {
           // Use Link for dashboard and upload
           return (
-            <Box
+            <Link
               key={item.index}
-              component={Link}
               to={item.path}
               onClick={() => setValue(item.index)}
-              sx={{
+              className={`sidebar-nav-item ${isActive ? 'active' : ''}`}
+              style={{
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                p: 1.5,
+                paddingLeft: '0px',
+                paddingRight: '0px',
+                paddingTop: '12px',
+                paddingBottom: '4px',
                 borderRadius: '12px',
-                width: { lg: '56px' },
-                minWidth: { lg: '56px' },
-                height: { lg: '56px' },
-                bgcolor: isActive ? '#6D28D9' : 'transparent',
+                width: '100%',
+                minWidth: '100%',
+                height: 'auto',
+                minHeight: '56px',
+                backgroundColor: isActive ? '#6D28D9' : 'transparent',
                 color: isActive ? '#FFFFFF' : (theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280'),
                 textDecoration: 'none',
-                '&:hover': {
-                  bgcolor: isActive ? '#7C3AED' : (theme.palette.mode === 'dark' ? '#374151' : '#F3F4F6'),
-                },
               }}
             >
               <Icon sx={{ fontSize: { lg: '20px' } }} />
-              <Typography sx={{ fontSize: '10px', fontWeight: 500, mt: 0.5, lineHeight: 1.2, textAlign: 'center' }}>{item.label}</Typography>
-            </Box>
+              <Typography sx={{ fontSize: '10px', fontWeight: 500, mt: 0.5, mb: 0, px: 0.5, lineHeight: 1.2, textAlign: 'center', wordBreak: 'break-word' }}>{item.label}</Typography>
+            </Link>
           );
         }
         
@@ -151,11 +167,15 @@ export default function LeftSidebarNavigation({ value, setValue }: LeftSidebarNa
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              p: 1.5,
+              paddingLeft: '0px',
+              paddingRight: '0px',
+              paddingTop: '12px',
+              paddingBottom: '4px',
               borderRadius: '12px',
-              width: { lg: '56px' },
-              minWidth: { lg: '56px' },
-              height: { lg: '56px' },
+              width: '100%',
+              minWidth: '100%',
+              height: 'auto',
+              minHeight: '56px',
               bgcolor: isActive ? '#6D28D9' : 'transparent',
               color: isActive ? '#FFFFFF' : (theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280'),
               '&:hover': {
@@ -164,7 +184,7 @@ export default function LeftSidebarNavigation({ value, setValue }: LeftSidebarNa
             }}
           >
             <Icon sx={{ fontSize: { lg: '20px' } }} />
-            <Typography sx={{ fontSize: '10px', fontWeight: 500, mt: 0.5, lineHeight: 1.2, textAlign: 'center' }}>{item.label}</Typography>
+            <Typography sx={{ fontSize: '10px', fontWeight: 500, mt: 0.5, mb: 0, px: 0.5, lineHeight: 1.2, textAlign: 'center', wordBreak: 'break-word' }}>{item.label}</Typography>
           </IconButton>
         );
       })}

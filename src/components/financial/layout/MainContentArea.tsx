@@ -125,7 +125,7 @@ export default function MainContentArea({
           {/* Left Sidebar Navigation */}
           <div 
             className="left-sidebar-container"
-            style={{ flexShrink: 0, width: '64px' }}
+            style={{ flexShrink: 0, width: '64px', height: '100%', display: 'flex', flexDirection: 'column' }}
           >
             <LeftSidebarNavigation value={value} setValue={setValue} />
           </div>

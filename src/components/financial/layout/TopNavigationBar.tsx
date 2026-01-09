@@ -1,6 +1,5 @@
-import { Box, IconButton, Avatar, Typography, TextField, Badge, Button } from '@mui/material';
+import { IconButton, Avatar, Typography, TextField, Badge, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { useTheme } from '../../../contexts/ThemeContext';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../../store';
 import { useAuth } from '../../../lib/auth';
@@ -19,7 +18,6 @@ interface TopNavigationBarProps {
 
 export default function TopNavigationBar({}: TopNavigationBarProps) {
   const { user } = useSelector((state: RootState) => state.auth);
-  const { theme } = useTheme();
   const navigate = useNavigate();
   const { user: authUser, signOut } = useAuth();
   const displayUser = user || authUser;
@@ -32,33 +30,33 @@ export default function TopNavigationBar({}: TopNavigationBarProps) {
   const displayName = displayUser?.name || (displayUser?.email ? displayUser.email.split('@')[0].split('.').map((n: string) => n.charAt(0).toUpperCase() + n.slice(1)).join(' ') : 'Alexander Hunt');
 
   return (
-    <Box
-      component="nav"
-      sx={{
-        bgcolor: '#FFFFFF',
+    <nav
+      style={{
+        backgroundColor: '#FFFFFF',
         position: 'sticky',
         top: 0,
         zIndex: 50,
         borderBottom: 'none',
       }}
     >
-      <Box sx={{ 
+      <div style={{ 
         maxWidth: '1600px', 
-        mx: 'auto', 
-        px: 3, 
-        height: 72, 
+        margin: '0 auto', 
+        paddingLeft: '24px',
+        paddingRight: '24px',
+        height: '72px', 
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'space-between',
-        gap: 2,
+        gap: '16px',
       }}>
         {/* Logo and Brand Name */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 'fit-content' }}>
-          <Box
-            sx={{
-              width: 40,
-              height: 40,
-              bgcolor: '#6D28D9',
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 'fit-content' }}>
+          <div
+            style={{
+              width: '40px',
+              height: '40px',
+              backgroundColor: '#6D28D9',
               borderRadius: '8px',
               display: 'flex',
               alignItems: 'center',
@@ -66,7 +64,7 @@ export default function TopNavigationBar({}: TopNavigationBarProps) {
             }}
           >
             <AccountBalanceWalletIcon sx={{ color: '#FFFFFF', fontSize: 24 }} />
-          </Box>
+          </div>
           <Typography sx={{ 
             fontSize: '20px', 
             fontWeight: 700, 
@@ -76,17 +74,17 @@ export default function TopNavigationBar({}: TopNavigationBarProps) {
           }}>
             Fiscally
           </Typography>
-        </Box>
+        </div>
 
         {/* Search Bar */}
-        <Box sx={{ 
+        <div style={{ 
           flex: 1, 
           maxWidth: '600px',
           position: 'relative',
           display: 'flex',
           alignItems: 'center',
         }}>
-          <Box sx={{
+          <div style={{
             position: 'relative',
             width: '100%',
             display: 'flex',
@@ -155,11 +153,11 @@ export default function TopNavigationBar({}: TopNavigationBarProps) {
             >
               ⌘ K
             </Button>
-          </Box>
-        </Box>
+          </div>
+        </div>
 
         {/* Action Icons and User Profile */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 'fit-content' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 'fit-content' }}>
           {/* Notification Bell */}
           <IconButton
             sx={{
@@ -211,18 +209,19 @@ export default function TopNavigationBar({}: TopNavigationBarProps) {
           </IconButton>
 
           {/* Divider */}
-          <Box sx={{ 
+          <div style={{ 
             width: '1px', 
             height: '32px', 
-            bgcolor: '#E5E7EB',
-            mx: 0.5,
+            backgroundColor: '#E5E7EB',
+            marginLeft: '4px',
+            marginRight: '4px',
           }} />
 
           {/* User Profile Section */}
           {displayUser ? (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <Typography sx={{ 
                     fontSize: '14px', 
                     fontWeight: 700, 
@@ -232,11 +231,11 @@ export default function TopNavigationBar({}: TopNavigationBarProps) {
                     {displayName}
                   </Typography>
                   {isVerified && (
-                    <Box sx={{
-                      width: 16,
-                      height: 16,
+                    <div style={{
+                      width: '16px',
+                      height: '16px',
                       borderRadius: '50%',
-                      bgcolor: '#3B82F6',
+                      backgroundColor: '#3B82F6',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -245,9 +244,9 @@ export default function TopNavigationBar({}: TopNavigationBarProps) {
                         color: '#FFFFFF', 
                         fontSize: 10,
                       }} />
-                    </Box>
+                    </div>
                   )}
-                </Box>
+                </div>
                 {isVerified && (
                   <Typography sx={{ 
                     fontSize: '10px', 
@@ -260,7 +259,7 @@ export default function TopNavigationBar({}: TopNavigationBarProps) {
                     VERIFIED ACCOUNT
                   </Typography>
                 )}
-              </Box>
+              </div>
               <Avatar
                 sx={{
                   width: 40,
@@ -287,9 +286,9 @@ export default function TopNavigationBar({}: TopNavigationBarProps) {
               >
                 <KeyboardArrowDownIcon sx={{ color: '#6B7280', fontSize: 20 }} />
               </IconButton>
-            </Box>
+            </div>
           ) : (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Button
                 onClick={() => navigate('/auth/signup')}
                 sx={{
@@ -320,11 +319,11 @@ export default function TopNavigationBar({}: TopNavigationBarProps) {
               >
                 Sign in
               </Button>
-            </Box>
+            </div>
           )}
-        </Box>
-      </Box>
-    </Box>
+        </div>
+      </div>
+    </nav>
   );
 }
 
