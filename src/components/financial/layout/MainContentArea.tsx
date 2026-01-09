@@ -27,6 +27,7 @@ import UserManagementSection from '../UserManagementSection';
 import LoansSection from '../LoansSection';
 import ShoppingListSection from '../ShoppingListSection';
 import UserProfileSection from '../UserProfileSection';
+import PaymentAlertsSection from '../PaymentAlertsSection';
 
 interface MainContentAreaProps {
   value: number;
@@ -362,6 +363,10 @@ export default function MainContentArea({
               <Route path="users" element={<UserManagementSection />} />
               <Route path="alerts" element={
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                  <PaymentAlertsSection 
+                    categories={categories} 
+                    onTransactionCreated={onTransactionCreated}
+                  />
                   <AlertsPanel />
                   <CategoryCapSection categories={categories} onCapChange={onTransactionsChange} />
                 </div>

@@ -62,10 +62,13 @@ export default function CategoryCapSection({ categories = [], onCapChange }: Cat
       setError(null);
       const response = await getCategoryCaps();
       if (response.success) {
-        setCaps(response.caps);
+        setCaps(Array.isArray(response.caps) ? response.caps : []);
+      } else {
+        setCaps([]);
       }
     } catch (err: any) {
       setError(err.message || 'Failed to load category caps');
+      setCaps([]);
     } finally {
       setLoading(false);
     }
@@ -101,7 +104,9 @@ export default function CategoryCapSection({ categories = [], onCapChange }: Cat
     setDeleteDialogOpen(false);
   };
 
-  const availableCategories = categories.filter((cat) => !caps.some((cap) => cap.category_id === cat._id));
+  const availableCategories = (categories || []).filter((cat) => 
+    cat && cat._id && !(caps || []).some((cap) => cap && cap.category_id === cat._id)
+  );
 
   if (loading) {
     return (

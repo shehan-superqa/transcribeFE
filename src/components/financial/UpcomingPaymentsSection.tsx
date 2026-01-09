@@ -13,14 +13,24 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import {
-  CalendarToday as CalendarIcon,
   TrendingUp as TrendingUpIcon,
   TrendingDown as TrendingDownIcon,
   AccountBalance as AccountBalanceIcon,
   AccountBalanceWallet as AccountBalanceWalletIcon,
   CheckCircle as CheckCircleIcon,
+  Add as AddIcon,
 } from '@mui/icons-material';
 import { UpcomingPayment } from '../../types/financial';
 
@@ -87,8 +97,28 @@ const dummyUpcomingPayments: UpcomingPayment[] = [
 
 const CURRENT_BUDGET = 8000; // Dummy current budget
 
+interface NewPaymentForm {
+  name: string;
+  type: 'earning' | 'expense';
+  amount: string;
+  date: string;
+  time: string;
+  category_name: string;
+  merchant_name: string;
+}
+
 export default function UpcomingPaymentsSection() {
-  const [upcomingPayments] = useState<UpcomingPayment[]>(dummyUpcomingPayments);
+  const [upcomingPayments, setUpcomingPayments] = useState<UpcomingPayment[]>(dummyUpcomingPayments);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [newPaymentForm, setNewPaymentForm] = useState<NewPaymentForm>({
+    name: '',
+    type: 'expense',
+    amount: '',
+    date: '',
+    time: '',
+    category_name: '',
+    merchant_name: '',
+  });
 
   const summary = useMemo(() => {
     const totalUpcomingExpenses = upcomingPayments
@@ -126,15 +156,99 @@ export default function UpcomingPaymentsSection() {
     return '#10B981'; // emerald-500
   };
 
+  const calculateDaysUntilDue = (dateString: string, timeString: string): number => {
+    if (!dateString) return 0;
+    
+    const [year, month, day] = dateString.split('-').map(Number);
+    const [hours = 0, minutes = 0] = timeString ? timeString.split(':').map(Number) : [0, 0];
+    
+    const dueDate = new Date(year, month - 1, day, hours, minutes);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const diffTime = dueDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    return diffDays >= 0 ? diffDays : 0;
+  };
+
+  const handleAddPayment = () => {
+    if (!newPaymentForm.name || !newPaymentForm.amount || !newPaymentForm.date) {
+      return;
+    }
+
+    const amount = parseFloat(newPaymentForm.amount);
+    if (isNaN(amount) || amount <= 0) {
+      return;
+    }
+
+    const daysUntilDue = calculateDaysUntilDue(newPaymentForm.date, newPaymentForm.time);
+
+    const newPayment: UpcomingPayment = {
+      recurring_payment_id: `manual-${Date.now()}`,
+      name: newPaymentForm.name,
+      type: newPaymentForm.type,
+      amount: amount,
+      due_date: newPaymentForm.date, // Store date only for compatibility
+      days_until_due: daysUntilDue,
+      category_name: newPaymentForm.category_name || undefined,
+      merchant_name: newPaymentForm.merchant_name || undefined,
+    };
+
+    setUpcomingPayments([...upcomingPayments, newPayment]);
+    
+    // Reset form
+    setNewPaymentForm({
+      name: '',
+      type: 'expense',
+      amount: '',
+      date: '',
+      time: '',
+      category_name: '',
+      merchant_name: '',
+    });
+    
+    setOpenDialog(false);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setNewPaymentForm({
+      name: '',
+      type: 'expense',
+      amount: '',
+      date: '',
+      time: '',
+      category_name: '',
+      merchant_name: '',
+    });
+  };
+
   return (
     <Box>
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5, fontSize: '24px' }}>
-          Upcoming Payments
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ fontSize: '14px' }}>
-          View and manage your upcoming recurring payments and their impact on your budget
-        </Typography>
+      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <Box>
+          <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5, fontSize: '24px' }}>
+            Upcoming Payments
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ fontSize: '14px' }}>
+            View and manage your upcoming recurring payments and their impact on your budget
+          </Typography>
+        </Box>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => setOpenDialog(true)}
+          sx={{
+            borderRadius: '8px',
+            textTransform: 'none',
+            fontWeight: 600,
+            px: 3,
+            py: 1,
+          }}
+        >
+          Add Payment
+        </Button>
       </Box>
 
       {/* Summary Cards */}
@@ -625,6 +739,130 @@ export default function UpcomingPaymentsSection() {
           </Table>
         </TableContainer>
       </Card>
+
+      {/* Add Payment Dialog */}
+      <Dialog 
+        open={openDialog} 
+        onClose={handleCloseDialog} 
+        maxWidth="sm" 
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: '16px',
+            bgcolor: isDark ? '#0F172A' : '#FFFFFF',
+            border: `1px solid ${isDark ? '#1E293B' : '#E2E8F0'}`,
+          }
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 700, fontSize: '20px', pb: 2 }}>
+          Add New Payment / Earning
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: 1 }}>
+            <TextField
+              fullWidth
+              label="Name"
+              value={newPaymentForm.name}
+              onChange={(e) => setNewPaymentForm({ ...newPaymentForm, name: e.target.value })}
+              required
+              placeholder="e.g., Monthly Salary, Rent Payment"
+            />
+
+            <FormControl fullWidth>
+              <InputLabel>Type</InputLabel>
+              <Select
+                value={newPaymentForm.type}
+                label="Type"
+                onChange={(e) => setNewPaymentForm({ ...newPaymentForm, type: e.target.value as 'earning' | 'expense' })}
+              >
+                <MenuItem value="earning">Earning</MenuItem>
+                <MenuItem value="expense">Expense</MenuItem>
+              </Select>
+            </FormControl>
+
+            <TextField
+              fullWidth
+              label="Amount"
+              type="number"
+              value={newPaymentForm.amount}
+              onChange={(e) => setNewPaymentForm({ ...newPaymentForm, amount: e.target.value })}
+              required
+              InputProps={{
+                startAdornment: <Typography sx={{ mr: 1, color: 'text.secondary' }}>$</Typography>,
+              }}
+              placeholder="0.00"
+            />
+
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Date"
+                  type="date"
+                  value={newPaymentForm.date}
+                  onChange={(e) => setNewPaymentForm({ ...newPaymentForm, date: e.target.value })}
+                  required
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Time"
+                  type="time"
+                  value={newPaymentForm.time}
+                  onChange={(e) => setNewPaymentForm({ ...newPaymentForm, time: e.target.value })}
+                  InputLabelProps={{ shrink: true }}
+                  inputProps={{
+                    step: 300, // 5 minutes
+                  }}
+                />
+              </Grid>
+            </Grid>
+
+            <TextField
+              fullWidth
+              label="Category (Optional)"
+              value={newPaymentForm.category_name}
+              onChange={(e) => setNewPaymentForm({ ...newPaymentForm, category_name: e.target.value })}
+              placeholder="e.g., Income, Utilities, Housing"
+            />
+
+            <TextField
+              fullWidth
+              label="Merchant / Source (Optional)"
+              value={newPaymentForm.merchant_name}
+              onChange={(e) => setNewPaymentForm({ ...newPaymentForm, merchant_name: e.target.value })}
+              placeholder="e.g., Company Name, Property Management"
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 3, pt: 2 }}>
+          <Button 
+            onClick={handleCloseDialog}
+            sx={{ 
+              textTransform: 'none',
+              fontWeight: 600,
+              color: 'text.secondary',
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleAddPayment}
+            variant="contained"
+            disabled={!newPaymentForm.name || !newPaymentForm.amount || !newPaymentForm.date}
+            sx={{ 
+              textTransform: 'none',
+              fontWeight: 600,
+              borderRadius: '8px',
+              px: 3,
+            }}
+          >
+            Add Payment
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
