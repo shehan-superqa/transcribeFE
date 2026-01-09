@@ -1,19 +1,19 @@
 .pending-transactions-container {
   max-width: 1152px;
   margin: 0 auto;
-  padding: 2rem 1.5rem;
+  padding: 1rem 1rem;
   font-family: 'Inter', sans-serif;
 }
 
 .pending-transactions-header {
-  margin-bottom: 2rem;
+  margin-bottom: 1.25rem;
 }
 
 .pending-transactions-title {
-  font-size: 1.875rem;
+  font-size: 1.375rem;
   font-weight: 700;
   letter-spacing: -0.025em;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.375rem;
   color: #111827;
 }
 
@@ -22,6 +22,7 @@
 }
 
 .pending-transactions-subtitle {
+  font-size: 0.8125rem;
   color: #6b7280;
 }
 
@@ -31,14 +32,14 @@
 
 /* Alert Banner */
 .pending-alert-banner {
-  margin-bottom: 2.5rem;
-  padding: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 0.75rem;
   background-color: #fffbeb;
   border: 1px solid #fde68a;
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
   display: flex;
   align-items: flex-start;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .dark .pending-alert-banner {
@@ -48,9 +49,10 @@
 
 .pending-alert-icon {
   background-color: #fef3c7;
-  padding: 0.5rem;
-  border-radius: 0.5rem;
+  padding: 0.375rem;
+  border-radius: 0.375rem;
   color: #d97706;
+  font-size: 1rem !important;
 }
 
 .dark .pending-alert-icon {
@@ -59,9 +61,10 @@
 }
 
 .pending-alert-content h3 {
+  font-size: 0.875rem;
   font-weight: 600;
   color: #92400e;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.125rem;
 }
 
 .dark .pending-alert-content h3 {
@@ -69,7 +72,7 @@
 }
 
 .pending-alert-content p {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: rgba(146, 64, 14, 0.8);
 }
 
@@ -81,13 +84,13 @@
 .pending-transactions-list {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 .pending-transaction-card {
   background-color: #ffffff;
   border: 1px solid #e5e7eb;
-  border-radius: 1rem;
+  border-radius: 0.75rem;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   overflow: hidden;
   transition: all 0.3s;
@@ -118,7 +121,7 @@
 }
 
 .pending-transaction-details {
-  padding: 1.5rem;
+  padding: 1rem;
   flex: 1;
   border-right: 1px solid #f3f4f6;
 }
@@ -140,18 +143,18 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
 .pending-transaction-amount-group {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.25rem;
+  gap: 0.375rem;
+  margin-bottom: 0.125rem;
 }
 
 .pending-transaction-amount {
-  font-size: 1.875rem;
+  font-size: 1.375rem;
   font-weight: 700;
   color: #111827;
 }
@@ -161,8 +164,8 @@
 }
 
 .pending-confidence-badge {
-  padding: 0.125rem 0.5rem;
-  font-size: 0.625rem;
+  padding: 0.125rem 0.375rem;
+  font-size: 0.5625rem;
   font-weight: 700;
   text-transform: uppercase;
   border-radius: 9999px;
@@ -202,8 +205,8 @@
 .pending-transaction-meta {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
+  gap: 0.375rem;
+  font-size: 0.75rem;
   color: #6b7280;
 }
 
@@ -212,7 +215,7 @@
 }
 
 .pending-transaction-meta-icon {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
 }
 
 .pending-transaction-merchant {
@@ -231,13 +234,13 @@
 .pending-view-receipt-btn {
   display: flex;
   align-items: center;
-  gap: 0.375rem;
+  gap: 0.25rem;
   color: #6d28d9;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   background-color: rgba(109, 40, 217, 0.05);
-  padding: 0.375rem 0.75rem;
-  border-radius: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
   border: none;
   cursor: pointer;
   transition: all 0.2s;
@@ -254,18 +257,18 @@
 }
 
 .pending-view-receipt-btn-icon {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
 }
 
 .pending-classification-section {
-  margin-top: 1.5rem;
+  margin-top: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .pending-classification-label {
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   color: #9ca3af;
   text-transform: uppercase;
@@ -274,9 +277,9 @@
 
 .pending-classification-buttons {
   display: flex;
-  padding: 0.25rem;
+  padding: 0.125rem;
   background-color: #f3f4f6;
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
   width: fit-content;
 }
 
@@ -287,9 +290,10 @@
 .pending-classification-btn {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1.5rem;
-  border-radius: 0.5rem;
+  gap: 0.375rem;
+  padding: 0.375rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.8125rem;
   font-weight: 500;
   border: none;
   cursor: pointer;
@@ -322,7 +326,7 @@
 }
 
 .pending-classification-btn-icon {
-  font-size: 1.25rem;
+  font-size: 1rem;
 }
 
 .pending-classification-btn-icon.expense {
@@ -336,7 +340,7 @@
 /* OCR Section */
 .pending-ocr-section {
   background-color: #f9fafb;
-  padding: 1.5rem;
+  padding: 1rem;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -349,7 +353,7 @@
 
 @media (min-width: 1024px) {
   .pending-ocr-section {
-    width: 380px;
+    width: 320px;
   }
 }
 
@@ -357,11 +361,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.375rem;
 }
 
 .pending-ocr-label {
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   color: #9ca3af;
   text-transform: uppercase;
@@ -372,7 +376,7 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   font-weight: 500;
   color: #6b7280;
 }
@@ -390,18 +394,18 @@
 }
 
 .pending-ocr-match-icon {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
 }
 
 .pending-ocr-text {
   background-color: #ffffff;
   border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
-  padding: 0.75rem;
-  font-size: 0.75rem;
+  border-radius: 0.375rem;
+  padding: 0.5rem;
+  font-size: 0.6875rem;
   font-family: monospace;
   color: #4b5563;
-  height: 6rem;
+  height: 4.5rem;
   overflow-y: auto;
   font-style: italic;
 }
@@ -416,8 +420,8 @@
 .pending-action-buttons {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1.5rem;
+  gap: 0.5rem;
+  padding: 1rem;
   padding-top: 0;
 }
 
@@ -425,9 +429,10 @@
   flex: 1;
   background-color: #6d28d9;
   color: #ffffff;
+  font-size: 0.8125rem;
   font-weight: 600;
-  padding: 0.625rem 1rem;
-  border-radius: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
   border: none;
   cursor: pointer;
   box-shadow: 0 4px 6px -1px rgba(109, 40, 217, 0.2);
@@ -435,7 +440,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.375rem;
 }
 
 .pending-confirm-btn:hover {
@@ -451,14 +456,14 @@
 }
 
 .pending-confirm-btn-icon {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
 }
 
 .pending-edit-btn,
 .pending-delete-btn {
-  padding: 0.625rem;
+  padding: 0.5rem;
   border: 1px solid #e5e7eb;
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
   cursor: pointer;
   transition: all 0.2s;
   background-color: transparent;
@@ -507,19 +512,19 @@
 }
 
 .pending-action-icon {
-  font-size: 1.25rem;
+  font-size: 1rem;
 }
 
 /* Footer */
 .pending-footer {
-  margin-top: 3rem;
+  margin-top: 1.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.5rem;
+  padding: 1rem;
   background-color: #ffffff;
   border: 1px solid #e5e7eb;
-  border-radius: 1rem;
+  border-radius: 0.75rem;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
@@ -529,7 +534,7 @@
 }
 
 .pending-footer-text {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: #6b7280;
 }
 
@@ -548,13 +553,14 @@
 
 .pending-footer-actions {
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .pending-skip-all-btn {
-  padding: 0.625rem 1.5rem;
+  padding: 0.5rem 1rem;
   border: 1px solid #e5e7eb;
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
@@ -576,11 +582,12 @@
 }
 
 .pending-verify-all-btn {
-  padding: 0.625rem 1.5rem;
+  padding: 0.5rem 1rem;
   background-color: #6d28d9;
   color: #ffffff;
+  font-size: 0.8125rem;
   font-weight: 700;
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
   border: none;
   cursor: pointer;
   box-shadow: 0 10px 15px -3px rgba(109, 40, 217, 0.2);
@@ -604,11 +611,11 @@
 .pending-empty-state {
   background-color: #d1fae5;
   border: 1px solid #86efac;
-  border-radius: 0.75rem;
-  padding: 1.5rem;
+  border-radius: 0.5rem;
+  padding: 1rem;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .dark .pending-empty-state {
@@ -618,6 +625,7 @@
 
 .pending-empty-icon {
   color: #059669;
+  font-size: 1.5rem !important;
 }
 
 .dark .pending-empty-icon {
@@ -625,9 +633,10 @@
 }
 
 .pending-empty-content h3 {
+  font-size: 0.875rem;
   font-weight: 600;
   color: #065f46;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.125rem;
 }
 
 .dark .pending-empty-content h3 {
@@ -635,7 +644,7 @@
 }
 
 .pending-empty-content p {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: rgba(6, 95, 70, 0.8);
 }
 
@@ -663,7 +672,7 @@
 
 /* Receipt Modal */
 .pending-receipt-modal-header {
-  padding: 1rem;
+  padding: 0.75rem;
   border-bottom: 1px solid #f3f4f6;
   display: flex;
   align-items: center;
@@ -676,7 +685,7 @@
 
 .pending-receipt-modal-title {
   font-weight: 700;
-  font-size: 1.125rem;
+  font-size: 0.9375rem;
   color: #111827;
 }
 
@@ -685,13 +694,14 @@
 }
 
 .pending-receipt-modal-close {
-  padding: 0.5rem;
+  padding: 0.375rem;
   border-radius: 9999px;
   border: none;
   background-color: transparent;
   cursor: pointer;
   color: #4b5563;
   transition: all 0.2s;
+  font-size: 1.125rem !important;
 }
 
 .dark .pending-receipt-modal-close {
@@ -710,7 +720,7 @@
   flex: 1;
   overflow: auto;
   background-color: #f3f4f6;
-  padding: 2rem;
+  padding: 1.25rem;
   display: flex;
   justify-content: center;
 }
@@ -721,11 +731,11 @@
 
 .pending-receipt-preview {
   width: 100%;
-  max-width: 28rem;
+  max-width: 24rem;
   background-color: #ffffff;
-  padding: 2rem;
+  padding: 1.25rem;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  border-radius: 0.5rem;
+  border-radius: 0.375rem;
   position: relative;
 }
 
@@ -735,11 +745,11 @@
 
 .pending-receipt-merchant-name {
   text-align: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .pending-receipt-merchant-title {
-  font-size: 1.5rem;
+  font-size: 1.125rem;
   font-weight: 700;
   letter-spacing: -0.05em;
   text-transform: uppercase;
@@ -759,11 +769,11 @@
 .pending-receipt-items {
   border-top: 1px dashed #d1d5db;
   border-bottom: 1px dashed #d1d5db;
-  padding: 1rem 0;
-  margin-bottom: 1rem;
+  padding: 0.75rem 0;
+  margin-bottom: 0.75rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.375rem;
 }
 
 .dark .pending-receipt-items {
@@ -773,7 +783,7 @@
 .pending-receipt-item {
   display: flex;
   justify-content: space-between;
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   color: #111827;
 }
 
@@ -785,7 +795,7 @@
   display: flex;
   justify-content: space-between;
   font-weight: 700;
-  font-size: 1.125rem;
+  font-size: 0.9375rem;
   color: #111827;
 }
 
@@ -794,14 +804,14 @@
 }
 
 .pending-receipt-qr {
-  margin-top: 3rem;
+  margin-top: 1.5rem;
   text-align: center;
 }
 
 .pending-receipt-qr-box {
   background-color: #e5e7eb;
   width: 100%;
-  height: 3rem;
+  height: 2.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -813,7 +823,7 @@
 }
 
 .pending-receipt-qr-icon {
-  font-size: 1.875rem;
+  font-size: 1.375rem;
   color: #9ca3af;
 }
 

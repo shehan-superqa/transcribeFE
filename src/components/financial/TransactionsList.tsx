@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Box, Paper, Typography, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Card, CardContent, Chip, IconButton, Collapse, CircularProgress, Divider, Avatar, Tooltip } from '@mui/material';
-import { CloudUpload, Edit, Delete, MergeType, ExpandLess, ExpandMore, ShoppingCart, AttachMoney, CalendarToday, Store, Storefront, Category as CategoryIcon, Warning, TrendingDown, TrendingUp, Receipt, Visibility, ChevronRight } from '@mui/icons-material';
+import { CloudUpload, Edit, Delete, MergeType, ExpandLess, ExpandMore, ShoppingCart, AttachMoney, CalendarToday, Store, Storefront, Category as CategoryIcon, Warning, TrendingDown, TrendingUp, Receipt, Visibility, ChevronRight, ZoomIn } from '@mui/icons-material';
 import { Transaction, Merchant, Category, TransactionItem, FlattenedItem } from '../../types/financial';
 import { useTheme } from '../../contexts/ThemeContext';
 import { getDisplayCategoryName, formatCurrency, getDisplayMerchantName, formatPaymentMethod, checkMissingPriceFields, getMissingFieldStyle, getMissingFieldRowStyle, transactionHasMissingFields, getExpenseAmount, getEarningAmount, getTaxAmount, getTransactionType } from '../../utils/transactionHelpers';
 import EditableItemCell from './EditableItemCell';
 import TransactionCard from './TransactionCard';
 import BillItemsModal from './BillItemsModal';
+import ReceiptPreviewDrawer from './ReceiptPreviewDrawer';
 
 interface TransactionsListProps {
   layout: 'card' | 'table' | 'items';
@@ -30,6 +31,7 @@ interface TransactionsListProps {
   getMerchantName: (merchantId: string | null) => string;
   getCategoryName: (categoryId: string | null) => string;
   getBillItems: (transaction: Transaction) => TransactionItem[];
+  onTransactionsChange?: () => void;
 }
 
 export default function TransactionsList({
@@ -54,6 +56,7 @@ export default function TransactionsList({
   getMerchantName,
   getCategoryName,
   getBillItems,
+  onTransactionsChange,
 }: TransactionsListProps) {
   const handleItemFieldUpdate = (itemId: string, field: string, value: number) => {
     onItemFieldUpdate?.(itemId, field, value);
@@ -66,6 +69,8 @@ export default function TransactionsList({
   
   const [viewItemsModalOpen, setViewItemsModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  const [receiptDrawerOpen, setReceiptDrawerOpen] = useState(false);
+  const [selectedReceiptTransaction, setSelectedReceiptTransaction] = useState<Transaction | null>(null);
 
   const handleOpenViewItemsModal = (transaction: Transaction) => {
     setSelectedTransaction(transaction);
@@ -75,6 +80,16 @@ export default function TransactionsList({
   const handleCloseViewItemsModal = () => {
     setViewItemsModalOpen(false);
     setSelectedTransaction(null);
+  };
+
+  const handleOpenReceiptDrawer = (transaction: Transaction) => {
+    setSelectedReceiptTransaction(transaction);
+    setReceiptDrawerOpen(true);
+  };
+
+  const handleCloseReceiptDrawer = () => {
+    setReceiptDrawerOpen(false);
+    setSelectedReceiptTransaction(null);
   };
 
   const renderItemsView = () => (
@@ -240,6 +255,17 @@ export default function TransactionsList({
                 fontWeight: 700,
                 letterSpacing: '0.05em',
                 fontFamily: "'Inter', sans-serif"
+              }}>Receipt</TableCell>
+              <TableCell sx={{ 
+                px: 3, 
+                py: 2,
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(30, 41, 59, 0.5)' : 'rgba(248, 250, 252, 0.5)',
+                color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280',
+                textTransform: 'uppercase',
+                fontSize: '10px',
+                fontWeight: 700,
+                letterSpacing: '0.05em',
+                fontFamily: "'Inter', sans-serif"
               }}>Merchant</TableCell>
               <TableCell sx={{ 
                 px: 3, 
@@ -338,6 +364,106 @@ export default function TransactionsList({
                           </Tooltip>
                         )}
                       </Box>
+                    </TableCell>
+                    <TableCell sx={{ px: 3, py: 2 }}>
+                      {transaction.bill_image_url ? (
+                        <Tooltip title="View Receipt">
+                          <Box
+                            component="button"
+                            onClick={() => handleOpenReceiptDrawer(transaction)}
+                            sx={{
+                              position: 'relative',
+                              width: 40,
+                              height: 40,
+                              border: `1px solid ${theme.palette.mode === 'dark' ? '#374151' : '#E5E7EB'}`,
+                              borderRadius: '8px',
+                              overflow: 'hidden',
+                              cursor: 'pointer',
+                              p: 0,
+                              bgcolor: 'transparent',
+                              transition: 'all 0.2s',
+                              '&:hover': {
+                                borderColor: '#6D28D9',
+                                boxShadow: '0 0 0 2px rgba(109, 40, 217, 0.2)',
+                              },
+                            }}
+                          >
+                            <Box
+                              component="img"
+                              src={transaction.bill_image_url}
+                              alt="Receipt"
+                              sx={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover',
+                                opacity: 0.8,
+                                transition: 'opacity 0.2s',
+                                '&:hover': {
+                                  opacity: 1,
+                                },
+                              }}
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                const parent = target.parentElement;
+                                if (parent) {
+                                  parent.innerHTML = '';
+                                  parent.appendChild(document.createTextNode('📄'));
+                                  parent.style.display = 'flex';
+                                  parent.style.alignItems = 'center';
+                                  parent.style.justifyContent = 'center';
+                                  parent.style.color = theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280';
+                                }
+                              }}
+                            />
+                            <Box
+                              sx={{
+                                position: 'absolute',
+                                inset: 0,
+                                bgcolor: 'rgba(0, 0, 0, 0.1)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                opacity: 0,
+                                transition: 'opacity 0.2s',
+                                '&:hover': {
+                                  opacity: 1,
+                                },
+                              }}
+                            >
+                              <ZoomIn sx={{ fontSize: '18px', color: 'white' }} />
+                            </Box>
+                          </Box>
+                        </Tooltip>
+                      ) : (
+                        <Tooltip title="View Receipt Details">
+                          <Box
+                            component="button"
+                            onClick={() => handleOpenReceiptDrawer(transaction)}
+                            sx={{
+                              width: 40,
+                              height: 40,
+                              border: `1px dashed ${theme.palette.mode === 'dark' ? '#374151' : '#E5E7EB'}`,
+                              borderRadius: '8px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: theme.palette.text.disabled,
+                              cursor: 'pointer',
+                              p: 0,
+                              bgcolor: 'transparent',
+                              transition: 'all 0.2s',
+                              '&:hover': {
+                                borderColor: '#6D28D9',
+                                borderStyle: 'solid',
+                                color: '#6D28D9',
+                                boxShadow: '0 0 0 2px rgba(109, 40, 217, 0.2)',
+                              },
+                            }}
+                          >
+                            <Receipt sx={{ fontSize: '18px' }} />
+                          </Box>
+                        </Tooltip>
+                      )}
                     </TableCell>
                     <TableCell sx={{ px: 3, py: 2 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -440,7 +566,7 @@ export default function TransactionsList({
                     </TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell colSpan={7} sx={{ px: 4, pb: 2, pt: 0, border: 0, bgcolor: theme.palette.mode === 'dark' ? 'rgba(30, 41, 59, 0.2)' : 'rgba(248, 250, 252, 0.5)' }}>
+                    <TableCell colSpan={8} sx={{ px: 4, pb: 2, pt: 0, border: 0, bgcolor: theme.palette.mode === 'dark' ? 'rgba(30, 41, 59, 0.2)' : 'rgba(248, 250, 252, 0.5)' }}>
                       <Collapse in={isExpanded} timeout="auto" unmountOnExit>
                         <Box sx={{ ml: 3, position: 'relative' }}>
                           {isLoading ? (
@@ -855,6 +981,19 @@ export default function TransactionsList({
         onItemEdit={onEditItem}
         onItemDelete={onDeleteItem}
         onItemFieldUpdate={onItemFieldUpdate}
+      />
+      <ReceiptPreviewDrawer
+        open={receiptDrawerOpen}
+        onClose={handleCloseReceiptDrawer}
+        transaction={selectedReceiptTransaction}
+        merchants={merchants}
+        categories={categories}
+        getMerchantName={getMerchantName}
+        getCategoryName={getCategoryName}
+        getBillItems={getBillItems}
+        onTransactionUpdated={() => {
+          onTransactionsChange?.();
+        }}
       />
     </>
   );

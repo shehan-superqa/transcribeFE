@@ -1049,6 +1049,7 @@ export default function TransactionsSection({
                 getMerchantName={getMerchantName}
                 getCategoryName={getCategoryName}
                 getBillItems={getBillItems}
+                onTransactionsChange={onTransactionsChange}
               />
             </>
           )}

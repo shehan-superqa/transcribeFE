@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html class="light" lang="en"><head>
+<html lang="en"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Pending Transactions | Financial Portal</title>
+<title>Modern Merchant Directory Variant 1</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
@@ -12,7 +12,7 @@
         theme: {
           extend: {
             colors: {
-              primary: "#6d28d9",
+              primary: "#6366f1", // A vibrant modern purple
               "background-light": "#f9fafb",
               "background-dark": "#111827",
             },
@@ -20,315 +20,245 @@
               display: ["Inter", "sans-serif"],
             },
             borderRadius: {
-              DEFAULT: "0.75rem",
+              DEFAULT: "12px",
             },
           },
         },
       };
-      function toggleDarkMode() {
-        document.documentElement.classList.toggle('dark');
-      }
     </script>
 <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #d1d5db;
-            border-radius: 10px;
-        }
-        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #4b5563;
-        }
+        body { font-family: 'Inter', sans-serif; }
+        .sparkline { height: 30px; width: 100%; stroke: #6366f1; stroke-width: 2; fill: transparent; }
+        .card-hover:hover { transform: translateY(-4px); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
     </style>
 </head>
-<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-200">
-<nav class="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 sticky top-0 z-30">
-<div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-<div class="flex items-center gap-2">
-<div class="w-8 h-8 bg-primary rounded flex items-center justify-center text-white">
-<span class="material-icons-round text-xl">account_balance_wallet</span>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen p-6 md:p-10 transition-colors duration-200">
+<div class="max-w-7xl mx-auto">
+<header class="mb-10">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+<div>
+<h1 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Merchants</h1>
+<p class="mt-2 text-slate-500 dark:text-slate-400">View all merchants you've transacted with. Click on a merchant to see detailed history.</p>
 </div>
-<span class="font-bold text-lg tracking-tight">FinFlow</span>
+<div class="flex flex-wrap items-center gap-4">
+<div class="relative min-w-[300px]">
+<span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+<span class="material-icons-round text-xl">search</span>
+</span>
+<input class="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" placeholder="Search merchants..." type="text"/>
 </div>
-<div class="flex items-center gap-4">
-<button class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" onclick="toggleDarkMode()">
-<span class="material-icons-round dark:hidden">dark_mode</span>
-<span class="material-icons-round hidden dark:block">light_mode</span>
+<div class="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-1">
+<button class="px-4 py-1.5 text-sm font-medium bg-primary text-white rounded-md shadow-sm">Total Spent</button>
+<button class="px-4 py-1.5 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-md">Frequency</button>
+<button class="px-4 py-1.5 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-md">Alphabetical</button>
+</div>
+<button class="p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-600 dark:text-slate-400" onclick="document.documentElement.classList.toggle('dark')">
+<span class="material-icons-round">dark_mode</span>
 </button>
-<div class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden border border-slate-300 dark:border-slate-600">
-<img alt="User Avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBIWmNt-SAGHmv43qVW3HlPTjJSyNcTbpFdANSN5P5ai4n0IDQGxBDRDQ4Fbn4bMWs_S_VYqqJqQyM2e5eumKS9M3QkDi6MTliiX2ZhfOfhi-TMgjEe_Qh5RJugq57Pzfnuk3WqgqjgR-oLFVEhBXD0gD9KYgwPl5kaE_5E748s6RnfA4aKm9pUaiK4jhwhOve-qNyZhoG8zprpKTXN49mk9uCVWH2UaYZRRGFP868ywi72mHfrVVk5tZ47WRX5heiFsFrsC84--lQ"/>
 </div>
 </div>
-</div>
-</nav>
-<main class="max-w-6xl mx-auto px-6 py-8">
-<header class="mb-8">
-<h1 class="text-3xl font-bold tracking-tight mb-2">Pending Transactions</h1>
-<p class="text-slate-500 dark:text-slate-400">Review and verify scanned receipt data before finalizing your records.</p>
 </header>
-<div class="mb-10 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900/50 rounded-xl flex items-start gap-4">
-<div class="bg-amber-100 dark:bg-amber-800 p-2 rounded-lg text-amber-600 dark:text-amber-400">
-<span class="material-icons-round">warning</span>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<div class="card-hover bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-6 shadow-sm hover:shadow-xl transition-all cursor-pointer group">
+<div class="flex items-center gap-4 mb-6">
+<div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-icons-round text-3xl">storefront</span>
 </div>
 <div>
-<h3 class="font-semibold text-amber-900 dark:text-amber-200">3 Transactions Need Your Attention</h3>
-<p class="text-amber-800/80 dark:text-amber-400/80 text-sm">Please verify the merchant details and classify these items as either income or expense.</p>
+<h3 class="text-xl font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">Singer</h3>
+<p class="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">Home Appliances</p>
 </div>
 </div>
-<div class="space-y-6">
-<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden group hover:border-primary/30 transition-all duration-300">
-<div class="flex flex-col lg:flex-row">
-<div class="p-6 flex-1 border-r border-slate-100 dark:border-slate-800/50">
-<div class="flex items-start justify-between mb-4">
+<div class="grid grid-cols-2 gap-4 mb-6">
 <div>
-<div class="flex items-center gap-2 mb-1">
-<span class="text-3xl font-bold">$125.50</span>
-<span class="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold uppercase rounded-full tracking-wider">High Confidence</span>
+<p class="text-sm text-slate-500 dark:text-slate-400 mb-1">Total Spent</p>
+<p class="text-2xl font-bold text-primary">Rs. 376,511</p>
 </div>
-<div class="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm">
-<span class="material-icons-round text-sm">store</span>
-<span class="font-medium text-slate-900 dark:text-white">Merchant One Solutions</span>
-<span class="mx-1">•</span>
-<span class="material-icons-round text-sm">calendar_today</span>
-<span>Jan 28, 2024</span>
+<div class="text-right">
+<p class="text-sm text-slate-500 dark:text-slate-400 mb-1">Transactions</p>
+<p class="text-xl font-semibold text-slate-700 dark:text-slate-200">5</p>
 </div>
 </div>
-<button class="flex items-center gap-1.5 text-primary text-sm font-semibold hover:underline bg-primary/5 px-3 py-1.5 rounded-lg transition-colors">
-<span class="material-icons-round text-sm">image</span>
-                                View Original Receipt
-                            </button>
+<div class="flex items-center gap-2 mb-6 text-slate-500 dark:text-slate-400">
+<span class="material-icons-round text-sm">event</span>
+<span class="text-sm font-medium">Last visit: 12/18/2025</span>
 </div>
-<div class="mt-6 flex flex-col gap-3">
-<span class="text-xs font-semibold text-slate-400 uppercase tracking-widest">Classification Needed</span>
-<div class="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl w-fit">
-<button class="flex items-center gap-2 px-6 py-2 bg-white dark:bg-slate-700 text-slate-900 dark:text-white rounded-lg shadow-sm font-medium transition-all">
-<span class="material-icons-round text-rose-500">trending_down</span>
-                                    Expense
-                                </button>
-<button class="flex items-center gap-2 px-6 py-2 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 font-medium transition-all">
-<span class="material-icons-round text-emerald-500">trending_up</span>
-                                    Income
-                                </button>
+<div class="pt-4 border-t border-slate-100 dark:border-slate-700">
+<p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">6-Month Spending Trend</p>
+<svg class="sparkline" viewBox="0 0 100 30">
+<path class="text-primary" d="M0,25 C10,20 20,28 30,15 C40,2 50,18 60,10 C70,2 80,12 100,5" fill="none" stroke="currentColor"></path>
+</svg>
 </div>
 </div>
+<div class="card-hover bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-6 shadow-sm hover:shadow-xl transition-all cursor-pointer group">
+<div class="flex items-center gap-4 mb-6">
+<div class="w-12 h-12 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400">
+<span class="material-icons-round text-3xl">local_hospital</span>
 </div>
-<div class="bg-slate-50 dark:bg-slate-900/50 p-6 lg:w-[380px] flex flex-col justify-between">
 <div>
-<div class="flex items-center justify-between mb-2">
-<span class="text-xs font-semibold text-slate-400 uppercase tracking-widest">OCR Scanned Text</span>
-<div class="flex items-center gap-1 text-xs font-medium text-slate-500">
-<span class="material-icons-round text-[14px]">psychology</span>
-                                    85% Match
-                                </div>
-</div>
-<div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-3 text-xs font-mono text-slate-600 dark:text-slate-400 h-24 overflow-y-auto custom-scrollbar italic">
-                                RECEIPT FROM STORE ABC... INV #293849 TOTAL: $125.50 DATE: 01/28/2024 TAX: $8.50 THANK YOU FOR SHOPPING!
-                            </div>
-</div>
-<div class="flex items-center gap-3 mt-6">
-<button class="flex-1 bg-primary hover:bg-primary/90 text-white font-semibold py-2.5 rounded-xl shadow-md shadow-primary/20 transition-all flex items-center justify-center gap-2">
-<span class="material-icons-round text-sm">check_circle</span>
-                                Confirm
-                            </button>
-<button class="p-2.5 border border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 rounded-xl text-slate-600 dark:text-slate-400 transition-colors">
-<span class="material-icons-round text-xl">edit</span>
-</button>
-<button class="p-2.5 border border-red-100 dark:border-red-900/30 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl text-red-500 transition-colors">
-<span class="material-icons-round text-xl">delete_outline</span>
-</button>
+<h3 class="text-xl font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">Nawaloka Hospital</h3>
+<p class="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">Healthcare</p>
 </div>
 </div>
-</div>
-</div>
-<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden group hover:border-primary/30 transition-all duration-300">
-<div class="flex flex-col lg:flex-row">
-<div class="p-6 flex-1 border-r border-slate-100 dark:border-slate-800/50">
-<div class="flex items-start justify-between mb-4">
+<div class="grid grid-cols-2 gap-4 mb-6">
 <div>
-<div class="flex items-center gap-2 mb-1">
-<span class="text-3xl font-bold">$89.99</span>
-<span class="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold uppercase rounded-full tracking-wider">92% Confidence</span>
+<p class="text-sm text-slate-500 dark:text-slate-400 mb-1">Total Spent</p>
+<p class="text-2xl font-bold text-primary">Rs. 326,758</p>
 </div>
-<div class="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm">
-<span class="material-icons-round text-sm">store</span>
-<span class="font-medium text-slate-900 dark:text-white">Global Cloud Services</span>
-<span class="mx-1">•</span>
-<span class="material-icons-round text-sm">calendar_today</span>
-<span>Jan 27, 2024</span>
+<div class="text-right">
+<p class="text-sm text-slate-500 dark:text-slate-400 mb-1">Transactions</p>
+<p class="text-xl font-semibold text-slate-700 dark:text-slate-200">8</p>
 </div>
 </div>
-<button class="flex items-center gap-1.5 text-primary text-sm font-semibold hover:underline bg-primary/5 px-3 py-1.5 rounded-lg transition-colors">
-<span class="material-icons-round text-sm">image</span>
-                                View Original Receipt
-                            </button>
+<div class="flex items-center gap-2 mb-6 text-slate-500 dark:text-slate-400">
+<span class="material-icons-round text-sm">event</span>
+<span class="text-sm font-medium">Last visit: 12/20/2025</span>
 </div>
-<div class="mt-6 flex flex-col gap-3">
-<span class="text-xs font-semibold text-slate-400 uppercase tracking-widest">Classification Needed</span>
-<div class="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl w-fit">
-<button class="flex items-center gap-2 px-6 py-2 bg-white dark:bg-slate-700 text-slate-900 dark:text-white rounded-lg shadow-sm font-medium transition-all">
-<span class="material-icons-round text-rose-500">trending_down</span>
-                                    Expense
-                                </button>
-<button class="flex items-center gap-2 px-6 py-2 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 font-medium transition-all">
-<span class="material-icons-round text-emerald-500">trending_up</span>
-                                    Income
-                                </button>
+<div class="pt-4 border-t border-slate-100 dark:border-slate-700">
+<p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">6-Month Spending Trend</p>
+<svg class="sparkline" viewBox="0 0 100 30">
+<path class="text-primary" d="M0,5 C20,10 40,25 60,15 C80,5 100,10 100,2" fill="none" stroke="currentColor"></path>
+</svg>
 </div>
 </div>
+<div class="card-hover bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-6 shadow-sm hover:shadow-xl transition-all cursor-pointer group">
+<div class="flex items-center gap-4 mb-6">
+<div class="w-12 h-12 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-600 dark:text-orange-400">
+<span class="material-icons-round text-3xl">menu_book</span>
 </div>
-<div class="bg-slate-50 dark:bg-slate-900/50 p-6 lg:w-[380px] flex flex-col justify-between">
 <div>
-<div class="flex items-center justify-between mb-2">
-<span class="text-xs font-semibold text-slate-400 uppercase tracking-widest">OCR Scanned Text</span>
-<div class="flex items-center gap-1 text-xs font-medium text-slate-500">
-<span class="material-icons-round text-[14px]">psychology</span>
-                                    92% Match
-                                </div>
-</div>
-<div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-3 text-xs font-mono text-slate-600 dark:text-slate-400 h-24 overflow-y-auto custom-scrollbar italic">
-                                INVOICE FROM SERVICE PROVIDER... SUBSCRIPTION BILLING PERIOD JAN 2024. AMOUNT $89.99 TAX INCLUSIVE.
-                            </div>
-</div>
-<div class="flex items-center gap-3 mt-6">
-<button class="flex-1 bg-primary hover:bg-primary/90 text-white font-semibold py-2.5 rounded-xl shadow-md shadow-primary/20 transition-all flex items-center justify-center gap-2">
-<span class="material-icons-round text-sm">check_circle</span>
-                                Confirm
-                            </button>
-<button class="p-2.5 border border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 rounded-xl text-slate-600 dark:text-slate-400 transition-colors">
-<span class="material-icons-round text-xl">edit</span>
-</button>
-<button class="p-2.5 border border-red-100 dark:border-red-900/30 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl text-red-500 transition-colors">
-<span class="material-icons-round text-xl">delete_outline</span>
-</button>
+<h3 class="text-xl font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">Sarasavi</h3>
+<p class="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">Books &amp; Stationery</p>
 </div>
 </div>
-</div>
-</div>
-<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden group hover:border-primary/30 transition-all duration-300">
-<div class="flex flex-col lg:flex-row">
-<div class="p-6 flex-1 border-r border-slate-100 dark:border-slate-800/50">
-<div class="flex items-start justify-between mb-4">
+<div class="grid grid-cols-2 gap-4 mb-6">
 <div>
-<div class="flex items-center gap-2 mb-1">
-<span class="text-3xl font-bold">$1,500.00</span>
-<span class="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 text-[10px] font-bold uppercase rounded-full tracking-wider">Low Confidence</span>
+<p class="text-sm text-slate-500 dark:text-slate-400 mb-1">Total Spent</p>
+<p class="text-2xl font-bold text-primary">Rs. 225,095</p>
 </div>
-<div class="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm">
-<span class="material-icons-round text-sm">store</span>
-<span class="font-medium text-slate-900 dark:text-white">Direct Transfer Ltd</span>
-<span class="mx-1">•</span>
-<span class="material-icons-round text-sm">calendar_today</span>
-<span>Jan 26, 2024</span>
+<div class="text-right">
+<p class="text-sm text-slate-500 dark:text-slate-400 mb-1">Transactions</p>
+<p class="text-xl font-semibold text-slate-700 dark:text-slate-200">6</p>
 </div>
 </div>
-<button class="flex items-center gap-1.5 text-primary text-sm font-semibold hover:underline bg-primary/5 px-3 py-1.5 rounded-lg transition-colors">
-<span class="material-icons-round text-sm">image</span>
-                                View Original Receipt
-                            </button>
+<div class="flex items-center gap-2 mb-6 text-slate-500 dark:text-slate-400">
+<span class="material-icons-round text-sm">event</span>
+<span class="text-sm font-medium">Last visit: 1/10/2026</span>
 </div>
-<div class="mt-6 flex flex-col gap-3">
-<span class="text-xs font-semibold text-slate-400 uppercase tracking-widest">Classification Needed</span>
-<div class="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl w-fit">
-<button class="flex items-center gap-2 px-6 py-2 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 font-medium transition-all">
-<span class="material-icons-round text-rose-500">trending_down</span>
-                                    Expense
-                                </button>
-<button class="flex items-center gap-2 px-6 py-2 bg-white dark:bg-slate-700 text-slate-900 dark:text-white rounded-lg shadow-sm font-medium transition-all">
-<span class="material-icons-round text-emerald-500">trending_up</span>
-                                    Income
-                                </button>
+<div class="pt-4 border-t border-slate-100 dark:border-slate-700">
+<p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">6-Month Spending Trend</p>
+<svg class="sparkline" viewBox="0 0 100 30">
+<path class="text-primary" d="M0,28 C10,28 20,20 30,22 C50,25 70,10 100,5" fill="none" stroke="currentColor"></path>
+</svg>
 </div>
 </div>
+<div class="card-hover bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-6 shadow-sm hover:shadow-xl transition-all cursor-pointer group">
+<div class="flex items-center gap-4 mb-6">
+<div class="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+<span class="material-icons-round text-3xl">shopping_cart</span>
 </div>
-<div class="bg-slate-50 dark:bg-slate-900/50 p-6 lg:w-[380px] flex flex-col justify-between">
 <div>
-<div class="flex items-center justify-between mb-2">
-<span class="text-xs font-semibold text-slate-400 uppercase tracking-widest">OCR Scanned Text</span>
-<div class="flex items-center gap-1 text-xs font-medium text-amber-600 dark:text-amber-400">
-<span class="material-icons-round text-[14px]">psychology</span>
-                                    78% Match
-                                </div>
+<h3 class="text-xl font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">Arpico</h3>
+<p class="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">Supermarket</p>
 </div>
-<div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-3 text-xs font-mono text-slate-600 dark:text-slate-400 h-24 overflow-y-auto custom-scrollbar italic">
-                                BANK XFER CONFIRMATION... REF: #555-928 TO: USER ACCOUNT AMT: 1500.00 CURRENCY: USD
-                            </div>
 </div>
-<div class="flex items-center gap-3 mt-6">
-<button class="flex-1 bg-primary hover:bg-primary/90 text-white font-semibold py-2.5 rounded-xl shadow-md shadow-primary/20 transition-all flex items-center justify-center gap-2">
-<span class="material-icons-round text-sm">check_circle</span>
-                                Confirm
-                            </button>
-<button class="p-2.5 border border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 rounded-xl text-slate-600 dark:text-slate-400 transition-colors">
-<span class="material-icons-round text-xl">edit</span>
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div>
+<p class="text-sm text-slate-500 dark:text-slate-400 mb-1">Total Spent</p>
+<p class="text-2xl font-bold text-primary">Rs. 204,965</p>
+</div>
+<div class="text-right">
+<p class="text-sm text-slate-500 dark:text-slate-400 mb-1">Transactions</p>
+<p class="text-xl font-semibold text-slate-700 dark:text-slate-200">6</p>
+</div>
+</div>
+<div class="flex items-center gap-2 mb-6 text-slate-500 dark:text-slate-400">
+<span class="material-icons-round text-sm">event</span>
+<span class="text-sm font-medium">Last visit: 1/1/2026</span>
+</div>
+<div class="pt-4 border-t border-slate-100 dark:border-slate-700">
+<p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">6-Month Spending Trend</p>
+<svg class="sparkline" viewBox="0 0 100 30">
+<path class="text-primary" d="M0,15 C20,15 40,2 60,18 80,18 100,10" fill="none" stroke="currentColor"></path>
+</svg>
+</div>
+</div>
+<div class="card-hover bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-6 shadow-sm hover:shadow-xl transition-all cursor-pointer group">
+<div class="flex items-center gap-4 mb-6">
+<div class="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-900 dark:text-white">
+<span class="material-icons-round text-3xl">directions_car</span>
+</div>
+<div>
+<h3 class="text-xl font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">Uber</h3>
+<p class="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">Transportation</p>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div>
+<p class="text-sm text-slate-500 dark:text-slate-400 mb-1">Total Spent</p>
+<p class="text-2xl font-bold text-primary">Rs. 179,588</p>
+</div>
+<div class="text-right">
+<p class="text-sm text-slate-500 dark:text-slate-400 mb-1">Transactions</p>
+<p class="text-xl font-semibold text-slate-700 dark:text-slate-200">3</p>
+</div>
+</div>
+<div class="flex items-center gap-2 mb-6 text-slate-500 dark:text-slate-400">
+<span class="material-icons-round text-sm">event</span>
+<span class="text-sm font-medium">Last visit: 8/31/2025</span>
+</div>
+<div class="pt-4 border-t border-slate-100 dark:border-slate-700">
+<p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">6-Month Spending Trend</p>
+<svg class="sparkline" viewBox="0 0 100 30">
+<path class="text-primary" d="M0,25 L20,22 L40,15 L60,18 L80,10 L100,5" fill="none" stroke="currentColor"></path>
+</svg>
+</div>
+</div>
+<div class="card-hover bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-6 shadow-sm hover:shadow-xl transition-all cursor-pointer group">
+<div class="flex items-center gap-4 mb-6">
+<div class="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+<span class="material-icons-round text-3xl">medical_services</span>
+</div>
+<div>
+<h3 class="text-xl font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">Durdans</h3>
+<p class="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">Healthcare</p>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div>
+<p class="text-sm text-slate-500 dark:text-slate-400 mb-1">Total Spent</p>
+<p class="text-2xl font-bold text-primary">Rs. 182,527</p>
+</div>
+<div class="text-right">
+<p class="text-sm text-slate-500 dark:text-slate-400 mb-1">Transactions</p>
+<p class="text-xl font-semibold text-slate-700 dark:text-slate-200">3</p>
+</div>
+</div>
+<div class="flex items-center gap-2 mb-6 text-slate-500 dark:text-slate-400">
+<span class="material-icons-round text-sm">event</span>
+<span class="text-sm font-medium">Last visit: 9/25/2025</span>
+</div>
+<div class="pt-4 border-t border-slate-100 dark:border-slate-700">
+<p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">6-Month Spending Trend</p>
+<svg class="sparkline" viewBox="0 0 100 30">
+<path class="text-primary" d="M0,28 C20,25 40,25 60,5 80,10 100,15" fill="none" stroke="currentColor"></path>
+</svg>
+</div>
+</div>
+</div>
+<footer class="mt-12 flex justify-center">
+<nav class="flex items-center gap-1">
+<button class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500">
+<span class="material-icons-round">chevron_left</span>
 </button>
-<button class="p-2.5 border border-red-100 dark:border-red-900/30 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl text-red-500 transition-colors">
-<span class="material-icons-round text-xl">delete_outline</span>
+<button class="w-10 h-10 flex items-center justify-center rounded-lg bg-primary text-white font-bold">1</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500">2</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500">3</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500">
+<span class="material-icons-round">chevron_right</span>
 </button>
+</nav>
+</footer>
 </div>
-</div>
-</div>
-</div>
-</div>
-<div class="mt-12 flex items-center justify-between p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-lg">
-<div class="text-sm text-slate-500 dark:text-slate-400">
-<span class="font-bold text-slate-900 dark:text-white">3</span> items remaining in your queue.
-            </div>
-<div class="flex gap-4">
-<button class="px-6 py-2.5 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 font-semibold rounded-xl transition-colors">
-                    Skip All
-                </button>
-<button class="px-6 py-2.5 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 hover:-translate-y-0.5 transition-all">
-                    Verify All Items
-                </button>
-</div>
-</div>
-</main>
-<div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm hidden" id="receiptModal">
-<div class="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-<div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-<h3 class="font-bold text-lg">Original Receipt: Merchant One Solutions</h3>
-<button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full" onclick="document.getElementById('receiptModal').classList.add('hidden')">
-<span class="material-icons-round">close</span>
-</button>
-</div>
-<div class="flex-1 overflow-auto bg-slate-100 dark:bg-slate-950 p-8 flex justify-center">
-<div class="w-full max-w-md bg-white p-8 shadow-2xl relative">
-<div class="text-center mb-6">
-<div class="text-2xl font-bold tracking-tighter uppercase">Merchant One</div>
-<div class="text-[10px] text-slate-400">123 Business Way, Tech City, 90210</div>
-</div>
-<div class="border-y border-dashed border-slate-300 py-4 mb-4 space-y-2">
-<div class="flex justify-between text-xs"><span>Service Item A</span><span>$45.00</span></div>
-<div class="flex justify-between text-xs"><span>Component Bundle X</span><span>$80.50</span></div>
-</div>
-<div class="flex justify-between font-bold text-lg">
-<span>TOTAL</span>
-<span>$125.50</span>
-</div>
-<div class="mt-12 text-center">
-<div class="bg-slate-200 w-full h-12 flex items-center justify-center">
-<span class="material-icons-round text-3xl text-slate-400">qr_code_2</span>
-</div>
-<div class="text-[8px] text-slate-400 mt-2">THANK YOU FOR YOUR BUSINESS</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<script>
-        // Simple trigger for demo
-        document.querySelectorAll('button').forEach(btn => {
-            if (btn.innerText.includes('View Original Receipt')) {
-                btn.onclick = () => document.getElementById('receiptModal').classList.remove('hidden');
-            }
-        });
-    </script>
 
 </body></html>

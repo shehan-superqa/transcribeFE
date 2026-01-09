@@ -14,6 +14,7 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import LogoutIcon from '@mui/icons-material/Logout';
 import PersonIcon from '@mui/icons-material/Person';
 import { useState } from 'react';
+import EnergyPointsBalance from '../../common/EnergyPointsBalance';
 
 interface TopNavigationBarProps {
   // No props needed as it uses hooks internally
@@ -23,7 +24,7 @@ export default function TopNavigationBar({}: TopNavigationBarProps) {
   const { user } = useSelector((state: RootState) => state.auth);
   const navigate = useNavigate();
   const { user: authUser, signOut } = useAuth();
-  const { toggleTheme, mode } = useTheme();
+  const { toggleTheme } = useTheme();
   const displayUser = user || authUser;
   const userName = displayUser?.name || displayUser?.email || 'Alexander Hunt';
   const userInitials = userName.slice(0, 2).toUpperCase();
@@ -183,6 +184,9 @@ export default function TopNavigationBar({}: TopNavigationBarProps) {
 
         {/* Action Icons and User Profile */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 'fit-content' }}>
+          {/* Energy Points */}
+          <EnergyPointsBalance showLabel={false} />
+          
           {/* Notification Bell */}
           <IconButton
             sx={{

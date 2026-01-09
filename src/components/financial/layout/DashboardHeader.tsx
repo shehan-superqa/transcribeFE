@@ -8,6 +8,7 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import AnalyticsIcon from '@mui/icons-material/Analytics';
 import CategoryIcon from '@mui/icons-material/Category';
 import StoreIcon from '@mui/icons-material/Store';
+import EnergyPointsBalance from '../../common/EnergyPointsBalance';
 
 interface DashboardHeaderProps {
   onViewAnalytics: () => void;
@@ -138,6 +139,7 @@ export default function DashboardHeader({
           })}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end' }}>
+          <EnergyPointsBalance showLabel={false} />
           <Button
             variant="outlined"
             size="small"

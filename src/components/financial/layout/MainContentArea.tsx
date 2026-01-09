@@ -5,7 +5,7 @@ import RightSidebar from './RightSidebar';
 import { Transaction, Merchant, Category } from '../../../types/financial';
 import EnhancedBillUploadSection from '../EnhancedBillUploadSection';
 import TransactionsSection, { TransactionFilters } from '../TransactionsSection';
-import EnhancedMerchantsSection from '../EnhancedMerchantsSection';
+import MerchantsSection from '../MerchantsSection';
 import EnhancedCategorySection from '../EnhancedCategorySection';
 import AnalyticsSection from '../AnalyticsSection';
 import AdvancedAnalyticsSection from '../AdvancedAnalyticsSection';
@@ -341,7 +341,7 @@ export default function MainContentArea({
               <Route path="recurring" element={<RecurringPaymentsSection />} />
               <Route path="upcoming" element={<UpcomingPaymentsSection />} />
               <Route path="items" element={<ItemsSection />} />
-              <Route path="merchants" element={<EnhancedMerchantsSection />} />
+              <Route path="merchants" element={<MerchantsSection />} />
               <Route path="categories" element={<EnhancedCategorySection />} />
               <Route path="analytics" element={<AnalyticsSection />} />
               <Route path="advanced-analytics" element={<AdvancedAnalyticsSection />} />

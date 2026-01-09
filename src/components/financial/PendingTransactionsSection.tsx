@@ -482,11 +482,11 @@ export default function PendingTransactionsSection() {
           },
         }}
       >
-        <div style={{ padding: '1.5rem' }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem', color: 'var(--text-primary)' }}>
+        <div style={{ padding: '1rem' }}>
+          <h2 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '0.75rem', color: 'var(--text-primary)' }}>
             Edit Transaction
           </h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             <TextField
               label="Amount"
               type="number"
@@ -530,7 +530,7 @@ export default function PendingTransactionsSection() {
               InputLabelProps={{ shrink: true }}
             />
 
-            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '0.75rem' }}>
               <MuiButton
                 onClick={() => setOpenEditDialog(false)}
                 sx={{ borderRadius: '12px', textTransform: 'none' }}
