@@ -1,4 +1,4 @@
-import { Box, Button, TextField, Typography } from '@mui/material';
+import { Button, TextField, Typography } from '@mui/material';
 import { useTheme } from '../../../contexts/ThemeContext';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import SearchIcon from '@mui/icons-material/Search';
@@ -20,39 +20,63 @@ export default function DashboardHeader({
   const { theme } = useTheme();
 
   return (
-    <Box
-      sx={{
+    <div
+      style={{
         borderBottom: `1px solid ${theme.palette.mode === 'dark' ? '#1F2937' : '#E5E7EB'}`,
-        bgcolor: theme.palette.mode === 'dark' ? '#1F2937' : '#FFFFFF',
+        backgroundColor: theme.palette.mode === 'dark' ? '#1F2937' : '#FFFFFF',
       }}
     >
-      <Box sx={{ maxWidth: '1600px', mx: 'auto', px: 6, py: 1, display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: { md: 'center' }, justifyContent: 'space-between', gap: 2 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Box
-            sx={{
-              width: 32,
-              height: 32,
-              bgcolor: 'rgba(109, 40, 217, 0.1)',
+      <div
+        style={{
+          maxWidth: '1600px',
+          margin: '0 auto',
+          paddingTop: '8px',
+          paddingBottom: '8px',
+          paddingLeft: '32px',
+          paddingRight: '32px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'stretch',
+          justifyContent: 'space-between',
+          gap: '16px',
+        }}
+        className="dashboard-header-container"
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div
+            style={{
+              width: '32px',
+              height: '32px',
+              backgroundColor: 'rgba(109, 40, 217, 0.1)',
               color: '#6D28D9',
               borderRadius: '8px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              flexShrink: 0,
             }}
           >
             <AccountBalanceIcon sx={{ fontSize: 18 }} />
-          </Box>
-          <Box>
+          </div>
+          <div>
             <Typography sx={{ fontSize: '16px', fontWeight: 700, color: theme.palette.text.primary, lineHeight: 1.2 }}>
               Fiscally Dashboard
             </Typography>
             <Typography sx={{ fontSize: '12px', color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280', lineHeight: 1.2 }}>
               Overview of your personal finances
             </Typography>
-          </Box>
-        </Box>
-        <Box sx={{ position: 'relative', flex: 1, maxWidth: { md: '528px' }, mx: { md: 'auto' } }}>
-          <SearchIcon sx={{ position: 'absolute', left: 3, top: '50%', transform: 'translateY(-50%)', color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#9CA3AF', fontSize: 16 }} />
+          </div>
+        </div>
+        <div
+          style={{
+            position: 'relative',
+            flex: 1,
+            width: '100%',
+            maxWidth: '100%',
+          }}
+          className="search-container"
+        >
+          <SearchIcon sx={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#9CA3AF', fontSize: 16, zIndex: 1 }} />
           <TextField
             fullWidth
             size="small"
@@ -93,8 +117,8 @@ export default function DashboardHeader({
               },
             }}
           />
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end' }}>
           <Button
             variant="outlined"
             size="small"
@@ -118,9 +142,21 @@ export default function DashboardHeader({
           >
             Monthly
           </Button>
-        </Box>
-      </Box>
-    </Box>
+        </div>
+      </div>
+      <style>{`
+        @media (min-width: 900px) {
+          .dashboard-header-container {
+            flex-direction: row !important;
+            align-items: center !important;
+          }
+          .search-container {
+            max-width: 528px !important;
+            margin: 0 auto !important;
+          }
+        }
+      `}</style>
+    </div>
   );
 }
 
