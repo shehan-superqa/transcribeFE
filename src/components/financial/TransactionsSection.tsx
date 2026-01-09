@@ -19,6 +19,7 @@ import {
   DeleteItemDialog
 } from './TransactionDialogs';
 import FullScreenTransactions from './FullScreenTransactions';
+import PendingTransactionsSection from './PendingTransactionsSection';
 
 interface TransactionsSectionProps {
   transactions: Transaction[];
@@ -87,6 +88,7 @@ export default function TransactionsSection({
   // Full screen API sorting
   const [fullScreenApiSortBy, setFullScreenApiSortBy] = useState<'date' | 'scanned_date'>('date');
   const [fullScreenApiSortOrder, setFullScreenApiSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [pendingTransactionsModalOpen, setPendingTransactionsModalOpen] = useState(false);
   
   // Item management state
   const [transactionItems, setTransactionItems] = useState<Record<string, TransactionItem[]>>({});
@@ -806,6 +808,28 @@ export default function TransactionsSection({
 
           {/* Category Dropdown and View Toggles */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Button
+              onClick={() => setPendingTransactionsModalOpen(true)}
+              startIcon={<Warning />}
+              sx={{
+                px: 2,
+                py: 0.75,
+                fontSize: '12px',
+                fontWeight: 600,
+                textTransform: 'none',
+                bgcolor: theme.palette.mode === 'dark' ? '#374151' : '#F9FAFB',
+                color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280',
+                borderRadius: '8px',
+                border: `1px solid ${theme.palette.mode === 'dark' ? '#475569' : '#E5E7EB'}`,
+                '&:hover': {
+                  bgcolor: theme.palette.mode === 'dark' ? '#475569' : '#E5E7EB',
+                  color: '#6D28D9',
+                  borderColor: '#6D28D9',
+                },
+              }}
+            >
+              Review Anomalies
+            </Button>
             <FormControl
               size="small"
               sx={{
@@ -1298,6 +1322,56 @@ export default function TransactionsSection({
             {snackbar.message}
           </Alert>
         </Snackbar>
+
+        {/* Pending Transactions Modal */}
+        <Dialog
+          open={pendingTransactionsModalOpen}
+          onClose={() => setPendingTransactionsModalOpen(false)}
+          maxWidth="lg"
+          fullWidth
+          PaperProps={{
+            sx: {
+              maxHeight: '90vh',
+              borderRadius: '16px',
+            },
+          }}
+        >
+          <DialogTitle
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              borderBottom: `1px solid ${theme.palette.divider}`,
+              pb: '1rem',
+            }}
+          >
+            <Typography sx={{ fontFamily: "'Inter', sans-serif", fontSize: '1.25rem', fontWeight: 600 }}>
+              Review Pending Transactions & Anomalies
+            </Typography>
+            <IconButton
+              onClick={() => setPendingTransactionsModalOpen(false)}
+              sx={{
+                color: theme.palette.text.secondary,
+                '&:hover': {
+                  backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f3f4f6',
+                },
+              }}
+            >
+              <Close />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent
+            sx={{
+              p: '1rem',
+              overflow: 'auto',
+              '& .pending-transactions-container': {
+                padding: 0,
+              },
+            }}
+          >
+            <PendingTransactionsSection hideHeader={true} />
+          </DialogContent>
+        </Dialog>
 
         {/* Full Screen Transactions Dialog */}
         <Dialog

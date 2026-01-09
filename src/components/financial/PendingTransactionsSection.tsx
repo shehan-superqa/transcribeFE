@@ -98,7 +98,11 @@ const dummyCategories: Category[] = [
   { _id: 'cat5', category_name: 'Entertainment', parent_category: null },
 ];
 
-export default function PendingTransactionsSection() {
+interface PendingTransactionsSectionProps {
+  hideHeader?: boolean;
+}
+
+export default function PendingTransactionsSection({ hideHeader = false }: PendingTransactionsSectionProps = {}) {
   const [pendingTransactions, setPendingTransactions] = useState<PendingTransaction[]>(dummyPendingTransactions);
   const [selectedTransaction, setSelectedTransaction] = useState<PendingTransaction | null>(null);
   const [openReceiptModal, setOpenReceiptModal] = useState(false);
@@ -240,12 +244,14 @@ export default function PendingTransactionsSection() {
   return (
     <div className="pending-transactions-container">
       {/* Header */}
-      <header className="pending-transactions-header">
-        <h1 className="pending-transactions-title">Pending Transactions</h1>
-        <p className="pending-transactions-subtitle">
-          Review and verify scanned receipt data before finalizing your records.
-        </p>
-      </header>
+      {!hideHeader && (
+        <header className="pending-transactions-header">
+          <h1 className="pending-transactions-title">Pending Transactions</h1>
+          <p className="pending-transactions-subtitle">
+            Review and verify scanned receipt data before finalizing your records.
+          </p>
+        </header>
+      )}
 
       {pendingTransactions.length === 0 ? (
         <div className="pending-empty-state">

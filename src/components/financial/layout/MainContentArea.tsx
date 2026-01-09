@@ -20,7 +20,6 @@ import DashboardOverview from '../DashboardOverview';
 import ItemsSection from '../ItemsSection';
 import RecurringPaymentsSection from '../RecurringPaymentsSection';
 import UpcomingPaymentsSection from '../UpcomingPaymentsSection';
-import PendingTransactionsSection from '../PendingTransactionsSection';
 import MultiUserAnalyticsSection from '../MultiUserAnalyticsSection';
 import SavingsSection from '../SavingsSection';
 import UserManagementSection from '../UserManagementSection';
@@ -344,7 +343,6 @@ export default function MainContentArea({
                   onFiltersChange={onFiltersChange}
                 />
               } />
-              <Route path="pending" element={<PendingTransactionsSection />} />
               <Route path="recurring" element={<RecurringPaymentsSection />} />
               <Route path="upcoming" element={<UpcomingPaymentsSection />} />
               <Route path="items" element={<ItemsSection />} />
