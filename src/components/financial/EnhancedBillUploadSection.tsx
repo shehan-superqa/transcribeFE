@@ -1,7 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { 
-  Box, 
   Paper, 
   Typography, 
   Button, 
@@ -97,7 +96,7 @@ function TabPanel(props: TabPanelProps) {
       aria-labelledby={`upload-tab-${index}`}
       {...other}
     >
-      {value === index && <Box sx={{ pt: 3 }}>{children}</Box>}
+      {value === index && <div style={{ paddingTop: '24px' }}>{children}</div>}
     </div>
   );
 }
@@ -168,8 +167,8 @@ function UploadItemProgressMonitor({ item, onUpdate, theme }: UploadItemProgress
   const currentStatus = status || item.status;
 
   return (
-    <Box sx={{ mb: '1.5rem', p: 2, backgroundColor: theme.palette.background.default, borderRadius: 1, border: `1px solid ${theme.palette.divider}` }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+    <div style={{ marginBottom: '1.5rem', padding: '16px', backgroundColor: theme.palette.background.default, borderRadius: '4px', border: `1px solid ${theme.palette.divider}` }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
         <Typography 
           variant="subtitle2"
           sx={{
@@ -200,7 +199,7 @@ function UploadItemProgressMonitor({ item, onUpdate, theme }: UploadItemProgress
           size="small" 
           color={currentStatus === 'error' ? 'error' : 'info'}
         />
-      </Box>
+      </div>
       <LinearProgress 
         variant={currentProgress > 0 ? 'determinate' : 'indeterminate'}
         value={currentProgress}
@@ -218,7 +217,7 @@ function UploadItemProgressMonitor({ item, onUpdate, theme }: UploadItemProgress
           sx={{ mt: 1, fontSize: '0.65rem', height: '20px' }}
         />
       )}
-    </Box>
+    </div>
   );
 }
 
@@ -554,7 +553,7 @@ export default function EnhancedBillUploadSection({ onTransactionCreated, catego
   const pendingCount = uploadQueue.filter(i => i.status === 'pending').length;
 
   return (
-    <Box ref={containerRef} tabIndex={0}>
+    <div ref={containerRef} tabIndex={0}>
       {showCamera && (
         <CameraCapture
           onCapture={handleCameraCapture}
@@ -582,111 +581,7 @@ export default function EnhancedBillUploadSection({ onTransactionCreated, catego
           borderRadius: 0,
           boxShadow: 'none',
         }}
-      >
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: '2rem' }}>
-          <Typography 
-            variant="h5" 
-            gutterBottom 
-            sx={{ 
-              fontFamily: "'Inter', sans-serif",
-              color: theme.palette.text.primary, 
-              fontWeight: 600,
-              fontSize: '1.25rem',
-              lineHeight: 1.2,
-              mb: 0,
-            }}
-          >
-            Upload Bills & Receipts
-          </Typography>
-          {hasActiveJobs && (
-            <Badge
-              badgeContent=""
-              color="error"
-              sx={{
-                '& .MuiBadge-badge': {
-                  animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                  boxShadow: `0 0 0 0 ${theme.palette.error.main}`,
-                },
-                '@keyframes pulse': {
-                  '0%, 100%': {
-                    opacity: 1,
-                  },
-                  '50%': {
-                    opacity: 0.5,
-                  },
-                },
-              }}
-            >
-              <Button
-                variant="contained"
-                startIcon={<PlayArrow />}
-                onClick={() => setTabValue(1)}
-                sx={{
-                  fontFamily: "'Inter', sans-serif",
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  backgroundColor: theme.palette.error.main,
-                  boxShadow: hasActiveJobs
-                    ? `0 0 20px ${theme.palette.error.main}40, 0 0 40px ${theme.palette.error.main}20`
-                    : 'none',
-                  animation: hasActiveJobs ? 'glow 2s ease-in-out infinite' : 'none',
-                  '@keyframes glow': {
-                    '0%, 100%': {
-                      boxShadow: `0 0 20px ${theme.palette.error.main}40, 0 0 40px ${theme.palette.error.main}20`,
-                    },
-                    '50%': {
-                      boxShadow: `0 0 30px ${theme.palette.error.main}60, 0 0 60px ${theme.palette.error.main}40`,
-                    },
-                  },
-                  '&:hover': {
-                    backgroundColor: theme.palette.error.dark,
-                  },
-                }}
-              >
-                View Progress
-              </Button>
-            </Badge>
-          )}
-        </Box>
-
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
-          <Tabs
-            value={tabValue}
-            onChange={handleTabChange}
-            sx={{
-              '& .MuiTab-root': {
-                fontFamily: "'Inter', sans-serif",
-                fontWeight: 600,
-                textTransform: 'none',
-                fontSize: '0.875rem',
-                minHeight: 48,
-                color: theme.palette.text.secondary,
-              },
-              '& .MuiTab-root.Mui-selected': {
-                color: theme.palette.primary.main,
-              },
-              '& .MuiTabs-indicator': {
-                backgroundColor: theme.palette.primary.main,
-                height: 3,
-              },
-            }}
-          >
-            <Tab label="Upload" {...a11yProps(0)} />
-            <Tab 
-              label={
-                <Badge 
-                  badgeContent={hasActiveJobs ? '!' : 0} 
-                  color="error"
-                  invisible={!hasActiveJobs}
-                >
-                  Progress
-                </Badge>
-              } 
-              {...a11yProps(1)} 
-            />
-          </Tabs>
-        </Box>
-
+        >
         <TabPanel value={tabValue} index={0}>
           <div className="upload-section">
             {/* New Transaction Section */}
@@ -826,9 +721,6 @@ export default function EnhancedBillUploadSection({ onTransactionCreated, catego
             <div className="recent-uploads-card">
               <div className="recent-uploads-header">
                 <h3 className="recent-uploads-title">Recent Uploads</h3>
-                <button className="view-all-button" onClick={() => setTabValue(1)}>
-                  View All
-                </button>
               </div>
               <div className="recent-uploads-table-container">
                 <table className="recent-uploads-table">
@@ -891,12 +783,12 @@ export default function EnhancedBillUploadSection({ onTransactionCreated, catego
 
           {/* Bulk Upload Queue */}
           {uploadMode === 'bulk' && uploadQueue.length > 0 && (
-            <Box sx={{ mb: '2rem', mt: 4 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <div style={{ marginBottom: '2rem', marginTop: '32px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                 <Typography variant="h6" sx={{ fontFamily: "'Inter', sans-serif", fontWeight: 600 }}>
                   Upload Queue ({uploadQueue.length} items)
                 </Typography>
-                <Box sx={{ display: 'flex', gap: 1 }}>
+                <div style={{ display: 'flex', gap: '8px' }}>
                   {pendingCount > 0 && (
                     <Button
                       variant="contained"
@@ -915,17 +807,17 @@ export default function EnhancedBillUploadSection({ onTransactionCreated, catego
                   >
                     Clear All
                   </Button>
-                </Box>
-              </Box>
+                </div>
+              </div>
 
               {(completedCount > 0 || errorCount > 0) && (
-                <Box sx={{ mb: 2 }}>
+                <div style={{ marginBottom: '16px' }}>
                   <Alert severity="info">
                     Completed: {completedCount} | Errors: {errorCount} | Pending: {pendingCount}
                   </Alert>
-                </Box>
+                </div>
               )}
-            </Box>
+            </div>
           )}
 
         {/* Single Upload Progress with SSE */}
@@ -960,7 +852,7 @@ export default function EnhancedBillUploadSection({ onTransactionCreated, catego
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                 Transaction Created: {item.file.name}
               </Typography>
-              <Box sx={{ mt: 0.5 }}>
+              <div style={{ marginTop: '4px' }}>
                 <Typography variant="body2" component="div">
                   <strong>Amount:</strong> Rs. {item.transaction.amount.toFixed(2)}
                 </Typography>
@@ -970,7 +862,7 @@ export default function EnhancedBillUploadSection({ onTransactionCreated, catego
                 <Typography variant="body2" component="div">
                   <strong>Category:</strong> {item.transaction.category_id || 'Unknown'}
                 </Typography>
-              </Box>
+              </div>
             </Alert>
           )
         ))}
@@ -990,11 +882,7 @@ export default function EnhancedBillUploadSection({ onTransactionCreated, catego
           </Alert>
         ))}
         </TabPanel>
-
-        <TabPanel value={tabValue} index={1}>
-          <ProgressTab />
-        </TabPanel>
       </Paper>
-    </Box>
+    </div>
   );
 }

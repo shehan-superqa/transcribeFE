@@ -10,6 +10,16 @@
   overflow-x: hidden;
 }
 
+/* Hide scrollbar but keep scrolling functionality */
+.main-content-container {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.main-content-container::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
 /* === New "Fiscally"-inspired shell (Finance app) === */
 .finance-shell {
   width: 100%;
