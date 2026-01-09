@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -100,6 +101,7 @@ const generateSparklineData = (): number[] => {
 
 export default function MerchantsSection() {
   const { theme } = useTheme();
+  const navigate = useNavigate();
   const [merchants, setMerchants] = useState<MerchantWithStats[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -108,6 +110,11 @@ export default function MerchantsSection() {
   const [sortOption, setSortOption] = useState<SortOption>('total-spent');
   const [page, setPage] = useState(1);
   const itemsPerPage = viewMode === 'card' ? 6 : 5;
+
+  const handleMerchantClick = (merchant: MerchantWithStats) => {
+    // Navigate to transactions page filtered by this merchant
+    navigate(`/financialtool/app/transactions?merchant=${encodeURIComponent(merchant.merchant_name)}`);
+  };
 
   useEffect(() => {
     loadData();
@@ -245,6 +252,7 @@ export default function MerchantsSection() {
           <Grid item xs={12} md={6} lg={4} key={merchant._id}>
             <Card
               className="group"
+              onClick={() => handleMerchantClick(merchant)}
               sx={{
                 borderRadius: '12px',
                 border: `1px solid ${theme.palette.mode === 'dark' ? '#334155' : '#E2E8F0'}`,
@@ -678,6 +686,7 @@ export default function MerchantsSection() {
                         className="view-details-btn"
                         variant="contained"
                         endIcon={<ChevronRightIcon />}
+                        onClick={() => handleMerchantClick(merchant)}
                         sx={{
                           opacity: 0,
                           transform: 'translateX(-10px)',

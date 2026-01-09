@@ -296,13 +296,13 @@ export default function RecurringPaymentsSection() {
 
   const renderCardView = () => (
     <Box>
-      <Grid container spacing={3}>
+      <Grid container spacing={2}>
         {payments.map((payment) => (
           <Grid item xs={12} lg={6} key={payment._id}>
             <Card
               className="group"
               sx={{
-                borderRadius: '16px',
+                borderRadius: '12px',
                 border: `1px solid ${theme.palette.mode === 'dark' ? '#334155' : '#E2E8F0'}`,
                 bgcolor: theme.palette.background.paper,
                 boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
@@ -312,15 +312,15 @@ export default function RecurringPaymentsSection() {
                 },
               }}
             >
-              <CardContent sx={{ p: 3 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
+              <CardContent sx={{ p: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                   <Box sx={{ flex: 1 }}>
                     <Typography
                       sx={{
-                        fontSize: '18px',
+                        fontSize: '16px',
                         fontWeight: 700,
                         color: theme.palette.text.primary,
-                        mb: 1,
+                        mb: 0.75,
                         fontFamily: "'Inter', sans-serif",
                       }}
                     >
@@ -382,7 +382,7 @@ export default function RecurringPaymentsSection() {
                       size="small"
                       onClick={() => handleOpenDialog(payment)}
                       sx={{
-                        p: 1.5,
+                        p: 1,
                         color: theme.palette.text.secondary,
                         '&:hover': {
                           color: '#6D28D9',
@@ -390,13 +390,13 @@ export default function RecurringPaymentsSection() {
                         },
                       }}
                     >
-                      <EditIcon sx={{ fontSize: '18px' }} />
+                      <EditIcon sx={{ fontSize: '16px' }} />
                     </IconButton>
                     <IconButton
                       size="small"
                       onClick={() => handleDelete(payment._id)}
                       sx={{
-                        p: 1.5,
+                        p: 1,
                         color: theme.palette.text.secondary,
                         '&:hover': {
                           color: '#EF4444',
@@ -404,7 +404,7 @@ export default function RecurringPaymentsSection() {
                         },
                       }}
                     >
-                      <DeleteIcon sx={{ fontSize: '18px' }} />
+                      <DeleteIcon sx={{ fontSize: '16px' }} />
                     </IconButton>
                   </Box>
                 </Box>
@@ -412,7 +412,7 @@ export default function RecurringPaymentsSection() {
                   <Box>
                     <Typography
                       sx={{
-                        fontSize: '24px',
+                        fontSize: '20px',
                         fontWeight: 700,
                         color: theme.palette.text.primary,
                         mb: 0.5,
@@ -423,7 +423,7 @@ export default function RecurringPaymentsSection() {
                     </Typography>
                     <Typography
                       sx={{
-                        fontSize: '12px',
+                        fontSize: '11px',
                         color: theme.palette.text.secondary,
                         fontFamily: "'Inter', sans-serif",
                       }}
@@ -431,10 +431,10 @@ export default function RecurringPaymentsSection() {
                       Next: {formatDate(payment.next_occurrence)}
                     </Typography>
                   </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Typography
                       sx={{
-                        fontSize: '12px',
+                        fontSize: '11px',
                         fontWeight: 600,
                         color: theme.palette.text.secondary,
                         fontFamily: "'Inter', sans-serif",
@@ -464,17 +464,17 @@ export default function RecurringPaymentsSection() {
           <Card
             onClick={() => handleOpenDialog()}
             sx={{
-              borderRadius: '16px',
+              borderRadius: '12px',
               border: `2px dashed ${theme.palette.mode === 'dark' ? '#475569' : '#CBD5E1'}`,
               bgcolor: 'transparent',
               cursor: 'pointer',
               transition: 'all 0.2s',
-              p: 4,
+              p: 2.5,
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              minHeight: '200px',
+              minHeight: '160px',
               '&:hover': {
                 borderColor: '#6D28D9',
                 bgcolor: theme.palette.mode === 'dark' ? 'rgba(109, 40, 217, 0.1)' : 'rgba(109, 40, 217, 0.05)',
@@ -483,9 +483,9 @@ export default function RecurringPaymentsSection() {
           >
             <AddIcon
               sx={{
-                fontSize: '48px',
+                fontSize: '36px',
                 color: theme.palette.text.secondary,
-                mb: 1,
+                mb: 0.75,
                 transition: 'transform 0.2s',
                 '&:hover': {
                   transform: 'scale(1.1)',
@@ -494,6 +494,7 @@ export default function RecurringPaymentsSection() {
             />
             <Typography
               sx={{
+                fontSize: '13px',
                 fontWeight: 500,
                 color: theme.palette.text.secondary,
                 fontFamily: "'Inter', sans-serif",
@@ -512,7 +513,7 @@ export default function RecurringPaymentsSection() {
       <TableContainer
         component={Paper}
         sx={{
-          borderRadius: '16px',
+          borderRadius: '12px',
           border: `1px solid ${theme.palette.mode === 'dark' ? '#334155' : '#E2E8F0'}`,
           bgcolor: theme.palette.background.paper,
           boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
@@ -529,14 +530,14 @@ export default function RecurringPaymentsSection() {
             >
               <TableCell
                 sx={{
-                  fontSize: '12px',
+                  fontSize: '11px',
                   fontWeight: 600,
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
                   color: theme.palette.text.secondary,
                   fontFamily: "'Inter', sans-serif",
-                  py: 2,
-                  px: 3,
+                  py: 1.5,
+                  px: 2,
                 }}
               >
                 Service & Name
@@ -544,14 +545,14 @@ export default function RecurringPaymentsSection() {
               <TableCell
                 align="center"
                 sx={{
-                  fontSize: '12px',
+                  fontSize: '11px',
                   fontWeight: 600,
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
                   color: theme.palette.text.secondary,
                   fontFamily: "'Inter', sans-serif",
-                  py: 2,
-                  px: 3,
+                  py: 1.5,
+                  px: 2,
                 }}
               >
                 Category
@@ -559,14 +560,14 @@ export default function RecurringPaymentsSection() {
               <TableCell
                 align="right"
                 sx={{
-                  fontSize: '12px',
+                  fontSize: '11px',
                   fontWeight: 600,
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
                   color: theme.palette.text.secondary,
                   fontFamily: "'Inter', sans-serif",
-                  py: 2,
-                  px: 3,
+                  py: 1.5,
+                  px: 2,
                 }}
               >
                 Amount
@@ -574,14 +575,14 @@ export default function RecurringPaymentsSection() {
               <TableCell
                 align="right"
                 sx={{
-                  fontSize: '12px',
+                  fontSize: '11px',
                   fontWeight: 600,
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
                   color: theme.palette.text.secondary,
                   fontFamily: "'Inter', sans-serif",
-                  py: 2,
-                  px: 3,
+                  py: 1.5,
+                  px: 2,
                 }}
               >
                 Next Date
@@ -589,14 +590,14 @@ export default function RecurringPaymentsSection() {
               <TableCell
                 align="right"
                 sx={{
-                  fontSize: '12px',
+                  fontSize: '11px',
                   fontWeight: 600,
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
                   color: theme.palette.text.secondary,
                   fontFamily: "'Inter', sans-serif",
-                  py: 2,
-                  px: 3,
+                  py: 1.5,
+                  px: 2,
                 }}
               >
                 Status
@@ -614,12 +615,12 @@ export default function RecurringPaymentsSection() {
                   },
                 }}
               >
-                <TableCell sx={{ py: 2.5, px: 3 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <TableCell sx={{ py: 1.5, px: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                     <Avatar
                       sx={{
-                        width: 40,
-                        height: 40,
+                        width: 32,
+                        height: 32,
                         bgcolor: theme.palette.mode === 'dark' ? '#1E293B' : '#F1F5F9',
                         color: theme.palette.text.secondary,
                       }}
@@ -629,7 +630,7 @@ export default function RecurringPaymentsSection() {
                     <Box>
                       <Typography
                         sx={{
-                          fontSize: '14px',
+                          fontSize: '13px',
                           fontWeight: 600,
                           color: theme.palette.text.primary,
                           fontFamily: "'Inter', sans-serif",
@@ -639,7 +640,7 @@ export default function RecurringPaymentsSection() {
                       </Typography>
                       <Typography
                         sx={{
-                          fontSize: '12px',
+                          fontSize: '11px',
                           color: theme.palette.text.secondary,
                           fontFamily: "'Inter', sans-serif",
                         }}
@@ -649,7 +650,7 @@ export default function RecurringPaymentsSection() {
                     </Box>
                   </Box>
                 </TableCell>
-                <TableCell align="center" sx={{ py: 2.5, px: 3 }}>
+                <TableCell align="center" sx={{ py: 1.5, px: 2 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'center', gap: 0.5, flexWrap: 'wrap' }}>
                     <Chip
                       label={payment.type === 'earning' ? 'Earning' : 'Expense'}
@@ -685,10 +686,10 @@ export default function RecurringPaymentsSection() {
                     )}
                   </Box>
                 </TableCell>
-                <TableCell align="right" sx={{ py: 2.5, px: 3 }}>
+                <TableCell align="right" sx={{ py: 1.5, px: 2 }}>
                   <Typography
                     sx={{
-                      fontSize: '14px',
+                      fontSize: '13px',
                       fontWeight: 700,
                       color: payment.type === 'earning' ? '#10B981' : theme.palette.text.primary,
                       fontFamily: "'Inter', sans-serif",
@@ -698,10 +699,10 @@ export default function RecurringPaymentsSection() {
                     {formatCurrency(payment.amount, payment.currency)}
                   </Typography>
                 </TableCell>
-                <TableCell align="right" sx={{ py: 2.5, px: 3 }}>
+                <TableCell align="right" sx={{ py: 1.5, px: 2 }}>
                   <Typography
                     sx={{
-                      fontSize: '14px',
+                      fontSize: '13px',
                       color: theme.palette.text.secondary,
                       fontFamily: "'Inter', sans-serif",
                     }}
@@ -709,7 +710,7 @@ export default function RecurringPaymentsSection() {
                     {formatDate(payment.next_occurrence)}
                   </Typography>
                 </TableCell>
-                <TableCell align="right" sx={{ py: 2.5, px: 3 }}>
+                <TableCell align="right" sx={{ py: 1.5, px: 2 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 2 }}>
                     <Switch
                       checked={payment.is_active}
@@ -733,7 +734,7 @@ export default function RecurringPaymentsSection() {
                         },
                       }}
                     >
-                      <DeleteIcon sx={{ fontSize: '20px' }} />
+                      <DeleteIcon sx={{ fontSize: '18px' }} />
                     </IconButton>
                   </Box>
                 </TableCell>
@@ -746,13 +747,13 @@ export default function RecurringPaymentsSection() {
   );
 
   return (
-    <Box sx={{ maxWidth: '1152px', margin: '0 auto', px: { xs: 2, sm: 3 }, py: 2.5 }}>
+    <Box sx={{ maxWidth: '1152px', margin: '0 auto', px: { xs: 2, sm: 2.5 }, py: 2 }}>
       {/* Header */}
-      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', md: 'center' }, gap: 2, mb: 4 }}>
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', md: 'center' }, gap: 2, mb: 3 }}>
         <Box>
           <Typography
             sx={{
-              fontSize: '30px',
+              fontSize: '24px',
               fontWeight: 700,
               letterSpacing: '-0.025em',
               color: theme.palette.text.primary,
@@ -764,7 +765,7 @@ export default function RecurringPaymentsSection() {
           </Typography>
           <Typography
             sx={{
-              fontSize: '14px',
+              fontSize: '12px',
               color: theme.palette.text.secondary,
               fontFamily: "'Inter', sans-serif",
             }}
@@ -774,15 +775,16 @@ export default function RecurringPaymentsSection() {
         </Box>
         <Button
           variant="contained"
-          startIcon={<AddIcon />}
+          startIcon={<AddIcon sx={{ fontSize: '16px' }} />}
           onClick={() => handleOpenDialog()}
           sx={{
             bgcolor: '#6D28D9',
             color: '#ffffff',
             fontWeight: 600,
-            px: 3,
-            py: 1.25,
-            borderRadius: '12px',
+            px: 2,
+            py: 0.75,
+            borderRadius: '8px',
+            fontSize: '13px',
             textTransform: 'none',
             boxShadow: '0 4px 6px -1px rgba(109, 40, 217, 0.2)',
             fontFamily: "'Inter', sans-serif",
@@ -796,21 +798,21 @@ export default function RecurringPaymentsSection() {
       </Box>
 
       {/* Summary Cards */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
+      <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={12} md={4}>
           <Card
             sx={{
-              borderRadius: '16px',
+              borderRadius: '12px',
               border: `1px solid ${theme.palette.mode === 'dark' ? '#334155' : '#E2E8F0'}`,
               bgcolor: theme.palette.background.paper,
               boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-              p: 3,
+              p: 2,
             }}
           >
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
               <Typography
                 sx={{
-                  fontSize: '12px',
+                  fontSize: '10px',
                   fontWeight: 500,
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
@@ -822,30 +824,30 @@ export default function RecurringPaymentsSection() {
               </Typography>
               <Box
                 sx={{
-                  p: 1,
-                  borderRadius: '8px',
+                  p: 0.75,
+                  borderRadius: '6px',
                   bgcolor: theme.palette.mode === 'dark' ? 'rgba(16, 185, 129, 0.2)' : '#ECFDF5',
                 }}
               >
-                <TrendingUpIcon sx={{ fontSize: '20px', color: '#10B981' }} />
+                <TrendingUpIcon sx={{ fontSize: '16px', color: '#10B981' }} />
               </Box>
             </Box>
             <Typography
               sx={{
-                fontSize: '30px',
+                fontSize: '24px',
                 fontWeight: 700,
                 color: theme.palette.text.primary,
-                mb: 1,
+                mb: 0.75,
                 fontFamily: "'Inter', sans-serif",
               }}
             >
               {formatCurrency(totalEarnings, 'USD')}
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <TrendingUpIcon sx={{ fontSize: '12px', color: '#10B981' }} />
+              <TrendingUpIcon sx={{ fontSize: '10px', color: '#10B981' }} />
               <Typography
                 sx={{
-                  fontSize: '12px',
+                  fontSize: '10px',
                   fontWeight: 500,
                   color: '#10B981',
                   fontFamily: "'Inter', sans-serif",
@@ -859,17 +861,17 @@ export default function RecurringPaymentsSection() {
         <Grid item xs={12} md={4}>
           <Card
             sx={{
-              borderRadius: '16px',
+              borderRadius: '12px',
               border: `1px solid ${theme.palette.mode === 'dark' ? '#334155' : '#E2E8F0'}`,
               bgcolor: theme.palette.background.paper,
               boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-              p: 3,
+              p: 2,
             }}
           >
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
               <Typography
                 sx={{
-                  fontSize: '12px',
+                  fontSize: '10px',
                   fontWeight: 500,
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
@@ -881,30 +883,30 @@ export default function RecurringPaymentsSection() {
               </Typography>
               <Box
                 sx={{
-                  p: 1,
-                  borderRadius: '8px',
+                  p: 0.75,
+                  borderRadius: '6px',
                   bgcolor: theme.palette.mode === 'dark' ? 'rgba(239, 68, 68, 0.2)' : '#FEF2F2',
                 }}
               >
-                <TrendingDownIcon sx={{ fontSize: '20px', color: '#EF4444' }} />
+                <TrendingDownIcon sx={{ fontSize: '16px', color: '#EF4444' }} />
               </Box>
             </Box>
             <Typography
               sx={{
-                fontSize: '30px',
+                fontSize: '24px',
                 fontWeight: 700,
                 color: theme.palette.text.primary,
-                mb: 1,
+                mb: 0.75,
                 fontFamily: "'Inter', sans-serif",
               }}
             >
               {formatCurrency(totalExpenses, 'USD')}
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <TrendingDownIcon sx={{ fontSize: '12px', color: '#EF4444' }} />
+              <TrendingDownIcon sx={{ fontSize: '10px', color: '#EF4444' }} />
               <Typography
                 sx={{
-                  fontSize: '12px',
+                  fontSize: '10px',
                   fontWeight: 500,
                   color: '#EF4444',
                   fontFamily: "'Inter', sans-serif",
@@ -918,17 +920,17 @@ export default function RecurringPaymentsSection() {
         <Grid item xs={12} md={4}>
           <Card
             sx={{
-              borderRadius: '16px',
+              borderRadius: '12px',
               border: `1px solid ${theme.palette.mode === 'dark' ? '#334155' : '#E2E8F0'}`,
               bgcolor: theme.palette.background.paper,
               boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-              p: 3,
+              p: 2,
             }}
           >
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
               <Typography
                 sx={{
-                  fontSize: '12px',
+                  fontSize: '10px',
                   fontWeight: 500,
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
@@ -940,20 +942,20 @@ export default function RecurringPaymentsSection() {
               </Typography>
               <Box
                 sx={{
-                  p: 1,
-                  borderRadius: '8px',
+                  p: 0.75,
+                  borderRadius: '6px',
                   bgcolor: theme.palette.mode === 'dark' ? 'rgba(109, 40, 217, 0.2)' : '#F3E8FF',
                 }}
               >
-                <SwapHorizIcon sx={{ fontSize: '20px', color: '#6D28D9' }} />
+                <SwapHorizIcon sx={{ fontSize: '16px', color: '#6D28D9' }} />
               </Box>
             </Box>
             <Typography
               sx={{
-                fontSize: '30px',
+                fontSize: '24px',
                 fontWeight: 700,
                 color: theme.palette.text.primary,
-                mb: 1,
+                mb: 0.75,
                 fontFamily: "'Inter', sans-serif",
               }}
             >
@@ -961,7 +963,7 @@ export default function RecurringPaymentsSection() {
             </Typography>
             <Typography
               sx={{
-                fontSize: '12px',
+                fontSize: '10px',
                 fontWeight: 500,
                 color: theme.palette.text.secondary,
                 fontFamily: "'Inter', sans-serif",
@@ -974,10 +976,10 @@ export default function RecurringPaymentsSection() {
       </Grid>
 
       {/* View Toggle and Section Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography
           sx={{
-            fontSize: '20px',
+            fontSize: '16px',
             fontWeight: 600,
             color: theme.palette.text.primary,
             fontFamily: "'Inter', sans-serif",
@@ -1038,10 +1040,10 @@ export default function RecurringPaymentsSection() {
             }}
           >
             <ToggleButton value="card">
-              <ViewModuleIcon sx={{ fontSize: '18px' }} />
+              <ViewModuleIcon sx={{ fontSize: '16px' }} />
             </ToggleButton>
             <ToggleButton value="table">
-              <ViewListIcon sx={{ fontSize: '18px' }} />
+              <ViewListIcon sx={{ fontSize: '16px' }} />
             </ToggleButton>
           </ToggleButtonGroup>
         </Box>
@@ -1069,11 +1071,11 @@ export default function RecurringPaymentsSection() {
           },
         }}
       >
-        <DialogTitle sx={{ fontWeight: 700, fontFamily: "'Inter', sans-serif" }}>
+        <DialogTitle sx={{ fontWeight: 700, fontSize: '18px', fontFamily: "'Inter', sans-serif", py: 2 }}>
           {editingPayment ? 'Edit Recurring Payment' : 'Add Recurring Payment'}
         </DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+        <DialogContent sx={{ py: 2 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mt: 0.5 }}>
             <TextField
               label="Payment Name"
               value={formData.name}
@@ -1201,11 +1203,12 @@ export default function RecurringPaymentsSection() {
             />
           </Box>
         </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
+        <DialogActions sx={{ p: 1.5 }}>
           <Button
             onClick={handleCloseDialog}
             sx={{
-              borderRadius: '12px',
+              borderRadius: '8px',
+              fontSize: '13px',
               textTransform: 'none',
               fontFamily: "'Inter', sans-serif",
             }}
@@ -1217,7 +1220,8 @@ export default function RecurringPaymentsSection() {
             variant="contained"
             disabled={!formData.name || !formData.amount}
             sx={{
-              borderRadius: '12px',
+              borderRadius: '8px',
+              fontSize: '13px',
               textTransform: 'none',
               bgcolor: '#6D28D9',
               fontFamily: "'Inter', sans-serif",
