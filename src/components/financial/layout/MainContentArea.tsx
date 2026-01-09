@@ -352,7 +352,7 @@ export default function MainContentArea({
           {/* Right Sidebar */}
           <div 
             className="right-sidebar-container"
-            style={{ flexShrink: 0, width: '288px' }}
+            style={{ flexShrink: 0, width: '288px', paddingTop: '10px' }}
           >
             <RightSidebar
               userName={userName}
