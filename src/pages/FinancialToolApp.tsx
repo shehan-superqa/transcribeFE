@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { Box, CircularProgress } from '@mui/material';
+import { CircularProgress } from '@mui/material';
 import { useTheme } from '../contexts/ThemeContext';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../store';
@@ -71,7 +71,6 @@ export default function FinancialToolApp() {
   // AI chat widget (floating)
   const [showChatWidget, setShowChatWidget] = useState(false);
   const [chatInitialQuery, setChatInitialQuery] = useState<string>('');
-  const [askBarValue, setAskBarValue] = useState('');
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [merchants, setMerchants] = useState<Merchant[]>([]);
@@ -192,13 +191,6 @@ export default function FinancialToolApp() {
     setShowChatWidget(true);
   };
 
-  const handleAskSubmit = () => {
-    const q = askBarValue.trim();
-    if (!q) return;
-    setChatInitialQuery(q);
-    setShowChatWidget(true);
-    setAskBarValue('');
-  };
 
   const handleAskAIClick = () => {
     setChatInitialQuery('');
@@ -287,9 +279,6 @@ export default function FinancialToolApp() {
 
         {/* Dashboard Header Section */}
         <DashboardHeader
-          askBarValue={askBarValue}
-          onAskBarChange={setAskBarValue}
-          onAskSubmit={handleAskSubmit}
           onViewAnalytics={handleViewAnalytics}
         />
 

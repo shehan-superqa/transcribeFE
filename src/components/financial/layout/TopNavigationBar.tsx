@@ -1,4 +1,4 @@
-import { IconButton, Avatar, Typography, TextField, Badge, Button } from '@mui/material';
+import { IconButton, Avatar, Typography, TextField, Badge, Button, Menu, MenuItem, Divider } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../../store';
@@ -10,6 +10,8 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import SearchIcon from '@mui/icons-material/Search';
 import CheckIcon from '@mui/icons-material/Check';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import LogoutIcon from '@mui/icons-material/Logout';
+import PersonIcon from '@mui/icons-material/Person';
 import { useState } from 'react';
 
 interface TopNavigationBarProps {
@@ -24,10 +26,31 @@ export default function TopNavigationBar({}: TopNavigationBarProps) {
   const userName = displayUser?.name || displayUser?.email || 'Alexander Hunt';
   const userInitials = userName.slice(0, 2).toUpperCase();
   const [searchValue, setSearchValue] = useState('');
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const isMenuOpen = Boolean(anchorEl);
   const isVerified = displayUser?.isEmailVerified || true; // Default to true for demo
 
   // Format name: "Alexander Hunt" or use first part of email
   const displayName = displayUser?.name || (displayUser?.email ? displayUser.email.split('@')[0].split('.').map((n: string) => n.charAt(0).toUpperCase() + n.slice(1)).join(' ') : 'Alexander Hunt');
+
+  const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleSignOut = async () => {
+    handleMenuClose();
+    await signOut();
+    navigate('/auth/login');
+  };
+
+  const handleSignIn = () => {
+    handleMenuClose();
+    navigate('/auth/login');
+  };
 
   return (
     <nav
@@ -274,15 +297,14 @@ export default function TopNavigationBar({}: TopNavigationBarProps) {
                 {userInitials}
               </Avatar>
               <IconButton
-                onClick={() => {
-                  // Handle dropdown menu
-                  signOut();
-                  navigate('/auth/login');
-                }}
+                onClick={handleMenuClick}
                 sx={{
                   p: 0.5,
                   '&:hover': { bgcolor: 'transparent' },
                 }}
+                aria-controls={isMenuOpen ? 'user-menu' : undefined}
+                aria-haspopup="true"
+                aria-expanded={isMenuOpen ? 'true' : undefined}
               >
                 <KeyboardArrowDownIcon sx={{ color: '#6B7280', fontSize: 20 }} />
               </IconButton>
@@ -305,7 +327,7 @@ export default function TopNavigationBar({}: TopNavigationBarProps) {
                 Sign up
               </Button>
               <Button
-                onClick={() => navigate('/auth/login')}
+                onClick={handleSignIn}
                 sx={{
                   textTransform: 'none',
                   fontSize: '14px',
@@ -323,6 +345,50 @@ export default function TopNavigationBar({}: TopNavigationBarProps) {
           )}
         </div>
       </div>
+
+      {/* User Menu Dropdown */}
+      <Menu
+        id="user-menu"
+        anchorEl={anchorEl}
+        open={isMenuOpen}
+        onClose={handleMenuClose}
+        onClick={handleMenuClose}
+        PaperProps={{
+          elevation: 8,
+          sx: {
+            mt: 1.5,
+            minWidth: 200,
+            borderRadius: '8px',
+            border: '1px solid #E5E7EB',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+            '& .MuiMenuItem-root': {
+              fontSize: '14px',
+              fontFamily: "'Inter', sans-serif",
+              px: 2,
+              py: 1.5,
+              '&:hover': {
+                bgcolor: '#F3F4F6',
+              },
+            },
+          },
+        }}
+        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+      >
+        <MenuItem onClick={handleMenuClose} disabled>
+          <PersonIcon sx={{ mr: 1.5, fontSize: 18, color: '#6B7280' }} />
+          <Typography sx={{ fontSize: '14px', fontWeight: 500, color: '#111827' }}>
+            {displayName}
+          </Typography>
+        </MenuItem>
+        <Divider sx={{ my: 0.5 }} />
+        <MenuItem onClick={handleSignOut}>
+          <LogoutIcon sx={{ mr: 1.5, fontSize: 18, color: '#6B7280' }} />
+          <Typography sx={{ fontSize: '14px', color: '#DC2626' }}>
+            Sign Out
+          </Typography>
+        </MenuItem>
+      </Menu>
     </nav>
   );
 }

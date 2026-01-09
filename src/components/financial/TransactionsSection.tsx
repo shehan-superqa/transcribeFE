@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Box, Paper, Typography, Button, FormControl, InputLabel, Select, MenuItem, Snackbar, Alert, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Chip, IconButton, ToggleButtonGroup, ToggleButton, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Collapse, Tooltip } from '@mui/material';
+import { Paper, Typography, Button, FormControl, InputLabel, Select, MenuItem, Snackbar, Alert, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Chip, IconButton, ToggleButtonGroup, ToggleButton, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Collapse, Tooltip } from '@mui/material';
 import { FilterList, CloudUpload, Search, ViewModule, ViewList, OpenInFull, Close, Edit, Delete, MergeType, ExpandLess, ExpandMore, Sort, Warning, TrendingDown, TrendingUp, Receipt, Inventory } from '@mui/icons-material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -662,7 +662,7 @@ export default function TransactionsSection({
   };
 
   return (
-    <Box>
+    <div>
       {/* Transaction Filters */}
       <Paper
         elevation={0}
@@ -680,7 +680,7 @@ export default function TransactionsSection({
         }}
       >
           {/* Filter Buttons: All, Expenses, Earnings */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, bgcolor: theme.palette.mode === 'dark' ? '#374151' : '#F9FAFB', p: 0.5, borderRadius: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: theme.palette.mode === 'dark' ? '#374151' : '#F9FAFB', padding: '4px', borderRadius: '8px' }}>
             <Button
               onClick={() => handleTabChange(null as any, 0)}
               sx={{
@@ -761,10 +761,10 @@ export default function TransactionsSection({
               <Inventory sx={{ fontSize: '14px' }} />
               Items
             </Button>
-          </Box>
+          </div>
 
           {/* Date Range Inputs */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: { xs: '1 1 100%', md: '1 1 auto' }, minWidth: { xs: '100%', md: '300px' } }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '1 1 auto', minWidth: '300px' }}>
             <TextField
               type="date"
               size="small"
@@ -802,10 +802,10 @@ export default function TransactionsSection({
                 },
               }}
             />
-          </Box>
+          </div>
 
           {/* Category Dropdown and View Toggles */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <FormControl
               size="small"
               sx={{
@@ -862,7 +862,7 @@ export default function TransactionsSection({
             >
               <ViewList />
             </IconButton>
-          </Box>
+          </div>
         </Paper>
       {/* Items Tab Controls */}
       {activeTab === 3 && (
@@ -877,7 +877,7 @@ export default function TransactionsSection({
             boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
           }}
         >
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', justifyContent: 'space-between' }}>
             <Typography
               variant="body2"
               sx={{
@@ -909,7 +909,7 @@ export default function TransactionsSection({
                 <MenuItem value={100}>100</MenuItem>
               </Select>
             </FormControl>
-          </Box>
+          </div>
         </Paper>
       )}
 
@@ -917,26 +917,26 @@ export default function TransactionsSection({
       {activeTab === 3 ? (
         <>
           {isLoadingAllItems && backendItems.length === 0 ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', paddingTop: '32px', paddingBottom: '32px' }}>
               <Typography variant="body2" color="text.secondary">
                 Loading items...
               </Typography>
-            </Box>
+            </div>
           ) : (
             <>
               {isLoadingAllItems && backendItems.length > 0 && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 1, mb: 2 }}>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', paddingTop: '8px', paddingBottom: '8px', marginBottom: '16px' }}>
                   <Typography variant="caption" color="text.secondary">
                     Loading...
                   </Typography>
-                </Box>
+                </div>
               )}
               {backendItems.length === 0 ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', paddingTop: '32px', paddingBottom: '32px' }}>
                   <Typography variant="body2" color="text.secondary">
                     No items found
                   </Typography>
-                </Box>
+                </div>
               ) : (
                 <TableContainer 
                   component={Paper}
@@ -971,7 +971,7 @@ export default function TransactionsSection({
                             {item.transaction_id?.substring(0, 8)}...
                           </TableCell>
                           <TableCell>
-                            <Box sx={{ display: 'flex', gap: 0.5 }}>
+                            <div style={{ display: 'flex', gap: '4px' }}>
                               <IconButton
                                 size="small"
                                 onClick={() => handleItemEdit(item)}
@@ -989,7 +989,7 @@ export default function TransactionsSection({
                               >
                                 <Delete sx={{ fontSize: '1rem' }} />
                               </IconButton>
-                            </Box>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -1004,19 +1004,19 @@ export default function TransactionsSection({
         /* Transactions List */
         <>
           {isLoadingTransactions && transactions.length === 0 ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', paddingTop: '32px', paddingBottom: '32px' }}>
               <Typography variant="body2" color="text.secondary">
                 Loading transactions...
               </Typography>
-            </Box>
+            </div>
           ) : (
             <>
               {isLoadingTransactions && transactions.length > 0 && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 1, mb: 2 }}>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', paddingTop: '8px', paddingBottom: '8px', marginBottom: '16px' }}>
                   <Typography variant="caption" color="text.secondary">
                     Loading...
                   </Typography>
-                </Box>
+                </div>
               )}
               <TransactionsList
                 layout={layout}
@@ -1090,7 +1090,7 @@ export default function TransactionsSection({
       <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Edit Transaction</DialogTitle>
         <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '8px' }}>
             <FormControl fullWidth>
               <InputLabel>Category</InputLabel>
               <Select
@@ -1134,7 +1134,7 @@ export default function TransactionsSection({
                 slotProps={{ textField: { fullWidth: true } }}
               />
             </LocalizationProvider>
-          </Box>
+          </div>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setEditDialogOpen(false)}>Cancel</Button>
@@ -1194,7 +1194,7 @@ export default function TransactionsSection({
       <Dialog open={itemEditDialogOpen} onClose={() => setItemEditDialogOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Edit Item</DialogTitle>
         <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '8px' }}>
             <TextField
               label="Item Name"
               value={itemEditForm.name}
@@ -1252,7 +1252,7 @@ export default function TransactionsSection({
                 ))}
               </Select>
             </FormControl>
-          </Box>
+          </div>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setItemEditDialogOpen(false)}>Cancel</Button>
@@ -1327,11 +1327,11 @@ export default function TransactionsSection({
               fontWeight: 600,
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Typography sx={{ fontFamily: "'Inter', sans-serif", fontSize: '1.25rem', fontWeight: 600 }}>
                 All Transactions ({fullScreenSortedTransactions.length})
               </Typography>
-            </Box>
+            </div>
             <IconButton
               onClick={() => setFullScreenDialogOpen(false)}
               sx={{
@@ -1354,7 +1354,7 @@ export default function TransactionsSection({
             }}
           >
             {/* Search and Sort Controls */}
-            <Box sx={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
               <TextField
                 size="small"
                 placeholder="Search transactions..."
@@ -1383,7 +1383,7 @@ export default function TransactionsSection({
               >
                 {fullScreenSortedTransactions.length} transaction{fullScreenSortedTransactions.length !== 1 ? 's' : ''}
               </Typography>
-            </Box>
+            </div>
 
             {/* Transactions Table */}
             <TableContainer 
@@ -1410,10 +1410,10 @@ export default function TransactionsSection({
                       }}
                       onClick={() => handleFullScreenSort('date')}
                     >
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                         Date
                         <Sort sx={{ fontSize: '1rem', opacity: fullScreenSortBy === 'date' ? 1 : 0.3 }} />
-                      </Box>
+                      </div>
                     </TableCell>
                     <TableCell 
                       sx={{ 
@@ -1428,10 +1428,10 @@ export default function TransactionsSection({
                       }}
                       onClick={() => handleFullScreenSort('merchant')}
                     >
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                         Merchant
                         <Sort sx={{ fontSize: '1rem', opacity: fullScreenSortBy === 'merchant' ? 1 : 0.3 }} />
-                      </Box>
+                      </div>
                     </TableCell>
                     <TableCell 
                       sx={{ 
@@ -1446,10 +1446,10 @@ export default function TransactionsSection({
                       }}
                       onClick={() => handleFullScreenSort('category')}
                     >
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                         Category
                         <Sort sx={{ fontSize: '1rem', opacity: fullScreenSortBy === 'category' ? 1 : 0.3 }} />
-                      </Box>
+                      </div>
                     </TableCell>
                     <TableCell 
                       align="right"
@@ -1465,10 +1465,10 @@ export default function TransactionsSection({
                       }}
                       onClick={() => handleFullScreenSort('amount')}
                     >
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
                         Amount
                         <Sort sx={{ fontSize: '1rem', opacity: fullScreenSortBy === 'amount' ? 1 : 0.3 }} />
-                      </Box>
+                      </div>
                     </TableCell>
                     <TableCell 
                       sx={{ 
@@ -1493,10 +1493,10 @@ export default function TransactionsSection({
                         minWidth: '100px',
                       }}
                     >
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
                         <TrendingDown sx={{ fontSize: '0.875rem', color: theme.palette.error.main }} />
                         Expense
-                      </Box>
+                      </div>
                     </TableCell>
                     <TableCell 
                       align="right"
@@ -1509,10 +1509,10 @@ export default function TransactionsSection({
                         minWidth: '100px',
                       }}
                     >
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
                         <TrendingUp sx={{ fontSize: '0.875rem', color: theme.palette.success.main }} />
                         Earning
-                      </Box>
+                      </div>
                     </TableCell>
                     <TableCell 
                       align="right"
@@ -1525,10 +1525,10 @@ export default function TransactionsSection({
                         minWidth: '80px',
                       }}
                     >
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
                         <Receipt sx={{ fontSize: '0.875rem', color: theme.palette.warning.main }} />
                         Tax
-                      </Box>
+                      </div>
                     </TableCell>
                     <TableCell 
                       sx={{ 
@@ -1584,14 +1584,14 @@ export default function TransactionsSection({
                           }}
                         >
                           <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                               {new Date(transaction.date).toLocaleDateString()}
                               {hasMissingFields && (
                                 <Tooltip title="This transaction has items with missing price fields">
                                   <Warning sx={{ fontSize: '1rem', color: theme.palette.warning.main }} />
                                 </Tooltip>
                               )}
-                            </Box>
+                            </div>
                           </TableCell>
                         <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
                           {getDisplayMerchantName(transaction, getMerchantName(transaction.merchant_id))}
@@ -1629,7 +1629,7 @@ export default function TransactionsSection({
                           />
                         </TableCell>
                         <TableCell>
-                          <Box sx={{ display: 'flex', gap: 0.5 }}>
+                          <div style={{ display: 'flex', gap: '4px' }}>
                             <IconButton
                               size="small"
                               onClick={() => {
@@ -1665,7 +1665,7 @@ export default function TransactionsSection({
                             >
                               <MergeType sx={{ fontSize: '1rem' }} />
                             </IconButton>
-                          </Box>
+                          </div>
                         </TableCell>
                       </TableRow>
                       );
@@ -1676,7 +1676,7 @@ export default function TransactionsSection({
             </TableContainer>
           </DialogContent>
         </Dialog>
-      </Box>
+      </div>
     );
   }
 

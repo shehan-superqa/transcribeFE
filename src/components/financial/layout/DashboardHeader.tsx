@@ -1,23 +1,51 @@
-import { Button, TextField, Typography } from '@mui/material';
+import { Button, Typography } from '@mui/material';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { useNavigate } from 'react-router-dom';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
-import SearchIcon from '@mui/icons-material/Search';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import AnalyticsIcon from '@mui/icons-material/Analytics';
+import CategoryIcon from '@mui/icons-material/Category';
+import StoreIcon from '@mui/icons-material/Store';
 
 interface DashboardHeaderProps {
-  askBarValue: string;
-  onAskBarChange: (value: string) => void;
-  onAskSubmit: () => void;
   onViewAnalytics: () => void;
 }
 
 export default function DashboardHeader({
-  askBarValue,
-  onAskBarChange,
-  onAskSubmit,
   onViewAnalytics,
 }: DashboardHeaderProps) {
   const { theme } = useTheme();
+  const navigate = useNavigate();
+
+  const quickLinks = [
+    {
+      label: 'Transactions',
+      icon: SwapHorizIcon,
+      onClick: () => navigate('/financialtool/app/transactions'),
+    },
+    {
+      label: 'Upload Bills',
+      icon: CloudUploadIcon,
+      onClick: () => navigate('/financialtool/app/upload'),
+    },
+    {
+      label: 'Analytics',
+      icon: AnalyticsIcon,
+      onClick: onViewAnalytics,
+    },
+    {
+      label: 'Categories',
+      icon: CategoryIcon,
+      onClick: () => navigate('/financialtool/app/categories'),
+    },
+    {
+      label: 'Merchants',
+      icon: StoreIcon,
+      onClick: () => navigate('/financialtool/app/merchants'),
+    },
+  ];
 
   return (
     <div
@@ -67,56 +95,47 @@ export default function DashboardHeader({
             </Typography>
           </div>
         </div>
+        {/* Quick Links */}
         <div
           style={{
-            position: 'relative',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            flexWrap: 'wrap',
             flex: 1,
-            width: '100%',
-            maxWidth: '100%',
+            justifyContent: 'center',
           }}
-          className="search-container"
+          className="quick-links-container"
         >
-          <SearchIcon sx={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#9CA3AF', fontSize: 16, zIndex: 1 }} />
-          <TextField
-            fullWidth
-            size="small"
-            placeholder="Ask me anything or search transactions..."
-            value={askBarValue}
-            onChange={(e) => onAskBarChange(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                onAskSubmit();
-              }
-            }}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                pl: 8,
-                pr: 3,
-                py: 1,
-                bgcolor: theme.palette.mode === 'dark' ? '#1F2937' : '#F9FAFB',
-                border: `1px solid ${theme.palette.mode === 'dark' ? '#374151' : '#E5E7EB'}`,
-                borderRadius: '8px',
-                fontSize: '13px',
-                '& fieldset': {
-                  border: 'none',
-                },
-                '&:hover': {
-                  borderColor: '#6D28D9',
-                  '& fieldset': {
-                    border: 'none',
+          {quickLinks.map((link) => {
+            const IconComponent = link.icon;
+            return (
+              <Button
+                key={link.label}
+                size="small"
+                startIcon={<IconComponent sx={{ fontSize: 16 }} />}
+                onClick={link.onClick}
+                sx={{
+                  textTransform: 'none',
+                  borderRadius: '6px',
+                  fontSize: '13px',
+                  fontWeight: 500,
+                  px: 2,
+                  py: 0.75,
+                  border: `1px solid ${theme.palette.mode === 'dark' ? '#374151' : '#E5E7EB'}`,
+                  bgcolor: theme.palette.mode === 'dark' ? '#1F2937' : '#F9FAFB',
+                  color: theme.palette.text.primary,
+                  '&:hover': {
+                    borderColor: '#6D28D9',
+                    bgcolor: theme.palette.mode === 'dark' ? '#374151' : '#F3F4F6',
+                    color: '#6D28D9',
                   },
-                },
-                '&.Mui-focused': {
-                  borderColor: '#6D28D9',
-                  boxShadow: '0 0 0 2px rgba(109, 40, 217, 0.1)',
-                  '& fieldset': {
-                    border: 'none',
-                  },
-                },
-              },
-            }}
-          />
+                }}
+              >
+                {link.label}
+              </Button>
+            );
+          })}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end' }}>
           <Button
@@ -150,9 +169,9 @@ export default function DashboardHeader({
             flex-direction: row !important;
             align-items: center !important;
           }
-          .search-container {
-            max-width: 528px !important;
-            margin: 0 auto !important;
+          .quick-links-container {
+            justify-content: center !important;
+            flex-wrap: nowrap !important;
           }
         }
       `}</style>

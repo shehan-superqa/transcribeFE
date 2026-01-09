@@ -90,6 +90,8 @@ export default function MainContentArea({
             min-width: 0;
             width: 100%;
             max-width: 100%;
+            height: 100%;
+            min-height: 0;
           }
           .right-sidebar-container {
             width: 288px;
@@ -113,6 +115,8 @@ export default function MainContentArea({
             min-width: 0;
             width: 100%;
             max-width: 100%;
+            height: 100%;
+            min-height: 0;
           }
           .right-sidebar-container {
             width: 240px;
@@ -137,6 +141,8 @@ export default function MainContentArea({
             min-width: 0;
             width: 100%;
             max-width: 100%;
+            height: 100%;
+            min-height: 0;
           }
           .right-sidebar-container {
             display: none !important;
@@ -161,6 +167,8 @@ export default function MainContentArea({
             min-width: 0;
             width: 100%;
             max-width: 100%;
+            height: 100%;
+            min-height: 0;
           }
           .right-sidebar-container {
             display: none !important;
@@ -185,6 +193,8 @@ export default function MainContentArea({
             min-width: 0;
             width: 100%;
             max-width: 100%;
+            height: 100%;
+            min-height: 0;
           }
           .right-sidebar-container {
             display: none !important;
@@ -273,6 +283,7 @@ export default function MainContentArea({
             flex: 1,
             overflow: 'hidden',
             minHeight: 0,
+            height: '100%',
           }}
         >
           {/* Left Sidebar Navigation */}
@@ -290,13 +301,16 @@ export default function MainContentArea({
               minWidth: 0, 
               width: '100%',
               maxWidth: '100%',
+              height: '100%',
               overflow: 'auto', 
               flex: 1, 
               paddingTop: '10px',
               display: 'flex', 
-              flexDirection: 'column' 
+              flexDirection: 'column',
+              minHeight: 0,
             }}
           >
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, height: '100%' }}>
             <Routes>
               <Route path="/" element={<Navigate to="/financialtool/app/dashboard" replace />} />
               <Route path="dashboard" element={
@@ -350,6 +364,7 @@ export default function MainContentArea({
               <Route path="model-status" element={<ModelStatusSection />} />
               <Route path="*" element={<Navigate to="/financialtool/app/dashboard" replace />} />
             </Routes>
+            </div>
           </div>
 
           {/* Right Sidebar */}
