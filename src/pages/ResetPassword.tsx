@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { resetPassword } from "../lib/api";
 import { FaLock, FaCheckCircle, FaSpinner, FaArrowLeft, FaEye, FaEyeSlash } from "react-icons/fa";
-import "./Login.css";
+import "../css/pages/Login.css";
 
 export default function ResetPassword() {
   const navigate = useNavigate();

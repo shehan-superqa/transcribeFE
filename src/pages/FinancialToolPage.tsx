@@ -3,7 +3,7 @@ import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Box, Container, Tabs, Tab, Paper, Typography } from '@mui/material';
 import { useTheme } from '../contexts/ThemeContext';
-import './FinancialToolPage.css';
+import '../css/pages/FinancialToolPage.css';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -875,6 +875,7 @@ export default function FinancialToolPage() {
     </ThemeProvider>
   );
 }
+
 
 
 

@@ -1,5 +1,5 @@
 import type { ScriptScene, AdStrategy } from '../../types/videoAds';
-import './VideoAdsAgent.css';
+import '../../css/components/VideoAdsAgent/VideoAdsAgent.css';
 
 interface SceneCardProps {
   scene: ScriptScene;

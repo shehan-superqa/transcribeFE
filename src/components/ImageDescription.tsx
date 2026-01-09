@@ -1,5 +1,5 @@
 import React from "react";
-import "./ImageDescription.css";
+import "../css/components/ImageDescription.css";
 
 interface ImageDescriptionProps {
   imageSrc: string;

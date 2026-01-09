@@ -6,7 +6,7 @@ import ImageDescription from "../components/ImageDescription"
 import uploadScreenshot from "../assets/upload.png"
 import youtubeScreenshot from "../assets/youtubelink.png"
 import recordaudioScreenshot from "../assets/recordaudio.png"
-import './HomeHero.css';
+import '../css/pages/HomeHero.css';
 
 export default function Home() {
   const navigate = useNavigate();

@@ -28,8 +28,8 @@ import { useMicrophone } from '../../hooks/useMicrophone';
 import { useWaveformVisualization } from '../../hooks/useWaveformVisualization';
 import { websocketClient } from '../../lib/api/websocketClient';
 import HowToUse from '../common/HowToUse';
-import '../common/HowToUse.css';
-import './LiveMicVADTool.css';
+import '../../css/components/common/HowToUse.css';
+import '../../css/components/LiveMicVADTool/LiveMicVADTool.css';
 
 export default function LiveMicVADTool() {
   const [vadThreshold, setVadThreshold] = useState(0.01);

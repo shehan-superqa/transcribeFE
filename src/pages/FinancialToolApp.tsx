@@ -17,7 +17,7 @@ import DashboardHeader from '../components/financial/layout/DashboardHeader';
 import MainContentArea from '../components/financial/layout/MainContentArea';
 import FloatingChatButton from '../components/financial/FloatingChatButton';
 import { useAuth } from '../lib/auth';
-import './FinancialToolApp.css';
+import '../css/pages/FinancialToolApp.css';
 
 
 // Path to tab index mapping

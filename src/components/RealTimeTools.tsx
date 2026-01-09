@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import './RealTimeTools.css';
+import '../css/components/RealTimeTools.css';
 
 export default function RealTimeTools() {
   const navigate = useNavigate();

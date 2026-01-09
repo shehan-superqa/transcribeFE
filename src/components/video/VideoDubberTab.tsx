@@ -3,7 +3,7 @@ import { useAuth } from '../../lib/auth';
 import { getUserJobs } from '../../lib/api/jobsApi';
 import type { VideoDubJob, Job } from '../../types/api';
 import VideoDubberTool from '../VideoDubberTool/VideoDubberTool';
-import '../../pages/Dashboard.css';
+import '../../css/pages/Dashboard.css';
 
 export default function VideoDubberTab() {
   return <VideoDubberTool />;

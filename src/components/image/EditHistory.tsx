@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../lib/auth';
 import { getUserJobs, getJobStatus } from '../../lib/api/jobsApi';
 import type { ImageEditJob, Job } from '../../types/api';
-import '../../pages/Dashboard.css';
+import '../../css/pages/Dashboard.css';
 
 export function EditHistory() {
   const { user } = useAuth();

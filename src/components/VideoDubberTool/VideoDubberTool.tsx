@@ -7,9 +7,9 @@ import { checkAuthAndTriggerModal } from '../../lib/authCheck';
 import { useAuth } from '../../lib/auth';
 import type { VideoDubJob } from '../../types/api';
 import HowToUse from '../common/HowToUse';
-import '../common/HowToUse.css';
-import '../../pages/Dashboard.css';
-import './VideoDubberTool.css';
+import '../../css/components/common/HowToUse.css';
+import '../../css/pages/Dashboard.css';
+import '../../css/components/VideoDubberTool/VideoDubberTool.css';
 
 const getStyles = () => ({
   container: {

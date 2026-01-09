@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { AdScript, AdStrategy, AdConfiguration } from '../../../types/videoAds';
 import SceneCard from '../SceneCard';
-import './Steps.css';
+import '../../../css/components/VideoAdsAgent/steps/Steps.css';
 
 interface BuilderStepProps {
   script: AdScript;

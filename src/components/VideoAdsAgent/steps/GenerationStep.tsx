@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { AdGenerationPipeline } from '../../../types/videoAds';
-import './Steps.css';
+import '../../../css/components/VideoAdsAgent/steps/Steps.css';
 
 interface GenerationStepProps {
   pipeline: AdGenerationPipeline;

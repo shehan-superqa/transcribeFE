@@ -4,7 +4,7 @@ import { getEnergyPointsBalance } from '../../../lib/api/paymentApi';
 import { useAuthModal } from '../../../contexts/AuthModalContext';
 import { checkAuthAndTriggerModal } from '../../../lib/authCheck';
 import type { PaymentInfo } from '../../../types/videoAds';
-import './Steps.css';
+import '../../../css/components/VideoAdsAgent/steps/Steps.css';
 
 interface PaymentStepProps {
   onPaymentComplete: () => void;

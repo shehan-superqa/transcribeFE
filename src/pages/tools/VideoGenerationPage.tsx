@@ -1,5 +1,5 @@
 import VideoGenerationTool from '../../components/VideoGenerationTool/VideoGenerationTool';
-import './FeaturePage.css';
+import '../../css/pages/tools/FeaturePage.css';
 
 export default function VideoGenerationPage() {
   return (

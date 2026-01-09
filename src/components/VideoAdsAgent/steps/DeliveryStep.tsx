@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { AdResult } from '../../../types/videoAds';
-import './Steps.css';
+import '../../../css/components/VideoAdsAgent/steps/Steps.css';
 
 interface DeliveryStepProps {
   result: AdResult;

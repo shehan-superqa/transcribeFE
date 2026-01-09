@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useDropzone } from 'react-dropzone';
 import JSZip from 'jszip';
 import { generateImageDescription, type ImageWithDescription } from '../../lib/api/imageTrainingApi';
-import './ImageCaptioningTool.css';
+import '../../css/components/ImageCaptioningTool/ImageCaptioningTool.css';
 
 interface CaptioningSession {
   id: string;

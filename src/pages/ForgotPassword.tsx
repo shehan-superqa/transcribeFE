@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { forgotPassword } from "../lib/api";
 import { FaEnvelope, FaCheckCircle, FaSpinner, FaArrowLeft } from "react-icons/fa";
-import "./Login.css";
+import "../css/pages/Login.css";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");

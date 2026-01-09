@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography, Card, CardContent, CardActionArea } from '@mui/material';
-import './ImageGenerationLandingPage.css';
+import '../css/pages/ImageGenerationLandingPage.css';
 
 interface ImageTool {
   id: string;

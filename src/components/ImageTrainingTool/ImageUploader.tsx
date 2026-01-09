@@ -7,7 +7,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import JSZip from 'jszip';
 import { generateImageDescription, uploadImagesForTraining, type ImageWithDescription } from '../../lib/api/imageTrainingApi';
-import './ImageUploader.css';
+import '../../css/components/ImageTrainingTool/ImageUploader.css';
 
 interface ImageUploaderProps {
   images: ImageWithDescription[];

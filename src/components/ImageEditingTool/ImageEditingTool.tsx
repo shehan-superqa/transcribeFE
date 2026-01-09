@@ -6,7 +6,7 @@ import { useAuthModal } from '../../contexts/AuthModalContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { checkAuthAndTriggerModal } from '../../lib/authCheck';
 import type { ImageEditJobRequest, ImageEditJobResult, ImageEditJob, Job } from '../../types/api';
-import './ImageEditingTool.css';
+import '../../css/components/ImageEditingTool/ImageEditingTool.css';
 
 const getStyles = () => ({
   container: {

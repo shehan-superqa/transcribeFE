@@ -16,7 +16,7 @@ import VideoAdsPage from './tools/VideoAdsPage';
 import TextToVideoTab, { VideoHistory } from '../components/video/TextToVideoTab';
 import VideoTranslatorPage from './tools/VideoTranslatorPage';
 import SubtitleGeneratorPage from './tools/SubtitleGeneratorPage';
-import '../pages/Dashboard.css';
+import '../css/pages/Dashboard.css';
 
 export default function ToolsDashboard() {
   const { theme } = useTheme();

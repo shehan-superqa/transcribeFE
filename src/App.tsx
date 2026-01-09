@@ -8,7 +8,7 @@ import { AuthModalProvider } from "./contexts/AuthModalContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { store } from "./store";
 import { checkAuth } from "./store/authSlice";
-import "./App.css";
+import "./css/App.css";
 
 import Header from "./components/Header";
 import Home from "./pages/Home";

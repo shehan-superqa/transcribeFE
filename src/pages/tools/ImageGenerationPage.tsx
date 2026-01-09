@@ -1,7 +1,7 @@
 import ImageGenerationTab from '../../components/image/ImageGenerationTab';
 import HowToUse from '../../components/common/HowToUse';
-import '../../components/common/HowToUse.css';
-import '../../pages/Dashboard.css';
+import '../../css/components/common/HowToUse.css';
+import '../../css/pages/Dashboard.css';
 
 export default function ImageGenerationPage() {
   return (

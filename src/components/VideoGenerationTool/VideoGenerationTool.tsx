@@ -9,9 +9,9 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { checkAuthAndTriggerModal } from '../../lib/authCheck';
 import type { VideoJobRequest, VideoJobResult, VideoJob, Job } from '../../types/api';
 import HowToUse from '../../components/common/HowToUse';
-import '../../components/common/HowToUse.css';
-import '../../pages/Dashboard.css';
-import './VideoGenerationTool.css';
+import '../../css/components/common/HowToUse.css';
+import '../../css/pages/Dashboard.css';
+import '../../css/components/VideoGenerationTool/VideoGenerationTool.css';
 
 const getStyles = () => ({
   container: {

@@ -12,7 +12,7 @@ import {
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { validateFile, formatFileSize, type FileValidationResult } from '../../../utils/fileValidation';
-import './FileUploader.css';
+import '../../../css/components/transcription/common/FileUploader.css';
 
 export interface FileUploaderProps {
   onFileSelect: (file: File) => void;

@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Drawer, useMediaQuery, IconButton } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useTheme } from '../contexts/ThemeContext';
-import './Sidebar.css';
+import '../css/components/Sidebar.css';
 
 interface SubMenuItem {
   id: string;

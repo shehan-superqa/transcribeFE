@@ -1,5 +1,5 @@
 import ImageGenerationTool from '../ImageGenerationTool/ImageGenerationTool';
-import '../../pages/Dashboard.css';
+import '../../css/pages/Dashboard.css';
 
 export default function ImageGenerationTab() {
   return <ImageGenerationTool />;

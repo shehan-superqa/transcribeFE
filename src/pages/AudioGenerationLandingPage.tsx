@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography, Card, CardContent, CardActionArea } from '@mui/material';
-import './AudioGenerationLandingPage.css';
+import '../css/pages/AudioGenerationLandingPage.css';
 
 interface AudioTool {
   id: string;

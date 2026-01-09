@@ -1,4 +1,4 @@
-import './FeaturePage.css';
+import '../../css/pages/tools/FeaturePage.css';
 
 export default function FreeToolsPage() {
   return (

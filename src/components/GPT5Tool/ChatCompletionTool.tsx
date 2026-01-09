@@ -4,7 +4,7 @@ import { useGPT5WebSocket } from '../../hooks/useGPT5WebSocket';
 import { useAuthModal } from '../../contexts/AuthModalContext';
 import { checkAuthAndTriggerModal } from '../../lib/authCheck';
 import type { GPT5ChatCompletionRequest, GPT5Message, ReasoningEffort, Verbosity } from '../../types/gpt5';
-import './GPT5Tool.css';
+import '../../css/components/GPT5Tool/GPT5Tool.css';
 
 export default function ChatCompletionTool() {
   const [messages, setMessages] = useState<GPT5Message[]>([

@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import './ToolsPage.css';
+import '../../css/pages/tools/ToolsPage.css';
 
 export default function RealTimePage() {
   const navigate = useNavigate();

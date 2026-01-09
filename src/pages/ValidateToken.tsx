@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { validateToken, TokenValidationResponse } from "../lib/api";
 import { FaCheckCircle, FaTimesCircle, FaSpinner, FaKey } from "react-icons/fa";
-import "./Login.css";
+import "../css/pages/Login.css";
 
 export default function ValidateToken() {
   const [token, setToken] = useState("");

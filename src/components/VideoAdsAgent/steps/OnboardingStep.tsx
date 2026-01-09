@@ -8,7 +8,7 @@ import type { OnboardingData, PromotionType, Platform, AdStyle } from '../../../
 // This ensures the backend URL can be configured via environment variables
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-import './Steps.css';
+import '../../../css/components/VideoAdsAgent/steps/Steps.css';
 
 interface OnboardingStepProps {
   data: OnboardingData;

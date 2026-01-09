@@ -13,7 +13,7 @@ import { ImageHistory } from '../components/image/ImageHistory';
 import { CaptioningHistory } from '../components/image/CaptioningHistory';
 import { EditHistory } from '../components/image/EditHistory';
 import { TrainingHistory } from '../components/image/TrainingHistory';
-import '../pages/Dashboard.css';
+import '../css/pages/Dashboard.css';
 
 export default function ImagesDashboard() {
   const { theme } = useTheme();

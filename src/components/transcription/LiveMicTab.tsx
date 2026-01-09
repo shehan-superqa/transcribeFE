@@ -25,7 +25,7 @@ import { useWaveformVisualization } from '../../hooks/useWaveformVisualization';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useRequireAuth } from '../../hooks/useRequireAuth';
 import HowToUse from '../../components/common/HowToUse';
-import '../../components/common/HowToUse.css';
+import '../../css/components/common/HowToUse.css';
 
 export default function LiveMicTab() {
   const { theme } = useTheme();

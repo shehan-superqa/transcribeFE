@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography, Card, CardContent, CardActionArea } from '@mui/material';
-import './VideoGenerationLandingPage.css';
+import '../css/pages/VideoGenerationLandingPage.css';
 
 interface VideoTool {
   id: string;

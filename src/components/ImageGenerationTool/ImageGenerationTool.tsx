@@ -7,7 +7,7 @@ import { useAuthModal } from '../../contexts/AuthModalContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { checkAuthAndTriggerModal } from '../../lib/authCheck';
 import type { ImageJobRequest, ImageJobResult, ImageJob, Job } from '../../types/api';
-import './ImageGenerationTool.css';
+import '../../css/components/ImageGenerationTool/ImageGenerationTool.css';
 
 const getStyles = () => ({
   container: {

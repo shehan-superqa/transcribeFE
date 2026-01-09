@@ -7,7 +7,7 @@ import type { ImageTrainingJobRequest, ImageTrainingJobResult, ImageTrainingJob,
 import ImageUploader from './ImageUploader';
 import ImageGenerationMode from './ImageGenerationMode';
 import ImageGalleryMode from './ImageGalleryMode';
-import './ImageTrainingTool.css';
+import '../../css/components/ImageTrainingTool/ImageTrainingTool.css';
 
 const getStyles = () => ({
   container: {

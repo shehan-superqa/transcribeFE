@@ -5,7 +5,7 @@ import PauseIcon from '@mui/icons-material/Pause';
 import testAudio from '../../assets/testaudio.mp3';
 import testAudioConference from '../../assets/testaudioconference.mp3';
 import testAudioLec from '../../assets/testaudiolec.mp3';
-import './TranscriptionExample.css';
+import '../../css/components/common/TranscriptionExample.css';
 
 interface TranscriptionExampleProps {
   audioUrl?: string;

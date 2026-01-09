@@ -18,7 +18,7 @@ import TrainerTab from "../components/transcription/TrainerTab";
 import AudioTranslatorPage from "./tools/AudioTranslatorPage";
 import LiveTranscribePage from "./tools/LiveTranscribePage";
 import LiveMicVADPage from "./tools/LiveMicVADPage";
-import "./Dashboard.css";
+import "../css/pages/Dashboard.css";
 
 export default function Dashboard() {
   const { user, refreshUser } = useAuth();

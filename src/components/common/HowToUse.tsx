@@ -1,4 +1,4 @@
-import './HowToUse.css';
+import '../../css/components/common/HowToUse.css';
 
 interface HowToUseProps {
   title: string;

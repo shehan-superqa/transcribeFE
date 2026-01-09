@@ -3,7 +3,7 @@ import { useAuth } from '../../lib/auth';
 import { getUserJobs } from '../../lib/api/jobsApi';
 import type { VideoJob, Job } from '../../types/api';
 import VideoGenerationTool from '../VideoGenerationTool/VideoGenerationTool';
-import '../../pages/Dashboard.css';
+import '../../css/pages/Dashboard.css';
 
 export default function TextToVideoTab() {
   const { user } = useAuth();

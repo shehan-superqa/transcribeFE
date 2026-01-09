@@ -5,7 +5,7 @@ import { useAuthModal } from '../../contexts/AuthModalContext';
 import { checkAuthAndTriggerModal } from '../../lib/authCheck';
 import { useAuth } from '../../lib/auth';
 import type { GPT5TextGenerationRequest, ReasoningEffort, Verbosity } from '../../types/gpt5';
-import './GPT5Tool.css';
+import '../../css/components/GPT5Tool/GPT5Tool.css';
 
 export default function TextGenerationTool() {
   const { user } = useAuth();

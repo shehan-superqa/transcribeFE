@@ -27,7 +27,7 @@ import StatusLabel from './common/StatusLabel';
 import VoiceSelector from './tts/VoiceSelector';
 import AudioPlayer from './tts/AudioPlayer';
 import HowToUse from '../../components/common/HowToUse';
-import '../../components/common/HowToUse.css';
+import '../../css/components/common/HowToUse.css';
 import { submitTTSJob, getTTSJobStatus, getAvailableVoices, type TTSVoice, type TTSJobRequest } from '../../lib/api/ttsApi';
 import { useAuthModal } from '../../contexts/AuthModalContext';
 import { checkAuthAndTriggerModal } from '../../lib/authCheck';

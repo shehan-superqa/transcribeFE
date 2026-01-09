@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAdScript } from '../../../hooks/useAdScript';
 import type { OnboardingData, AdStrategy, AdScript } from '../../../types/videoAds';
-import './Steps.css';
+import '../../../css/components/VideoAdsAgent/steps/Steps.css';
 
 interface ScriptStepProps {
   onboarding: OnboardingData;

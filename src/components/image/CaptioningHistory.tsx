@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import JSZip from 'jszip';
-import '../../pages/Dashboard.css';
+import '../../css/pages/Dashboard.css';
 
 interface CaptioningSession {
   id: string;

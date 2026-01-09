@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { loginUser, signupUser, clearError } from "../store/authSlice";
 import type { RootState, AppDispatch } from "../store";
 import { FaUser, FaLock, FaEnvelope, FaSignInAlt, FaUserPlus, FaSpinner, FaEye, FaEyeSlash, FaExclamationTriangle } from "react-icons/fa";
-import "./Login.css";
+import "../css/pages/Login.css";
 
 export default function Login() {
   const location = useLocation();

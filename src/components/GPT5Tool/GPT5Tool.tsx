@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import TextGenerationTool from './TextGenerationTool';
 import ChatCompletionTool from './ChatCompletionTool';
-import './GPT5Tool.css';
+import '../../css/components/GPT5Tool/GPT5Tool.css';
 
 type TabType = 'text-generation' | 'chat';
 

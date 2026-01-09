@@ -7,7 +7,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import { useTheme } from '../contexts/ThemeContext';
 import Sidebar from '../components/Sidebar';
 import GPT5Page from './tools/GPT5Page';
-import '../pages/Dashboard.css';
+import '../css/pages/Dashboard.css';
 
 export default function GPT5Dashboard() {
   const { theme } = useTheme();

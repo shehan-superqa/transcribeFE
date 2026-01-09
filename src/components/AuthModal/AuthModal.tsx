@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { loginUser, signupUser, clearError } from "../../store/authSlice";
 import type { RootState, AppDispatch } from "../../store";
 import { FaUser, FaLock, FaEnvelope, FaSignInAlt, FaUserPlus, FaSpinner, FaEye, FaEyeSlash, FaExclamationTriangle, FaTimes } from "react-icons/fa";
-import "./AuthModal.css";
+import "../../css/components/AuthModal/AuthModal.css";
 
 interface AuthModalProps {
   isOpen: boolean;

@@ -1,5 +1,5 @@
 import HowToUse from '../../components/common/HowToUse';
-import './FeaturePage.css';
+import '../../css/pages/tools/FeaturePage.css';
 
 export default function RealTimeTranslatorPage() {
   return (

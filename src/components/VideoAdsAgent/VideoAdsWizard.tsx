@@ -14,7 +14,7 @@ import type {
   AdConfiguration,
   AdResult,
 } from '../../types/videoAds';
-import './VideoAdsAgent.css';
+import '../../css/components/VideoAdsAgent/VideoAdsAgent.css';
 
 type WizardStep =
   | 'onboarding'

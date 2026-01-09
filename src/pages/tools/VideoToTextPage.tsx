@@ -5,8 +5,8 @@
  */
 import TranscribeTab from '../../components/transcription/TranscribeTab';
 import HowToUse from '../../components/common/HowToUse';
-import '../../components/common/HowToUse.css';
-import './FeaturePage.css';
+import '../../css/components/common/HowToUse.css';
+import '../../css/pages/tools/FeaturePage.css';
 
 export default function VideoToTextPage() {
   return (

@@ -1,6 +1,6 @@
 import LiveMicVADTool from '../../components/LiveMicVADTool/LiveMicVADTool';
 import HowToUse from '../../components/common/HowToUse';
-import './FeaturePage.css';
+import '../../css/pages/tools/FeaturePage.css';
 
 export default function LiveMicVADPage() {
   return (

@@ -8,7 +8,7 @@ import { useTranscription } from './useTranscription';
 import { useMicrophonePreview } from './useMicrophonePreview';
 import { useRecording } from './useRecording';
 import { useWaveforms } from './useWaveforms';
-import './TranscriptionTool.css';
+import '../../css/components/TranscriptionTool/TranscriptionTool.css';
 
 export default function TranscriptionTool({ onTranscriptionStart }: TranscriptionToolProps) {
   const { user } = useAuth();

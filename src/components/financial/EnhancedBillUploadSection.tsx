@@ -60,7 +60,7 @@ import CameraCapture from './CameraCapture';
 import { useFinancialJobProgress } from '../../hooks/useFinancialJobProgress';
 import ManualTransactionDialog from './ManualTransactionDialog';
 import ProgressTab from './ProgressTab';
-import './EnhancedBillUploadSection.css';
+import '../../css/components/financial/EnhancedBillUploadSection.css';
 
 interface BillUploadSectionProps {
   onTransactionCreated?: (transaction: Transaction) => void;

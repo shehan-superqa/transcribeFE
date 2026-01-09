@@ -2,7 +2,7 @@ import { Box, Typography, Button, Paper } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import TranscriptionExample from './TranscriptionExample';
 import TTSExample from './TTSExample';
-import './UseCaseDetail.css';
+import '../../css/components/common/UseCaseDetail.css';
 
 interface UseCaseDetailProps {
   title: string;

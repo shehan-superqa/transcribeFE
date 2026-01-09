@@ -5,7 +5,7 @@ import PauseIcon from '@mui/icons-material/Pause';
 import testBusinessAudio from '../../assets/testbusiness.mp3';
 import testCustomerAudio from '../../assets/testcustomer.mp3';
 import testAnnouncementAudio from '../../assets/testannouncement.mp3';
-import './TTSExample.css';
+import '../../css/components/common/TTSExample.css';
 
 interface TTSExampleProps {
   inputText?: string;

@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useAdStrategy } from '../../../hooks/useAdStrategy';
 import type { OnboardingData } from '../../../types/videoAds';
-import './Steps.css';
+import '../../../css/components/VideoAdsAgent/steps/Steps.css';
 
 interface StrategyStepProps {
   onboarding: OnboardingData;

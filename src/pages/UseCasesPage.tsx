@@ -4,7 +4,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import UseCaseDetail from '../components/common/UseCaseDetail';
-import './UseCasesPage.css';
+import '../css/pages/UseCasesPage.css';
 
 interface UseCase {
   id: string;

@@ -3,7 +3,7 @@ import { useAuth } from '../../lib/auth';
 import { getUserJobs, getJobStatus } from '../../lib/api/jobsApi';
 import { getLoRAsFromReplicate, type LoRAModel } from '../../lib/api/imageTrainingApi';
 import type { ImageTrainingJob, Job } from '../../types/api';
-import '../../pages/Dashboard.css';
+import '../../css/pages/Dashboard.css';
 
 interface TrainingHistoryProps {
   onTrainingJobClick?: (job: ImageTrainingJob) => void;

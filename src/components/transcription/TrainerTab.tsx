@@ -18,7 +18,7 @@ import {
 } from '@mui/material';
 import { startTraining, getTrainingStatus, cancelTraining } from '../../lib/api/transcriptionApi';
 import HowToUse from '../../components/common/HowToUse';
-import '../../components/common/HowToUse.css';
+import '../../css/components/common/HowToUse.css';
 
 export default function TrainerTab() {
   const [language, setLanguage] = useState('sinhala');
