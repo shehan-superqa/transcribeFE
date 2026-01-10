@@ -166,7 +166,11 @@ const getPaymentSubtitle = (payment: RecurringPayment) => {
   return '';
 };
 
-export default function RecurringPaymentsSection() {
+interface RecurringPaymentsSectionProps {
+  hideHeader?: boolean;
+}
+
+export default function RecurringPaymentsSection({ hideHeader = false }: RecurringPaymentsSectionProps = {}) {
   const { theme } = useTheme();
   const [payments, setPayments] = useState<RecurringPayment[]>(dummyRecurringPayments);
   const [viewMode, setViewMode] = useState<'card' | 'table'>('card');
@@ -749,53 +753,55 @@ export default function RecurringPaymentsSection() {
   return (
     <Box sx={{ maxWidth: '1152px', margin: '0 auto', px: { xs: 2, sm: 2.5 }, py: 2 }}>
       {/* Header */}
-      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', md: 'center' }, gap: 2, mb: 3 }}>
-        <Box>
-          <Typography
+      {!hideHeader && (
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', md: 'center' }, gap: 2, mb: 3 }}>
+          <Box>
+            <Typography
+              sx={{
+                fontSize: '24px',
+                fontWeight: 700,
+                letterSpacing: '-0.025em',
+                color: theme.palette.text.primary,
+                mb: 0.5,
+                fontFamily: "'Inter', sans-serif",
+              }}
+            >
+              Recurring Payments
+            </Typography>
+            <Typography
+              sx={{
+                fontSize: '12px',
+                color: theme.palette.text.secondary,
+                fontFamily: "'Inter', sans-serif",
+              }}
+            >
+              Manage your automated income and expenses in one place.
+            </Typography>
+          </Box>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon sx={{ fontSize: '16px' }} />}
+            onClick={() => handleOpenDialog()}
             sx={{
-              fontSize: '24px',
-              fontWeight: 700,
-              letterSpacing: '-0.025em',
-              color: theme.palette.text.primary,
-              mb: 0.5,
+              bgcolor: '#6D28D9',
+              color: '#ffffff',
+              fontWeight: 600,
+              px: 2,
+              py: 0.75,
+              borderRadius: '8px',
+              fontSize: '13px',
+              textTransform: 'none',
+              boxShadow: '0 4px 6px -1px rgba(109, 40, 217, 0.2)',
               fontFamily: "'Inter', sans-serif",
+              '&:hover': {
+                bgcolor: '#5b21b6',
+              },
             }}
           >
-            Recurring Payments
-          </Typography>
-          <Typography
-            sx={{
-              fontSize: '12px',
-              color: theme.palette.text.secondary,
-              fontFamily: "'Inter', sans-serif",
-            }}
-          >
-            Manage your automated income and expenses in one place.
-          </Typography>
+            Add Recurring Payment
+          </Button>
         </Box>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon sx={{ fontSize: '16px' }} />}
-          onClick={() => handleOpenDialog()}
-          sx={{
-            bgcolor: '#6D28D9',
-            color: '#ffffff',
-            fontWeight: 600,
-            px: 2,
-            py: 0.75,
-            borderRadius: '8px',
-            fontSize: '13px',
-            textTransform: 'none',
-            boxShadow: '0 4px 6px -1px rgba(109, 40, 217, 0.2)',
-            fontFamily: "'Inter', sans-serif",
-            '&:hover': {
-              bgcolor: '#5b21b6',
-            },
-          }}
-        >
-          Add Recurring Payment
-        </Button>
-      </Box>
+      )}
 
       {/* Summary Cards */}
       <Grid container spacing={2} sx={{ mb: 3 }}>

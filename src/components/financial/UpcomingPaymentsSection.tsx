@@ -23,6 +23,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  IconButton,
 } from '@mui/material';
 import {
   TrendingUp as TrendingUpIcon,
@@ -31,8 +32,11 @@ import {
   AccountBalanceWallet as AccountBalanceWalletIcon,
   CheckCircle as CheckCircleIcon,
   Add as AddIcon,
+  Repeat as RepeatIcon,
+  Close as CloseIcon,
 } from '@mui/icons-material';
 import { UpcomingPayment } from '../../types/financial';
+import RecurringPaymentsSection from './RecurringPaymentsSection';
 
 // Dummy data for demonstration - matching design
 const dummyUpcomingPayments: UpcomingPayment[] = [
@@ -110,6 +114,7 @@ interface NewPaymentForm {
 export default function UpcomingPaymentsSection() {
   const [upcomingPayments, setUpcomingPayments] = useState<UpcomingPayment[]>(dummyUpcomingPayments);
   const [openDialog, setOpenDialog] = useState(false);
+  const [recurringModalOpen, setRecurringModalOpen] = useState(false);
   const [newPaymentForm, setNewPaymentForm] = useState<NewPaymentForm>({
     name: '',
     type: 'expense',
@@ -235,20 +240,43 @@ export default function UpcomingPaymentsSection() {
             View and manage your upcoming recurring payments and their impact on your budget
           </Typography>
         </Box>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => setOpenDialog(true)}
-          sx={{
-            borderRadius: '8px',
-            textTransform: 'none',
-            fontWeight: 600,
-            px: 3,
-            py: 1,
-          }}
-        >
-          Add Payment
-        </Button>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <Button
+            variant="outlined"
+            startIcon={<RepeatIcon />}
+            onClick={() => setRecurringModalOpen(true)}
+            sx={{
+              borderRadius: '8px',
+              textTransform: 'none',
+              fontWeight: 600,
+              px: 3,
+              py: 1,
+              borderColor: isDark ? '#475569' : '#E2E8F0',
+              color: isDark ? '#CBD5E1' : '#475569',
+              '&:hover': {
+                borderColor: '#6D28D9',
+                color: '#6D28D9',
+                bgcolor: isDark ? 'rgba(109, 40, 217, 0.1)' : 'rgba(109, 40, 217, 0.05)',
+              },
+            }}
+          >
+            Manage Recurring
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => setOpenDialog(true)}
+            sx={{
+              borderRadius: '8px',
+              textTransform: 'none',
+              fontWeight: 600,
+              px: 3,
+              py: 1,
+            }}
+          >
+            Add Payment
+          </Button>
+        </Box>
       </Box>
 
       {/* Summary Cards */}
@@ -862,6 +890,57 @@ export default function UpcomingPaymentsSection() {
             Add Payment
           </Button>
         </DialogActions>
+      </Dialog>
+
+      {/* Recurring Payments Modal */}
+      <Dialog
+        open={recurringModalOpen}
+        onClose={() => setRecurringModalOpen(false)}
+        maxWidth="lg"
+        fullWidth
+        PaperProps={{
+          sx: {
+            maxHeight: '90vh',
+            borderRadius: '16px',
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            borderBottom: `1px solid ${isDark ? '#334155' : '#E2E8F0'}`,
+            pb: '1rem',
+          }}
+        >
+          <Typography sx={{ fontFamily: "'Inter', sans-serif", fontSize: '1.25rem', fontWeight: 600 }}>
+            Manage Recurring Payments
+          </Typography>
+          <IconButton
+            onClick={() => setRecurringModalOpen(false)}
+            sx={{
+              color: isDark ? '#9CA3AF' : '#6B7280',
+              '&:hover': {
+                backgroundColor: isDark ? '#1E293B' : '#F3F4F6',
+              },
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent
+          sx={{
+            p: '1rem',
+            overflow: 'auto',
+            '& .MuiBox-root': {
+              maxWidth: '100%',
+              px: { xs: 1, sm: 1.5 },
+            },
+          }}
+        >
+          <RecurringPaymentsSection hideHeader={true} />
+        </DialogContent>
       </Dialog>
     </Box>
   );
