@@ -516,4 +516,3 @@ export interface ImageEditJobStatusResponse {
   job_id: string;
   job?: ImageEditJob;
 }
-

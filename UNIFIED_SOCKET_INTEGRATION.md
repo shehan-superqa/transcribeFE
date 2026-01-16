@@ -191,3 +191,5 @@ socket.emit('unsubscribe_progress', {});
 
 The unified socket server consolidates all socket functionality into one endpoint, simplifying frontend integration and reducing connection overhead.
 
+
+

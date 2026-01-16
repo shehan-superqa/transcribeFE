@@ -20,7 +20,8 @@ export default function EnergyPointsBalance({
 }: EnergyPointsBalanceProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [balance, setBalance] = useState<number | null>(null);
+  // Initialize balance with user's energyPoints if available, so it shows immediately
+  const [balance, setBalance] = useState<number | null>(user?.energyPoints ?? null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,7 +33,12 @@ export default function EnergyPointsBalance({
     }
 
     try {
-      setLoading(true);
+      // Only show loading if we don't have a balance from user object yet
+      // If we already have balance from user object, update silently in background
+      const hasInitialBalance = user.energyPoints !== undefined && user.energyPoints !== null;
+      if (!hasInitialBalance) {
+        setLoading(true);
+      }
       setError(null);
       const response = await getEnergyPointsBalance();
       if (response.success && response.data) {
@@ -60,8 +66,25 @@ export default function EnergyPointsBalance({
     }
   };
 
+  // Update balance immediately when user changes (e.g., after login)
+  // This ensures energy points show immediately without waiting for API call
   useEffect(() => {
-    fetchBalance();
+    if (user?.energyPoints !== undefined) {
+      setBalance(user.energyPoints);
+      // If we have user data, we can show it immediately (don't wait for API)
+      // But still fetch fresh data in the background
+      setLoading(false);
+    } else if (!user) {
+      setBalance(0);
+      setLoading(false);
+    }
+  }, [user?.energyPoints, user]);
+
+  // Fetch latest balance from API when user ID changes
+  useEffect(() => {
+    if (user?.id) {
+      fetchBalance();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
