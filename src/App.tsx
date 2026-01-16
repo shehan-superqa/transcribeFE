@@ -34,6 +34,7 @@ import FinancialToolApp from "./pages/FinancialToolApp";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AuthModal from "./components/AuthModal/AuthModal";
 import { useAuthModal } from "./contexts/AuthModalContext";
+import ProcessingDocumentWidget from "./components/common/ProcessingDocumentWidget";
 
 // Wrapper component for AuthModal to use hooks
 function AuthModalWrapper() {
@@ -180,6 +181,7 @@ function AppWithLocation({ footerStyles }: { footerStyles: any }) {
         </footer>
       )}
       <AuthModalWrapper />
+      <ProcessingDocumentWidget />
     </div>
   );
 }
