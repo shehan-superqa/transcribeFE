@@ -8,6 +8,7 @@ import type { RootState } from '../store';
 import { listTransactions, listMerchants, listCategories } from '../lib/api/financialApi';
 import { Transaction, Merchant, Category } from '../types/financial';
 import { unifiedWebSocketClient } from '../lib/api/websocket';
+import { jobStore } from '../stores/jobStore';
 import { TransactionFilters } from '../components/financial/TransactionsSection';
 import AIChatSection from '../components/financial/AIChatSection';
 import ManualTransactionDialog from '../components/financial/ManualTransactionDialog';
@@ -25,23 +26,22 @@ const PATH_TO_TAB: Record<string, number> = {
   'dashboard': 0,
   'upload': 1,
   'transactions': 2,
-  'recurring': 3,
-  'upcoming': 4,
-  'items': 5,
-  'merchants': 6,
-  'categories': 7,
-  'analytics': 8,
-  'advanced-analytics': 9,
-  'family': 10,
-  'budgets': 11,
-  'savings': 12,
-  'loans': 13,
-  'shopping-lists': 14,
-  'user-profile': 15,
-  'users': 16,
-  'alerts': 17,
-  'ai-chat': 18,
-  'model-status': 19,
+  'upcoming': 3,
+  'items': 4,
+  'merchants': 5,
+  'categories': 6,
+  'analytics': 7,
+  'advanced-analytics': 8,
+  'family': 9,
+  'budgets': 10,
+  'savings': 11,
+  'loans': 12,
+  'shopping-lists': 13,
+  'user-profile': 14,
+  'users': 15,
+  'alerts': 16,
+  'ai-chat': 17,
+  'model-status': 18,
 };
 
 export default function FinancialToolApp() {
@@ -100,15 +100,26 @@ export default function FinancialToolApp() {
 
   // Connect to unified socket server when financial app loads
   useEffect(() => {
-    if (user) {
-      // Connect to unified socket server
-      unifiedWebSocketClient.connect().catch((error) => {
-        console.error('[Financial App] Failed to connect to unified socket server:', error);
-        // Connection will retry automatically, so we don't need to handle it here
-      });
-    }
+    if (!user) return;
+
+    // Set up active_jobs listener BEFORE connecting to catch the event immediately
+    const handleActiveJobs = (event: any) => {
+      console.log('[Financial App] Received active_jobs event:', event);
+      jobStore.getState().setActiveJobsFromWebSocket(event);
+    };
+
+    // Register listener early so we don't miss the event
+    unifiedWebSocketClient.onActiveJobs(handleActiveJobs);
+
+    // Connect to unified socket server
+    unifiedWebSocketClient.connect().catch((error) => {
+      console.error('[Financial App] Failed to connect to unified socket server:', error);
+      // Connection will retry automatically, so we don't need to handle it here
+    });
 
     return () => {
+      // Cleanup active_jobs listener
+      unifiedWebSocketClient.off('active_jobs', handleActiveJobs);
       // Disconnect when component unmounts
       if (unifiedWebSocketClient.isConnectedToServer()) {
         unifiedWebSocketClient.disconnect();

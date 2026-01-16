@@ -109,6 +109,24 @@ export interface ProgressEvent {
   error?: string;
 }
 
+export interface ActiveJobsEvent {
+  jobs: Array<{
+    job_id: string;
+    user_id?: string;
+    status: JobStatus;
+    job_type?: string;
+    created_at: string;
+    started_at?: string;
+    updated_at?: string;
+    file_info?: FileInfo;
+    result?: TranscriptionResult;
+    error?: string;
+  }>;
+  count: number;
+  timestamp: number;
+  error?: string;
+}
+
 export interface EngineInfo {
   name: string;
   available: boolean;

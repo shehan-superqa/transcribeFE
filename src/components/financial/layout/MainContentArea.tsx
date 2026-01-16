@@ -265,7 +265,7 @@ export default function MainContentArea({
       <div 
         className="main-content-wrapper"
         style={{ 
-          maxWidth: '1600px', 
+          maxWidth: '100%', 
           marginLeft: 'auto',
           marginRight: 'auto',
           paddingTop: '0px',
@@ -343,7 +343,6 @@ export default function MainContentArea({
                   onFiltersChange={onFiltersChange}
                 />
               } />
-              <Route path="recurring" element={<RecurringPaymentsSection />} />
               <Route path="upcoming" element={<UpcomingPaymentsSection />} />
               <Route path="items" element={<ItemsSection />} />
               <Route path="merchants" element={<MerchantsSection />} />

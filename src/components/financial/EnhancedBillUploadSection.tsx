@@ -58,6 +58,9 @@ import CameraCapture from './CameraCapture';
 import { useFinancialJobProgress } from '../../hooks/useFinancialJobProgress';
 import ManualTransactionDialog from './ManualTransactionDialog';
 import ProgressTab from './ProgressTab';
+import { jobStore } from '../../stores/jobStore';
+import { useAuth } from '../../lib/auth';
+import type { Job } from '../../types/api';
 import '../../css/components/financial/EnhancedBillUploadSection.css';
 
 interface BillUploadSectionProps {
@@ -222,6 +225,8 @@ function UploadItemProgressMonitor({ item, onUpdate, theme }: UploadItemProgress
 
 export default function EnhancedBillUploadSection({ onTransactionCreated, categories }: BillUploadSectionProps) {
   const { theme } = useTheme();
+  const { user } = useAuth();
+  const addJob = jobStore((state) => state.addJob);
   const [tabValue, setTabValue] = useState(0);
   const [uploadType, setUploadType] = useState<'earning' | 'expense' | 'mix'>('expense');
   const [uploadMode, setUploadMode] = useState<'single' | 'bulk'>('single');
@@ -286,6 +291,24 @@ export default function EnhancedBillUploadSection({ onTransactionCreated, catego
             ? { ...item, jobId: result.job_id, streamUrl: result.stream_url, status: 'analyzing' }
             : item
         ));
+        
+        // Add job to store immediately so widget shows up
+        if (user?.id) {
+          const newJob: Job = {
+            _id: result.job_id,
+            user_id: user.id,
+            file_info: {
+              filename: file.name,
+              size: file.size,
+              extension: file.name.split('.').pop() || '',
+            },
+            engine_used: 'unknown',
+            status: 'queued',
+            created_at: new Date().toISOString(),
+          };
+          addJob(newJob);
+          console.log('Added job to store:', result.job_id);
+        }
       } else {
         throw new Error('Failed to upload bill');
       }
@@ -363,10 +386,30 @@ export default function EnhancedBillUploadSection({ onTransactionCreated, catego
         setUploadQueue(prev => prev.map((i, index) => {
           const pendingIndex = pendingItems.findIndex(p => p.id === i.id);
           if (pendingIndex !== -1 && result.individual_job_ids[pendingIndex]) {
+            const jobId = result.individual_job_ids[pendingIndex];
+            
+            // Add job to store immediately so widget shows up
+            if (user?.id) {
+              const newJob: Job = {
+                _id: jobId,
+                user_id: user.id,
+                file_info: {
+                  filename: i.file.name,
+                  size: i.file.size,
+                  extension: i.file.name.split('.').pop() || '',
+                },
+                engine_used: 'unknown',
+                status: 'queued',
+                created_at: new Date().toISOString(),
+              };
+              addJob(newJob);
+              console.log('Added bulk job to store:', jobId);
+            }
+            
             return {
               ...i,
               batchJobId: result.batch_job_id,
-              jobId: result.individual_job_ids[pendingIndex],
+              jobId: jobId,
               status: 'analyzing',
             };
           }

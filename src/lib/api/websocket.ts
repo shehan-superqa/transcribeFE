@@ -6,6 +6,7 @@
 import { io, Socket } from 'socket.io-client';
 import { getAccessToken } from '../api';
 import type { LiveTranscriptionConfig, LiveTranscriptionResult, VADStatus } from '../../types/transcription';
+import type { ActiveJobsEvent } from '../../types/api';
 
 // Updated to use unified socket server on port 5002
 const WEBSOCKET_URL = import.meta.env.VITE_WEBSOCKET_URL || 'http://localhost:5002';
@@ -157,6 +158,11 @@ export class UnifiedWebSocketClient {
     // Handle ping/pong for keepalive
     this.socket.on('pong', (data) => {
       console.debug('Pong received:', data);
+    });
+
+    // Listen for active_jobs event (sent automatically on connection)
+    this.socket.on('active_jobs', (data: ActiveJobsEvent) => {
+      this.emit('active_jobs', data);
     });
   }
 
@@ -518,6 +524,16 @@ export class UnifiedWebSocketClient {
     error_code?: string;
   }) => void): void {
     this.on('progress_error', callback);
+  }
+
+  // ==================== Active Jobs ====================
+
+  /**
+   * Listen to active jobs event
+   * This event is sent automatically when the socket connects
+   */
+  onActiveJobs(callback: (data: ActiveJobsEvent) => void): void {
+    this.on('active_jobs', callback);
   }
 
   // ==================== Event Management ====================

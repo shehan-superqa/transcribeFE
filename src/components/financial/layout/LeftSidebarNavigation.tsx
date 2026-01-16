@@ -4,7 +4,6 @@ import { useTheme } from '../../../contexts/ThemeContext';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
-import RepeatIcon from '@mui/icons-material/Repeat';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import StoreIcon from '@mui/icons-material/Store';
@@ -35,23 +34,22 @@ export default function LeftSidebarNavigation({ value, setValue }: LeftSidebarNa
     { index: 0, path: '/financialtool/app/dashboard', icon: DashboardIcon, label: 'Dashboard' },
     { index: 1, path: '/financialtool/app/upload', icon: CloudUploadIcon, label: 'Upload Bills' },
     { index: 2, path: '/financialtool/app/transactions', icon: SwapHorizIcon, label: 'Transactions' },
-    { index: 3, path: '/financialtool/app/recurring', icon: RepeatIcon, label: 'Recurring' },
-    { index: 4, path: '/financialtool/app/upcoming', icon: ScheduleIcon, label: 'Upcoming' },
-    { index: 5, path: '/financialtool/app/items', icon: InventoryIcon, label: 'Items' },
-    { index: 6, path: '/financialtool/app/merchants', icon: StoreIcon, label: 'Merchants' },
-    { index: 7, path: '/financialtool/app/categories', icon: CategoryIcon, label: 'Categories' },
-    { index: 8, path: '/financialtool/app/analytics', icon: AnalyticsIcon, label: 'Analytics' },
-    { index: 9, path: '/financialtool/app/advanced-analytics', icon: BarChartIcon, label: 'Advanced Analytics' },
-    { index: 10, path: '/financialtool/app/family', icon: FamilyRestroomIcon, label: 'Family' },
-    { index: 11, path: '/financialtool/app/budgets', icon: AccountBalanceWalletOutlinedIcon, label: 'Budgets' },
-    { index: 12, path: '/financialtool/app/savings', icon: SavingsIcon, label: 'Savings' },
-    { index: 13, path: '/financialtool/app/loans', icon: CreditCardIcon, label: 'Loans' },
-    { index: 14, path: '/financialtool/app/shopping-lists', icon: ShoppingCartIcon, label: 'Shopping Lists' },
-    { index: 15, path: '/financialtool/app/user-profile', icon: PersonIcon, label: 'User Profile' },
-    { index: 16, path: '/financialtool/app/users', icon: PeopleIcon, label: 'Users' },
-    { index: 17, path: '/financialtool/app/alerts', icon: NotificationsIcon, label: 'Alerts' },
-    { index: 18, path: '/financialtool/app/ai-chat', icon: ChatIcon, label: 'AI Chat' },
-    { index: 19, path: '/financialtool/app/model-status', icon: MemoryIcon, label: 'Model Status' },
+    { index: 3, path: '/financialtool/app/upcoming', icon: ScheduleIcon, label: 'Upcoming' },
+    { index: 4, path: '/financialtool/app/items', icon: InventoryIcon, label: 'Items' },
+    { index: 5, path: '/financialtool/app/merchants', icon: StoreIcon, label: 'Merchants' },
+    { index: 6, path: '/financialtool/app/categories', icon: CategoryIcon, label: 'Categories' },
+    { index: 7, path: '/financialtool/app/analytics', icon: AnalyticsIcon, label: 'Analytics' },
+    { index: 8, path: '/financialtool/app/advanced-analytics', icon: BarChartIcon, label: 'Advanced Analytics' },
+    { index: 9, path: '/financialtool/app/family', icon: FamilyRestroomIcon, label: 'Family' },
+    { index: 10, path: '/financialtool/app/budgets', icon: AccountBalanceWalletOutlinedIcon, label: 'Budgets' },
+    { index: 11, path: '/financialtool/app/savings', icon: SavingsIcon, label: 'Savings' },
+    { index: 12, path: '/financialtool/app/loans', icon: CreditCardIcon, label: 'Loans' },
+    { index: 13, path: '/financialtool/app/shopping-lists', icon: ShoppingCartIcon, label: 'Shopping Lists' },
+    { index: 14, path: '/financialtool/app/user-profile', icon: PersonIcon, label: 'User Profile' },
+    { index: 15, path: '/financialtool/app/users', icon: PeopleIcon, label: 'Users' },
+    { index: 16, path: '/financialtool/app/alerts', icon: NotificationsIcon, label: 'Alerts' },
+    { index: 17, path: '/financialtool/app/ai-chat', icon: ChatIcon, label: 'AI Chat' },
+    { index: 18, path: '/financialtool/app/model-status', icon: MemoryIcon, label: 'Model Status' },
   ];
 
   const handleNavClick = (index: number, path: string) => {
