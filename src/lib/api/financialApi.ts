@@ -46,6 +46,8 @@ import {
   ItemsListResponse,
   ItemsListParams,
   FiltersResponse,
+  UpcomingPaymentsResponse,
+  UpcomingPaymentsSummaryResponse,
 } from '../../types/financial';
 
 const FINANCIAL_API_BASE_URL = 'http://localhost:5000';
@@ -869,6 +871,52 @@ export async function deleteItem(itemId: string): Promise<DeleteItemResponse> {
     FINANCIAL_API_BASE_URL
   );
   return handleResponse<DeleteItemResponse>(response);
+}
+
+// Upcoming Payments
+
+/**
+ * Get upcoming payments list
+ * @param period - Time period: 'week', 'month', '3_months', '6_months' (default: '6_months')
+ */
+export async function getUpcomingPayments(
+  period: 'week' | 'month' | '3_months' | '6_months' = '6_months'
+): Promise<UpcomingPaymentsResponse> {
+  const queryParams = new URLSearchParams();
+  queryParams.append('period', period);
+
+  const queryString = queryParams.toString();
+  const endpoint = `/api/financial/recurring/upcoming${queryString ? `?${queryString}` : ''}`;
+
+  const response = await authenticatedFetch(
+    endpoint,
+    { method: 'GET' },
+    true,
+    FINANCIAL_API_BASE_URL
+  );
+  return handleResponse<UpcomingPaymentsResponse>(response);
+}
+
+/**
+ * Get upcoming payments summary with budget impact
+ * @param period - Time period: 'week', 'month', '3_months', '6_months' (default: 'month')
+ */
+export async function getUpcomingPaymentsSummary(
+  period: 'week' | 'month' | '3_months' | '6_months' = 'month'
+): Promise<UpcomingPaymentsSummaryResponse> {
+  const queryParams = new URLSearchParams();
+  queryParams.append('period', period);
+
+  const queryString = queryParams.toString();
+  const endpoint = `/api/financial/recurring/upcoming-summary${queryString ? `?${queryString}` : ''}`;
+
+  const response = await authenticatedFetch(
+    endpoint,
+    { method: 'GET' },
+    true,
+    FINANCIAL_API_BASE_URL
+  );
+  return handleResponse<UpcomingPaymentsSummaryResponse>(response);
 }
 
 

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useTheme } from '@mui/material/styles';
 import {
   Box,
@@ -24,6 +24,8 @@ import {
   Select,
   MenuItem,
   IconButton,
+  CircularProgress,
+  Alert,
 } from '@mui/material';
 import {
   TrendingUp as TrendingUpIcon,
@@ -37,69 +39,7 @@ import {
 } from '@mui/icons-material';
 import { UpcomingPayment } from '../../types/financial';
 import RecurringPaymentsSection from './RecurringPaymentsSection';
-
-// Dummy data for demonstration - matching design
-const dummyUpcomingPayments: UpcomingPayment[] = [
-  {
-    recurring_payment_id: '3',
-    name: 'Freelance Income',
-    type: 'earning',
-    amount: 800,
-    due_date: '2024-01-29',
-    days_until_due: 1,
-    category_name: 'Income',
-  },
-  {
-    recurring_payment_id: '1',
-    name: 'Monthly Salary',
-    type: 'earning',
-    amount: 5000,
-    due_date: '2024-02-01',
-    days_until_due: 3,
-    category_name: 'Income',
-  },
-  {
-    recurring_payment_id: '7',
-    name: 'Internet Bill',
-    type: 'expense',
-    amount: 80,
-    due_date: '2024-02-03',
-    days_until_due: 5,
-    category_name: 'Utilities',
-    merchant_name: 'ISP Provider',
-  },
-  {
-    recurring_payment_id: '2',
-    name: 'Rent Payment',
-    type: 'expense',
-    amount: 1500,
-    due_date: '2024-02-05',
-    days_until_due: 7,
-    category_name: 'Housing',
-    merchant_name: 'Property Management Co.',
-  },
-  {
-    recurring_payment_id: '4',
-    name: 'Gym Membership',
-    type: 'expense',
-    amount: 50,
-    due_date: '2024-02-10',
-    days_until_due: 12,
-    category_name: 'Health & Fitness',
-    merchant_name: 'FitLife Gym',
-  },
-  {
-    recurring_payment_id: '5',
-    name: 'Utility Bills',
-    type: 'expense',
-    amount: 200,
-    due_date: '2024-02-15',
-    days_until_due: 17,
-    category_name: 'Utilities',
-  },
-];
-
-const CURRENT_BUDGET = 8000; // Dummy current budget
+import { getUpcomingPaymentsSummary } from '../../lib/api/financialApi';
 
 interface NewPaymentForm {
   name: string;
@@ -112,7 +52,18 @@ interface NewPaymentForm {
 }
 
 export default function UpcomingPaymentsSection() {
-  const [upcomingPayments, setUpcomingPayments] = useState<UpcomingPayment[]>(dummyUpcomingPayments);
+  const [upcomingPayments, setUpcomingPayments] = useState<UpcomingPayment[]>([]);
+  const [summary, setSummary] = useState({
+    totalUpcomingExpenses: 0,
+    totalUpcomingEarnings: 0,
+    netUpcoming: 0,
+    currentBudget: 0,
+    remainingAfterUpcoming: 0,
+    remainingPercentage: 0,
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [period, setPeriod] = useState<'week' | 'month' | '3_months' | '6_months'>('month');
   const [openDialog, setOpenDialog] = useState(false);
   const [recurringModalOpen, setRecurringModalOpen] = useState(false);
   const [newPaymentForm, setNewPaymentForm] = useState<NewPaymentForm>({
@@ -125,28 +76,47 @@ export default function UpcomingPaymentsSection() {
     merchant_name: '',
   });
 
-  const summary = useMemo(() => {
-    const totalUpcomingExpenses = upcomingPayments
-      .filter(p => p.type === 'expense')
-      .reduce((sum, p) => sum + p.amount, 0);
-    
-    const totalUpcomingEarnings = upcomingPayments
-      .filter(p => p.type === 'earning')
-      .reduce((sum, p) => sum + p.amount, 0);
-    
-    const netUpcoming = totalUpcomingEarnings - totalUpcomingExpenses;
-    const remainingAfterUpcoming = CURRENT_BUDGET + netUpcoming;
-    const remainingPercentage = (remainingAfterUpcoming / CURRENT_BUDGET) * 100;
-
-    return {
-      totalUpcomingExpenses,
-      totalUpcomingEarnings,
-      netUpcoming,
-      currentBudget: CURRENT_BUDGET,
-      remainingAfterUpcoming,
-      remainingPercentage,
+  // Fetch upcoming payments summary from API
+  useEffect(() => {
+    const fetchUpcomingPayments = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await getUpcomingPaymentsSummary(period);
+        
+        if (response.success) {
+          setUpcomingPayments(response.upcoming_payments);
+          setSummary({
+            totalUpcomingExpenses: response.total_upcoming_expenses,
+            totalUpcomingEarnings: response.total_upcoming_earnings,
+            netUpcoming: response.net_upcoming,
+            currentBudget: response.current_budget,
+            remainingAfterUpcoming: response.remaining_after_upcoming,
+            remainingPercentage: response.remaining_percentage,
+          });
+        } else {
+          setError('Failed to fetch upcoming payments');
+        }
+      } catch (err) {
+        console.error('Error fetching upcoming payments:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch upcoming payments');
+        // Fallback to empty state on error
+        setUpcomingPayments([]);
+        setSummary({
+          totalUpcomingExpenses: 0,
+          totalUpcomingEarnings: 0,
+          netUpcoming: 0,
+          currentBudget: 0,
+          remainingAfterUpcoming: 0,
+          remainingPercentage: 0,
+        });
+      } finally {
+        setLoading(false);
+      }
     };
-  }, [upcomingPayments]);
+
+    fetchUpcomingPayments();
+  }, [period]);
 
   const sortedPayments = useMemo(() => {
     return [...upcomingPayments].sort((a, b) => a.days_until_due - b.days_until_due);
@@ -241,6 +211,19 @@ export default function UpcomingPaymentsSection() {
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', gap: 2 }}>
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel>Period</InputLabel>
+            <Select
+              value={period}
+              label="Period"
+              onChange={(e) => setPeriod(e.target.value as 'week' | 'month' | '3_months' | '6_months')}
+            >
+              <MenuItem value="week">Next Week</MenuItem>
+              <MenuItem value="month">Next Month</MenuItem>
+              <MenuItem value="3_months">Next 3 Months</MenuItem>
+              <MenuItem value="6_months">Next 6 Months</MenuItem>
+            </Select>
+          </FormControl>
           <Button
             variant="outlined"
             startIcon={<RepeatIcon />}
@@ -279,8 +262,26 @@ export default function UpcomingPaymentsSection() {
         </Box>
       </Box>
 
-      {/* Summary Cards */}
-      <Grid container spacing={2} sx={{ mb: 4 }}>
+      {/* Loading State */}
+      {loading && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8 }}>
+          <CircularProgress />
+        </Box>
+      )}
+
+      {/* Error State */}
+      {error && !loading && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
+
+      {/* Content - Only show when not loading */}
+      {!loading && (
+        <>
+
+          {/* Summary Cards */}
+          <Grid container spacing={2} sx={{ mb: 4 }}>
         <Grid item xs={12} sm={6} md={3}>
           <Card 
             sx={{ 
@@ -437,8 +438,8 @@ export default function UpcomingPaymentsSection() {
         </Grid>
       </Grid>
 
-      {/* Budget Impact Card */}
-      <Card 
+          {/* Budget Impact Card */}
+          <Card 
         sx={{ 
           borderRadius: '16px', 
           border: `1px solid ${isDark ? '#1E293B' : '#E2E8F0'}`,
@@ -575,8 +576,8 @@ export default function UpcomingPaymentsSection() {
         </CardContent>
       </Card>
 
-      {/* Upcoming Payments Table */}
-      <Card 
+          {/* Upcoming Payments Table */}
+          <Card 
         sx={{ 
           borderRadius: '16px', 
           border: `1px solid ${isDark ? '#1E293B' : '#E2E8F0'}`,
@@ -768,8 +769,8 @@ export default function UpcomingPaymentsSection() {
         </TableContainer>
       </Card>
 
-      {/* Add Payment Dialog */}
-      <Dialog 
+          {/* Add Payment Dialog */}
+          <Dialog 
         open={openDialog} 
         onClose={handleCloseDialog} 
         maxWidth="sm" 
@@ -892,8 +893,8 @@ export default function UpcomingPaymentsSection() {
         </DialogActions>
       </Dialog>
 
-      {/* Recurring Payments Modal */}
-      <Dialog
+          {/* Recurring Payments Modal */}
+          <Dialog
         open={recurringModalOpen}
         onClose={() => setRecurringModalOpen(false)}
         maxWidth="lg"
@@ -942,6 +943,8 @@ export default function UpcomingPaymentsSection() {
           <RecurringPaymentsSection hideHeader={true} />
         </DialogContent>
       </Dialog>
+        </>
+      )}
     </Box>
   );
 }

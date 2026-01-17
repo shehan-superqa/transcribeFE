@@ -630,6 +630,23 @@ export interface UpcomingPaymentsSummary {
   upcoming_payments: UpcomingPayment[];
 }
 
+export interface UpcomingPaymentsResponse {
+  success: boolean;
+  upcoming_payments: UpcomingPayment[];
+}
+
+export interface UpcomingPaymentsSummaryResponse {
+  success: boolean;
+  period: 'week' | 'month' | '3_months' | '6_months';
+  total_upcoming_expenses: number;
+  total_upcoming_earnings: number;
+  net_upcoming: number;
+  current_budget: number;
+  remaining_after_upcoming: number;
+  remaining_percentage: number;
+  upcoming_payments: UpcomingPayment[];
+}
+
 export interface CreateRecurringPaymentRequest {
   name: string;
   type: 'earning' | 'expense';
