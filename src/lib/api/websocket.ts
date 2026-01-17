@@ -164,6 +164,23 @@ export class UnifiedWebSocketClient {
     this.socket.on('active_jobs', (data: ActiveJobsEvent) => {
       this.emit('active_jobs', data);
     });
+
+    // Listen for notification events and forward to registered listeners
+    this.socket.on('notification', (data: any) => {
+      console.debug('Notification received:', data);
+      this.emit('notification', data);
+    });
+
+    // Listen for recurring_payment_processed events
+    this.socket.on('recurring_payment_processed', (data: any) => {
+      console.debug('Recurring payment processed:', data);
+      this.emit('recurring_payment_processed', data);
+      // Also emit as notification for backward compatibility
+      this.emit('notification', {
+        event_type: 'recurring_payment_processed',
+        ...data,
+      });
+    });
   }
 
   /**

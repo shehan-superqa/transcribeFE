@@ -8,7 +8,8 @@ import { updateTransaction, deleteTransaction, mergeTransaction, getTransactionI
 import { Transaction, Merchant, Category, TransactionItem, FlattenedItem } from '../../types/financial';
 import { useAuth } from '../../lib/auth';
 import { useTheme } from '../../contexts/ThemeContext';
-import { getDisplayCategoryName, formatCurrency, getDisplayMerchantName, formatPaymentMethod, transactionHasMissingFields, getMissingFieldRowStyle, getExpenseAmount, getEarningAmount, getTaxAmount } from '../../utils/transactionHelpers';
+import { getDisplayCategoryName, formatCurrency, getDisplayMerchantName, formatPaymentMethod, transactionHasMissingFields, getMissingFieldRowStyle, getExpenseAmount, getEarningAmount, getTaxAmount, getTransactionType } from '../../utils/transactionHelpers';
+import PaymentMethodDisplay from './PaymentMethodDisplay';
 import TransactionsList from './TransactionsList';
 import TransactionPagination from './TransactionPagination';
 import {
@@ -1483,6 +1484,20 @@ export default function TransactionsSection({
                         fontSize: '0.875rem',
                         minWidth: '120px',
                       }}
+                    >
+                      Payment Method
+                    </TableCell>
+                    <TableCell 
+                      sx={{ 
+                        fontWeight: 600, 
+                        color: theme.palette.text.primary,
+                        backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb',
+                        cursor: 'pointer',
+                        userSelect: 'none',
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: '0.875rem',
+                        minWidth: '120px',
+                      }}
                       onClick={() => handleFullScreenSort('date')}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -1544,18 +1559,6 @@ export default function TransactionsSection({
                         Amount
                         <Sort sx={{ fontSize: '1rem', opacity: fullScreenSortBy === 'amount' ? 1 : 0.3 }} />
                       </div>
-                    </TableCell>
-                    <TableCell 
-                      sx={{ 
-                        fontWeight: 600, 
-                        color: theme.palette.text.primary,
-                        backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb',
-                        fontFamily: "'Inter', sans-serif",
-                        fontSize: '0.875rem',
-                        minWidth: '120px',
-                      }}
-                    >
-                      Payment Method
                     </TableCell>
                     <TableCell 
                       align="right"
@@ -1658,6 +1661,9 @@ export default function TransactionsSection({
                             },
                           }}
                         >
+                          <TableCell sx={{ fontFamily: "'Inter', sans-serif" }}>
+                            <PaymentMethodDisplay transaction={transaction} compact />
+                          </TableCell>
                           <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                               {new Date(transaction.date).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}
@@ -1674,11 +1680,15 @@ export default function TransactionsSection({
                         <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
                           {getDisplayCategoryName(transaction, getCategoryName(transaction.category_id), [])}
                         </TableCell>
-                        <TableCell align="right" sx={{ color: theme.palette.text.primary, fontWeight: 500, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
+                        <TableCell align="right" sx={{ 
+                          color: getTransactionType(transaction) === 'earning' 
+                            ? theme.palette.success.main 
+                            : theme.palette.error.main, 
+                          fontWeight: 500, 
+                          fontFamily: "'Inter', sans-serif", 
+                          fontSize: '0.875rem' 
+                        }}>
                           {formatCurrency(transaction.amount, transaction.currency)}
-                        </TableCell>
-                        <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
-                          {formatPaymentMethod(transaction.payment_method)}
                         </TableCell>
                         <TableCell align="right" sx={{ color: theme.palette.error.main, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem', fontWeight: 500 }}>
                           {getExpenseAmount(transaction) > 0 ? formatCurrency(getExpenseAmount(transaction), transaction.currency) : '-'}

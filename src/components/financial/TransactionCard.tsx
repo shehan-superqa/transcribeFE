@@ -239,19 +239,39 @@ export default function TransactionCard({
             </Box>
 
             {/* Bill Items Toggle */}
-            <Button
-              size="small"
-              onClick={() => onToggleExpansion(transaction._id)}
-              startIcon={isExpanded ? <ExpandLess /> : <ExpandMore />}
-              sx={{ mt: 1, textTransform: 'none' }}
-              disabled={isLoading}
-            >
-              {isExpanded
-                ? 'Hide Items'
-                : hasLoadedItems
-                ? `Show Items (${billItems.length})`
-                : 'Load Items'}
-            </Button>
+            {(() => {
+              // Only show expand button if transaction has items
+              // If items have been loaded and are empty, don't show button
+              if (hasLoadedItems && billItems.length === 0) {
+                return null; // Items loaded but empty - no items exist
+              }
+              // If items haven't been loaded, check for embedded items
+              if (!hasLoadedItems) {
+                const hasEmbeddedItems = 
+                  (transaction.items && transaction.items.length > 0) ||
+                  (transaction.normalized_output?.items && transaction.normalized_output.items.length > 0) ||
+                  (transaction.parsing_output?.items && transaction.parsing_output.items.length > 0);
+                if (!hasEmbeddedItems) {
+                  return null; // No embedded items found
+                }
+              }
+              // Show button if we have items (either loaded or embedded)
+              return (
+                <Button
+                  size="small"
+                  onClick={() => onToggleExpansion(transaction._id)}
+                  startIcon={isExpanded ? <ExpandLess /> : <ExpandMore />}
+                  sx={{ mt: 1, textTransform: 'none' }}
+                  disabled={isLoading}
+                >
+                  {isExpanded
+                    ? 'Hide Items'
+                    : hasLoadedItems
+                    ? `Show Items (${billItems.length})`
+                    : 'Load Items'}
+                </Button>
+              );
+            })()}
           </Box>
           <Box sx={{ display: 'flex', gap: 1 }}>
             {billItems.length > 0 && (

@@ -4,6 +4,7 @@ import { CloudUpload, Edit, Delete, MergeType, ExpandLess, ExpandMore, ShoppingC
 import { Transaction, Merchant, Category, TransactionItem, FlattenedItem } from '../../types/financial';
 import { useTheme } from '../../contexts/ThemeContext';
 import { getDisplayCategoryName, formatCurrency, getDisplayMerchantName, formatPaymentMethod, checkMissingPriceFields, getMissingFieldStyle, getMissingFieldRowStyle, transactionHasMissingFields, getExpenseAmount, getEarningAmount, getTaxAmount, getTransactionType } from '../../utils/transactionHelpers';
+import PaymentMethodDisplay from './PaymentMethodDisplay';
 import EditableItemCell from './EditableItemCell';
 import TransactionCard from './TransactionCard';
 import BillItemsModal from './BillItemsModal';
@@ -244,6 +245,17 @@ export default function TransactionsList({
                 fontWeight: 700,
                 letterSpacing: '0.05em',
                 fontFamily: "'Inter', sans-serif"
+              }}>Payment Method</TableCell>
+              <TableCell sx={{ 
+                px: 3, 
+                py: 2,
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(30, 41, 59, 0.5)' : 'rgba(248, 250, 252, 0.5)',
+                color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280',
+                textTransform: 'uppercase',
+                fontSize: '10px',
+                fontWeight: 700,
+                letterSpacing: '0.05em',
+                fontFamily: "'Inter', sans-serif"
               }}>Date</TableCell>
               <TableCell sx={{ 
                 px: 3, 
@@ -349,20 +361,44 @@ export default function TransactionsList({
                     }}
                   >
                     <TableCell sx={{ px: 2, py: 2, textAlign: 'center' }}>
-                      <IconButton
-                        size="small"
-                        onClick={() => onToggleItemsExpansion(transaction._id)}
-                        disabled={isLoading}
-                        sx={{ 
-                          padding: 0,
-                          color: isExpanded ? '#6D28D9' : (theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280'),
-                          '&:hover': {
-                            bgcolor: 'transparent',
+                      {(() => {
+                        // Only show expand icon if transaction has items
+                        // getBillItems already checks for loaded items and embedded items
+                        // If items have been loaded and are empty, don't show icon
+                        if (hasLoadedItems && billItems.length === 0) {
+                          return null; // Items loaded but empty - no items exist
+                        }
+                        // If items haven't been loaded, check for embedded items
+                        if (!hasLoadedItems) {
+                          const hasEmbeddedItems = 
+                            (transaction.items && transaction.items.length > 0) ||
+                            (transaction.normalized_output?.items && transaction.normalized_output.items.length > 0) ||
+                            (transaction.parsing_output?.items && transaction.parsing_output.items.length > 0);
+                          if (!hasEmbeddedItems) {
+                            return null; // No embedded items found
                           }
-                        }}
-                      >
-                        {isExpanded ? <ExpandMore sx={{ fontSize: '18px' }} /> : <ChevronRight sx={{ fontSize: '18px' }} />}
-                      </IconButton>
+                        }
+                        // Show icon if we have items (either loaded or embedded)
+                        return (
+                          <IconButton
+                            size="small"
+                            onClick={() => onToggleItemsExpansion(transaction._id)}
+                            disabled={isLoading}
+                            sx={{ 
+                              padding: 0,
+                              color: isExpanded ? '#6D28D9' : (theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280'),
+                              '&:hover': {
+                                bgcolor: 'transparent',
+                              }
+                            }}
+                          >
+                            {isExpanded ? <ExpandMore sx={{ fontSize: '18px' }} /> : <ChevronRight sx={{ fontSize: '18px' }} />}
+                          </IconButton>
+                        );
+                      })()}
+                    </TableCell>
+                    <TableCell sx={{ px: 3, py: 2 }}>
+                      <PaymentMethodDisplay transaction={transaction} compact />
                     </TableCell>
                     <TableCell sx={{ px: 3, py: 2 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -520,7 +556,14 @@ export default function TransactionsList({
                       />
                     </TableCell>
                     <TableCell align="right" sx={{ px: 3, py: 2 }}>
-                      <Typography sx={{ fontSize: '14px', fontWeight: 700, color: '#EF4444', fontFamily: "'Inter', sans-serif" }}>
+                      <Typography sx={{ 
+                        fontSize: '14px', 
+                        fontWeight: 700, 
+                        color: getTransactionType(transaction) === 'earning' 
+                          ? theme.palette.success.main 
+                          : theme.palette.error.main, 
+                        fontFamily: "'Inter', sans-serif" 
+                      }}>
                         {formatCurrency(transaction.amount, transaction.currency)}
                       </Typography>
                     </TableCell>

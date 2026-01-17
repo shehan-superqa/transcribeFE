@@ -363,9 +363,13 @@ export interface Budget {
   name: string;
   category_id: string | null;
   amount: number;
-  period: 'monthly' | 'yearly' | 'weekly';
+  period: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  budget_type: 'fixed' | 'recurring';
+  recurring_payment_id?: string | null;
+  transaction_id?: string | null;
   start_date: string;
   end_date: string | null;
+  status?: 'active' | 'paused' | 'completed' | 'cancelled';
   alert_thresholds: {
     warning: number; // percentage (0-100)
     critical: number; // percentage (0-100)
@@ -426,9 +430,12 @@ export interface BudgetAlert {
 export interface CreateBudgetRequest {
   name: string;
   category_id?: string | null;
-  amount: number;
-  period: 'monthly' | 'yearly' | 'weekly';
-  start_date: string;
+  amount?: number; // Optional if linked to earning
+  recurring_payment_id?: string; // For linking to recurring earning
+  transaction_id?: string; // For linking to one-time earning
+  period: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  budget_type: 'fixed' | 'recurring';
+  start_date?: string; // Optional for recurring budgets
   end_date?: string | null;
   alert_thresholds: {
     warning: number;
@@ -439,6 +446,11 @@ export interface CreateBudgetRequest {
 export interface UpdateBudgetRequest {
   name?: string;
   amount?: number;
+  period?: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  budget_type?: 'fixed' | 'recurring';
+  start_date?: string;
+  end_date?: string | null;
+  status?: 'active' | 'paused' | 'completed' | 'cancelled';
   alert_thresholds?: {
     warning?: number;
     critical?: number;
@@ -477,6 +489,51 @@ export interface AlertsResponse {
   success: boolean;
   alerts: BudgetAlert[];
   unread_count: number;
+}
+
+// Available Earnings Types
+export interface AvailableEarning {
+  _id: string;
+  name: string;
+  type: 'recurring' | 'one-time';
+  amount: number;
+  currency: string;
+  frequency?: 'daily' | 'weekly' | 'monthly' | 'yearly' | 'custom';
+  next_occurrence?: string;
+  date?: string; // For one-time earnings
+}
+
+export interface AvailableEarningsResponse {
+  success: boolean;
+  recurring_earnings: Array<{
+    _id: string;
+    name: string;
+    amount: number;
+    currency: string;
+    frequency: 'daily' | 'weekly' | 'monthly' | 'yearly' | 'custom';
+    next_occurrence: string;
+  }>;
+  one_time_earnings: Array<{
+    _id: string;
+    name: string;
+    amount: number;
+    currency: string;
+    date: string;
+  }>;
+}
+
+// Link Earning Request Types
+export interface LinkEarningRequest {
+  recurring_payment_id?: string;
+  transaction_id?: string;
+  update_amount?: boolean;
+  unlink?: boolean;
+}
+
+export interface LinkEarningResponse {
+  success: boolean;
+  budget: Budget;
+  message: string;
 }
 
 // Transaction Item Types

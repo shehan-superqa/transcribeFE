@@ -40,8 +40,8 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
   // Listen for WebSocket notifications
   useEffect(() => {
     const handleWebSocketNotification = (data: {
-      title: string;
-      message: string;
+      title?: string;
+      message?: string;
       type?: 'success' | 'info' | 'warning' | 'error';
       actions?: Array<{
         label: string;
@@ -49,25 +49,67 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
         data?: any;
       }>;
       duration?: number;
+      // Handle raw notification format from WebSocket
+      event_type?: string;
+      data?: any;
+      timestamp?: string;
     }) => {
-      const notification: ActionNotificationData = {
-        id: `ws-${Date.now()}-${Math.random()}`,
-        title: data.title,
-        message: data.message,
-        type: data.type || 'info',
-        duration: data.duration || 8000,
-        actions: data.actions?.map((action) => ({
-          label: action.label,
-          variant: action.action === 'view' ? 'primary' : 'secondary',
-          onClick: () => {
-            // Handle action based on action type
-            if (action.action === 'view' && action.data) {
-              // Navigate or perform view action
-              console.log('View action:', action.data);
-            }
-          },
-        })),
-      };
+      // Handle different notification formats
+      let notification: ActionNotificationData;
+
+      // Check if this is a raw WebSocket notification with event_type
+      if (data.event_type === 'recurring_payment_processed' && data.data) {
+        const paymentData = data.data.recurring_payment || data.data;
+        const amount = paymentData.amount || 0;
+        const name = paymentData.name || 'Recurring Payment';
+        const type = paymentData.type === 'earning' ? 'earning' : 'expense';
+        const action = data.data.action || 'processed';
+
+        notification = {
+          id: `ws-${Date.now()}-${Math.random()}`,
+          title: type === 'earning' ? 'Recurring Earning Processed' : 'Recurring Payment Processed',
+          message: `${name} ($${amount.toFixed(2)}) has been ${action === 'processed' ? 'processed' : action} successfully.`,
+          type: 'success',
+          duration: 8000,
+          actions: paymentData._id
+            ? [
+                {
+                  label: 'View Payment',
+                  variant: 'primary' as const,
+                  onClick: () => {
+                    console.log('View recurring payment:', paymentData._id);
+                    // TODO: Navigate to recurring payment details
+                  },
+                },
+              ]
+            : undefined,
+        };
+      } else if (data.title && data.message) {
+        // Handle formatted notification
+        notification = {
+          id: `ws-${Date.now()}-${Math.random()}`,
+          title: data.title,
+          message: data.message,
+          type: data.type || 'info',
+          duration: data.duration || 8000,
+          actions: data.actions?.map((action) => ({
+            label: action.label,
+            variant: action.action === 'view' ? 'primary' : 'secondary',
+            onClick: () => {
+              // Handle action based on action type
+              if (action.action === 'view' && action.data) {
+                // Navigate or perform view action
+                console.log('View action:', action.data);
+              }
+            },
+          })),
+        };
+      } else {
+        // Fallback for unknown format
+        console.warn('Unknown notification format:', data);
+        return;
+      }
+
       setActionNotifications((prev) => [...prev, notification]);
     };
 
@@ -114,15 +156,41 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
       });
     };
 
+    const handleRecurringPaymentProcessed = (data: any) => {
+      // This handler is for direct 'recurring_payment_processed' events
+      // The main 'notification' handler will also catch these
+      const paymentData = data.recurring_payment || data;
+      const amount = paymentData.amount || 0;
+      const name = paymentData.name || 'Recurring Payment';
+      const type = paymentData.type === 'earning' ? 'earning' : 'expense';
+
+      handleWebSocketNotification({
+        title: type === 'earning' ? 'Recurring Earning Processed' : 'Recurring Payment Processed',
+        message: `${name} ($${amount.toFixed(2)}) has been processed successfully.`,
+        type: 'success',
+        actions: paymentData._id
+          ? [
+              {
+                label: 'View Payment',
+                action: 'view',
+                data: { recurring_payment_id: paymentData._id },
+              },
+            ]
+          : undefined,
+      });
+    };
+
     unifiedWebSocketClient.on('bill_processed', handleBillProcessed);
     unifiedWebSocketClient.on('transaction_created', handleTransactionCreated);
     unifiedWebSocketClient.on('recurring_payment_created', handleRecurringPaymentCreated);
+    unifiedWebSocketClient.on('recurring_payment_processed', handleRecurringPaymentProcessed);
 
     return () => {
       unifiedWebSocketClient.off('notification', handleWebSocketNotification);
       unifiedWebSocketClient.off('bill_processed', handleBillProcessed);
       unifiedWebSocketClient.off('transaction_created', handleTransactionCreated);
       unifiedWebSocketClient.off('recurring_payment_created', handleRecurringPaymentCreated);
+      unifiedWebSocketClient.off('recurring_payment_processed', handleRecurringPaymentProcessed);
     };
   }, []);
 

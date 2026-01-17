@@ -28,7 +28,6 @@ import {
   TableRow,
   Paper,
   Avatar,
-  Tooltip,
   ToggleButtonGroup,
   ToggleButton,
   CircularProgress,
@@ -60,6 +59,7 @@ import {
   deleteRecurringPayment,
   toggleRecurringPaymentActive,
 } from '../../lib/api/financialApi';
+import CountdownTimer from './CountdownTimer';
 
 const getPaymentIcon = (name: string, type: 'earning' | 'expense') => {
   const lowerName = name.toLowerCase();
@@ -429,15 +429,19 @@ export default function RecurringPaymentsSection({ hideHeader = false }: Recurri
                     >
                       {formatCurrency(payment.amount, payment.currency)}
                     </Typography>
-                    <Typography
-                      sx={{
-                        fontSize: '11px',
-                        color: theme.palette.text.secondary,
-                        fontFamily: "'Inter', sans-serif",
-                      }}
-                    >
-                      Next: {formatDate(payment.next_occurrence)}
-                    </Typography>
+                    <Box>
+                      <Typography
+                        sx={{
+                          fontSize: '11px',
+                          color: theme.palette.text.secondary,
+                          fontFamily: "'Inter', sans-serif",
+                          mb: 0.25,
+                        }}
+                      >
+                        Next: {formatDate(payment.next_occurrence)}
+                      </Typography>
+                      <CountdownTimer targetDate={payment.next_occurrence} compact />
+                    </Box>
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Typography
@@ -593,7 +597,7 @@ export default function RecurringPaymentsSection({ hideHeader = false }: Recurri
                   px: 2,
                 }}
               >
-                Next Date
+                Next Occurrence
               </TableCell>
               <TableCell
                 align="right"
@@ -708,15 +712,18 @@ export default function RecurringPaymentsSection({ hideHeader = false }: Recurri
                   </Typography>
                 </TableCell>
                 <TableCell align="right" sx={{ py: 1.5, px: 2 }}>
-                  <Typography
-                    sx={{
-                      fontSize: '13px',
-                      color: theme.palette.text.secondary,
-                      fontFamily: "'Inter', sans-serif",
-                    }}
-                  >
-                    {formatDate(payment.next_occurrence)}
-                  </Typography>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.5 }}>
+                    <Typography
+                      sx={{
+                        fontSize: '13px',
+                        color: theme.palette.text.secondary,
+                        fontFamily: "'Inter', sans-serif",
+                      }}
+                    >
+                      {formatDate(payment.next_occurrence)}
+                    </Typography>
+                    <CountdownTimer targetDate={payment.next_occurrence} compact />
+                  </Box>
                 </TableCell>
                 <TableCell align="right" sx={{ py: 1.5, px: 2 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 2 }}>

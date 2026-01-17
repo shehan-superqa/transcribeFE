@@ -37,6 +37,9 @@ import {
   CreateCategoryCapRequest,
   BudgetAlert,
   AlertsResponse,
+  AvailableEarningsResponse,
+  LinkEarningRequest,
+  LinkEarningResponse,
   TransactionItem,
   TransactionItemsResponse,
   TransactionItemResponse,
@@ -663,6 +666,34 @@ export async function deleteBudget(budgetId: string): Promise<{ success: boolean
     FINANCIAL_API_BASE_URL
   );
   return handleResponse<{ success: boolean; message: string }>(response);
+}
+
+// Get Available Earnings for Budget Linking
+export async function getAvailableEarnings(): Promise<AvailableEarningsResponse> {
+  const response = await authenticatedFetch(
+    '/api/financial/budgets/available-earnings',
+    { method: 'GET' },
+    true,
+    FINANCIAL_API_BASE_URL
+  );
+  return handleResponse<AvailableEarningsResponse>(response);
+}
+
+// Link or Unlink Earning to/from Budget
+export async function linkEarningToBudget(
+  budgetId: string,
+  request: LinkEarningRequest
+): Promise<LinkEarningResponse> {
+  const response = await authenticatedFetch(
+    `/api/financial/budgets/${budgetId}/link-earning`,
+    {
+      method: 'PUT',
+      body: JSON.stringify(request),
+    },
+    true,
+    FINANCIAL_API_BASE_URL
+  );
+  return handleResponse<LinkEarningResponse>(response);
 }
 
 // Category Spending Caps

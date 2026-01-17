@@ -30,7 +30,7 @@ import {
 } from '../../lib/api/financialApi';
 import { Budget, BudgetStatusResponse, Category } from '../../types/financial';
 import BudgetCard from './BudgetCard';
-import BudgetForm from './BudgetForm';
+import CreateBudgetModal from './CreateBudgetModal';
 
 interface BudgetSectionProps {
   categories?: Category[];
@@ -284,7 +284,7 @@ export default function BudgetSection({ categories = [], onBudgetChange }: Budge
       )}
 
       {/* Budget Form Dialog */}
-      <BudgetForm
+      <CreateBudgetModal
         open={formOpen}
         onClose={() => {
           setFormOpen(false);
@@ -293,6 +293,7 @@ export default function BudgetSection({ categories = [], onBudgetChange }: Budge
         onSubmit={editingBudget ? handleUpdateBudget : handleCreateBudget}
         budget={editingBudget}
         categories={categories}
+        loading={loading}
       />
 
       {/* Delete Confirmation Dialog */}

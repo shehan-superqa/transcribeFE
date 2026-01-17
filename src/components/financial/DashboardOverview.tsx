@@ -478,7 +478,12 @@ export default function DashboardOverview({
                     <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Box sx={{ flex: 1 }}>
-                          <Typography variant="subtitle1" sx={{ color: theme.palette.text.primary, fontWeight: 600 }}>
+                          <Typography variant="subtitle1" sx={{ 
+                            color: getTransactionType(transaction) === 'earning' 
+                              ? theme.palette.success.main 
+                              : theme.palette.error.main, 
+                            fontWeight: 600 
+                          }}>
                             {formatCurrency(transaction.amount, transaction.currency)}
                           </Typography>
                           <Typography variant="body2" color="text.secondary">

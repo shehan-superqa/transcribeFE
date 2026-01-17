@@ -41,6 +41,7 @@ import {
 } from '@mui/icons-material';
 import { UpcomingPayment, Category } from '../../types/financial';
 import RecurringPaymentsSection from './RecurringPaymentsSection';
+import CountdownTimer from './CountdownTimer';
 import { 
   getUpcomingPaymentsSummary, 
   createRecurringPayment,
@@ -980,19 +981,23 @@ export default function UpcomingPaymentsSection() {
                     })()}
                   </TableCell>
                   <TableCell sx={{ py: 2, px: 3 }}>
-                    <Chip
-                      label={`${payment.days_until_due} days`}
-                      size="small"
-                      sx={{ 
-                        borderRadius: '4px',
-                        fontSize: '10px',
-                        fontWeight: 700,
-                        height: 20,
-                        bgcolor: getDaysUntilBgColor(payment.days_until_due),
-                        color: '#FFFFFF',
-                        border: 'none',
-                      }}
-                    />
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                      <Chip
+                        label={`${payment.days_until_due} days`}
+                        size="small"
+                        sx={{ 
+                          borderRadius: '4px',
+                          fontSize: '10px',
+                          fontWeight: 700,
+                          height: 20,
+                          bgcolor: getDaysUntilBgColor(payment.days_until_due),
+                          color: '#FFFFFF',
+                          border: 'none',
+                          alignSelf: 'flex-start',
+                        }}
+                      />
+                      <CountdownTimer targetDate={payment.due_date} compact showSeconds={false} />
+                    </Box>
                   </TableCell>
                   <TableCell sx={{ py: 2, px: 3 }}>
                     {(() => {

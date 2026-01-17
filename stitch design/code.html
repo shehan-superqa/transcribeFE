@@ -1,181 +1,190 @@
 <!DOCTYPE html>
-
-<html class="dark" lang="en"><head>
+<html class="light" lang="en"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Bottom-Left Action Notification Variant 2</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
+<title>Create Budget - Modern Financial App</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<script>
         tailwind.config = {
             darkMode: "class",
             theme: {
                 extend: {
                     colors: {
-                        "primary": "#7f13ec",
-                        "background-light": "#f7f6f8",
-                        "background-dark": "#0a0514",
+                        primary: "#6D28D9",
+                        "background-light": "#F9FAFB",
+                        "background-dark": "#0F172A",
                     },
                     fontFamily: {
-                        "display": ["Manrope"]
+                        display: ["Inter", "sans-serif"],
                     },
                     borderRadius: {
-                        "DEFAULT": "1rem",
-                        "lg": "2rem",
-                        "xl": "3rem",
-                        "full": "9999px"
+                        DEFAULT: "0.75rem",
                     },
                 },
             },
-        }
+        };
     </script>
 <style>
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        body { font-family: 'Inter', sans-serif; }
+        .custom-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #6D28D9;
+            cursor: pointer;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 0 10px rgba(109, 40, 217, 0.4);
         }
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #302839;
-            border-radius: 10px;
-        }
-        /* Simulating the progress bar animation concept */
-        @keyframes progress {
-            from { width: 100%; }
-            to { width: 0%; }
-        }
-        .animate-progress {
-            animation: progress 8s linear forwards;
+        .custom-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            background: #6D28D9;
+            cursor: pointer;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 0 10px rgba(109, 40, 217, 0.4);
         }
     </style>
 </head>
-<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white overflow-hidden">
-<div class="relative flex h-screen w-full flex-col overflow-x-hidden">
-<!-- Background/Context: Financial Dashboard (Blurred) -->
-<div class="flex h-full grow flex-col opacity-40 grayscale-[0.2] blur-[2px] pointer-events-none select-none">
-<!-- Top Nav Bar -->
-<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-[#302839] px-10 py-3 bg-white dark:bg-[#191022]">
-<div class="flex items-center gap-8">
-<div class="flex items-center gap-4">
-<div class="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
-<span class="material-symbols-outlined">account_balance_wallet</span>
+<body class="bg-slate-100 dark:bg-slate-950 min-h-screen flex items-center justify-center p-4">
+<div class="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800 transition-colors duration-300">
+<div class="px-8 py-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+<div>
+<h1 class="text-2xl font-bold text-slate-900 dark:text-white">Create Budget</h1>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Set up your spending limits and notifications.</p>
 </div>
-<h2 class="text-lg font-bold leading-tight tracking-[-0.015em]">Financial Dashboard</h2>
-</div>
-<label class="flex flex-col min-w-40 h-10 max-w-64">
-<div class="flex w-full flex-1 items-stretch rounded-xl h-full">
-<div class="text-[#ab9db9] flex border-none bg-slate-100 dark:bg-[#302839] items-center justify-center pl-4 rounded-l-xl">
-<span class="material-symbols-outlined">search</span>
-</div>
-<input class="form-input flex w-full min-w-0 flex-1 border-none bg-slate-100 dark:bg-[#302839] focus:ring-0 h-full placeholder:text-[#ab9db9] px-4 rounded-r-xl text-base" placeholder="Search" value=""/>
-</div>
-</label>
-</div>
-<div class="flex flex-1 justify-end gap-6">
-<div class="flex gap-2">
-<button class="flex items-center justify-center rounded-full h-10 w-10 bg-slate-100 dark:bg-[#302839]">
-<span class="material-symbols-outlined">notifications</span>
+<button class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+<span class="material-icons-round">close</span>
 </button>
 </div>
-<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="User avatar placeholder" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuASjDZtaJ7ybcVp68e7zG3JzgrkKnmeqWHYtgIF2gwRQnBQgzL5vu1HF1waai0PHTd95C29l8ugwzK-S23jEQOITGonEa-oOa9o-9wpA_SF53dLJz07gkgrQapsq0qRNHiRDHnRLPqaObquMzhnClr2FE8vvz9XxAOhuFU5ohIxBQKeWJZN9tDVf3Iv8P_r1gp_UhjVfIzzxjiY-xEoFWadkW6nkkJNxbOnoSYF7AqAcI9L9c8zEaazEc4_XQ-2-iqVp4nvCzEnvdo");'></div>
+<div class="p-8 space-y-8">
+<section>
+<div class="flex items-center gap-2 mb-6">
+<span class="material-icons-round text-primary text-xl">account_balance_wallet</span>
+<h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Budget Details</h2>
 </div>
-</header>
-<main class="flex-1 p-10 overflow-y-auto custom-scrollbar">
-<!-- Stats Row -->
-<div class="grid grid-cols-3 gap-6 mb-8">
-<div class="flex flex-col gap-2 rounded-xl p-6 border border-slate-200 dark:border-[#473b54] bg-white dark:bg-[#191022]/50">
-<p class="text-slate-500 dark:text-[#ab9db9] text-base font-medium">Total Balance</p>
-<p class="tracking-light text-3xl font-bold">$124,500.00</p>
-<p class="text-emerald-500 text-sm font-medium">+2.5% from last month</p>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="space-y-2">
+<label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Budget Name *</label>
+<input class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary dark:text-white transition-all outline-none" placeholder="e.g. Monthly Groceries" type="text"/>
 </div>
-<div class="flex flex-col gap-2 rounded-xl p-6 border border-slate-200 dark:border-[#473b54] bg-white dark:bg-[#191022]/50">
-<p class="text-slate-500 dark:text-[#ab9db9] text-base font-medium">Monthly Spend</p>
-<p class="tracking-light text-3xl font-bold">$3,120.50</p>
-<p class="text-orange-500 text-sm font-medium">-1.2% versus target</p>
+<div class="space-y-2">
+<label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Category (Optional)</label>
+<select class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary dark:text-white transition-all outline-none appearance-none">
+<option>Food &amp; Dining</option>
+<option>Transportation</option>
+<option>Entertainment</option>
+<option>Shopping</option>
+<option>Health &amp; Fitness</option>
+</select>
 </div>
-<div class="flex flex-col gap-2 rounded-xl p-6 border border-slate-200 dark:border-[#473b54] bg-white dark:bg-[#191022]/50">
-<p class="text-slate-500 dark:text-[#ab9db9] text-base font-medium">Investment Portfolio</p>
-<p class="tracking-light text-3xl font-bold">$89,000.00</p>
-<p class="text-emerald-500 text-sm font-medium">+0.8% today</p>
+<div class="space-y-2">
+<label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Budget Amount *</label>
+<div class="relative">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500">$</span>
+<input class="w-full pl-8 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary dark:text-white transition-all outline-none" placeholder="0.00" type="number"/>
 </div>
 </div>
-<!-- Charts Section Concept -->
-<div class="flex flex-col gap-6 rounded-xl p-8 border border-slate-200 dark:border-[#473b54] bg-white dark:bg-[#191022]/50">
+<div class="space-y-2">
+<label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Period</label>
+<select class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary dark:text-white transition-all outline-none appearance-none">
+<option>Daily</option>
+<option>Weekly</option>
+<option selected="">Monthly</option>
+<option>Yearly</option>
+</select>
+</div>
+<div class="space-y-2">
+<label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Start Date</label>
+<div class="relative">
+<input class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary dark:text-white transition-all outline-none" type="date" value="2026-01-17"/>
+</div>
+</div>
+<div class="space-y-2">
+<label class="block text-sm font-medium text-slate-700 dark:text-slate-300">End Date (Optional)</label>
+<div class="relative">
+<input class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary dark:text-white transition-all outline-none" type="date"/>
+</div>
+</div>
+</div>
+</section>
+<hr class="border-slate-100 dark:border-slate-800"/>
+<section>
+<div class="flex items-center gap-2 mb-2">
+<span class="material-icons-round text-primary text-xl">notifications_active</span>
+<h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Notifications</h2>
+</div>
+<p class="text-sm text-slate-500 dark:text-slate-400 mb-8">Choose when you want to be alerted about your spending progress.</p>
+<div class="space-y-10">
+<div class="space-y-4">
 <div class="flex justify-between items-center">
-<h3 class="text-xl font-bold">Portfolio Growth</h3>
-<div class="flex gap-2">
-<span class="px-3 py-1 bg-primary/20 text-primary rounded-full text-xs font-bold uppercase tracking-wider">High Yield</span>
+<span class="text-sm font-medium text-slate-700 dark:text-slate-300">Warning Threshold</span>
+<span class="px-2 py-1 bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-xs font-bold rounded">70%</span>
+</div>
+<input class="custom-slider w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary" max="100" min="0" type="range" value="70"/>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between items-center">
+<span class="text-sm font-medium text-slate-700 dark:text-slate-300">Critical Threshold</span>
+<span class="px-2 py-1 bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 text-xs font-bold rounded">95%</span>
+</div>
+<input class="custom-slider w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary" max="100" min="0" type="range" value="95"/>
+</div>
+<div class="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
+<h4 class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase mb-4 tracking-widest">Alert Preview</h4>
+<div class="relative pt-1">
+<div class="flex mb-2 items-center justify-between">
+<div>
+<span class="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-primary bg-primary/10">
+                                        Budget Used
+                                    </span>
+</div>
+<div class="text-right">
+<span class="text-xs font-semibold inline-block text-primary">
+                                        82%
+                                    </span>
 </div>
 </div>
-<div class="h-64 w-full bg-slate-50 dark:bg-[#302839]/20 rounded-lg flex items-end p-4 gap-2">
-<div class="flex-1 bg-primary/40 rounded-t-sm h-1/2"></div>
-<div class="flex-1 bg-primary/40 rounded-t-sm h-3/4"></div>
-<div class="flex-1 bg-primary/60 rounded-t-sm h-2/3"></div>
-<div class="flex-1 bg-primary/50 rounded-t-sm h-5/6"></div>
-<div class="flex-1 bg-primary/70 rounded-t-sm h-4/5"></div>
-<div class="flex-1 bg-primary rounded-t-sm h-full"></div>
+<div class="overflow-hidden h-3 mb-4 text-xs flex rounded-full bg-slate-200 dark:bg-slate-700">
+<div class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-primary transition-all duration-500" style="width:82%"></div>
+</div>
+<div class="flex justify-between px-1">
+<div class="flex flex-col items-center">
+<div class="h-1.5 w-px bg-slate-300 dark:bg-slate-600 mb-1"></div>
+<span class="text-[10px] text-slate-400 uppercase">Warning (70%)</span>
+</div>
+<div class="flex flex-col items-center">
+<div class="h-1.5 w-px bg-slate-300 dark:bg-slate-600 mb-1"></div>
+<span class="text-[10px] text-slate-400 uppercase">Critical (95%)</span>
 </div>
 </div>
-</main>
 </div>
-<!-- NOTIFICATION: Bottom-Left Toast -->
-<div class="fixed bottom-10 left-10 z-50 flex flex-col pointer-events-auto">
-<div class="relative min-w-[380px] max-w-[420px] bg-[#0a0514] border border-white/10 rounded-2xl shadow-2xl overflow-hidden shadow-primary/20">
-<div class="p-5 flex items-start gap-4">
-<!-- Status Icon -->
-<div class="flex-shrink-0 flex items-center justify-center size-12 rounded-full bg-primary/20 text-primary">
-<span class="material-symbols-outlined !text-3xl">task_alt</span>
 </div>
-<!-- Text Content -->
-<div class="flex-1 pr-4">
-<div class="flex items-center justify-between mb-1">
-<p class="text-white text-base font-bold leading-tight">Bill Processed Successfully</p>
 </div>
-<p class="text-[#ab9db9] text-sm font-normal leading-relaxed">
-                            Your utility bill for October has been scheduled for payment via AutoPay.
-                        </p>
-<!-- Actions -->
-<div class="mt-4 flex items-center gap-3">
-<button class="px-5 py-2 rounded-full bg-primary text-white text-sm font-bold transition-all hover:bg-primary/80 flex items-center gap-2">
-<span>View Bill</span>
-<span class="material-symbols-outlined !text-sm">arrow_outward</span>
+</section>
+</div>
+<div class="px-8 py-6 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex justify-end items-center gap-4">
+<button class="px-6 py-2 text-slate-600 dark:text-slate-400 font-semibold hover:text-slate-900 dark:hover:text-white transition-colors">
+                Cancel
+            </button>
+<button class="px-8 py-2.5 bg-primary hover:bg-violet-700 text-white font-bold rounded-lg shadow-lg shadow-primary/20 transition-all active:scale-[0.98]">
+                Create Budget
+            </button>
+</div>
+</div>
+<div class="fixed bottom-4 right-4 flex gap-2">
+<button class="p-2 bg-white rounded-full shadow-lg border border-slate-200" onclick="document.documentElement.classList.remove('dark')">
+<span class="material-icons-round text-slate-600">light_mode</span>
 </button>
-<button class="px-4 py-2 rounded-full bg-white/5 text-white/70 text-sm font-medium hover:bg-white/10 transition-colors">
-                                Dismiss
-                            </button>
-</div>
-</div>
-<!-- Close Button -->
-<button class="flex-shrink-0 text-[#ab9db9] hover:text-white transition-colors">
-<span class="material-symbols-outlined">close</span>
+<button class="p-2 bg-slate-900 rounded-full shadow-lg border border-slate-700" onclick="document.documentElement.classList.add('dark')">
+<span class="material-icons-round text-white">dark_mode</span>
 </button>
 </div>
-<!-- Animated Progress Bar -->
-<div class="h-1 w-full bg-white/5">
-<div class="h-full bg-primary animate-progress"></div>
-</div>
-</div>
-<!-- Optional: Floating Action Indicators or Secondary Toasts stacked above/below if needed -->
-<!-- But task specified Variant 2 focusing on the compact action notification -->
-</div>
-<!-- Sidebar Navigation (Partially Visible/Contextual) -->
-<div class="fixed left-0 top-0 h-full w-20 flex flex-col items-center py-8 gap-10 bg-white dark:bg-[#141118] border-r border-slate-200 dark:border-[#302839] opacity-30 pointer-events-none">
-<div class="size-10 bg-primary/20 rounded-full flex items-center justify-center text-primary">
-<span class="material-symbols-outlined">diamond</span>
-</div>
-<div class="flex flex-col gap-6 items-center">
-<span class="material-symbols-outlined text-[#ab9db9]">dashboard</span>
-<span class="material-symbols-outlined text-[#ab9db9]">account_balance</span>
-<span class="material-symbols-outlined text-[#ab9db9]">credit_card</span>
-<span class="material-symbols-outlined text-[#ab9db9]">trending_up</span>
-<span class="material-symbols-outlined text-[#ab9db9]">settings</span>
-</div>
-</div>
-</div>
+
 </body></html>
