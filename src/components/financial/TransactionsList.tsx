@@ -255,6 +255,17 @@ export default function TransactionsList({
                 fontWeight: 700,
                 letterSpacing: '0.05em',
                 fontFamily: "'Inter', sans-serif"
+              }}>Created Date</TableCell>
+              <TableCell sx={{ 
+                px: 3, 
+                py: 2,
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(30, 41, 59, 0.5)' : 'rgba(248, 250, 252, 0.5)',
+                color: theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280',
+                textTransform: 'uppercase',
+                fontSize: '10px',
+                fontWeight: 700,
+                letterSpacing: '0.05em',
+                fontFamily: "'Inter', sans-serif"
               }}>Receipt</TableCell>
               <TableCell sx={{ 
                 px: 3, 
@@ -356,7 +367,7 @@ export default function TransactionsList({
                     <TableCell sx={{ px: 3, py: 2 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                         <Typography sx={{ fontSize: '14px', fontWeight: 500, color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif" }}>
-                          {new Date(transaction.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          {new Date(transaction.date).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}
                         </Typography>
                         {hasMissingFields && (
                           <Tooltip title="This transaction has items with missing price fields">
@@ -364,6 +375,11 @@ export default function TransactionsList({
                           </Tooltip>
                         )}
                       </Box>
+                    </TableCell>
+                    <TableCell sx={{ px: 3, py: 2 }}>
+                      <Typography sx={{ fontSize: '14px', fontWeight: 500, color: theme.palette.text.secondary, fontFamily: "'Inter', sans-serif" }}>
+                        {transaction.created_at ? new Date(transaction.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }) : '-'}
+                      </Typography>
                     </TableCell>
                     <TableCell sx={{ px: 3, py: 2 }}>
                       {transaction.bill_image_url ? (

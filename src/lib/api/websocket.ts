@@ -575,6 +575,22 @@ export class UnifiedWebSocketClient {
       this.socket.removeAllListeners(event);
     }
   }
+
+  /**
+   * Emit event to registered listeners
+   */
+  private emit(event: string, data: any): void {
+    const callbacks = this.listeners.get(event);
+    if (callbacks) {
+      callbacks.forEach((callback) => {
+        try {
+          callback(data);
+        } catch (error) {
+          console.error(`Error in event listener for ${event}:`, error);
+        }
+      });
+    }
+  }
 }
 
 // Export singleton instance

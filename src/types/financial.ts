@@ -592,8 +592,10 @@ export interface RecurringPayment {
   type: 'earning' | 'expense';
   amount: number;
   currency: string;
-  frequency: 'daily' | 'weekly' | 'monthly' | 'yearly' | 'custom';
+  frequency: 'daily' | 'weekly' | 'monthly' | 'yearly' | 'custom' | 'custom_minutes' | 'custom_hours' | 'custom_days';
   custom_interval_days?: number;
+  custom_interval_minutes?: number;
+  custom_interval_hours?: number;
   start_date: string;
   end_date?: string | null;
   next_occurrence: string;
@@ -651,24 +653,68 @@ export interface CreateRecurringPaymentRequest {
   name: string;
   type: 'earning' | 'expense';
   amount: number;
-  frequency: 'daily' | 'weekly' | 'monthly' | 'yearly' | 'custom';
+  frequency: 'daily' | 'weekly' | 'monthly' | 'yearly' | 'custom' | 'custom_minutes' | 'custom_hours' | 'custom_days';
   custom_interval_days?: number;
+  custom_interval_minutes?: number;
+  custom_interval_hours?: number;
   start_date: string;
   end_date?: string | null;
+  currency?: string;
   category_id?: string;
   merchant_id?: string;
   is_variable?: boolean;
+  is_active?: boolean;
 }
 
 export interface UpdateRecurringPaymentRequest {
   name?: string;
   amount?: number;
-  frequency?: 'daily' | 'weekly' | 'monthly' | 'yearly' | 'custom';
+  frequency?: 'daily' | 'weekly' | 'monthly' | 'yearly' | 'custom' | 'custom_minutes' | 'custom_hours' | 'custom_days';
   custom_interval_days?: number;
+  custom_interval_minutes?: number;
+  custom_interval_hours?: number;
+  start_date?: string;
   end_date?: string | null;
+  currency?: string;
   category_id?: string;
   merchant_id?: string;
   is_active?: boolean;
+  is_variable?: boolean;
+}
+
+// Recurring Payment API Response Types
+export interface RecurringPaymentResponse {
+  success: boolean;
+  recurring_payment: RecurringPayment;
+}
+
+export interface RecurringPaymentsListResponse {
+  success: boolean;
+  recurring_payments: RecurringPayment[];
+  total?: number;
+}
+
+export interface RecurringPaymentHistoryResponse {
+  success: boolean;
+  transactions: Array<{
+    _id: string;
+    amount: number;
+    date: string;
+    recurring_payment_id: string;
+  }>;
+  total?: number;
+}
+
+export interface RecurringPaymentsSummaryResponse {
+  success: boolean;
+  period: 'monthly' | 'yearly';
+  total_expenses: number;
+  total_earnings: number;
+  net: number;
+}
+
+export interface ToggleActiveRequest {
+  is_active: boolean;
 }
 
 // Multi-User / Family Types

@@ -3,161 +3,178 @@
 <html class="dark" lang="en"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Floating Document Processing Widget</title>
+<title>Bottom-Left Action Notification Variant 2</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <script id="tailwind-config">
         tailwind.config = {
-          darkMode: "class",
-          theme: {
-            extend: {
-              colors: {
-                "primary": "#7f13ec",
-                "background-light": "#f7f6f8",
-                "background-dark": "#191022",
-              },
-              fontFamily: {
-                "display": ["Manrope", "sans-serif"]
-              },
-              borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#7f13ec",
+                        "background-light": "#f7f6f8",
+                        "background-dark": "#0a0514",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                },
             },
-          },
         }
     </script>
 <style>
         .material-symbols-outlined {
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
-        .glass-effect {
-            background: rgba(25, 16, 34, 0.85);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
         }
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
         }
-        .animate-spin-slow {
-            animation: spin 2s linear infinite;
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #302839;
+            border-radius: 10px;
+        }
+        /* Simulating the progress bar animation concept */
+        @keyframes progress {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+        .animate-progress {
+            animation: progress 8s linear forwards;
         }
     </style>
 </head>
-<body class="bg-background-light dark:bg-background-dark font-display min-h-screen relative overflow-hidden">
-<!-- Mock Content to show floating effect -->
-<div class="p-10 opacity-20 pointer-events-none">
-<div class="max-w-4xl mx-auto space-y-8">
-<div class="h-8 w-1/4 bg-gray-400 dark:bg-gray-700 rounded"></div>
-<div class="h-64 w-full bg-gray-300 dark:bg-gray-800 rounded-xl"></div>
-<div class="grid grid-cols-3 gap-4">
-<div class="h-32 bg-gray-300 dark:bg-gray-800 rounded-lg"></div>
-<div class="h-32 bg-gray-300 dark:bg-gray-800 rounded-lg"></div>
-<div class="h-32 bg-gray-300 dark:bg-gray-800 rounded-lg"></div>
-</div>
-</div>
-</div>
-<!-- Floating Widget Container -->
-<div class="fixed bottom-8 right-8 z-50 flex flex-col items-end gap-4 w-[400px]">
-<!-- Expanded Detail Panel -->
-<div class="w-full glass-effect rounded-xl shadow-2xl overflow-hidden flex flex-col border border-white/5">
-<!-- Header Controls -->
-<div class="flex items-center justify-between px-4 py-3 border-b border-white/10">
-<div class="flex items-center gap-2">
-<span class="material-symbols-outlined text-primary text-xl">account_tree</span>
-<h3 class="text-white text-sm font-bold leading-tight tracking-tight">Processing Details</h3>
-</div>
-<div class="flex items-center gap-1">
-<button class="p-1.5 hover:bg-white/10 rounded-full transition-colors text-[#ab9db9]">
-<span class="material-symbols-outlined text-lg">minimize</span>
-</button>
-<button class="p-1.5 hover:bg-white/10 rounded-full transition-colors text-[#ab9db9]">
-<span class="material-symbols-outlined text-lg">close</span>
-</button>
-</div>
-</div>
-<!-- Scrollable Content -->
-<div class="max-h-[400px] overflow-y-auto">
-<!-- List Item: Completed -->
-<div class="flex items-center gap-4 px-4 min-h-[72px] py-2 justify-between border-b border-white/5 hover:bg-white/5 transition-colors">
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white overflow-hidden">
+<div class="relative flex h-screen w-full flex-col overflow-x-hidden">
+<!-- Background/Context: Financial Dashboard (Blurred) -->
+<div class="flex h-full grow flex-col opacity-40 grayscale-[0.2] blur-[2px] pointer-events-none select-none">
+<!-- Top Nav Bar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-[#302839] px-10 py-3 bg-white dark:bg-[#191022]">
+<div class="flex items-center gap-8">
 <div class="flex items-center gap-4">
-<div class="text-white flex items-center justify-center rounded-lg bg-primary/20 shrink-0 size-12">
-<span class="material-symbols-outlined text-primary">picture_as_pdf</span>
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined">account_balance_wallet</span>
 </div>
-<div class="flex flex-col justify-center">
-<p class="text-white text-sm font-medium leading-normal line-clamp-1">Office_Supplies.pdf</p>
-<p class="text-[#ab9db9] text-xs font-normal leading-normal line-clamp-2">Completed</p>
+<h2 class="text-lg font-bold leading-tight tracking-[-0.015em]">Financial Dashboard</h2>
 </div>
+<label class="flex flex-col min-w-40 h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-xl h-full">
+<div class="text-[#ab9db9] flex border-none bg-slate-100 dark:bg-[#302839] items-center justify-center pl-4 rounded-l-xl">
+<span class="material-symbols-outlined">search</span>
 </div>
-<div class="shrink-0">
-<div class="text-green-400 flex size-7 items-center justify-center">
-<span class="material-symbols-outlined text-xl">check_circle</span>
+<input class="form-input flex w-full min-w-0 flex-1 border-none bg-slate-100 dark:bg-[#302839] focus:ring-0 h-full placeholder:text-[#ab9db9] px-4 rounded-r-xl text-base" placeholder="Search" value=""/>
 </div>
+</label>
 </div>
-</div>
-<!-- List Item: Processing (75%) -->
-<div class="flex items-center gap-4 px-4 min-h-[72px] py-2 justify-between border-b border-white/5 hover:bg-white/5 transition-colors">
-<div class="flex items-center gap-4 flex-1">
-<div class="text-white flex items-center justify-center rounded-lg bg-white/10 shrink-0 size-12">
-<span class="material-symbols-outlined text-white/70">picture_as_pdf</span>
-</div>
-<div class="flex flex-col justify-center flex-1">
-<div class="flex justify-between items-center mb-1">
-<p class="text-white text-sm font-medium leading-normal line-clamp-1">Walmart_Receipt.pdf</p>
-<p class="text-white text-xs font-medium leading-normal">75%</p>
-</div>
-<div class="w-full overflow-hidden rounded-full bg-white/10 h-1.5">
-<div class="h-full rounded-full bg-primary" style="width: 75%;"></div>
-</div>
-</div>
-</div>
-</div>
-<!-- List Item: Processing (45%) -->
-<div class="flex items-center gap-4 px-4 min-h-[72px] py-2 justify-between border-b border-white/5 hover:bg-white/5 transition-colors">
-<div class="flex items-center gap-4 flex-1">
-<div class="text-white flex items-center justify-center rounded-lg bg-white/10 shrink-0 size-12">
-<span class="material-symbols-outlined text-white/70">image</span>
-</div>
-<div class="flex flex-col justify-center flex-1">
-<div class="flex justify-between items-center mb-1">
-<p class="text-white text-sm font-medium leading-normal line-clamp-1">Gas_Station.png</p>
-<p class="text-white text-xs font-medium leading-normal">45%</p>
-</div>
-<div class="w-full overflow-hidden rounded-full bg-white/10 h-1.5">
-<div class="h-full rounded-full bg-primary" style="width: 45%;"></div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<!-- Summary Footer Card -->
-<div class="p-4 bg-primary/10">
-<div class="bg-cover bg-center flex flex-col items-stretch justify-end rounded-lg pt-[60px] relative overflow-hidden" data-alt="Abstract purple geometric pattern background" style='background-image: linear-gradient(180deg, rgba(127, 19, 236, 0.2) 0%, rgba(127, 19, 236, 0.8) 100%), url("https://lh3.googleusercontent.com/aida-public/AB6AXuCv4oNF_ZMDzLdMZ-JGkK9y2ON3f3k5ChSVdtVjUicw517A8hhNKQTlVwl5bbihI2lzHZyRMw3yLXkOLXB2RDMpnm9Jyc2KI1P6sbytMts8-xuQk6MdemnJuVFRU4uvURogJf207vA6GJM6JBOAMapc0gNmpfJTTIEPXGPP1VroGQwoP2uYBxoHJu3MpfqfKrApmezhgpTY3bEOawViwE1nQ_hZmnWxI3XZn8y9pbxHcecqMySa14J0K-imYdL6NfnQvOlWyX99sHY");'>
-<div class="flex w-full items-end justify-between gap-4 p-4 z-10">
-<div class="flex max-w-[440px] flex-1 flex-col gap-0.5">
-<p class="text-white tracking-tight text-lg font-bold leading-tight">Batch #204</p>
-<p class="text-white/80 text-xs font-medium leading-normal">OCR Analysis in progress</p>
-</div>
-<button class="flex min-w-[70px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-8 px-3 bg-white text-primary text-xs font-bold leading-normal transition-transform active:scale-95">
-<span class="truncate">Pause</span>
+<div class="flex flex-1 justify-end gap-6">
+<div class="flex gap-2">
+<button class="flex items-center justify-center rounded-full h-10 w-10 bg-slate-100 dark:bg-[#302839]">
+<span class="material-symbols-outlined">notifications</span>
 </button>
 </div>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="User avatar placeholder" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuASjDZtaJ7ybcVp68e7zG3JzgrkKnmeqWHYtgIF2gwRQnBQgzL5vu1HF1waai0PHTd95C29l8ugwzK-S23jEQOITGonEa-oOa9o-9wpA_SF53dLJz07gkgrQapsq0qRNHiRDHnRLPqaObquMzhnClr2FE8vvz9XxAOhuFU5ohIxBQKeWJZN9tDVf3Iv8P_r1gp_UhjVfIzzxjiY-xEoFWadkW6nkkJNxbOnoSYF7AqAcI9L9c8zEaazEc4_XQ-2-iqVp4nvCzEnvdo");'></div>
+</div>
+</header>
+<main class="flex-1 p-10 overflow-y-auto custom-scrollbar">
+<!-- Stats Row -->
+<div class="grid grid-cols-3 gap-6 mb-8">
+<div class="flex flex-col gap-2 rounded-xl p-6 border border-slate-200 dark:border-[#473b54] bg-white dark:bg-[#191022]/50">
+<p class="text-slate-500 dark:text-[#ab9db9] text-base font-medium">Total Balance</p>
+<p class="tracking-light text-3xl font-bold">$124,500.00</p>
+<p class="text-emerald-500 text-sm font-medium">+2.5% from last month</p>
+</div>
+<div class="flex flex-col gap-2 rounded-xl p-6 border border-slate-200 dark:border-[#473b54] bg-white dark:bg-[#191022]/50">
+<p class="text-slate-500 dark:text-[#ab9db9] text-base font-medium">Monthly Spend</p>
+<p class="tracking-light text-3xl font-bold">$3,120.50</p>
+<p class="text-orange-500 text-sm font-medium">-1.2% versus target</p>
+</div>
+<div class="flex flex-col gap-2 rounded-xl p-6 border border-slate-200 dark:border-[#473b54] bg-white dark:bg-[#191022]/50">
+<p class="text-slate-500 dark:text-[#ab9db9] text-base font-medium">Investment Portfolio</p>
+<p class="tracking-light text-3xl font-bold">$89,000.00</p>
+<p class="text-emerald-500 text-sm font-medium">+0.8% today</p>
 </div>
 </div>
+<!-- Charts Section Concept -->
+<div class="flex flex-col gap-6 rounded-xl p-8 border border-slate-200 dark:border-[#473b54] bg-white dark:bg-[#191022]/50">
+<div class="flex justify-between items-center">
+<h3 class="text-xl font-bold">Portfolio Growth</h3>
+<div class="flex gap-2">
+<span class="px-3 py-1 bg-primary/20 text-primary rounded-full text-xs font-bold uppercase tracking-wider">High Yield</span>
 </div>
-<!-- Floating Pill (Collapsed View) -->
-<div class="flex items-center gap-3 glass-effect px-4 py-3 rounded-full shadow-lg border border-white/10 cursor-pointer hover:bg-white/10 transition-all duration-300 w-fit">
-<div class="relative flex items-center justify-center shrink-0">
-<div class="size-6 border-2 border-primary/30 rounded-full border-t-primary animate-spin-slow"></div>
-<span class="absolute text-[10px] text-primary font-bold">3</span>
 </div>
-<div class="flex flex-col">
-<p class="text-white text-sm font-bold leading-tight">Processing 3 receipts...</p>
-<p class="text-[#ab9db9] text-[10px] font-medium leading-none">Estimated: 12 seconds</p>
+<div class="h-64 w-full bg-slate-50 dark:bg-[#302839]/20 rounded-lg flex items-end p-4 gap-2">
+<div class="flex-1 bg-primary/40 rounded-t-sm h-1/2"></div>
+<div class="flex-1 bg-primary/40 rounded-t-sm h-3/4"></div>
+<div class="flex-1 bg-primary/60 rounded-t-sm h-2/3"></div>
+<div class="flex-1 bg-primary/50 rounded-t-sm h-5/6"></div>
+<div class="flex-1 bg-primary/70 rounded-t-sm h-4/5"></div>
+<div class="flex-1 bg-primary rounded-t-sm h-full"></div>
 </div>
-<div class="ml-2 pl-2 border-l border-white/10 flex items-center gap-1 text-[#ab9db9]">
-<span class="material-symbols-outlined text-lg">expand_more</span>
+</div>
+</main>
+</div>
+<!-- NOTIFICATION: Bottom-Left Toast -->
+<div class="fixed bottom-10 left-10 z-50 flex flex-col pointer-events-auto">
+<div class="relative min-w-[380px] max-w-[420px] bg-[#0a0514] border border-white/10 rounded-2xl shadow-2xl overflow-hidden shadow-primary/20">
+<div class="p-5 flex items-start gap-4">
+<!-- Status Icon -->
+<div class="flex-shrink-0 flex items-center justify-center size-12 rounded-full bg-primary/20 text-primary">
+<span class="material-symbols-outlined !text-3xl">task_alt</span>
+</div>
+<!-- Text Content -->
+<div class="flex-1 pr-4">
+<div class="flex items-center justify-between mb-1">
+<p class="text-white text-base font-bold leading-tight">Bill Processed Successfully</p>
+</div>
+<p class="text-[#ab9db9] text-sm font-normal leading-relaxed">
+                            Your utility bill for October has been scheduled for payment via AutoPay.
+                        </p>
+<!-- Actions -->
+<div class="mt-4 flex items-center gap-3">
+<button class="px-5 py-2 rounded-full bg-primary text-white text-sm font-bold transition-all hover:bg-primary/80 flex items-center gap-2">
+<span>View Bill</span>
+<span class="material-symbols-outlined !text-sm">arrow_outward</span>
+</button>
+<button class="px-4 py-2 rounded-full bg-white/5 text-white/70 text-sm font-medium hover:bg-white/10 transition-colors">
+                                Dismiss
+                            </button>
+</div>
+</div>
+<!-- Close Button -->
+<button class="flex-shrink-0 text-[#ab9db9] hover:text-white transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Animated Progress Bar -->
+<div class="h-1 w-full bg-white/5">
+<div class="h-full bg-primary animate-progress"></div>
+</div>
+</div>
+<!-- Optional: Floating Action Indicators or Secondary Toasts stacked above/below if needed -->
+<!-- But task specified Variant 2 focusing on the compact action notification -->
+</div>
+<!-- Sidebar Navigation (Partially Visible/Contextual) -->
+<div class="fixed left-0 top-0 h-full w-20 flex flex-col items-center py-8 gap-10 bg-white dark:bg-[#141118] border-r border-slate-200 dark:border-[#302839] opacity-30 pointer-events-none">
+<div class="size-10 bg-primary/20 rounded-full flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">diamond</span>
+</div>
+<div class="flex flex-col gap-6 items-center">
+<span class="material-symbols-outlined text-[#ab9db9]">dashboard</span>
+<span class="material-symbols-outlined text-[#ab9db9]">account_balance</span>
+<span class="material-symbols-outlined text-[#ab9db9]">credit_card</span>
+<span class="material-symbols-outlined text-[#ab9db9]">trending_up</span>
+<span class="material-symbols-outlined text-[#ab9db9]">settings</span>
 </div>
 </div>
 </div>

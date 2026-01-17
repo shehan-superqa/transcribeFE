@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -31,6 +31,7 @@ import {
   Tooltip,
   ToggleButtonGroup,
   ToggleButton,
+  CircularProgress,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -52,90 +53,13 @@ import {
 import { RecurringPayment } from '../../types/financial';
 import { useTheme } from '../../contexts/ThemeContext';
 import { formatCurrency } from '../../utils/transactionHelpers';
-
-// Dummy data matching the design
-const dummyRecurringPayments: RecurringPayment[] = [
-  {
-    _id: '1',
-    user_id: 'user1',
-    name: 'Monthly Salary',
-    type: 'earning',
-    amount: 5000,
-    currency: 'USD',
-    frequency: 'monthly',
-    start_date: '2024-01-01',
-    next_occurrence: '2024-02-01',
-    is_variable: false,
-    is_active: true,
-    created_at: '2024-01-01',
-    updated_at: '2024-01-01',
-  },
-  {
-    _id: '2',
-    user_id: 'user1',
-    name: 'Rent Payment',
-    type: 'expense',
-    amount: 1500,
-    currency: 'USD',
-    frequency: 'monthly',
-    start_date: '2024-01-05',
-    next_occurrence: '2024-02-05',
-    is_variable: false,
-    is_active: true,
-    created_at: '2024-01-01',
-    updated_at: '2024-01-01',
-  },
-  {
-    _id: '3',
-    user_id: 'user1',
-    name: 'Freelance Income',
-    type: 'earning',
-    amount: 800,
-    currency: 'USD',
-    frequency: 'weekly',
-    start_date: '2024-01-01',
-    next_occurrence: '2024-01-29',
-    is_variable: true,
-    variable_amounts: [
-      { date: '2024-01-08', amount: 750 },
-      { date: '2024-01-15', amount: 900 },
-      { date: '2024-01-22', amount: 800 },
-    ],
-    is_active: true,
-    created_at: '2024-01-01',
-    updated_at: '2024-01-01',
-  },
-  {
-    _id: '4',
-    user_id: 'user1',
-    name: 'Gym Membership',
-    type: 'expense',
-    amount: 50,
-    currency: 'USD',
-    frequency: 'monthly',
-    start_date: '2024-01-10',
-    next_occurrence: '2024-02-10',
-    is_variable: false,
-    is_active: true,
-    created_at: '2024-01-01',
-    updated_at: '2024-01-01',
-  },
-  {
-    _id: '5',
-    user_id: 'user1',
-    name: 'Utility Bills',
-    type: 'expense',
-    amount: 200,
-    currency: 'USD',
-    frequency: 'monthly',
-    start_date: '2024-01-15',
-    next_occurrence: '2024-02-15',
-    is_variable: true,
-    is_active: true,
-    created_at: '2024-01-01',
-    updated_at: '2024-01-01',
-  },
-];
+import {
+  listRecurringPayments,
+  createRecurringPayment,
+  updateRecurringPayment,
+  deleteRecurringPayment,
+  toggleRecurringPaymentActive,
+} from '../../lib/api/financialApi';
 
 const getPaymentIcon = (name: string, type: 'earning' | 'expense') => {
   const lowerName = name.toLowerCase();
@@ -172,21 +96,50 @@ interface RecurringPaymentsSectionProps {
 
 export default function RecurringPaymentsSection({ hideHeader = false }: RecurringPaymentsSectionProps = {}) {
   const { theme } = useTheme();
-  const [payments, setPayments] = useState<RecurringPayment[]>(dummyRecurringPayments);
+  const [payments, setPayments] = useState<RecurringPayment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'card' | 'table'>('card');
   const [openDialog, setOpenDialog] = useState(false);
   const [editingPayment, setEditingPayment] = useState<RecurringPayment | null>(null);
+  const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     type: 'expense' as 'earning' | 'expense',
     amount: '',
-    frequency: 'monthly' as 'daily' | 'weekly' | 'monthly' | 'yearly' | 'custom',
+    frequency: 'monthly' as 'daily' | 'weekly' | 'monthly' | 'yearly' | 'custom' | 'custom_minutes' | 'custom_hours' | 'custom_days',
     custom_interval_days: '',
+    custom_interval_minutes: '',
+    custom_interval_hours: '',
     start_date: new Date().toISOString().split('T')[0],
     end_date: '',
     is_variable: false,
     is_active: true,
   });
+
+  // Fetch recurring payments from API
+  useEffect(() => {
+    const fetchPayments = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await listRecurringPayments();
+        if (response.success) {
+          setPayments(response.recurring_payments || []);
+        } else {
+          setError('Failed to fetch recurring payments');
+        }
+      } catch (err) {
+        console.error('Error fetching recurring payments:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch recurring payments');
+        setPayments([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPayments();
+  }, []);
 
   const handleOpenDialog = (payment?: RecurringPayment) => {
     if (payment) {
@@ -197,6 +150,8 @@ export default function RecurringPaymentsSection({ hideHeader = false }: Recurri
         amount: payment.amount.toString(),
         frequency: payment.frequency,
         custom_interval_days: payment.custom_interval_days?.toString() || '',
+        custom_interval_minutes: payment.custom_interval_minutes?.toString() || '',
+        custom_interval_hours: payment.custom_interval_hours?.toString() || '',
         start_date: payment.start_date.split('T')[0],
         end_date: payment.end_date?.split('T')[0] || '',
         is_variable: payment.is_variable,
@@ -210,6 +165,8 @@ export default function RecurringPaymentsSection({ hideHeader = false }: Recurri
         amount: '',
         frequency: 'monthly',
         custom_interval_days: '',
+        custom_interval_minutes: '',
+        custom_interval_hours: '',
         start_date: new Date().toISOString().split('T')[0],
         end_date: '',
         is_variable: false,
@@ -224,57 +181,104 @@ export default function RecurringPaymentsSection({ hideHeader = false }: Recurri
     setEditingPayment(null);
   };
 
-  const handleSave = () => {
-    if (editingPayment) {
-      setPayments(payments.map(p => 
-        p._id === editingPayment._id 
-          ? {
-              ...p,
-              name: formData.name,
-              type: formData.type,
-              amount: parseFloat(formData.amount),
-              frequency: formData.frequency,
-              custom_interval_days: formData.custom_interval_days ? parseInt(formData.custom_interval_days) : undefined,
-              end_date: formData.end_date || null,
-              is_variable: formData.is_variable,
-              is_active: formData.is_active,
-              updated_at: new Date().toISOString(),
-            }
-          : p
-      ));
-    } else {
-      const newPayment: RecurringPayment = {
-        _id: Date.now().toString(),
-        user_id: 'user1',
+  const handleSave = async () => {
+    if (!formData.name || !formData.amount) {
+      setError('Please fill in all required fields');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setError(null);
+
+      const requestData: any = {
         name: formData.name,
         type: formData.type,
         amount: parseFloat(formData.amount),
-        currency: 'USD',
         frequency: formData.frequency,
-        custom_interval_days: formData.custom_interval_days ? parseInt(formData.custom_interval_days) : undefined,
         start_date: formData.start_date,
         end_date: formData.end_date || null,
-        next_occurrence: formData.start_date,
         is_variable: formData.is_variable,
         is_active: formData.is_active,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
       };
-      setPayments([...payments, newPayment]);
+
+      // Add custom interval fields based on frequency
+      if (formData.frequency === 'custom_minutes' && formData.custom_interval_minutes) {
+        requestData.custom_interval_minutes = parseInt(formData.custom_interval_minutes);
+      } else if (formData.frequency === 'custom_hours' && formData.custom_interval_hours) {
+        requestData.custom_interval_hours = parseInt(formData.custom_interval_hours);
+      } else if ((formData.frequency === 'custom' || formData.frequency === 'custom_days') && formData.custom_interval_days) {
+        requestData.custom_interval_days = parseInt(formData.custom_interval_days);
+      }
+
+      if (editingPayment) {
+        // Update existing payment
+        const response = await updateRecurringPayment(editingPayment._id, requestData);
+        if (response.success) {
+          setPayments(payments.map(p => 
+            p._id === editingPayment._id ? response.recurring_payment : p
+          ));
+          handleCloseDialog();
+        } else {
+          setError('Failed to update recurring payment');
+        }
+      } else {
+        // Create new payment
+        const response = await createRecurringPayment(requestData);
+        if (response.success) {
+          setPayments([...payments, response.recurring_payment]);
+          handleCloseDialog();
+        } else {
+          setError('Failed to create recurring payment');
+        }
+      }
+    } catch (err) {
+      console.error('Error saving recurring payment:', err);
+      setError(err instanceof Error ? err.message : 'Failed to save recurring payment');
+    } finally {
+      setSaving(false);
     }
-    handleCloseDialog();
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this recurring payment?')) {
-      setPayments(payments.filter(p => p._id !== id));
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this recurring payment?')) {
+      return;
+    }
+
+    try {
+      setError(null);
+      const response = await deleteRecurringPayment(id);
+      if (response.success) {
+        setPayments(payments.filter(p => p._id !== id));
+      } else {
+        setError('Failed to delete recurring payment');
+      }
+    } catch (err) {
+      console.error('Error deleting recurring payment:', err);
+      setError(err instanceof Error ? err.message : 'Failed to delete recurring payment');
     }
   };
 
-  const handleToggleActive = (id: string) => {
-    setPayments(payments.map(p => 
-      p._id === id ? { ...p, is_active: !p.is_active } : p
-    ));
+  const handleToggleActive = async (id: string) => {
+    const payment = payments.find(p => p._id === id);
+    if (!payment) return;
+
+    try {
+      setError(null);
+      const response = await toggleRecurringPaymentActive(id, {
+        is_active: !payment.is_active,
+      });
+      if (response.success) {
+        setPayments(payments.map(p => 
+          p._id === id ? response.recurring_payment : p
+        ));
+      } else {
+        setError('Failed to update payment status');
+      }
+    } catch (err) {
+      console.error('Error toggling payment status:', err);
+      setError(err instanceof Error ? err.message : 'Failed to update payment status');
+    }
   };
 
   const activePayments = payments.filter(p => p.is_active);
@@ -803,6 +807,23 @@ export default function RecurringPaymentsSection({ hideHeader = false }: Recurri
         </Box>
       )}
 
+      {/* Loading State */}
+      {loading && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8 }}>
+          <CircularProgress />
+        </Box>
+      )}
+
+      {/* Error State */}
+      {error && !loading && (
+        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
+          {error}
+        </Alert>
+      )}
+
+      {/* Content - Only show when not loading */}
+      {!loading && (
+        <>
       {/* Summary Cards */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={12} md={4}>
@@ -1139,16 +1160,51 @@ export default function RecurringPaymentsSection({ hideHeader = false }: Recurri
                 <MenuItem value="weekly">Weekly</MenuItem>
                 <MenuItem value="monthly">Monthly</MenuItem>
                 <MenuItem value="yearly">Yearly</MenuItem>
-                <MenuItem value="custom">Custom</MenuItem>
+                <MenuItem value="custom">Custom (Days)</MenuItem>
+                <MenuItem value="custom_days">Custom Days</MenuItem>
+                <MenuItem value="custom_hours">Custom Hours</MenuItem>
+                <MenuItem value="custom_minutes">Custom Minutes</MenuItem>
               </Select>
             </FormControl>
 
-            {formData.frequency === 'custom' && (
+            {(formData.frequency === 'custom' || formData.frequency === 'custom_days') && (
               <TextField
                 label="Custom Interval (days)"
                 type="number"
                 value={formData.custom_interval_days}
                 onChange={(e) => setFormData({ ...formData, custom_interval_days: e.target.value })}
+                fullWidth
+                required
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    fontFamily: "'Inter', sans-serif",
+                  },
+                }}
+              />
+            )}
+
+            {formData.frequency === 'custom_hours' && (
+              <TextField
+                label="Custom Interval (hours)"
+                type="number"
+                value={formData.custom_interval_hours}
+                onChange={(e) => setFormData({ ...formData, custom_interval_hours: e.target.value })}
+                fullWidth
+                required
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    fontFamily: "'Inter', sans-serif",
+                  },
+                }}
+              />
+            )}
+
+            {formData.frequency === 'custom_minutes' && (
+              <TextField
+                label="Custom Interval (minutes)"
+                type="number"
+                value={formData.custom_interval_minutes}
+                onChange={(e) => setFormData({ ...formData, custom_interval_minutes: e.target.value })}
                 fullWidth
                 required
                 sx={{
@@ -1224,7 +1280,7 @@ export default function RecurringPaymentsSection({ hideHeader = false }: Recurri
           <Button
             onClick={handleSave}
             variant="contained"
-            disabled={!formData.name || !formData.amount}
+            disabled={!formData.name || !formData.amount || saving}
             sx={{
               borderRadius: '8px',
               fontSize: '13px',
@@ -1236,10 +1292,12 @@ export default function RecurringPaymentsSection({ hideHeader = false }: Recurri
               },
             }}
           >
-            {editingPayment ? 'Update' : 'Add'}
+            {saving ? 'Saving...' : editingPayment ? 'Update' : 'Add'}
           </Button>
         </DialogActions>
       </Dialog>
+        </>
+      )}
     </Box>
   );
 }

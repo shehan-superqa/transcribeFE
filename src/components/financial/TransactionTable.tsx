@@ -1,7 +1,8 @@
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Box, IconButton, Chip } from '@mui/material';
-import { Edit, Delete, MergeType, Sort } from '@mui/icons-material';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Box, IconButton, Chip, Tooltip } from '@mui/material';
+import { Edit, Delete, MergeType, Sort, TrendingDown, TrendingUp, Receipt, Warning } from '@mui/icons-material';
 import { Transaction } from '../../types/financial';
 import { useTheme } from '../../contexts/ThemeContext';
+import { getDisplayCategoryName, formatCurrency, getDisplayMerchantName, formatPaymentMethod, transactionHasMissingFields, getMissingFieldRowStyle, getExpenseAmount, getEarningAmount, getTaxAmount } from '../../utils/transactionHelpers';
 
 interface TransactionTableProps {
   transactions: Transaction[];
@@ -60,6 +61,17 @@ export default function TransactionTable({
                 Date
                 <Sort sx={{ fontSize: '1rem', opacity: sortBy === 'date' ? 1 : 0.3 }} />
               </Box>
+            </TableCell>
+            <TableCell
+              sx={{
+                fontWeight: 600,
+                color: theme.palette.text.primary,
+                backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb',
+                fontFamily: "'Inter', sans-serif",
+                fontSize: '0.875rem',
+              }}
+            >
+              Created Date
             </TableCell>
             <TableCell
               sx={{
@@ -212,13 +224,16 @@ export default function TransactionTable({
               >
                 <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    {new Date(transaction.date).toLocaleDateString()}
+                    {new Date(transaction.date).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}
                     {hasMissingFields && (
                       <Tooltip title="This transaction has items with missing price fields">
                         <Warning sx={{ fontSize: '1rem', color: theme.palette.warning.main }} />
                       </Tooltip>
                     )}
                   </Box>
+                </TableCell>
+                <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
+                  {transaction.created_at ? new Date(transaction.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }) : '-'}
                 </TableCell>
                 <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
                   {getDisplayMerchantName(transaction, getMerchantName(transaction.merchant_id))}

@@ -1660,7 +1660,7 @@ export default function TransactionsSection({
                         >
                           <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              {new Date(transaction.date).toLocaleDateString()}
+                              {new Date(transaction.date).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}
                               {hasMissingFields && (
                                 <Tooltip title="This transaction has items with missing price fields">
                                   <Warning sx={{ fontSize: '1rem', color: theme.palette.warning.main }} />

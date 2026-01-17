@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useTheme } from '@mui/material/styles';
+import { useNotification } from '../../contexts/NotificationContext';
 import {
   Box,
   Card,
@@ -26,6 +27,7 @@ import {
   IconButton,
   CircularProgress,
   Alert,
+  Autocomplete,
 } from '@mui/material';
 import {
   TrendingUp as TrendingUpIcon,
@@ -37,9 +39,15 @@ import {
   Repeat as RepeatIcon,
   Close as CloseIcon,
 } from '@mui/icons-material';
-import { UpcomingPayment } from '../../types/financial';
+import { UpcomingPayment, Category } from '../../types/financial';
 import RecurringPaymentsSection from './RecurringPaymentsSection';
-import { getUpcomingPaymentsSummary } from '../../lib/api/financialApi';
+import { 
+  getUpcomingPaymentsSummary, 
+  createRecurringPayment,
+  listCategories,
+  listMerchants,
+  listRecurringPayments,
+} from '../../lib/api/financialApi';
 
 interface NewPaymentForm {
   name: string;
@@ -47,11 +55,17 @@ interface NewPaymentForm {
   amount: string;
   date: string;
   time: string;
+  frequency: 'daily' | 'weekly' | 'monthly' | 'yearly' | 'custom' | 'custom_minutes' | 'custom_hours' | 'custom_days';
+  custom_interval_days: string;
+  custom_interval_hours: string;
+  custom_interval_minutes: string;
+  end_date: string;
   category_name: string;
   merchant_name: string;
 }
 
 export default function UpcomingPaymentsSection() {
+  const { showActionNotification } = useNotification();
   const [upcomingPayments, setUpcomingPayments] = useState<UpcomingPayment[]>([]);
   const [summary, setSummary] = useState({
     totalUpcomingExpenses: 0,
@@ -66,15 +80,58 @@ export default function UpcomingPaymentsSection() {
   const [period, setPeriod] = useState<'week' | 'month' | '3_months' | '6_months'>('month');
   const [openDialog, setOpenDialog] = useState(false);
   const [recurringModalOpen, setRecurringModalOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [merchants, setMerchants] = useState<Array<{ _id: string; name: string }>>([]);
+  const [recurringPaymentsMap, setRecurringPaymentsMap] = useState<Map<string, { start_date: string; created_at: string }>>(new Map());
   const [newPaymentForm, setNewPaymentForm] = useState<NewPaymentForm>({
     name: '',
     type: 'expense',
     amount: '',
     date: '',
     time: '',
+    frequency: 'monthly',
+    custom_interval_days: '',
+    custom_interval_hours: '',
+    custom_interval_minutes: '',
+    end_date: '',
     category_name: '',
     merchant_name: '',
   });
+
+  // Fetch categories, merchants, and recurring payments (for time info)
+  useEffect(() => {
+    const fetchFilters = async () => {
+      try {
+        const [categoriesResponse, merchantsResponse, recurringResponse] = await Promise.all([
+          listCategories(),
+          listMerchants(),
+          listRecurringPayments({ active_only: true }),
+        ]);
+        
+        if (categoriesResponse.success) {
+          setCategories(categoriesResponse.categories || []);
+        }
+        if (merchantsResponse.success) {
+          setMerchants(merchantsResponse.merchants || []);
+        }
+        if (recurringResponse.success && recurringResponse.recurring_payments) {
+          const map = new Map<string, { start_date: string; created_at: string }>();
+          recurringResponse.recurring_payments.forEach((payment) => {
+            map.set(payment._id, { 
+              start_date: payment.start_date,
+              created_at: payment.created_at 
+            });
+          });
+          setRecurringPaymentsMap(map);
+        }
+      } catch (err) {
+        console.error('Error fetching filters:', err);
+      }
+    };
+
+    fetchFilters();
+  }, []);
 
   // Fetch upcoming payments summary from API
   useEffect(() => {
@@ -147,53 +204,157 @@ export default function UpcomingPaymentsSection() {
     return diffDays >= 0 ? diffDays : 0;
   };
 
-  const handleAddPayment = () => {
+  const handleAddPayment = async () => {
     if (!newPaymentForm.name || !newPaymentForm.amount || !newPaymentForm.date) {
+      setError('Please fill in all required fields');
       return;
     }
 
     const amount = parseFloat(newPaymentForm.amount);
     if (isNaN(amount) || amount <= 0) {
+      setError('Please enter a valid amount');
       return;
     }
 
-    const daysUntilDue = calculateDaysUntilDue(newPaymentForm.date, newPaymentForm.time);
+    try {
+      setSaving(true);
+      setError(null);
 
-    const newPayment: UpcomingPayment = {
-      recurring_payment_id: `manual-${Date.now()}`,
-      name: newPaymentForm.name,
-      type: newPaymentForm.type,
-      amount: amount,
-      due_date: newPaymentForm.date, // Store date only for compatibility
-      days_until_due: daysUntilDue,
-      category_name: newPaymentForm.category_name || undefined,
-      merchant_name: newPaymentForm.merchant_name || undefined,
-    };
+      // Combine date and time into ISO string
+      const dateTime = newPaymentForm.time 
+        ? `${newPaymentForm.date}T${newPaymentForm.time}:00`
+        : `${newPaymentForm.date}T00:00:00`;
+      
+      const startDate = new Date(dateTime).toISOString();
 
-    setUpcomingPayments([...upcomingPayments, newPayment]);
-    
-    // Reset form
-    setNewPaymentForm({
-      name: '',
-      type: 'expense',
-      amount: '',
-      date: '',
-      time: '',
-      category_name: '',
-      merchant_name: '',
-    });
-    
-    setOpenDialog(false);
+      // Create recurring payment (one-time occurrence if no end date)
+      // Find category_id if category_name matches an existing category
+      const matchedCategory = newPaymentForm.category_name
+        ? categories.find(
+            c => c?.category_name?.toLowerCase() === newPaymentForm.category_name.toLowerCase()
+          )
+        : undefined;
+      
+      // Find merchant_id if merchant_name matches an existing merchant
+      const matchedMerchant = newPaymentForm.merchant_name
+        ? merchants.find(
+            m => m?.name?.toLowerCase() === newPaymentForm.merchant_name.toLowerCase()
+          )
+        : undefined;
+
+      const request: any = {
+        name: newPaymentForm.name,
+        type: newPaymentForm.type,
+        amount: amount,
+        frequency: newPaymentForm.frequency,
+        start_date: startDate,
+        end_date: newPaymentForm.end_date ? new Date(newPaymentForm.end_date).toISOString() : null,
+        is_active: true,
+      };
+
+      // Add custom interval fields based on frequency
+      if (newPaymentForm.frequency === 'custom_minutes' && newPaymentForm.custom_interval_minutes) {
+        request.custom_interval_minutes = parseInt(newPaymentForm.custom_interval_minutes);
+      } else if (newPaymentForm.frequency === 'custom_hours' && newPaymentForm.custom_interval_hours) {
+        request.custom_interval_hours = parseInt(newPaymentForm.custom_interval_hours);
+      } else if ((newPaymentForm.frequency === 'custom' || newPaymentForm.frequency === 'custom_days') && newPaymentForm.custom_interval_days) {
+        request.custom_interval_days = parseInt(newPaymentForm.custom_interval_days);
+      }
+
+      // Add category - use ID if matched, otherwise use name
+      if (newPaymentForm.category_name) {
+        if (matchedCategory) {
+          request.category_id = matchedCategory._id;
+        } else {
+          request.category_name = newPaymentForm.category_name;
+        }
+      }
+
+      // Add merchant - use ID if matched, otherwise use name
+      if (newPaymentForm.merchant_name) {
+        if (matchedMerchant) {
+          request.merchant_id = matchedMerchant._id;
+        } else {
+          request.merchant_name = newPaymentForm.merchant_name;
+        }
+      }
+
+      const response = await createRecurringPayment(request);
+      
+      if (response.success) {
+        // Show success notification
+        showActionNotification({
+          title: 'Recurring Payment Created',
+          message: `Recurring payment "${newPaymentForm.name}" has been set up successfully.`,
+          type: 'success',
+          actions: [
+            {
+              label: 'View Payment',
+              variant: 'primary',
+              onClick: () => {
+                setRecurringModalOpen(true);
+                setOpenDialog(false);
+              },
+            },
+          ],
+        });
+
+        // Refresh the upcoming payments list
+        const refreshResponse = await getUpcomingPaymentsSummary(period);
+        if (refreshResponse.success) {
+          setUpcomingPayments(refreshResponse.upcoming_payments);
+          setSummary({
+            totalUpcomingExpenses: refreshResponse.total_upcoming_expenses,
+            totalUpcomingEarnings: refreshResponse.total_upcoming_earnings,
+            netUpcoming: refreshResponse.net_upcoming,
+            currentBudget: refreshResponse.current_budget,
+            remainingAfterUpcoming: refreshResponse.remaining_after_upcoming,
+            remainingPercentage: refreshResponse.remaining_percentage,
+          });
+        }
+        
+        // Reset form
+        setNewPaymentForm({
+          name: '',
+          type: 'expense',
+          amount: '',
+          date: '',
+          time: '',
+          frequency: 'monthly',
+          custom_interval_days: '',
+          custom_interval_hours: '',
+          custom_interval_minutes: '',
+          end_date: '',
+          category_name: '',
+          merchant_name: '',
+        });
+        
+        setOpenDialog(false);
+      } else {
+        setError('Failed to create recurring payment');
+      }
+    } catch (err) {
+      console.error('Error creating recurring payment:', err);
+      setError(err instanceof Error ? err.message : 'Failed to create recurring payment');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
+    setError(null);
     setNewPaymentForm({
       name: '',
       type: 'expense',
       amount: '',
       date: '',
       time: '',
+      frequency: 'monthly',
+      custom_interval_days: '',
+      custom_interval_hours: '',
+      custom_interval_minutes: '',
+      end_date: '',
       category_name: '',
       merchant_name: '',
     });
@@ -646,7 +807,7 @@ export default function UpcomingPaymentsSection() {
                     px: 3
                   }}
                 >
-                  Due Date
+                  Due Date & Time
                 </TableCell>
                 <TableCell 
                   sx={{ 
@@ -672,14 +833,27 @@ export default function UpcomingPaymentsSection() {
                     px: 3
                   }}
                 >
+                  Created Date
+                </TableCell>
+                <TableCell 
+                  sx={{ 
+                    fontWeight: 600, 
+                    fontSize: '12px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    color: 'text.secondary',
+                    py: 2,
+                    px: 3
+                  }}
+                >
                   Category
                 </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {sortedPayments.map((payment) => (
+              {sortedPayments.map((payment, index) => (
                 <TableRow 
-                  key={payment.recurring_payment_id}
+                  key={payment.recurring_payment_id || `payment-${index}`}
                   sx={{ 
                     '&:hover': { 
                       bgcolor: isDark ? 'rgba(30, 41, 59, 0.5)' : '#F8FAFC',
@@ -734,13 +908,76 @@ export default function UpcomingPaymentsSection() {
                     </Typography>
                   </TableCell>
                   <TableCell sx={{ py: 2, px: 3 }}>
-                    <Typography variant="body2" sx={{ fontSize: '14px', color: 'text.secondary' }}>
-                      {new Date(payment.due_date).toLocaleDateString('en-US', { 
-                        month: 'numeric', 
-                        day: 'numeric', 
-                        year: 'numeric' 
-                      })}
-                    </Typography>
+                    {(() => {
+                      // Parse the due_date - handle various formats (ISO, GMT, etc.)
+                      const dueDateStr = payment.due_date;
+                      const dueDate = new Date(dueDateStr);
+                      
+                      // Check if the date is valid
+                      if (isNaN(dueDate.getTime())) {
+                        return (
+                          <Typography variant="body2" sx={{ fontSize: '14px', color: 'text.secondary' }}>
+                            Invalid date
+                          </Typography>
+                        );
+                      }
+                      
+                      // Check if due_date string contains time information
+                      // Formats: ISO (2024-01-17T11:01:17), GMT (Sat, 17 Jan 2026 11:01:17 GMT), etc.
+                      const hasTime = dueDateStr.includes(':') && 
+                                     (dueDateStr.includes('T') || 
+                                      dueDateStr.match(/\d{1,2}:\d{2}:\d{2}/) !== null ||
+                                      dueDateStr.includes('GMT') ||
+                                      dueDateStr.includes('UTC'));
+                      
+                      // Get time from recurring payment's start_date as fallback
+                      const recurringPayment = recurringPaymentsMap.get(payment.recurring_payment_id);
+                      let displayTime: string | null = null;
+                      
+                      if (hasTime) {
+                        // Extract time from due_date
+                        displayTime = dueDate.toLocaleTimeString('en-US', { 
+                          hour: 'numeric', 
+                          minute: '2-digit',
+                          hour12: true 
+                        });
+                      } else if (recurringPayment?.start_date) {
+                        // Fallback: use time from recurring payment's start_date
+                        try {
+                          const startDate = new Date(recurringPayment.start_date);
+                          if (!isNaN(startDate.getTime())) {
+                            displayTime = startDate.toLocaleTimeString('en-US', { 
+                              hour: 'numeric', 
+                              minute: '2-digit',
+                              hour12: true 
+                            });
+                          }
+                        } catch (e) {
+                          console.error('Error parsing start_date:', e);
+                        }
+                      }
+                      
+                      return (
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                          <Typography variant="body2" sx={{ fontSize: '14px', color: 'text.primary', fontWeight: 500 }}>
+                            {dueDate.toLocaleDateString('en-US', { 
+                              month: 'short', 
+                              day: 'numeric', 
+                              year: 'numeric' 
+                            })}
+                          </Typography>
+                          {displayTime ? (
+                            <Typography variant="caption" sx={{ fontSize: '12px', color: 'text.secondary' }}>
+                              {displayTime}
+                            </Typography>
+                          ) : (
+                            <Typography variant="caption" sx={{ fontSize: '11px', color: 'text.disabled', fontStyle: 'italic' }}>
+                              Time not specified
+                            </Typography>
+                          )}
+                        </Box>
+                      );
+                    })()}
                   </TableCell>
                   <TableCell sx={{ py: 2, px: 3 }}>
                     <Chip
@@ -756,6 +993,40 @@ export default function UpcomingPaymentsSection() {
                         border: 'none',
                       }}
                     />
+                  </TableCell>
+                  <TableCell sx={{ py: 2, px: 3 }}>
+                    {(() => {
+                      const recurringPayment = recurringPaymentsMap.get(payment.recurring_payment_id);
+                      const createdDate = recurringPayment?.created_at;
+                      
+                      if (createdDate) {
+                        const date = new Date(createdDate);
+                        return (
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                            <Typography variant="body2" sx={{ fontSize: '14px', color: 'text.primary', fontWeight: 500 }}>
+                              {date.toLocaleDateString('en-US', { 
+                                month: 'short', 
+                                day: 'numeric', 
+                                year: 'numeric' 
+                              })}
+                            </Typography>
+                            <Typography variant="caption" sx={{ fontSize: '12px', color: 'text.secondary' }}>
+                              {date.toLocaleTimeString('en-US', { 
+                                hour: 'numeric', 
+                                minute: '2-digit',
+                                hour12: true 
+                              })}
+                            </Typography>
+                          </Box>
+                        );
+                      }
+                      
+                      return (
+                        <Typography variant="body2" sx={{ fontSize: '14px', color: 'text.secondary' }}>
+                          N/A
+                        </Typography>
+                      );
+                    })()}
                   </TableCell>
                   <TableCell sx={{ py: 2, px: 3 }}>
                     <Typography variant="body2" sx={{ fontSize: '14px', color: 'text.secondary' }}>
@@ -788,6 +1059,12 @@ export default function UpcomingPaymentsSection() {
         </DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: 1 }}>
+            {error && (
+              <Alert severity="error" onClose={() => setError(null)}>
+                {error}
+              </Alert>
+            )}
+
             <TextField
               fullWidth
               label="Name"
@@ -795,9 +1072,10 @@ export default function UpcomingPaymentsSection() {
               onChange={(e) => setNewPaymentForm({ ...newPaymentForm, name: e.target.value })}
               required
               placeholder="e.g., Monthly Salary, Rent Payment"
+              error={!newPaymentForm.name && saving}
             />
 
-            <FormControl fullWidth>
+            <FormControl fullWidth required>
               <InputLabel>Type</InputLabel>
               <Select
                 value={newPaymentForm.type}
@@ -820,18 +1098,21 @@ export default function UpcomingPaymentsSection() {
                 startAdornment: <Typography sx={{ mr: 1, color: 'text.secondary' }}>$</Typography>,
               }}
               placeholder="0.00"
+              error={(!newPaymentForm.amount || parseFloat(newPaymentForm.amount) <= 0) && saving}
+              inputProps={{ min: 0, step: 0.01 }}
             />
 
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Date"
+                  label="Start Date"
                   type="date"
                   value={newPaymentForm.date}
                   onChange={(e) => setNewPaymentForm({ ...newPaymentForm, date: e.target.value })}
                   required
                   InputLabelProps={{ shrink: true }}
+                  error={!newPaymentForm.date && saving}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -849,20 +1130,127 @@ export default function UpcomingPaymentsSection() {
               </Grid>
             </Grid>
 
-            <TextField
-              fullWidth
-              label="Category (Optional)"
-              value={newPaymentForm.category_name}
-              onChange={(e) => setNewPaymentForm({ ...newPaymentForm, category_name: e.target.value })}
-              placeholder="e.g., Income, Utilities, Housing"
-            />
+            <FormControl fullWidth required>
+              <InputLabel>Frequency / Duration</InputLabel>
+              <Select
+                value={newPaymentForm.frequency}
+                label="Frequency / Duration"
+                onChange={(e) => setNewPaymentForm({ ...newPaymentForm, frequency: e.target.value as any })}
+              >
+                <MenuItem value="daily">Daily</MenuItem>
+                <MenuItem value="weekly">Weekly</MenuItem>
+                <MenuItem value="monthly">Monthly</MenuItem>
+                <MenuItem value="yearly">Yearly</MenuItem>
+                <MenuItem value="custom">Custom (Days)</MenuItem>
+                <MenuItem value="custom_days">Custom Days</MenuItem>
+                <MenuItem value="custom_hours">Custom Hours</MenuItem>
+                <MenuItem value="custom_minutes">Custom Minutes</MenuItem>
+              </Select>
+            </FormControl>
+
+            {(newPaymentForm.frequency === 'custom' || newPaymentForm.frequency === 'custom_days') && (
+              <TextField
+                fullWidth
+                label="Custom Interval (days)"
+                type="number"
+                value={newPaymentForm.custom_interval_days}
+                onChange={(e) => setNewPaymentForm({ ...newPaymentForm, custom_interval_days: e.target.value })}
+                required
+                inputProps={{ min: 1 }}
+                placeholder="e.g., 5, 10, 30"
+              />
+            )}
+
+            {newPaymentForm.frequency === 'custom_hours' && (
+              <TextField
+                fullWidth
+                label="Custom Interval (hours)"
+                type="number"
+                value={newPaymentForm.custom_interval_hours}
+                onChange={(e) => setNewPaymentForm({ ...newPaymentForm, custom_interval_hours: e.target.value })}
+                required
+                inputProps={{ min: 1 }}
+                placeholder="e.g., 2, 6, 12, 24"
+              />
+            )}
+
+            {newPaymentForm.frequency === 'custom_minutes' && (
+              <TextField
+                fullWidth
+                label="Custom Interval (minutes)"
+                type="number"
+                value={newPaymentForm.custom_interval_minutes}
+                onChange={(e) => setNewPaymentForm({ ...newPaymentForm, custom_interval_minutes: e.target.value })}
+                required
+                inputProps={{ min: 1 }}
+                placeholder="e.g., 15, 30, 60"
+              />
+            )}
 
             <TextField
               fullWidth
-              label="Merchant / Source (Optional)"
-              value={newPaymentForm.merchant_name}
-              onChange={(e) => setNewPaymentForm({ ...newPaymentForm, merchant_name: e.target.value })}
-              placeholder="e.g., Company Name, Property Management"
+              label="End Date (Optional)"
+              type="date"
+              value={newPaymentForm.end_date}
+              onChange={(e) => setNewPaymentForm({ ...newPaymentForm, end_date: e.target.value })}
+              InputLabelProps={{ shrink: true }}
+              helperText="Leave empty for ongoing recurring payment"
+            />
+
+            <Autocomplete
+              freeSolo
+              options={[...new Set(categories.map((category) => category.category_name).filter(Boolean))]}
+              value={newPaymentForm.category_name || ''}
+              onChange={(event, newValue) => {
+                setNewPaymentForm({ ...newPaymentForm, category_name: typeof newValue === 'string' ? newValue : '' });
+              }}
+              onInputChange={(event, newInputValue, reason) => {
+                // Only update on user input, not on selection
+                if (reason === 'input' || reason === 'clear') {
+                  setNewPaymentForm({ ...newPaymentForm, category_name: newInputValue || '' });
+                }
+              }}
+              getOptionLabel={(option) => typeof option === 'string' ? option : ''}
+              renderOption={(props, option) => (
+                <li {...props} key={option}>
+                  {option}
+                </li>
+              )}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Category (Optional)"
+                  placeholder="Select or type a category"
+                />
+              )}
+            />
+
+            <Autocomplete
+              freeSolo
+              options={[...new Set(merchants.map((merchant) => merchant.name).filter(Boolean))]}
+              value={newPaymentForm.merchant_name || ''}
+              onChange={(event, newValue) => {
+                setNewPaymentForm({ ...newPaymentForm, merchant_name: typeof newValue === 'string' ? newValue : '' });
+              }}
+              onInputChange={(event, newInputValue, reason) => {
+                // Only update on user input, not on selection
+                if (reason === 'input' || reason === 'clear') {
+                  setNewPaymentForm({ ...newPaymentForm, merchant_name: newInputValue || '' });
+                }
+              }}
+              getOptionLabel={(option) => typeof option === 'string' ? option : ''}
+              renderOption={(props, option) => (
+                <li {...props} key={option}>
+                  {option}
+                </li>
+              )}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Merchant / Source (Optional)"
+                  placeholder="Select or type a merchant"
+                />
+              )}
             />
           </Box>
         </DialogContent>
@@ -880,7 +1268,7 @@ export default function UpcomingPaymentsSection() {
           <Button
             onClick={handleAddPayment}
             variant="contained"
-            disabled={!newPaymentForm.name || !newPaymentForm.amount || !newPaymentForm.date}
+            disabled={!newPaymentForm.name || !newPaymentForm.amount || !newPaymentForm.date || saving}
             sx={{ 
               textTransform: 'none',
               fontWeight: 600,
@@ -888,7 +1276,7 @@ export default function UpcomingPaymentsSection() {
               px: 3,
             }}
           >
-            Add Payment
+            {saving ? 'Adding...' : 'Add Payment'}
           </Button>
         </DialogActions>
       </Dialog>

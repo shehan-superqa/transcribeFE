@@ -48,6 +48,14 @@ import {
   FiltersResponse,
   UpcomingPaymentsResponse,
   UpcomingPaymentsSummaryResponse,
+  RecurringPayment,
+  CreateRecurringPaymentRequest,
+  UpdateRecurringPaymentRequest,
+  RecurringPaymentResponse,
+  RecurringPaymentsListResponse,
+  RecurringPaymentHistoryResponse,
+  RecurringPaymentsSummaryResponse,
+  ToggleActiveRequest,
 } from '../../types/financial';
 
 const FINANCIAL_API_BASE_URL = 'http://localhost:5000';
@@ -871,6 +879,166 @@ export async function deleteItem(itemId: string): Promise<DeleteItemResponse> {
     FINANCIAL_API_BASE_URL
   );
   return handleResponse<DeleteItemResponse>(response);
+}
+
+// Recurring Payments
+
+/**
+ * Create a new recurring payment
+ */
+export async function createRecurringPayment(
+  request: CreateRecurringPaymentRequest
+): Promise<RecurringPaymentResponse> {
+  const response = await authenticatedFetch(
+    '/api/financial/recurring-payments',
+    {
+      method: 'POST',
+      body: JSON.stringify(request),
+    },
+    true,
+    FINANCIAL_API_BASE_URL
+  );
+  return handleResponse<RecurringPaymentResponse>(response);
+}
+
+/**
+ * List recurring payments with optional filters
+ */
+export async function listRecurringPayments(params?: {
+  active_only?: boolean;
+  type?: 'earning' | 'expense';
+  frequency?: string;
+}): Promise<RecurringPaymentsListResponse> {
+  const queryParams = new URLSearchParams();
+  if (params?.active_only) queryParams.append('active_only', 'true');
+  if (params?.type) queryParams.append('type', params.type);
+  if (params?.frequency) queryParams.append('frequency', params.frequency);
+
+  const queryString = queryParams.toString();
+  const endpoint = `/api/financial/recurring-payments${queryString ? `?${queryString}` : ''}`;
+
+  const response = await authenticatedFetch(
+    endpoint,
+    { method: 'GET' },
+    true,
+    FINANCIAL_API_BASE_URL
+  );
+  return handleResponse<RecurringPaymentsListResponse>(response);
+}
+
+/**
+ * Get a single recurring payment by ID
+ */
+export async function getRecurringPayment(recurringId: string): Promise<RecurringPaymentResponse> {
+  const response = await authenticatedFetch(
+    `/api/financial/recurring-payments/${recurringId}`,
+    { method: 'GET' },
+    true,
+    FINANCIAL_API_BASE_URL
+  );
+  return handleResponse<RecurringPaymentResponse>(response);
+}
+
+/**
+ * Update a recurring payment
+ */
+export async function updateRecurringPayment(
+  recurringId: string,
+  request: UpdateRecurringPaymentRequest
+): Promise<RecurringPaymentResponse> {
+  const response = await authenticatedFetch(
+    `/api/financial/recurring-payments/${recurringId}`,
+    {
+      method: 'PUT',
+      body: JSON.stringify(request),
+    },
+    true,
+    FINANCIAL_API_BASE_URL
+  );
+  return handleResponse<RecurringPaymentResponse>(response);
+}
+
+/**
+ * Delete a recurring payment
+ */
+export async function deleteRecurringPayment(recurringId: string): Promise<{ success: boolean; message: string }> {
+  const response = await authenticatedFetch(
+    `/api/financial/recurring-payments/${recurringId}`,
+    { method: 'DELETE' },
+    true,
+    FINANCIAL_API_BASE_URL
+  );
+  return handleResponse<{ success: boolean; message: string }>(response);
+}
+
+/**
+ * Toggle active status of a recurring payment
+ */
+export async function toggleRecurringPaymentActive(
+  recurringId: string,
+  request: ToggleActiveRequest
+): Promise<RecurringPaymentResponse> {
+  const response = await authenticatedFetch(
+    `/api/financial/recurring-payments/${recurringId}/toggle-active`,
+    {
+      method: 'PUT',
+      body: JSON.stringify(request),
+    },
+    true,
+    FINANCIAL_API_BASE_URL
+  );
+  return handleResponse<RecurringPaymentResponse>(response);
+}
+
+/**
+ * Get payment history for a recurring payment
+ */
+export async function getRecurringPaymentHistory(
+  recurringId: string,
+  params?: {
+    limit?: number;
+    offset?: number;
+    date_from?: string;
+    date_to?: string;
+  }
+): Promise<RecurringPaymentHistoryResponse> {
+  const queryParams = new URLSearchParams();
+  if (params?.limit) queryParams.append('limit', params.limit.toString());
+  if (params?.offset) queryParams.append('offset', params.offset.toString());
+  if (params?.date_from) queryParams.append('date_from', params.date_from);
+  if (params?.date_to) queryParams.append('date_to', params.date_to);
+
+  const queryString = queryParams.toString();
+  const endpoint = `/api/financial/recurring-payments/${recurringId}/history${queryString ? `?${queryString}` : ''}`;
+
+  const response = await authenticatedFetch(
+    endpoint,
+    { method: 'GET' },
+    true,
+    FINANCIAL_API_BASE_URL
+  );
+  return handleResponse<RecurringPaymentHistoryResponse>(response);
+}
+
+/**
+ * Get recurring payments summary
+ */
+export async function getRecurringPaymentsSummary(
+  period: 'monthly' | 'yearly' = 'monthly'
+): Promise<RecurringPaymentsSummaryResponse> {
+  const queryParams = new URLSearchParams();
+  queryParams.append('period', period);
+
+  const queryString = queryParams.toString();
+  const endpoint = `/api/financial/recurring-payments/summary${queryString ? `?${queryString}` : ''}`;
+
+  const response = await authenticatedFetch(
+    endpoint,
+    { method: 'GET' },
+    true,
+    FINANCIAL_API_BASE_URL
+  );
+  return handleResponse<RecurringPaymentsSummaryResponse>(response);
 }
 
 // Upcoming Payments

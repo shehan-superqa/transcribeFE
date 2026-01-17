@@ -197,6 +197,18 @@ export default function FullScreenTransactions({
                     fontWeight: 600,
                     color: theme.palette.text.primary,
                     backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb',
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: '0.875rem',
+                    minWidth: '120px',
+                  }}
+                >
+                  Created Date
+                </TableCell>
+                <TableCell
+                  sx={{
+                    fontWeight: 600,
+                    color: theme.palette.text.primary,
+                    backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f9fafb',
                     cursor: 'pointer',
                     userSelect: 'none',
                     fontFamily: "'Inter', sans-serif",
@@ -336,7 +348,7 @@ export default function FullScreenTransactions({
             <TableBody>
               {sortedTransactions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={10} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={11} align="center" sx={{ py: 4 }}>
                     <Typography variant="body2" color="text.secondary" sx={{ fontFamily: "'Inter', sans-serif" }}>
                       No transactions found
                     </Typography>
@@ -361,13 +373,16 @@ export default function FullScreenTransactions({
                     >
                       <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                          {new Date(transaction.date).toLocaleDateString()}
+                          {new Date(transaction.date).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}
                           {hasMissingFields && (
                             <Tooltip title="This transaction has items with missing price fields">
                               <Warning sx={{ fontSize: '1rem', color: theme.palette.warning.main }} />
                             </Tooltip>
                           )}
                         </Box>
+                      </TableCell>
+                      <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
+                        {transaction.created_at ? new Date(transaction.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }) : '-'}
                       </TableCell>
                     <TableCell sx={{ color: theme.palette.text.primary, fontFamily: "'Inter', sans-serif", fontSize: '0.875rem' }}>
                       {getDisplayMerchantName(transaction, getMerchantName(transaction.merchant_id))}
