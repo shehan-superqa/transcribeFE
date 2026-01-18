@@ -31,6 +31,7 @@ import {
   ToggleButtonGroup,
   ToggleButton,
   CircularProgress,
+  Autocomplete,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -49,7 +50,7 @@ import {
   FilterList as FilterListIcon,
   Sort as SortIcon,
 } from '@mui/icons-material';
-import { RecurringPayment } from '../../types/financial';
+import { RecurringPayment, Category } from '../../types/financial';
 import { useTheme } from '../../contexts/ThemeContext';
 import { formatCurrency } from '../../utils/transactionHelpers';
 import {
@@ -58,6 +59,7 @@ import {
   updateRecurringPayment,
   deleteRecurringPayment,
   toggleRecurringPaymentActive,
+  listCategories,
 } from '../../lib/api/financialApi';
 import CountdownTimer from './CountdownTimer';
 
@@ -103,6 +105,7 @@ export default function RecurringPaymentsSection({ hideHeader = false }: Recurri
   const [openDialog, setOpenDialog] = useState(false);
   const [editingPayment, setEditingPayment] = useState<RecurringPayment | null>(null);
   const [saving, setSaving] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [formData, setFormData] = useState({
     name: '',
     type: 'expense' as 'earning' | 'expense',
@@ -113,9 +116,26 @@ export default function RecurringPaymentsSection({ hideHeader = false }: Recurri
     custom_interval_hours: '',
     start_date: new Date().toISOString().split('T')[0],
     end_date: '',
+    category_name: '',
     is_variable: false,
     is_active: true,
   });
+
+  // Fetch categories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await listCategories();
+        if (response.success) {
+          setCategories(response.categories || []);
+        }
+      } catch (err) {
+        console.error('Error fetching categories:', err);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   // Fetch recurring payments from API
   useEffect(() => {
@@ -154,6 +174,7 @@ export default function RecurringPaymentsSection({ hideHeader = false }: Recurri
         custom_interval_hours: payment.custom_interval_hours?.toString() || '',
         start_date: payment.start_date.split('T')[0],
         end_date: payment.end_date?.split('T')[0] || '',
+        category_name: (payment as any).category_name || '',
         is_variable: payment.is_variable,
         is_active: payment.is_active,
       });
@@ -169,6 +190,7 @@ export default function RecurringPaymentsSection({ hideHeader = false }: Recurri
         custom_interval_hours: '',
         start_date: new Date().toISOString().split('T')[0],
         end_date: '',
+        category_name: '',
         is_variable: false,
         is_active: true,
       });
@@ -182,7 +204,7 @@ export default function RecurringPaymentsSection({ hideHeader = false }: Recurri
   };
 
   const handleSave = async () => {
-    if (!formData.name || !formData.amount) {
+    if (!formData.name || !formData.amount || !formData.category_name) {
       setError('Please fill in all required fields');
       return;
     }
@@ -190,6 +212,13 @@ export default function RecurringPaymentsSection({ hideHeader = false }: Recurri
     try {
       setSaving(true);
       setError(null);
+
+      // Find category_id if category_name matches an existing category
+      const matchedCategory = formData.category_name
+        ? categories.find(
+            c => c?.category_name?.toLowerCase() === formData.category_name.toLowerCase()
+          )
+        : undefined;
 
       const requestData: any = {
         name: formData.name,
@@ -201,6 +230,15 @@ export default function RecurringPaymentsSection({ hideHeader = false }: Recurri
         is_variable: formData.is_variable,
         is_active: formData.is_active,
       };
+
+      // Add category - use ID if matched, otherwise use name
+      if (formData.category_name) {
+        if (matchedCategory) {
+          requestData.category_id = matchedCategory._id;
+        } else {
+          requestData.category_name = formData.category_name;
+        }
+      }
 
       // Add custom interval fields based on frequency
       if (formData.frequency === 'custom_minutes' && formData.custom_interval_minutes) {
@@ -1251,6 +1289,41 @@ export default function RecurringPaymentsSection({ hideHeader = false }: Recurri
               }}
             />
 
+            <Autocomplete
+              freeSolo
+              options={[...new Set(categories.map((category) => category.category_name).filter(Boolean))]}
+              value={formData.category_name || ''}
+              onChange={(event, newValue) => {
+                setFormData({ ...formData, category_name: typeof newValue === 'string' ? newValue : '' });
+              }}
+              onInputChange={(event, newInputValue, reason) => {
+                // Only update on user input, not on selection
+                if (reason === 'input' || reason === 'clear') {
+                  setFormData({ ...formData, category_name: newInputValue || '' });
+                }
+              }}
+              getOptionLabel={(option) => typeof option === 'string' ? option : ''}
+              renderOption={(props, option) => (
+                <li {...props} key={option}>
+                  {option}
+                </li>
+              )}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Category"
+                  placeholder="Select or type a category"
+                  required
+                  error={!formData.category_name && saving}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      fontFamily: "'Inter', sans-serif",
+                    },
+                  }}
+                />
+              )}
+            />
+
             <FormControlLabel
               control={
                 <Switch
@@ -1287,7 +1360,7 @@ export default function RecurringPaymentsSection({ hideHeader = false }: Recurri
           <Button
             onClick={handleSave}
             variant="contained"
-            disabled={!formData.name || !formData.amount || saving}
+            disabled={!formData.name || !formData.amount || !formData.category_name || saving}
             sx={{
               borderRadius: '8px',
               fontSize: '13px',

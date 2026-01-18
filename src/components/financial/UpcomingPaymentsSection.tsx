@@ -79,6 +79,9 @@ export default function UpcomingPaymentsSection() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [period, setPeriod] = useState<'week' | 'month' | '3_months' | '6_months'>('month');
+  const [earningsDuration, setEarningsDuration] = useState<'1_day' | '3_days' | '1_week' | '1_month' | '1_year'>('1_month');
+  const [expensesDuration, setExpensesDuration] = useState<'1_day' | '3_days' | '1_week' | '1_month' | '1_year'>('1_month');
+  const [netDuration, setNetDuration] = useState<'1_day' | '3_days' | '1_week' | '1_month' | '1_year'>('1_month');
   const [openDialog, setOpenDialog] = useState(false);
   const [recurringModalOpen, setRecurringModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -180,6 +183,70 @@ export default function UpcomingPaymentsSection() {
     return [...upcomingPayments].sort((a, b) => a.days_until_due - b.days_until_due);
   }, [upcomingPayments]);
 
+  // Helper function to get days from duration
+  const getDaysFromDuration = (duration: '1_day' | '3_days' | '1_week' | '1_month' | '1_year'): number => {
+    switch (duration) {
+      case '1_day': return 1;
+      case '3_days': return 3;
+      case '1_week': return 7;
+      case '1_month': return 30;
+      case '1_year': return 365;
+      default: return 30;
+    }
+  };
+
+  // Filter payments by duration
+  const filterPaymentsByDuration = (payments: UpcomingPayment[], duration: '1_day' | '3_days' | '1_week' | '1_month' | '1_year'): UpcomingPayment[] => {
+    const days = getDaysFromDuration(duration);
+    return payments.filter(payment => payment.days_until_due <= days);
+  };
+
+  // Calculate filtered amounts
+  const filteredEarnings = useMemo(() => {
+    const filtered = filterPaymentsByDuration(
+      upcomingPayments.filter(p => p.type === 'earning'),
+      earningsDuration
+    );
+    return filtered.reduce((sum, p) => sum + p.amount, 0);
+  }, [upcomingPayments, earningsDuration]);
+
+  const filteredExpenses = useMemo(() => {
+    const filtered = filterPaymentsByDuration(
+      upcomingPayments.filter(p => p.type === 'expense'),
+      expensesDuration
+    );
+    return filtered.reduce((sum, p) => sum + p.amount, 0);
+  }, [upcomingPayments, expensesDuration]);
+
+  const filteredNet = useMemo(() => {
+    const earningsFiltered = filterPaymentsByDuration(
+      upcomingPayments.filter(p => p.type === 'earning'),
+      netDuration
+    );
+    const expensesFiltered = filterPaymentsByDuration(
+      upcomingPayments.filter(p => p.type === 'expense'),
+      netDuration
+    );
+    const earningsTotal = earningsFiltered.reduce((sum, p) => sum + p.amount, 0);
+    const expensesTotal = expensesFiltered.reduce((sum, p) => sum + p.amount, 0);
+    return earningsTotal - expensesTotal;
+  }, [upcomingPayments, netDuration]);
+
+  // Find next nearest payment dates
+  const nextEarningDate = useMemo(() => {
+    const earnings = upcomingPayments.filter(p => p.type === 'earning');
+    if (earnings.length === 0) return null;
+    const sorted = [...earnings].sort((a, b) => a.days_until_due - b.days_until_due);
+    return sorted[0];
+  }, [upcomingPayments]);
+
+  const nextExpenseDate = useMemo(() => {
+    const expenses = upcomingPayments.filter(p => p.type === 'expense');
+    if (expenses.length === 0) return null;
+    const sorted = [...expenses].sort((a, b) => a.days_until_due - b.days_until_due);
+    return sorted[0];
+  }, [upcomingPayments]);
+
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
 
@@ -206,7 +273,7 @@ export default function UpcomingPaymentsSection() {
   };
 
   const handleAddPayment = async () => {
-    if (!newPaymentForm.name || !newPaymentForm.amount || !newPaymentForm.date) {
+    if (!newPaymentForm.name || !newPaymentForm.amount || !newPaymentForm.date || !newPaymentForm.category_name) {
       setError('Please fill in all required fields');
       return;
     }
@@ -492,28 +559,55 @@ export default function UpcomingPaymentsSection() {
             }}
           >
             <CardContent sx={{ p: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-                <Box
-                  sx={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: '12px',
-                    bgcolor: isDark ? 'rgba(16, 185, 129, 0.3)' : '#ECFDF5',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#10B981',
-                  }}
-                >
-                  <TrendingUpIcon sx={{ fontSize: 20 }} />
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <Box
+                    sx={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: '12px',
+                      bgcolor: isDark ? 'rgba(16, 185, 129, 0.3)' : '#ECFDF5',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#10B981',
+                    }}
+                  >
+                    <TrendingUpIcon sx={{ fontSize: 20 }} />
+                  </Box>
+                  <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.secondary', fontSize: '14px' }}>
+                    Upcoming Earnings
+                  </Typography>
                 </Box>
-                <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.secondary', fontSize: '14px' }}>
-                  Upcoming Earnings
-                </Typography>
+                <FormControl size="small" sx={{ minWidth: 100 }}>
+                  <Select
+                    value={earningsDuration}
+                    onChange={(e) => setEarningsDuration(e.target.value as any)}
+                    sx={{
+                      fontSize: '11px',
+                      height: '28px',
+                      '& .MuiSelect-select': {
+                        py: 0.5,
+                        px: 1,
+                      },
+                    }}
+                  >
+                    <MenuItem value="1_day">1 Day</MenuItem>
+                    <MenuItem value="3_days">3 Days</MenuItem>
+                    <MenuItem value="1_week">1 Week</MenuItem>
+                    <MenuItem value="1_month">1 Month</MenuItem>
+                    <MenuItem value="1_year">1 Year</MenuItem>
+                  </Select>
+                </FormControl>
               </Box>
-              <Typography variant="h5" sx={{ fontWeight: 700, color: '#10B981', fontSize: '24px' }}>
-                +${summary.totalUpcomingEarnings.toFixed(2)}
+              <Typography variant="h5" sx={{ fontWeight: 700, color: '#10B981', fontSize: '24px', mb: 1 }}>
+                +${filteredEarnings.toFixed(2)}
               </Typography>
+              {nextEarningDate && (
+                <Typography variant="caption" sx={{ fontSize: '12px', color: 'text.secondary', display: 'block' }}>
+                  Next: {new Date(nextEarningDate.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                </Typography>
+              )}
             </CardContent>
           </Card>
         </Grid>
@@ -529,28 +623,55 @@ export default function UpcomingPaymentsSection() {
             }}
           >
             <CardContent sx={{ p: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-                <Box
-                  sx={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: '12px',
-                    bgcolor: isDark ? 'rgba(244, 63, 94, 0.3)' : '#FEF2F2',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#F43F5E',
-                  }}
-                >
-                  <TrendingDownIcon sx={{ fontSize: 20 }} />
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <Box
+                    sx={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: '12px',
+                      bgcolor: isDark ? 'rgba(244, 63, 94, 0.3)' : '#FEF2F2',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#F43F5E',
+                    }}
+                  >
+                    <TrendingDownIcon sx={{ fontSize: 20 }} />
+                  </Box>
+                  <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.secondary', fontSize: '14px' }}>
+                    Upcoming Expenses
+                  </Typography>
                 </Box>
-                <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.secondary', fontSize: '14px' }}>
-                  Upcoming Expenses
-                </Typography>
+                <FormControl size="small" sx={{ minWidth: 100 }}>
+                  <Select
+                    value={expensesDuration}
+                    onChange={(e) => setExpensesDuration(e.target.value as any)}
+                    sx={{
+                      fontSize: '11px',
+                      height: '28px',
+                      '& .MuiSelect-select': {
+                        py: 0.5,
+                        px: 1,
+                      },
+                    }}
+                  >
+                    <MenuItem value="1_day">1 Day</MenuItem>
+                    <MenuItem value="3_days">3 Days</MenuItem>
+                    <MenuItem value="1_week">1 Week</MenuItem>
+                    <MenuItem value="1_month">1 Month</MenuItem>
+                    <MenuItem value="1_year">1 Year</MenuItem>
+                  </Select>
+                </FormControl>
               </Box>
-              <Typography variant="h5" sx={{ fontWeight: 700, color: '#F43F5E', fontSize: '24px' }}>
-                -${summary.totalUpcomingExpenses.toFixed(2)}
+              <Typography variant="h5" sx={{ fontWeight: 700, color: '#F43F5E', fontSize: '24px', mb: 1 }}>
+                -${filteredExpenses.toFixed(2)}
               </Typography>
+              {nextExpenseDate && (
+                <Typography variant="caption" sx={{ fontSize: '12px', color: 'text.secondary', display: 'block' }}>
+                  Next: {new Date(nextExpenseDate.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                </Typography>
+              )}
             </CardContent>
           </Card>
         </Grid>
@@ -566,24 +687,46 @@ export default function UpcomingPaymentsSection() {
             }}
           >
             <CardContent sx={{ p: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-                <Box
-                  sx={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: '12px',
-                    bgcolor: isDark ? 'rgba(37, 99, 235, 0.3)' : '#EFF6FF',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#2563EB',
-                  }}
-                >
-                  <AccountBalanceWalletIcon sx={{ fontSize: 20 }} />
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <Box
+                    sx={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: '12px',
+                      bgcolor: isDark ? 'rgba(37, 99, 235, 0.3)' : '#EFF6FF',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#2563EB',
+                    }}
+                  >
+                    <AccountBalanceWalletIcon sx={{ fontSize: 20 }} />
+                  </Box>
+                  <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.secondary', fontSize: '14px' }}>
+                    Net Upcoming
+                  </Typography>
                 </Box>
-                <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.secondary', fontSize: '14px' }}>
-                  Net Upcoming
-                </Typography>
+                <FormControl size="small" sx={{ minWidth: 100 }}>
+                  <Select
+                    value={netDuration}
+                    onChange={(e) => setNetDuration(e.target.value as any)}
+                    sx={{
+                      fontSize: '11px',
+                      height: '28px',
+                      '& .MuiSelect-select': {
+                        py: 0.5,
+                        px: 1,
+                      },
+                    }}
+                  >
+                    <MenuItem value="1_day">1 Day</MenuItem>
+                    <MenuItem value="3_days">3 Days</MenuItem>
+                    <MenuItem value="1_week">1 Week</MenuItem>
+                    <MenuItem value="1_month">1 Month</MenuItem>
+                    <MenuItem value="1_year">1 Year</MenuItem>
+                  </Select>
+                </FormControl>
               </Box>
               <Typography 
                 variant="h5" 
@@ -593,7 +736,7 @@ export default function UpcomingPaymentsSection() {
                   fontSize: '24px'
                 }}
               >
-                +${summary.netUpcoming.toFixed(2)}
+                {filteredNet >= 0 ? '+' : ''}${filteredNet.toFixed(2)}
               </Typography>
             </CardContent>
           </Card>
@@ -1224,8 +1367,10 @@ export default function UpcomingPaymentsSection() {
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  label="Category (Optional)"
+                  label="Category"
                   placeholder="Select or type a category"
+                  required
+                  error={!newPaymentForm.category_name && saving}
                 />
               )}
             />
@@ -1273,7 +1418,7 @@ export default function UpcomingPaymentsSection() {
           <Button
             onClick={handleAddPayment}
             variant="contained"
-            disabled={!newPaymentForm.name || !newPaymentForm.amount || !newPaymentForm.date || saving}
+            disabled={!newPaymentForm.name || !newPaymentForm.amount || !newPaymentForm.date || !newPaymentForm.category_name || saving}
             sx={{ 
               textTransform: 'none',
               fontWeight: 600,
