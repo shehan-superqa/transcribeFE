@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Box, Paper, Typography, TextField, Button, Card, CardContent, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Tabs, Tab, Chip, List, ListItem, ListItemText, Snackbar, Alert } from '@mui/material';
-import { Edit, Add } from '@mui/icons-material';
+import { Edit, Add, Delete } from '@mui/icons-material';
 import { useTheme } from '../../contexts/ThemeContext';
-import { listMerchants, updateMerchant, listCategories, createCategory } from '../../lib/api/financialApi';
+import { listMerchants, updateMerchant, listCategories, createCategory, updateCategory, deleteCategory } from '../../lib/api/financialApi';
 import { Merchant, Category } from '../../types/financial';
 
 interface MerchantsCategoriesSectionProps {
@@ -16,7 +16,10 @@ export default function MerchantsCategoriesSection({ onDataChange }: MerchantsCa
   const [categories, setCategories] = useState<Category[]>([]);
   const [editMerchantDialog, setEditMerchantDialog] = useState(false);
   const [createCategoryDialog, setCreateCategoryDialog] = useState(false);
+  const [editCategoryDialog, setEditCategoryDialog] = useState(false);
+  const [deleteCategoryDialog, setDeleteCategoryDialog] = useState(false);
   const [selectedMerchant, setSelectedMerchant] = useState<Merchant | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [merchantForm, setMerchantForm] = useState({ aliases: '', category: '' });
   const [categoryForm, setCategoryForm] = useState({ name: '', parent: '' });
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' | 'info' | 'warning' }>({
@@ -80,6 +83,47 @@ export default function MerchantsCategoriesSection({ onDataChange }: MerchantsCa
       onDataChange?.();
     } catch (error: any) {
       setSnackbar({ open: true, message: 'Failed to create category: ' + error.message, severity: 'error' });
+    }
+  };
+
+  const handleEditCategory = (category: Category) => {
+    setSelectedCategory(category);
+    setCategoryForm({
+      name: category.category_name,
+      parent: category.parent_category || '',
+    });
+    setEditCategoryDialog(true);
+  };
+
+  const handleSaveCategory = async () => {
+    if (!selectedCategory) return;
+    try {
+      await updateCategory(selectedCategory._id, {
+        category_name: categoryForm.name,
+        parent_category: categoryForm.parent || null,
+      });
+      setEditCategoryDialog(false);
+      setSelectedCategory(null);
+      setCategoryForm({ name: '', parent: '' });
+      setSnackbar({ open: true, message: 'Category updated successfully', severity: 'success' });
+      loadData();
+      onDataChange?.();
+    } catch (error: any) {
+      setSnackbar({ open: true, message: 'Failed to update category: ' + error.message, severity: 'error' });
+    }
+  };
+
+  const handleDeleteCategory = async () => {
+    if (!selectedCategory) return;
+    try {
+      await deleteCategory(selectedCategory._id);
+      setDeleteCategoryDialog(false);
+      setSelectedCategory(null);
+      setSnackbar({ open: true, message: 'Category deleted successfully', severity: 'success' });
+      loadData();
+      onDataChange?.();
+    } catch (error: any) {
+      setSnackbar({ open: true, message: 'Failed to delete category: ' + error.message, severity: 'error' });
     }
   };
 
@@ -176,16 +220,46 @@ export default function MerchantsCategoriesSection({ onDataChange }: MerchantsCa
               Create Category
             </Button>
           </Box>
-          <List>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {categories.map((category) => (
-              <ListItem key={category._id}>
-                <ListItemText
-                  primary={category.category_name}
-                  secondary={category.parent_category ? `Parent: ${category.parent_category}` : 'Root category'}
-                />
-              </ListItem>
+              <Card key={category._id} elevation={1} sx={{ backgroundColor: theme.palette.background.paper }}>
+                <CardContent>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary }}>
+                        {category.category_name}
+                      </Typography>
+                      {category.parent_category && (
+                        <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                          Parent: {category.parent_category}
+                        </Typography>
+                      )}
+                      {!category.parent_category && (
+                        <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                          Root category
+                        </Typography>
+                      )}
+                    </Box>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <IconButton onClick={() => handleEditCategory(category)} color="primary" size="small">
+                        <Edit />
+                      </IconButton>
+                      <IconButton 
+                        onClick={() => {
+                          setSelectedCategory(category);
+                          setDeleteCategoryDialog(true);
+                        }} 
+                        color="error" 
+                        size="small"
+                      >
+                        <Delete />
+                      </IconButton>
+                    </Box>
+                  </Box>
+                </CardContent>
+              </Card>
             ))}
-          </List>
+          </Box>
         </Box>
       )}
 
@@ -244,6 +318,65 @@ export default function MerchantsCategoriesSection({ onDataChange }: MerchantsCa
           </Button>
           </DialogActions>
         </Dialog>
+
+      {/* Edit Category Dialog */}
+      <Dialog open={editCategoryDialog} onClose={() => {
+        setEditCategoryDialog(false);
+        setSelectedCategory(null);
+        setCategoryForm({ name: '', parent: '' });
+      }} maxWidth="sm" fullWidth>
+        <DialogTitle>Edit Category</DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+            <TextField
+              label="Category Name"
+              value={categoryForm.name}
+              onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })}
+              fullWidth
+              required
+            />
+            <TextField
+              label="Parent Category ID (optional)"
+              value={categoryForm.parent}
+              onChange={(e) => setCategoryForm({ ...categoryForm, parent: e.target.value })}
+              fullWidth
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => {
+            setEditCategoryDialog(false);
+            setSelectedCategory(null);
+            setCategoryForm({ name: '', parent: '' });
+          }}>Cancel</Button>
+          <Button onClick={handleSaveCategory} variant="contained">
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Category Dialog */}
+      <Dialog open={deleteCategoryDialog} onClose={() => {
+        setDeleteCategoryDialog(false);
+        setSelectedCategory(null);
+      }}>
+        <DialogTitle>Delete Category</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to delete "{selectedCategory?.category_name}"? 
+            This action cannot be undone. Categories that are used in transactions cannot be deleted.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => {
+            setDeleteCategoryDialog(false);
+            setSelectedCategory(null);
+          }}>Cancel</Button>
+          <Button onClick={handleDeleteCategory} color="error" variant="contained">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
 
         {/* Snackbar for notifications */}
         <Snackbar

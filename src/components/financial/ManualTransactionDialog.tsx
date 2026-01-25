@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -15,19 +15,21 @@ import {
   ToggleButtonGroup,
   ToggleButton,
   Alert,
+  Autocomplete,
 } from '@mui/material';
 import {
   TrendingUp as TrendingUpIcon,
   TrendingDown as TrendingDownIcon,
 } from '@mui/icons-material';
-import { Category } from '../../types/financial';
-import { createManualTransaction } from '../../lib/api/financialApi';
+import { Category, Merchant } from '../../types/financial';
+import { createManualTransaction, listMerchants } from '../../lib/api/financialApi';
 
 interface ManualTransactionDialogProps {
   open: boolean;
   onClose: () => void;
   onSave: (transaction: any) => void;
   categories?: Category[];
+  merchants?: Merchant[];
 }
 
 export default function ManualTransactionDialog({
@@ -35,12 +37,15 @@ export default function ManualTransactionDialog({
   onClose,
   onSave,
   categories = [],
+  merchants: merchantsProp = [],
 }: ManualTransactionDialogProps) {
   const [formData, setFormData] = useState({
     type: 'expense' as 'earning' | 'expense',
     amount: '',
     merchant_name: '',
+    merchant_id: '',
     category_id: '',
+    category_name: '',
     date: new Date().toISOString().split('T')[0],
     payment_method: '',
     note: '',
@@ -49,6 +54,26 @@ export default function ManualTransactionDialog({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [merchants, setMerchants] = useState<Merchant[]>(merchantsProp);
+
+  // Load merchants when dialog opens if not provided
+  useEffect(() => {
+    if (open && merchantsProp.length === 0) {
+      const loadMerchants = async () => {
+        try {
+          const response = await listMerchants();
+          if (response.success) {
+            setMerchants(response.merchants);
+          }
+        } catch (error) {
+          console.error('Failed to load merchants:', error);
+        }
+      };
+      loadMerchants();
+    } else if (merchantsProp.length > 0) {
+      setMerchants(merchantsProp);
+    }
+  }, [open, merchantsProp]);
 
   const handleTypeChange = (_event: React.MouseEvent<HTMLElement>, newType: 'earning' | 'expense' | null) => {
     if (newType !== null) {
@@ -87,7 +112,9 @@ export default function ManualTransactionDialog({
         amount: parseFloat(formData.amount),
         date: dateObj.toISOString(),
         merchant_name: formData.merchant_name || undefined,
+        merchant_id: formData.merchant_id || undefined,
         category_id: formData.category_id || undefined,
+        category_name: formData.category_name || undefined,
         description: formData.note || undefined,
         payment_method: formData.payment_method || undefined,
         currency: formData.currency,
@@ -114,7 +141,9 @@ export default function ManualTransactionDialog({
       type: 'expense',
       amount: '',
       merchant_name: '',
+      merchant_id: '',
       category_id: '',
+      category_name: '',
       date: new Date().toISOString().split('T')[0],
       payment_method: '',
       note: '',
@@ -216,33 +245,100 @@ export default function ManualTransactionDialog({
           />
 
           {/* Merchant/Source Name */}
-          <TextField
-            label={formData.type === 'earning' ? 'Source Name' : 'Merchant Name'}
-            value={formData.merchant_name}
-            onChange={(e) => setFormData({ ...formData, merchant_name: e.target.value })}
-            fullWidth
-            placeholder={formData.type === 'earning' ? 'e.g., Freelance Client' : 'e.g., Local Store'}
-            helperText="Optional - Leave blank for generic entry"
+          <Autocomplete
+            freeSolo
+            openOnFocus
+            options={[...new Set(merchants.map((merchant) => merchant.merchant_name).filter(Boolean))]}
+            value={formData.merchant_name || ''}
+            onChange={(event, newValue) => {
+              const merchantName = typeof newValue === 'string' ? newValue : '';
+              const selectedMerchant = merchants.find(m => m.merchant_name === merchantName);
+              setFormData({ 
+                ...formData, 
+                merchant_name: merchantName,
+                merchant_id: selectedMerchant?._id || ''
+              });
+            }}
+            onInputChange={(event, newInputValue, reason) => {
+              // Only update on user input, not on selection
+              if (reason === 'input' || reason === 'clear') {
+                setFormData({ 
+                  ...formData, 
+                  merchant_name: newInputValue || '',
+                  merchant_id: '' // Clear ID when typing manually
+                });
+              }
+            }}
+            getOptionLabel={(option) => typeof option === 'string' ? option : ''}
+            filterOptions={(options, params) => {
+              const filtered = options.filter((option) =>
+                typeof option === 'string' && option.toLowerCase().includes(params.inputValue.toLowerCase())
+              );
+              return filtered;
+            }}
+            renderOption={(props, option) => (
+              <li {...props} key={option}>
+                {option}
+              </li>
+            )}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label={formData.type === 'earning' ? 'Source Name' : 'Merchant Name'}
+                placeholder={formData.type === 'earning' ? 'e.g., Freelance Client' : 'e.g., Local Store'}
+                helperText="Optional - Select from list or type a new name"
+              />
+            )}
           />
 
           {/* Category */}
-          <FormControl fullWidth>
-            <InputLabel>Category</InputLabel>
-            <Select
-              value={formData.category_id}
-              label="Category"
-              onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-            >
-              <MenuItem value="">
-                <em>None</em>
-              </MenuItem>
-              {categories.map((category) => (
-                <MenuItem key={category._id} value={category._id}>
-                  {category.category_name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <Autocomplete
+            freeSolo
+            openOnFocus
+            options={[...new Set(categories
+              .filter((category) => category.category_name?.toLowerCase() !== 'other')
+              .map((category) => category.category_name)
+              .filter(Boolean))]}
+            value={formData.category_name || ''}
+            onChange={(event, newValue) => {
+              const categoryName = typeof newValue === 'string' ? newValue : '';
+              const selectedCategory = categories.find(c => c.category_name === categoryName);
+              setFormData({ 
+                ...formData, 
+                category_name: categoryName,
+                category_id: selectedCategory?._id || ''
+              });
+            }}
+            onInputChange={(event, newInputValue, reason) => {
+              // Only update on user input, not on selection
+              if (reason === 'input' || reason === 'clear') {
+                setFormData({ 
+                  ...formData, 
+                  category_name: newInputValue || '',
+                  category_id: '' // Clear ID when typing manually
+                });
+              }
+            }}
+            getOptionLabel={(option) => typeof option === 'string' ? option : ''}
+            filterOptions={(options, params) => {
+              const filtered = options.filter((option) =>
+                typeof option === 'string' && option.toLowerCase().includes(params.inputValue.toLowerCase())
+              );
+              return filtered;
+            }}
+            renderOption={(props, option) => (
+              <li {...props} key={option}>
+                {option}
+              </li>
+            )}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Category"
+                placeholder="Select or type a category"
+              />
+            )}
+          />
 
           {/* Date */}
           <TextField

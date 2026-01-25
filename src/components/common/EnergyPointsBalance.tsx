@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../lib/auth';
 import { getEnergyPointsBalance } from '../../lib/api/paymentApi';
 import { clearAuthData } from '../../lib/api';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface EnergyPointsBalanceProps {
   showLabel?: boolean;
@@ -21,31 +21,35 @@ export default function EnergyPointsBalance({
   const { user } = useAuth();
   const navigate = useNavigate();
   // Initialize balance with user's energyPoints if available, so it shows immediately
-  const [balance, setBalance] = useState<number | null>(user?.energyPoints ?? null);
-  const [loading, setLoading] = useState(true);
+  // Default to 0 instead of null to avoid showing "Loading..." when user exists
+  const [balance, setBalance] = useState<number>(user?.energyPoints ?? 0);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const hasFetchedRef = useRef(false);
+  const isFetchingRef = useRef(false);
 
   const fetchBalance = async () => {
-    if (!user) {
-      setBalance(0);
-      setLoading(false);
+    if (!user || isFetchingRef.current) {
       return;
     }
 
+    isFetchingRef.current = true;
     try {
-      // Only show loading if we don't have a balance from user object yet
-      // If we already have balance from user object, update silently in background
-      const hasInitialBalance = user.energyPoints !== undefined && user.energyPoints !== null;
-      if (!hasInitialBalance) {
+      setError(null);
+      // Only show loading spinner if we haven't fetched yet and don't have initial balance
+      // But since we show 0 as default, we typically won't show loading
+      if (!hasFetchedRef.current && user.energyPoints === undefined) {
         setLoading(true);
       }
-      setError(null);
+      
       const response = await getEnergyPointsBalance();
       if (response.success && response.data) {
         setBalance(response.data.energyPoints);
+        hasFetchedRef.current = true;
       } else {
         // Fallback to user object energyPoints if available
         setBalance(user.energyPoints ?? 0);
+        hasFetchedRef.current = true;
       }
     } catch (err: any) {
       // Handle "User not found" error specifically
@@ -57,32 +61,45 @@ export default function EnergyPointsBalance({
         setBalance(0);
       } else {
         console.warn('Could not fetch energy points balance:', err);
-        // Fallback to user object energyPoints if available
-        setBalance(user.energyPoints ?? 0);
-        setError('Failed to load balance');
+        // Fallback to user object energyPoints if available, or keep current balance
+        setBalance(user?.energyPoints ?? balance ?? 0);
+        setError(null); // Don't show error, just use fallback value
       }
+      hasFetchedRef.current = true; // Mark as fetched even on error to avoid retrying immediately
     } finally {
       setLoading(false);
+      isFetchingRef.current = false;
     }
   };
 
   // Update balance immediately when user changes (e.g., after login)
   // This ensures energy points show immediately without waiting for API call
   useEffect(() => {
-    if (user?.energyPoints !== undefined) {
-      setBalance(user.energyPoints);
-      // If we have user data, we can show it immediately (don't wait for API)
-      // But still fetch fresh data in the background
+    if (!user) {
+      setBalance(0);
       setLoading(false);
-    } else if (!user) {
+      hasFetchedRef.current = false;
+      return;
+    }
+
+    // If user has energyPoints in the user object, use it immediately
+    if (user.energyPoints !== undefined && user.energyPoints !== null) {
+      setBalance(user.energyPoints);
+      setLoading(false);
+    } else {
+      // User exists but no energyPoints - show 0 as default (don't show loading)
       setBalance(0);
       setLoading(false);
     }
   }, [user?.energyPoints, user]);
 
-  // Fetch latest balance from API when user ID changes
+  // Fetch latest balance from API when user ID changes (e.g., after login)
+  // This runs separately to ensure we always fetch fresh data
   useEffect(() => {
     if (user?.id) {
+      // Reset fetch flag when user changes
+      hasFetchedRef.current = false;
+      // Fetch balance - this will update in background
       fetchBalance();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -96,8 +113,8 @@ export default function EnergyPointsBalance({
     }
   };
 
-  const isLowBalance = balance !== null && balance < 50;
-  const displayBalance = balance !== null ? balance : 0;
+  const isLowBalance = balance < 50;
+  const displayBalance = balance;
 
   const styles: React.CSSProperties = {
     display: 'flex',
@@ -112,6 +129,7 @@ export default function EnergyPointsBalance({
     borderRadius: '9999px',
     backgroundColor: isLowBalance && showLowWarning ? '#fff3cd' : 'transparent',
     transition: 'all 0.2s ease-in-out',
+    opacity: loading ? 0.6 : 1,
     ...(isLowBalance && showLowWarning
       ? {
           color: '#856404',
@@ -120,20 +138,14 @@ export default function EnergyPointsBalance({
       : {}),
   };
 
-  if (loading && balance === null) {
+  // Only show loading spinner if we're actively loading and haven't shown any balance yet
+  // Otherwise, show the balance (even if 0) while fetching updates in background
+  if (loading && !hasFetchedRef.current && user?.energyPoints === undefined) {
     return (
-      <div style={{ ...styles, cursor: 'default', opacity: 0.6 }}>
+      <div style={{ ...styles, cursor: 'default' }}>
         <span>⚡</span>
         {showLabel && <span>Loading...</span>}
-      </div>
-    );
-  }
-
-  if (error && balance === null) {
-    return (
-      <div style={{ ...styles, cursor: 'default', color: '#dc3545' }} onClick={fetchBalance}>
-        <span>⚡</span>
-        {showLabel && <span>Error</span>}
+        {!showLabel && <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Loading...</span>}
       </div>
     );
   }

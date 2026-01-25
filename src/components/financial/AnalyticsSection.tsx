@@ -689,7 +689,17 @@ export default function AnalyticsSection() {
                 </Box>
               ) : currentInsight ? (
                 <Card elevation={0} sx={{ border: `1px solid ${theme.palette.divider}`, p: 2 }}>
-                  <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', color: theme.palette.text.primary }}>
+                  <Typography 
+                    variant="body1" 
+                    sx={{ 
+                      whiteSpace: 'pre-wrap',
+                      wordWrap: 'break-word',
+                      overflowWrap: 'break-word',
+                      wordBreak: 'break-word',
+                      color: theme.palette.text.primary,
+                      lineHeight: 1.6,
+                    }}
+                  >
                     {currentInsight}
                   </Typography>
                 </Card>

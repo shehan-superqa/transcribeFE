@@ -357,6 +357,7 @@ export default function FinancialToolApp() {
             setShowManualTransactionDialog(false);
           }}
           categories={categories}
+          merchants={merchants}
         />
       </div>
     </ThemeProvider>

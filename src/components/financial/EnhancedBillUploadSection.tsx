@@ -52,8 +52,8 @@ import {
   Visibility,
 } from '@mui/icons-material';
 import { useTheme } from '../../contexts/ThemeContext';
-import { uploadBill, uploadBillsBulk, getBillStatus, getBulkUploadStatus, getActiveBills } from '../../lib/api/financialApi';
-import { Transaction } from '../../types/financial';
+import { uploadBill, uploadBillsBulk, getBillStatus, getBulkUploadStatus, getActiveBills, listMerchants } from '../../lib/api/financialApi';
+import { Transaction, Merchant } from '../../types/financial';
 import CameraCapture from './CameraCapture';
 import { useFinancialJobProgress } from '../../hooks/useFinancialJobProgress';
 import ManualTransactionDialog from './ManualTransactionDialog';
@@ -238,6 +238,7 @@ export default function EnhancedBillUploadSection({ onTransactionCreated, catego
   const [isProcessing, setIsProcessing] = useState(false);
   const [hasActiveJobs, setHasActiveJobs] = useState(false);
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
+  const [merchants, setMerchants] = useState<Merchant[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   
   // Sync dark mode class with theme
@@ -612,6 +613,7 @@ export default function EnhancedBillUploadSection({ onTransactionCreated, catego
           setShowManualDialog(false);
         }}
         categories={categories || []}
+        merchants={merchants}
       />
 
       <div 

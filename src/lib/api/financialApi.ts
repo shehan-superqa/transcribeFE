@@ -17,6 +17,10 @@ import {
   UpdateMerchantRequest,
   CategoriesListResponse,
   CreateCategoryRequest,
+  UpdateCategoryRequest,
+  CategoryResponse,
+  CategoryAnalyticsResponse,
+  CategoryTrendsResponse,
   SpendingSummaryResponse,
   SpendingTrendsResponse,
   AnomaliesResponse,
@@ -35,6 +39,7 @@ import {
   CategoryCap,
   CategoryCapsResponse,
   CreateCategoryCapRequest,
+  UpdateCategoryCapRequest,
   BudgetAlert,
   AlertsResponse,
   AvailableEarningsResponse,
@@ -472,6 +477,117 @@ export async function createCategory(
   return handleResponse<{ success: boolean; category: any }>(response);
 }
 
+export async function getCategory(categoryId: string): Promise<CategoryResponse> {
+  const response = await authenticatedFetch(
+    `/api/financial/categories/${categoryId}`,
+    { method: 'GET' },
+    true,
+    FINANCIAL_API_BASE_URL
+  );
+  return handleResponse<CategoryResponse>(response);
+}
+
+export async function updateCategory(
+  categoryId: string,
+  updates: UpdateCategoryRequest
+): Promise<CategoryResponse> {
+  const response = await authenticatedFetch(
+    `/api/financial/categories/${categoryId}`,
+    {
+      method: 'PUT',
+      body: JSON.stringify(updates),
+    },
+    true,
+    FINANCIAL_API_BASE_URL
+  );
+  return handleResponse<CategoryResponse>(response);
+}
+
+export async function deleteCategory(categoryId: string): Promise<{ success: boolean; message: string }> {
+  const response = await authenticatedFetch(
+    `/api/financial/categories/${categoryId}`,
+    { method: 'DELETE' },
+    true,
+    FINANCIAL_API_BASE_URL
+  );
+  return handleResponse<{ success: boolean; message: string }>(response);
+}
+
+export async function getCategoryTransactions(
+  categoryId: string,
+  params?: {
+    date_from?: string;
+    date_to?: string;
+    limit?: number;
+    offset?: number;
+  }
+): Promise<TransactionsListResponse> {
+  const queryParams = new URLSearchParams();
+  if (params?.date_from) queryParams.append('date_from', params.date_from);
+  if (params?.date_to) queryParams.append('date_to', params.date_to);
+  if (params?.limit) queryParams.append('limit', params.limit.toString());
+  if (params?.offset) queryParams.append('offset', params.offset.toString());
+
+  const queryString = queryParams.toString();
+  const endpoint = `/api/financial/categories/${categoryId}/transactions${queryString ? `?${queryString}` : ''}`;
+
+  const response = await authenticatedFetch(
+    endpoint,
+    { method: 'GET' },
+    true,
+    FINANCIAL_API_BASE_URL
+  );
+  return handleResponse<TransactionsListResponse>(response);
+}
+
+export async function getCategoryAnalytics(
+  categoryId: string,
+  params?: {
+    period?: 'hour' | 'day' | 'week' | 'month' | 'year';
+    date_from?: string;
+    date_to?: string;
+  }
+): Promise<CategoryAnalyticsResponse> {
+  const queryParams = new URLSearchParams();
+  if (params?.period) queryParams.append('period', params.period);
+  if (params?.date_from) queryParams.append('date_from', params.date_from);
+  if (params?.date_to) queryParams.append('date_to', params.date_to);
+
+  const queryString = queryParams.toString();
+  const endpoint = `/api/financial/categories/${categoryId}/analytics${queryString ? `?${queryString}` : ''}`;
+
+  const response = await authenticatedFetch(
+    endpoint,
+    { method: 'GET' },
+    true,
+    FINANCIAL_API_BASE_URL
+  );
+  return handleResponse<CategoryAnalyticsResponse>(response);
+}
+
+export async function getCategoryTrends(
+  categoryId: string,
+  params?: {
+    period?: 'hour' | 'day' | 'week' | 'month' | 'year';
+    months_back?: number;
+  }
+): Promise<CategoryTrendsResponse> {
+  const queryParams = new URLSearchParams();
+  if (params?.period) queryParams.append('period', params.period);
+  if (params?.months_back) queryParams.append('months_back', params.months_back.toString());
+
+  const queryString = queryParams.toString();
+  const endpoint = `/api/financial/categories/${categoryId}/trends${queryString ? `?${queryString}` : ''}`;
+
+  const response = await authenticatedFetch(
+    endpoint,
+    { method: 'GET' },
+    true,
+    FINANCIAL_API_BASE_URL
+  );
+  return handleResponse<CategoryTrendsResponse>(response);
+}
+
 // Analytics
 
 export async function getSpendingSummary(params?: {
@@ -719,6 +835,42 @@ export async function getCategoryCaps(): Promise<CategoryCapsResponse> {
     FINANCIAL_API_BASE_URL
   );
   return handleResponse<CategoryCapsResponse>(response);
+}
+
+export async function getCategoryCap(capId: string): Promise<{ success: boolean; cap: CategoryCap }> {
+  const response = await authenticatedFetch(
+    `/api/financial/budgets/category-caps/${capId}`,
+    { method: 'GET' },
+    true,
+    FINANCIAL_API_BASE_URL
+  );
+  return handleResponse<{ success: boolean; cap: CategoryCap }>(response);
+}
+
+export async function updateCategoryCap(
+  capId: string,
+  request: UpdateCategoryCapRequest
+): Promise<{ success: boolean; cap: CategoryCap }> {
+  const response = await authenticatedFetch(
+    `/api/financial/budgets/category-caps/${capId}`,
+    {
+      method: 'PUT',
+      body: JSON.stringify(request),
+    },
+    true,
+    FINANCIAL_API_BASE_URL
+  );
+  return handleResponse<{ success: boolean; cap: CategoryCap }>(response);
+}
+
+export async function deleteCategoryCap(capId: string): Promise<{ success: boolean; message: string }> {
+  const response = await authenticatedFetch(
+    `/api/financial/budgets/category-caps/${capId}`,
+    { method: 'DELETE' },
+    true,
+    FINANCIAL_API_BASE_URL
+  );
+  return handleResponse<{ success: boolean; message: string }>(response);
 }
 
 // Alerts

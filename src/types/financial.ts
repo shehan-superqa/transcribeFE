@@ -247,6 +247,84 @@ export interface CreateCategoryRequest {
   parent_category?: string;
 }
 
+export interface UpdateCategoryRequest {
+  category_name?: string;
+  parent_category?: string | null;
+}
+
+export interface CategoryResponse {
+  success: boolean;
+  category: Category;
+}
+
+export interface CategoryAnalyticsResponse {
+  success: boolean;
+  analytics: {
+    total_spent: number;
+    transaction_count: number;
+    avg_transaction_amount: number;
+    trend: 'up' | 'down' | 'stable';
+    trend_percentage: number;
+    category_name: string;
+  };
+}
+
+export interface CategoryTrendsResponse {
+  success: boolean;
+  trends: {
+    category_id: string;
+    category_name: string;
+    period: 'hour' | 'day' | 'week' | 'month' | 'year';
+    months_back?: number;
+    date_from: string;
+    date_to: string;
+    spending_trend: Array<{
+      period: string;
+      period_start: string;
+      period_end: string;
+      total_amount: number;
+      total_earnings: number;
+      total_expenses: number;
+      net_amount: number;
+      transaction_count: number;
+      earning_count: number;
+      expense_count: number;
+      avg_amount: number;
+    }>;
+    spending_distribution?: Array<{
+      period_start: string;
+      period_end: string;
+      earnings: number;
+      expenses: number;
+      earnings_percentage: number;
+      expenses_percentage: number;
+      total_percentage: number;
+    }>;
+    cumulative_spending?: Array<{
+      period_start: string;
+      period_end: string;
+      period_earnings: number;
+      period_expenses: number;
+      period_net: number;
+      cumulative_earnings: number;
+      cumulative_expenses: number;
+      cumulative_net: number;
+    }>;
+    summary: {
+      total_amount: number;
+      total_earnings: number;
+      total_expenses: number;
+      net_amount: number;
+      period_count: number;
+    };
+  };
+}
+
+export interface UpdateCategoryCapRequest {
+  monthly_limit?: number;
+  alert_at_percentage?: number;
+}
+
 export interface SpendingSummaryResponse {
   success: boolean;
   summary: {

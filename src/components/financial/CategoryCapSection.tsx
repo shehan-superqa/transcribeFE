@@ -27,7 +27,7 @@ import {
 } from '@mui/material';
 import { Add, Edit, Delete, Warning } from '@mui/icons-material';
 import { useTheme } from '../../contexts/ThemeContext';
-import { getCategoryCaps, createCategoryCap } from '../../lib/api/financialApi';
+import { getCategoryCaps, createCategoryCap, updateCategoryCap, deleteCategoryCap } from '../../lib/api/financialApi';
 import { CreateCategoryCapRequest, CategoryCap, Category } from '../../types/financial';
 
 interface CategoryCapSectionProps {
@@ -85,7 +85,16 @@ export default function CategoryCapSection({ categories = [], onCapChange }: Cat
     }
 
     try {
-      await createCategoryCap(formData);
+      if (editingCap) {
+        // Update existing cap
+        await updateCategoryCap(editingCap._id, {
+          monthly_limit: formData.monthly_limit,
+          alert_at_percentage: formData.alert_at_percentage,
+        });
+      } else {
+        // Create new cap
+        await createCategoryCap(formData);
+      }
       await loadCaps();
       setFormOpen(false);
       setFormData({ category_id: '', monthly_limit: 0, alert_at_percentage: 80 });
@@ -98,10 +107,15 @@ export default function CategoryCapSection({ categories = [], onCapChange }: Cat
 
   const handleDelete = async () => {
     if (!capToDelete) return;
-    // Note: Delete endpoint may need to be added to API
-    // For now, we'll show an error
-    setError('Delete functionality will be available soon');
-    setDeleteDialogOpen(false);
+    try {
+      await deleteCategoryCap(capToDelete);
+      setDeleteDialogOpen(false);
+      setCapToDelete(null);
+      await loadCaps();
+      onCapChange?.();
+    } catch (err: any) {
+      setError(err.message || 'Failed to delete category cap');
+    }
   };
 
   const availableCategories = (categories || []).filter((cat) => 

@@ -15,9 +15,11 @@ import {
   Chip,
   IconButton,
   Button,
+  CircularProgress,
+  Alert,
 } from '@mui/material';
 import {
-  Category,
+  Category as CategoryIcon,
   ArrowBack,
   TrendingUp,
   TrendingDown,
@@ -38,9 +40,11 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { generateDummyTransactions, DummyTransaction } from '../../lib/dummyData';
+import { listCategories, getCategoryAnalytics, getCategoryTrends } from '../../lib/api/financialApi';
+import { Category } from '../../types/financial';
 
 interface CategoryWithStats {
+  _id: string;
   name: string;
   totalSpent: number;
   transactionCount: number;
@@ -53,169 +57,167 @@ type TimePeriod = 'hour' | 'day' | 'week' | 'month' | 'year';
 
 export default function EnhancedCategorySection() {
   const { theme } = useTheme();
-  const [transactions, setTransactions] = useState<DummyTransaction[]>([]);
   const [categories, setCategories] = useState<CategoryWithStats[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<CategoryWithStats | null>(null);
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('month');
+  const [chartData, setChartData] = useState<Array<{ label: string; amount: number }>>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingChart, setLoadingChart] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
   }, []);
 
-  const loadData = () => {
-    const dummyTransactions = generateDummyTransactions(200);
-    setTransactions(dummyTransactions);
-
-    // Calculate category stats
-    const categoryMap = new Map<string, { total: number; count: number; transactions: DummyTransaction[] }>();
-
-    dummyTransactions.filter(t => t.type === 'expense').forEach(tx => {
-      if (!categoryMap.has(tx.category)) {
-        categoryMap.set(tx.category, { total: 0, count: 0, transactions: [] });
-      }
-      const cat = categoryMap.get(tx.category)!;
-      cat.total += tx.amount;
-      cat.count++;
-      cat.transactions.push(tx);
-    });
-
-    const categoriesWithStats: CategoryWithStats[] = Array.from(categoryMap.entries()).map(([name, data]) => {
-      // Calculate trend (compare last month vs previous month)
-      const now = new Date();
-      const lastMonth = new Date(now);
-      lastMonth.setMonth(now.getMonth() - 1);
-      const twoMonthsAgo = new Date(now);
-      twoMonthsAgo.setMonth(now.getMonth() - 2);
-
-      const lastMonthTotal = data.transactions
-        .filter(t => new Date(t.date) >= lastMonth && new Date(t.date) < now)
-        .reduce((sum, t) => sum + t.amount, 0);
-
-      const prevMonthTotal = data.transactions
-        .filter(t => new Date(t.date) >= twoMonthsAgo && new Date(t.date) < lastMonth)
-        .reduce((sum, t) => sum + t.amount, 0);
-
-      const trendPercentage = prevMonthTotal > 0 
-        ? ((lastMonthTotal - prevMonthTotal) / prevMonthTotal) * 100 
-        : 0;
-
-      const trend: 'up' | 'down' | 'stable' = 
-        trendPercentage > 5 ? 'up' : 
-        trendPercentage < -5 ? 'down' : 
-        'stable';
-
-      return {
-        name,
-        totalSpent: data.total,
-        transactionCount: data.count,
-        avgTransaction: data.total / data.count,
-        trend,
-        trendPercentage,
-      };
-    });
-
-    setCategories(categoriesWithStats.sort((a, b) => b.totalSpent - a.totalSpent));
-  };
-
-  const generateChartData = (category: string, period: TimePeriod) => {
-    const categoryTransactions = transactions.filter(
-      t => t.category === category && t.type === 'expense'
-    );
-
-    const now = new Date();
-    const data: { label: string; amount: number }[] = [];
-
-    switch (period) {
-      case 'hour':
-        // 24 hours
-        for (let i = 0; i < 24; i++) {
-          const hourTransactions = categoryTransactions.filter(t => {
-            const txDate = new Date(t.date);
-            return txDate.getHours() === i;
-          });
-          data.push({
-            label: `${i}:00`,
-            amount: hourTransactions.reduce((sum, t) => sum + t.amount, 0),
-          });
-        }
-        break;
-
-      case 'day':
-        // 7 days
-        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        for (let i = 0; i < 7; i++) {
-          const dayTransactions = categoryTransactions.filter(t => {
-            const txDate = new Date(t.date);
-            return txDate.getDay() === i;
-          });
-          data.push({
-            label: days[i],
-            amount: dayTransactions.reduce((sum, t) => sum + t.amount, 0),
-          });
-        }
-        break;
-
-      case 'week':
-        // Last 4 weeks
-        for (let i = 3; i >= 0; i--) {
-          const weekStart = new Date(now);
-          weekStart.setDate(now.getDate() - (i * 7) - 7);
-          const weekEnd = new Date(weekStart);
-          weekEnd.setDate(weekStart.getDate() + 7);
-
-          const weekTransactions = categoryTransactions.filter(t => {
-            const txDate = new Date(t.date);
-            return txDate >= weekStart && txDate < weekEnd;
-          });
-
-          data.push({
-            label: `Week ${4 - i}`,
-            amount: weekTransactions.reduce((sum, t) => sum + t.amount, 0),
-          });
-        }
-        break;
-
-      case 'month':
-        // Last 12 months
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        for (let i = 11; i >= 0; i--) {
-          const monthDate = new Date(now);
-          monthDate.setMonth(now.getMonth() - i);
-          const monthIndex = monthDate.getMonth();
-
-          const monthTransactions = categoryTransactions.filter(t => {
-            const txDate = new Date(t.date);
-            return txDate.getMonth() === monthIndex && txDate.getFullYear() === monthDate.getFullYear();
-          });
-
-          data.push({
-            label: months[monthIndex],
-            amount: monthTransactions.reduce((sum, t) => sum + t.amount, 0),
-          });
-        }
-        break;
-
-      case 'year':
-        // Last 3 years
-        for (let i = 2; i >= 0; i--) {
-          const year = now.getFullYear() - i;
-          const yearTransactions = categoryTransactions.filter(t => {
-            const txDate = new Date(t.date);
-            return txDate.getFullYear() === year;
-          });
-
-          data.push({
-            label: year.toString(),
-            amount: yearTransactions.reduce((sum, t) => sum + t.amount, 0),
-          });
-        }
-        break;
+  useEffect(() => {
+    if (selectedCategory) {
+      loadChartData();
+    } else {
+      setChartData([]);
     }
+  }, [selectedCategory, timePeriod]);
 
-    return data;
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const categoriesRes = await listCategories();
+      
+      if (categoriesRes.success && categoriesRes.categories) {
+        // Load analytics for each category
+        const categoriesWithStats = await Promise.all(
+          categoriesRes.categories.map(async (category: Category) => {
+            try {
+              const analyticsRes = await getCategoryAnalytics(category._id, { period: 'month' });
+              if (analyticsRes.success && analyticsRes.analytics) {
+                return {
+                  _id: category._id,
+                  name: category.category_name,
+                  totalSpent: analyticsRes.analytics.total_spent,
+                  transactionCount: analyticsRes.analytics.transaction_count,
+                  avgTransaction: analyticsRes.analytics.avg_transaction_amount,
+                  trend: analyticsRes.analytics.trend,
+                  trendPercentage: analyticsRes.analytics.trend_percentage,
+                };
+              }
+            } catch (err) {
+              console.error(`Failed to load analytics for category ${category._id}:`, err);
+            }
+            // Fallback if analytics fail
+            return {
+              _id: category._id,
+              name: category.category_name,
+              totalSpent: 0,
+              transactionCount: 0,
+              avgTransaction: 0,
+              trend: 'stable' as const,
+              trendPercentage: 0,
+            };
+          })
+        );
+        
+        setCategories(categoriesWithStats.sort((a, b) => b.totalSpent - a.totalSpent));
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to load categories');
+      console.error('Failed to load categories:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const chartData = selectedCategory ? generateChartData(selectedCategory.name, timePeriod) : [];
+  const formatPeriodLabel = (periodStart: string, periodType: TimePeriod): string => {
+    const date = new Date(periodStart);
+    
+    switch (periodType) {
+      case 'hour':
+        return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+      case 'day':
+        // Format as "Mon 25" or just day name for last 7 days
+        return date.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' });
+      case 'week':
+        // Format as "Week of Jan 25" or similar
+        const weekStart = new Date(date);
+        weekStart.setDate(date.getDate() - date.getDay()); // Start of week
+        return `Week ${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+      case 'month':
+        return date.toLocaleDateString('en-US', { month: 'short' });
+      case 'year':
+        return date.getFullYear().toString();
+      default:
+        return date.toLocaleDateString('en-US');
+    }
+  };
+
+  const loadChartData = async () => {
+    if (!selectedCategory) {
+      setChartData([]);
+      return;
+    }
+    
+    try {
+      setLoadingChart(true);
+      const trendsRes = await getCategoryTrends(selectedCategory._id, {
+        period: timePeriod,
+        months_back: timePeriod === 'month' ? 12 : undefined,
+      });
+      
+      if (trendsRes.success && trendsRes.trends && trendsRes.trends.spending_trend && Array.isArray(trendsRes.trends.spending_trend)) {
+        // Extract data from spending_trend array and format for charts
+        const normalizedData = trendsRes.trends.spending_trend.map((item) => {
+          // Determine amount based on what type of transactions exist
+          // For categories with both earnings and expenses, show net_amount
+          // For categories with only expenses, show total_expenses
+          // For categories with only earnings (income), show total_earnings
+          let amount = 0;
+          if (item.total_expenses > 0 && item.total_earnings > 0) {
+            // Mixed: show net (could be negative)
+            amount = Math.abs(item.net_amount);
+          } else if (item.total_expenses > 0) {
+            // Expense category
+            amount = item.total_expenses;
+          } else if (item.total_earnings > 0) {
+            // Income category
+            amount = item.total_earnings;
+          } else {
+            // Fallback to total_amount
+            amount = item.total_amount || 0;
+          }
+          
+          const label = formatPeriodLabel(item.period_start, timePeriod);
+          
+          return {
+            label: label,
+            amount: typeof amount === 'number' ? amount : 0,
+          };
+        });
+        setChartData(normalizedData);
+      } else {
+        setChartData([]);
+      }
+    } catch (err: any) {
+      console.error('Failed to load chart data:', err);
+      setChartData([]);
+    } finally {
+      setLoadingChart(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Alert severity="error">{error}</Alert>
+      </Box>
+    );
+  }
 
   if (selectedCategory) {
     return (
@@ -234,7 +236,7 @@ export default function EnhancedCategorySection() {
             <IconButton onClick={() => setSelectedCategory(null)}>
               <ArrowBack />
             </IconButton>
-            <Category sx={{ fontSize: 40, color: theme.palette.primary.main }} />
+            <CategoryIcon sx={{ fontSize: 40, color: theme.palette.primary.main }} />
             <Box sx={{ flex: 1 }}>
               <Typography variant="h5" sx={{ fontFamily: "'Inter', sans-serif", fontWeight: 600 }}>
                 {selectedCategory.name}
@@ -291,35 +293,41 @@ export default function EnhancedCategorySection() {
                   <Typography variant="subtitle1" fontWeight={600} gutterBottom>
                     Spending Trend
                   </Typography>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
-                      <XAxis 
-                        dataKey="label" 
-                        stroke={theme.palette.text.secondary}
-                        tick={{ fontSize: 12 }}
-                      />
-                      <YAxis 
-                        stroke={theme.palette.text.secondary}
-                        tick={{ fontSize: 12 }}
-                        tickFormatter={(value) => `Rs. ${value}`}
-                      />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: theme.palette.background.paper,
-                          border: `1px solid ${theme.palette.divider}`,
-                        }}
-                        formatter={(value: number) => [`Rs. ${value.toLocaleString()}`, 'Amount']}
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="amount" 
-                        stroke={theme.palette.primary.main} 
-                        strokeWidth={2}
-                        dot={{ fill: theme.palette.primary.main }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
+                  {loadingChart ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
+                      <CircularProgress />
+                    </Box>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={Array.isArray(chartData) ? chartData : []}>
+                        <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
+                        <XAxis 
+                          dataKey="label" 
+                          stroke={theme.palette.text.secondary}
+                          tick={{ fontSize: 12 }}
+                        />
+                        <YAxis 
+                          stroke={theme.palette.text.secondary}
+                          tick={{ fontSize: 12 }}
+                          tickFormatter={(value) => `Rs. ${value}`}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: theme.palette.background.paper,
+                            border: `1px solid ${theme.palette.divider}`,
+                          }}
+                          formatter={(value: number) => [`Rs. ${value.toLocaleString()}`, 'Amount']}
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="amount" 
+                          stroke={theme.palette.primary.main} 
+                          strokeWidth={2}
+                          dot={{ fill: theme.palette.primary.main }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  )}
                 </CardContent>
               </Card>
             </Grid>
@@ -331,33 +339,39 @@ export default function EnhancedCategorySection() {
                   <Typography variant="subtitle1" fontWeight={600} gutterBottom>
                     Spending Distribution
                   </Typography>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
-                      <XAxis 
-                        dataKey="label" 
-                        stroke={theme.palette.text.secondary}
-                        tick={{ fontSize: 12 }}
-                      />
-                      <YAxis 
-                        stroke={theme.palette.text.secondary}
-                        tick={{ fontSize: 12 }}
-                        tickFormatter={(value) => `Rs. ${value}`}
-                      />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: theme.palette.background.paper,
-                          border: `1px solid ${theme.palette.divider}`,
-                        }}
-                        formatter={(value: number) => [`Rs. ${value.toLocaleString()}`, 'Amount']}
-                      />
-                      <Bar 
-                        dataKey="amount" 
-                        fill={theme.palette.secondary.main}
-                        radius={[4, 4, 0, 0]}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  {loadingChart ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
+                      <CircularProgress />
+                    </Box>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={Array.isArray(chartData) ? chartData : []}>
+                        <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
+                        <XAxis 
+                          dataKey="label" 
+                          stroke={theme.palette.text.secondary}
+                          tick={{ fontSize: 12 }}
+                        />
+                        <YAxis 
+                          stroke={theme.palette.text.secondary}
+                          tick={{ fontSize: 12 }}
+                          tickFormatter={(value) => `Rs. ${value}`}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: theme.palette.background.paper,
+                            border: `1px solid ${theme.palette.divider}`,
+                          }}
+                          formatter={(value: number) => [`Rs. ${value.toLocaleString()}`, 'Amount']}
+                        />
+                        <Bar 
+                          dataKey="amount" 
+                          fill={theme.palette.secondary.main}
+                          radius={[4, 4, 0, 0]}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
                 </CardContent>
               </Card>
             </Grid>
@@ -369,35 +383,41 @@ export default function EnhancedCategorySection() {
                   <Typography variant="subtitle1" fontWeight={600} gutterBottom>
                     Cumulative Spending
                   </Typography>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <AreaChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
-                      <XAxis 
-                        dataKey="label" 
-                        stroke={theme.palette.text.secondary}
-                        tick={{ fontSize: 12 }}
-                      />
-                      <YAxis 
-                        stroke={theme.palette.text.secondary}
-                        tick={{ fontSize: 12 }}
-                        tickFormatter={(value) => `Rs. ${value}`}
-                      />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: theme.palette.background.paper,
-                          border: `1px solid ${theme.palette.divider}`,
-                        }}
-                        formatter={(value: number) => [`Rs. ${value.toLocaleString()}`, 'Amount']}
-                      />
-                      <Area 
-                        type="monotone" 
-                        dataKey="amount" 
-                        stroke={theme.palette.success.main}
-                        fill={theme.palette.success.light}
-                        fillOpacity={0.3}
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
+                  {loadingChart ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
+                      <CircularProgress />
+                    </Box>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <AreaChart data={Array.isArray(chartData) ? chartData : []}>
+                        <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
+                        <XAxis 
+                          dataKey="label" 
+                          stroke={theme.palette.text.secondary}
+                          tick={{ fontSize: 12 }}
+                        />
+                        <YAxis 
+                          stroke={theme.palette.text.secondary}
+                          tick={{ fontSize: 12 }}
+                          tickFormatter={(value) => `Rs. ${value}`}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: theme.palette.background.paper,
+                            border: `1px solid ${theme.palette.divider}`,
+                          }}
+                          formatter={(value: number) => [`Rs. ${value.toLocaleString()}`, 'Amount']}
+                        />
+                        <Area 
+                          type="monotone" 
+                          dataKey="amount" 
+                          stroke={theme.palette.success.main}
+                          fill={theme.palette.success.light}
+                          fillOpacity={0.3}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  )}
                 </CardContent>
               </Card>
             </Grid>
@@ -457,7 +477,7 @@ export default function EnhancedCategorySection() {
               >
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                    <Category sx={{ fontSize: 32, color: theme.palette.primary.main }} />
+                    <CategoryIcon sx={{ fontSize: 32, color: theme.palette.primary.main }} />
                     <Box sx={{ flex: 1 }}>
                       <Typography variant="h6" sx={{ fontWeight: 600 }}>
                         {category.name}
